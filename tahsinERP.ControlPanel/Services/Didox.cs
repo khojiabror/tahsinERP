@@ -7,6 +7,7 @@ using System.Text.Json.Nodes;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using tahsinERP.ControlPanel.Data;
+using tahsinERP.ControlPanel.I18n;
 
 namespace tahsinERP.ControlPanel.Services;
 
@@ -273,13 +274,13 @@ public sealed class DidoxService(ControlDbContext db, IDidoxClient client, Audit
 
     public async Task<Invoice> SendAsync(int invoiceId, int staffId, CancellationToken ct = default)
     {
-        if (!Enabled) throw new DomainException("Didox sozlanmagan: " + string.Join(", ", Missing) + ".");
+        if (!Enabled) throw new DomainException(L.T("Pnl_Didox_NotConfigured", string.Join(", ", Missing)));
         var inv = await db.Invoices.Include(i => i.Lines).Include(i => i.Tenant).FirstOrDefaultAsync(i => i.Id == invoiceId, ct)
-            ?? throw new DomainException("Hisob-faktura topilmadi.");
-        if (inv.DidoxId is not null) throw new DomainException($"Hisob-faktura Didox'ga allaqachon yuborilgan (ID {inv.DidoxId}).");
-        if (!CanSend(inv)) throw new DomainException("Faqat chiqarilgan (raqamli) va bekor qilinmagan hisob-faktura yuboriladi.");
+            ?? throw new DomainException(L.T("Pnl_Err_InvoiceNotFound"));
+        if (inv.DidoxId is not null) throw new DomainException(L.T("Pnl_Didox_AlreadySent", inv.DidoxId));
+        if (!CanSend(inv)) throw new DomainException(L.T("Pnl_Didox_OnlyIssued"));
         if (TenantService.ValidateInn(inv.Tenant!.Inn) is not null || inv.Tenant.Inn is null)
-            throw new DomainException("Tashkilot STIR'i (9 yoki 14 raqam) kiritilmagan — Didox xaridorni STIR bo'yicha topadi.");
+            throw new DomainException(L.T("Pnl_Didox_NoInn"));
         var payload = BuildPayload(inv, inv.Tenant, vendor.Value, options.Value);
         try
         {

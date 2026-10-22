@@ -1,28 +1,28 @@
 @page
 @model IndexModel
 @{
-    ViewData["Title"] = "Bosh sahifa";
+    ViewData["Title"] = L.T("Home");
     var d = Model.Data;
     long max = Math.Max(1, d.Revenue.Max(r => r.AmountTiyin));
 }
-<h1>Bosh sahifa</h1>
+<h1>@L.T("Home")</h1>
 <div class="grid">
-    <div class="stat"><span class="stat-ic"><svg class="i"><use href="#i-building" /></svg></span><div class="l">Faol tenantlar</div><div class="v">@Model.Count(TenantStatus.Active)</div><div class="hint">SaaS @d.SaasCount · On-prem @d.OnPremCount</div></div>
-    <div class="stat"><span class="stat-ic violet"><svg class="i"><use href="#i-clock" /></svg></span><div class="l">Sinovda</div><div class="v">@Model.Count(TenantStatus.Trial)</div></div>
-    <div class="stat"><span class="stat-ic warn"><svg class="i"><use href="#i-pause" /></svg></span><div class="l">Imtiyozli / to'xtatilgan</div><div class="v">@Model.Count(TenantStatus.Grace) / @Model.Count(TenantStatus.Suspended)</div></div>
-    <div class="stat"><span class="stat-ic bad"><svg class="i"><use href="#i-wallet" /></svg></span><div class="l">To'lanmagan jami</div><div class="v">@Money.Format(d.UnpaidTotalTiyin)</div><div class="hint">so'm, QQS bilan</div></div>
-    <div class="stat"><span class="stat-ic teal"><svg class="i"><use href="#i-unlink" /></svg></span><div class="l">ERP'ga bog'lanmagan</div><div class="v">@Model.UnboundCount</div><div class="hint">reg_token kutilmoqda</div></div>
+    <div class="stat"><span class="stat-ic"><svg class="i"><use href="#i-building" /></svg></span><div class="l">@L.T("Pnl_Dash_ActiveTenants")</div><div class="v">@Model.Count(TenantStatus.Active)</div><div class="hint">SaaS @d.SaasCount · On-prem @d.OnPremCount</div></div>
+    <div class="stat"><span class="stat-ic violet"><svg class="i"><use href="#i-clock" /></svg></span><div class="l">@L.T("Pnl_Dash_InTrial")</div><div class="v">@Model.Count(TenantStatus.Trial)</div></div>
+    <div class="stat"><span class="stat-ic warn"><svg class="i"><use href="#i-pause" /></svg></span><div class="l">@L.T("Pnl_Dash_GraceSuspended")</div><div class="v">@Model.Count(TenantStatus.Grace) / @Model.Count(TenantStatus.Suspended)</div></div>
+    <div class="stat"><span class="stat-ic bad"><svg class="i"><use href="#i-wallet" /></svg></span><div class="l">@L.T("Pnl_Dash_UnpaidTotal")</div><div class="v">@Money.Format(d.UnpaidTotalTiyin)</div><div class="hint">@L.T("Pnl_Dash_SumWithVat")</div></div>
+    <div class="stat"><span class="stat-ic teal"><svg class="i"><use href="#i-unlink" /></svg></span><div class="l">@L.T("Pnl_Dash_Unbound")</div><div class="v">@Model.UnboundCount</div><div class="hint">@L.T("Pnl_Dash_RegTokenWaiting")</div></div>
 </div>
 @if (d.OfflineOnPrem.Count > 0)
 {
     <div class="card">
-        <h2>On-prem: panel bilan aloqa yo'q</h2>
+        <h2>@L.T("Pnl_Dash_OfflineOnPrem")</h2>
         <table>
-            <tr><th>Tashkilot</th><th>Onlayn tekshiruv</th><th>Oxirgi pull (UTC)</th><th class="num">Kun</th></tr>
+            <tr><th>@L.T("Pnl_Organization")</th><th>@L.T("Pnl_Dash_OnlineCheck")</th><th>@L.T("Pnl_Dash_LastPullUtc")</th><th class="num">@L.T("Pnl_Days")</th></tr>
             @foreach (var r in d.OfflineOnPrem)
             {
                 <tr><td><a href="/Tenants/Details/@r.TenantId">@r.LegalName</a> <span class="hint">@r.Slug</span></td>
-                    <td>@(r.Required ? $"majburiy (kalit ≤ {r.GraceDays} kun)" : "ixtiyoriy")</td>
+                    <td>@(r.Required ? L.T("Pnl_Dash_OnlineRequired", r.GraceDays) : L.T("Optional"))</td>
                     <td>@(r.LastSeenUtc?.ToString("dd.MM.yyyy HH:mm") ?? "—")</td><td class="num">@r.DaysSilent</td></tr>
             }
         </table>
@@ -30,16 +30,16 @@
 }
 @if (Model.FailedNotifications > 0)
 {
-    <div class="flash bad">@Model.FailedNotifications ta eslatma yuborilmadi — <a href="/Notifications">Eslatmalar</a>.</div>
+    <div class="flash bad">@L.T("Pnl_Dash_FailedNotifications", Model.FailedNotifications) — <a href="/Notifications">@L.T("Pnl_NavNotifications")</a>.</div>
 }
 <div class="cols">
     <div class="card">
-        <h2>Qarzdorlar (to'lov muddati o'tgan)</h2>
-        @if (d.Debtors.Count == 0) { <div class="empty">Qarzdor yo'q.</div> }
+        <h2>@L.T("Pnl_Dash_Debtors")</h2>
+        @if (d.Debtors.Count == 0) { <div class="empty">@L.T("Pnl_Dash_NoDebtors")</div> }
         else
         {
             <table>
-                <tr><th>Tashkilot</th><th class="num">Hisob-faktura</th><th class="num">Qarz, so'm</th><th>Eng eski muddat</th></tr>
+                <tr><th>@L.T("Pnl_Organization")</th><th class="num">@L.T("Pnl_Invoice")</th><th class="num">@L.T("Pnl_Dash_DebtSom")</th><th>@L.T("Pnl_Dash_OldestDue")</th></tr>
                 @foreach (var r in d.Debtors)
                 {
                     <tr><td><a href="/Tenants/Details/@r.TenantId">@r.LegalName</a> <span class="hint">@r.Slug</span></td>
@@ -49,41 +49,41 @@
         }
     </div>
     <div class="card">
-        <h2>Muddati yaqinlashganlar (14 kun)</h2>
-        @if (d.Expiring.Count == 0) { <div class="empty">Yo'q.</div> }
+        <h2>@L.T("Pnl_Dash_Expiring")</h2>
+        @if (d.Expiring.Count == 0) { <div class="empty">@L.T("Pnl_None")</div> }
         else
         {
             <table>
-                <tr><th>Tashkilot</th><th>Paket</th><th>Tugaydi</th><th class="num">Qoldi</th></tr>
+                <tr><th>@L.T("Pnl_Organization")</th><th>@L.T("Pnl_Package")</th><th>@L.T("Pnl_Dash_Ends")</th><th class="num">@L.T("Pnl_Dash_Left")</th></tr>
                 @foreach (var r in d.Expiring)
                 {
                     <tr><td><a href="/Tenants/Details/@r.TenantId">@r.LegalName</a> <span class="badge @Labels.Badge(r.Status)">@Labels.Of(r.Status)</span></td>
                         <td>@r.Plan</td><td>@r.EndDate.ToString("dd.MM.yyyy")</td>
-                        <td class="num">@(r.DaysLeft < 0 ? $"{-r.DaysLeft} kun o'tdi" : $"{r.DaysLeft} kun")</td></tr>
+                        <td class="num">@(r.DaysLeft < 0 ? L.T("Pnl_DaysOverdue", -r.DaysLeft) : L.T("Pnl_DaysCount", r.DaysLeft))</td></tr>
                 }
             </table>
         }
     </div>
 </div>
 <div class="card">
-    <h2>Faol emas sinovlar (3+ kun kirilmagan)</h2>
-    @if (Model.InactiveTrials.Count == 0) { <div class="empty">Yo'q.</div> }
+    <h2>@L.T("Pnl_Dash_InactiveTrials")</h2>
+    @if (Model.InactiveTrials.Count == 0) { <div class="empty">@L.T("Pnl_None")</div> }
     else
     {
         <table>
-            <tr><th>Tashkilot</th><th>Oxirgi kirish (UTC)</th><th class="num">Kun</th><th></th></tr>
+            <tr><th>@L.T("Pnl_Organization")</th><th>@L.T("Pnl_LastLoginUtc")</th><th class="num">@L.T("Pnl_Days")</th><th></th></tr>
             @foreach (var x in Model.InactiveTrials)
             {
                 <tr><td><a href="/Tenants/Details/@x.Tenant.Id">@x.Tenant.LegalName</a> <code>@x.Tenant.Slug</code></td>
-                    <td>@(x.LastLoginUtc?.ToString("dd.MM.yyyy HH:mm") ?? "umuman kirmagan")</td><td class="num">@x.DaysIdle</td>
-                    <td><a href="/Tenants/Activity/@x.Tenant.Id">faollik</a></td></tr>
+                    <td>@(x.LastLoginUtc?.ToString("dd.MM.yyyy HH:mm") ?? L.T("Pnl_NeverLoggedIn"))</td><td class="num">@x.DaysIdle</td>
+                    <td><a href="/Tenants/Activity/@x.Tenant.Id">@L.T("Pnl_ActivityLink")</a></td></tr>
             }
         </table>
     }
 </div>
 <div class="card">
-    <h2>Oylik tushum (storno qilinmagan to'lovlar, to'lov sanasi bo'yicha)</h2>
-    <svg viewBox="0 0 600 160" width="100%" height="180" role="img" aria-label="Oylik tushum">
+    <h2>@L.T("Pnl_Dash_MonthlyRevenueTitle")</h2>
+    <svg viewBox="0 0 600 160" width="100%" height="180" role="img" aria-label="@L.T("Pnl_Dash_MonthlyRevenue")">
         <defs><linearGradient id="bar-grad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5b7cff" /><stop offset="1" stop-color="#3b5bfd" stop-opacity=".35" /></linearGradient></defs>
         <line x1="0" y1="125.5" x2="600" y2="125.5" class="grid-line" />
         @for (int i = 0; i < d.Revenue.Count; i++)
@@ -97,7 +97,7 @@
         }
     </svg>
     <table>
-        <tr><th>Oy</th><th class="num">To'lovlar soni</th><th class="num">Tushum, so'm</th></tr>
+        <tr><th>@L.T("Pnl_Month")</th><th class="num">@L.T("Pnl_Dash_PaymentCount")</th><th class="num">@L.T("Pnl_Dash_RevenueSom")</th></tr>
         @foreach (var r in d.Revenue.AsEnumerable().Reverse())
         {
             <tr><td>@Labels.Month(r.Month) @r.Year</td><td class="num">@r.Count</td><td class="num">@Money.Format(r.AmountTiyin)</td></tr>

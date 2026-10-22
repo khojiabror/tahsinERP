@@ -10,21 +10,22 @@ using tahsinERP.ControlPanel.Services;
 using tahsinERP.ControlPanel.Hosting;
 using tahsinERP.ControlPanel.Portal;
 using Microsoft.Extensions.Options;
+using tahsinERP.ControlPanel.I18n;
 
 namespace tahsinERP.ControlPanel.Pages.Tenants;
 
 public class TenantInput
 {
-    [Required(ErrorMessage = "Slug majburiy"), StringLength(63)] public string Slug { get; set; } = "";
-    [Required(ErrorMessage = "Yuridik nom majburiy"), StringLength(300)] public string LegalName { get; set; } = "";
+    [Required(ErrorMessageResourceType = typeof(PnlVal), ErrorMessageResourceName = nameof(PnlVal.SlugRequired)), StringLength(63)] public string Slug { get; set; } = "";
+    [Required(ErrorMessageResourceType = typeof(PnlVal), ErrorMessageResourceName = nameof(PnlVal.LegalNameRequired)), StringLength(300)] public string LegalName { get; set; } = "";
     [StringLength(14)] public string? Inn { get; set; }
     [StringLength(200)] public string? ContactName { get; set; }
     [StringLength(50)] public string? Phone { get; set; }
-    [StringLength(200), EmailAddress(ErrorMessage = "Email noto'g'ri")] public string? Email { get; set; }
+    [StringLength(200), EmailAddress(ErrorMessageResourceType = typeof(PnlVal), ErrorMessageResourceName = nameof(PnlVal.EmailInvalid))] public string? Email { get; set; }
     [StringLength(50)] public string? TelegramChatId { get; set; }
     [StringLength(500)] public string? Address { get; set; }
     public DeploymentKind Deployment { get; set; } = DeploymentKind.SaaS;
-    [Range(1, int.MaxValue, ErrorMessage = "Musbat son")] public int CompanyId { get; set; } = 1;
+    [Range(1, int.MaxValue, ErrorMessageResourceType = typeof(PnlVal), ErrorMessageResourceName = nameof(PnlVal.PositiveNumber))] public int CompanyId { get; set; } = 1;
     [StringLength(128)] public string? DbName { get; set; }
     public int? ServerId { get; set; }
     [StringLength(2000)] public string? Notes { get; set; }
@@ -99,7 +100,7 @@ public class CreateModel(ControlDbContext db, TenantService tenants) : PanelPage
         var t = new Tenant();
         Input.ApplyTo(t, includeSlug: true);
         if (!await TryAsync(() => tenants.CreateAsync(t, StartTrial))) return Page();
-        FlashOk = $"«{t.LegalName}» yaratildi." + (StartTrial ? " 14 kunlik sinov boshlandi." : "");
+        FlashOk = L.T("Pnl_Ten_Created", t.LegalName) + (StartTrial ? " " + L.T("Pnl_Ten_TrialStarted") : "");
         return RedirectToPage("Details", new { id = t.Id });
     }
 }
@@ -131,26 +132,26 @@ public class EditModel(ControlDbContext db, TenantService tenants, LicenseIssuer
         if (!ModelState.IsValid) return Page();
         if (t.InstallationId != null && Input.CompanyId != t.CompanyId)
         {
-            ModelState.AddModelError(string.Empty, "CompanyID ERP ro'yxatdan o'tganda olingan — o'zgartirsangiz kalit ERP'da rad etiladi.");
+            ModelState.AddModelError(string.Empty, L.T("Pnl_Ten_CompanyIdLocked"));
             return Page();
         }
         var before = tenants.TakeSnapshot(t);
         var policyBefore = (t.OnlineCheck, t.OfflineGraceDays);
         Input.ApplyTo(t, includeSlug: false);
         if (!await TryAsync(() => tenants.UpdateAsync(t, before))) return Page();
-        FlashOk = "Saqlandi.";
+        FlashOk = L.T("Pnl_SavedDot");
         // Onlayn tekshiruv siyosati o'zgardi — kalit yangi qoidaga moslanadi (Required: qisqa aylanma kalit; ERP keyingi pull'da oladi).
         if (t.Deployment == DeploymentKind.OnPrem && t.InstallationId != null && policyBefore != (t.OnlineCheck, t.OfflineGraceDays))
         {
             try
             {
                 if (await issuer.EnsureForTenantAsync(t) is { } lic)
-                    FlashOk += $" Kalit siyosatga moslandi: #{lic.Id}, {lic.ExpiryDate:dd.MM.yyyy} gacha.";
+                    FlashOk += " " + L.T("Pnl_Ten_KeyAdjusted", lic.Id, lic.ExpiryDate.ToString("dd.MM.yyyy"));
             }
             catch (Exception ex) when (ex is DomainException or System.Security.Cryptography.CryptographicException or InvalidOperationException or NotSupportedException)
             {
                 log.LogError(ex, "Siyosat o'zgargach kalit chiqmadi (tenant {Tenant})", t.Slug);
-                FlashError = "Saqlandi, lekin kalit chiqmadi: " + ex.Message;
+                FlashError = L.T("Pnl_Ten_SavedNoKey", ex.Message);
             }
         }
         return RedirectToPage("Details", new { id });
@@ -266,7 +267,7 @@ public class DetailsModel(ControlDbContext db, TenantService tenants, LicenseIss
         BotAppStatus? s = null;
         if (await TryAsync(async () => s = await apps.ConnectBotAsync(Tenant, BotToken)))
         {
-            FlashOk = $"Bot ulandi: @{s!.BotUsername}. ERP → Distributsiya → Sozlamalar: «Telegram bot nomi» = {s.BotUsername}.";
+            FlashOk = L.T("Pnl_Ten_BotConnected", s!.BotUsername);
             return RedirectToPage(new { id });
         }
         BotToken = null;
@@ -274,11 +275,11 @@ public class DetailsModel(ControlDbContext db, TenantService tenants, LicenseIss
         return Page();
     }
 
-    public Task<IActionResult> OnPostBotDisableAsync(int id) => AppsActionAsync(id, () => apps.DisableBotAsync(Tenant), "Bot o'chirildi.");
+    public Task<IActionResult> OnPostBotDisableAsync(int id) => AppsActionAsync(id, () => apps.DisableBotAsync(Tenant), L.T("Pnl_Ten_BotDisabled"));
 
-    public Task<IActionResult> OnPostSiteEnableAsync(int id) => AppsActionAsync(id, () => apps.EnableSiteAsync(Tenant), "Sayt yoqildi — katalog 1 daqiqa ichida ERP'dan olinadi.");
+    public Task<IActionResult> OnPostSiteEnableAsync(int id) => AppsActionAsync(id, () => apps.EnableSiteAsync(Tenant), L.T("Pnl_Ten_SiteEnabled"));
 
-    public Task<IActionResult> OnPostSiteDisableAsync(int id) => AppsActionAsync(id, () => apps.DisableSiteAsync(Tenant), "Sayt o'chirildi.");
+    public Task<IActionResult> OnPostSiteDisableAsync(int id) => AppsActionAsync(id, () => apps.DisableSiteAsync(Tenant), L.T("Pnl_Ten_SiteDisabled"));
 
     private async Task<IActionResult> AppsActionAsync(int id, Func<Task> action, string ok)
     {
@@ -310,7 +311,7 @@ public class DetailsModel(ControlDbContext db, TenantService tenants, LicenseIss
         if (!CanSell || (NewStatus == TenantStatus.Archived && !IsOwner)) return Forbidden();
         if (await TryAsync(() => tenants.ChangeStatusAsync(Tenant, NewStatus, Reason)))
         {
-            FlashOk = $"Holat: {Labels.Of(NewStatus)}.";
+            FlashOk = L.T("Pnl_Ten_StatusSet", Labels.Of(NewStatus));
             return RedirectToPage(new { id });
         }
         return Page();
@@ -326,7 +327,7 @@ public class DetailsModel(ControlDbContext db, TenantService tenants, LicenseIss
         {
             if (r!.TempPassword is null)
             {
-                FlashOk = $"Yaratish jobi allaqachon navbatda (#{r.Job.Id}).";
+                FlashOk = L.T("Pnl_Ten_CreateJobQueued", r.Job.Id);
                 return RedirectToPage(new { id });
             }
             NewTempPassword = r.TempPassword;
@@ -335,15 +336,15 @@ public class DetailsModel(ControlDbContext db, TenantService tenants, LicenseIss
         return Page();
     }
 
-    public Task<IActionResult> OnPostSuspendAsync(int id) => RunAsync(id, false, t => provisioning.SuspendAsync(t, ProvisionReason), "To'xtatildi.");
+    public Task<IActionResult> OnPostSuspendAsync(int id) => RunAsync(id, false, t => provisioning.SuspendAsync(t, ProvisionReason), L.T("Pnl_Ten_Suspended"));
 
-    public Task<IActionResult> OnPostResumeAsync(int id) => RunAsync(id, false, t => provisioning.ResumeAsync(t, ProvisionReason), "Qayta yoqildi.");
+    public Task<IActionResult> OnPostResumeAsync(int id) => RunAsync(id, false, t => provisioning.ResumeAsync(t, ProvisionReason), L.T("Pnl_Ten_Resumed"));
 
     public Task<IActionResult> OnPostResetAsync(int id) => RunAsync(id, false,
-        async t => (await provisioning.EnqueueAsync(t, ProvisioningJobType.Reset, ProvisionReason ?? "Qo'lda")).Job, "Qayta tiklash navbatga qo'yildi.");
+        async t => (await provisioning.EnqueueAsync(t, ProvisioningJobType.Reset, ProvisionReason ?? "Qo'lda")).Job, L.T("Pnl_Ten_ResetQueued"));
 
     public Task<IActionResult> OnPostArchiveAsync(int id) => RunAsync(id, true,
-        async t => (await provisioning.EnqueueAsync(t, ProvisioningJobType.Archive, ProvisionReason)).Job, "Arxivlash navbatga qo'yildi.");
+        async t => (await provisioning.EnqueueAsync(t, ProvisioningJobType.Archive, ProvisionReason)).Job, L.T("Pnl_Ten_ArchiveQueued"));
 
     /// <summary>Sinovni muddatidan oldin yakunlash (Owner/Sales, sabab + slug tasdig'i, ixtiyoriy arxiv).</summary>
     public async Task<IActionResult> OnPostEndTrialAsync(int id)
@@ -353,8 +354,8 @@ public class DetailsModel(ControlDbContext db, TenantService tenants, LicenseIss
         ProvisioningJob? job = null;
         if (await TryAsync(async () => job = await provisioning.EndTrialAsync(Tenant, EndTrialReason, EndTrialConfirmSlug, EndTrialBackup)))
         {
-            FlashOk = job is null ? "Sinov yakunlandi (baza yaratilmagan edi) — tenant arxivlandi."
-                : $"Sinov yakunlanmoqda: kirish yopildi, baza o'chiriladi{(EndTrialBackup ? " (oldin .bak arxiv)" : "")}. Job #{job.Id}.";
+            FlashOk = job is null ? L.T("Pnl_Ten_TrialEndedNoDb")
+                : L.T(EndTrialBackup ? "Pnl_Ten_TrialEndingBackup" : "Pnl_Ten_TrialEnding", job.Id);
             return RedirectToPage(new { id });
         }
         await LoadAsync(id);
@@ -423,11 +424,11 @@ public class DetailsModel(ControlDbContext db, TenantService tenants, LicenseIss
             "role" => () => portalAuth.UpdateUserAsync(user, user.Role == PortalRole.Owner ? PortalRole.Viewer : PortalRole.Owner, user.IsActive, StaffId),
             "active" => () => portalAuth.UpdateUserAsync(user, user.Role, !user.IsActive, StaffId),
             "telegram" => () => portalAuth.UnlinkTelegramAsync(user, StaffId),
-            _ => () => throw new DomainException("Noma'lum amal."),
+            _ => () => throw new DomainException(L.T("Pnl_Ten_UnknownAction")),
         };
         if (await TryAsync(action))
         {
-            FlashOk = "Portal foydalanuvchisi yangilandi (uning sessiyalari yopildi).";
+            FlashOk = L.T("Pnl_Ten_PortalUserUpdated");
             return RedirectToPage(new { id });
         }
         await LoadAsync(id);
@@ -446,10 +447,10 @@ public class DetailsModel(ControlDbContext db, TenantService tenants, LicenseIss
         }
         catch (Exception ex) when (ex is System.Security.Cryptography.CryptographicException or InvalidOperationException or NotSupportedException)
         {
-            FlashError = "Kalit chiqmadi: " + ex.Message;
+            FlashError = L.T("Pnl_Ten_KeyNotIssued", ex.Message);
             return RedirectToPage(new { id });
         }
-        FlashOk = issued is null ? "Joriy kalit obunaga mos — yangi kalit kerak emas (yoki tenant bog'lanmagan / faol obuna yo'q)." : $"Yangi kalit chiqarildi (#{issued.Id}).";
+        FlashOk = issued is null ? L.T("Pnl_Ten_KeyUpToDate") : L.T("Pnl_Ten_NewKeyIssued", issued.Id);
         return RedirectToPage(new { id });
     }
 }
@@ -460,7 +461,7 @@ internal static class ServerList
     {
         var list = await db.Servers.Where(s => s.IsActive).OrderBy(s => s.Name)
             .Select(s => new SelectListItem(s.Name + " (" + s.Host + ")", s.Id.ToString())).ToListAsync();
-        list.Insert(0, new SelectListItem("— tanlanmagan —", ""));
+        list.Insert(0, new SelectListItem("— " + L.T("Pnl_NotSelected") + " —", ""));
         return list;
     }
 }
@@ -498,13 +499,13 @@ public class DeleteModel(ControlDbContext db, ProvisioningService provisioning) 
     {
         if (!await LoadAsync(id)) return NotFound();
         if (Tenant.Status != TenantStatus.Archived)
-            ModelState.AddModelError(string.Empty, "O'chirish faqat arxivlangan tenant uchun.");
+            ModelState.AddModelError(string.Empty, L.T("Pnl_Ten_DeleteOnlyArchived"));
         if (!string.Equals(ConfirmSlug?.Trim(), Tenant.Slug, StringComparison.Ordinal))
-            ModelState.AddModelError(nameof(ConfirmSlug), "Slug mos kelmadi.");
+            ModelState.AddModelError(nameof(ConfirmSlug), L.T("Pnl_Ten_SlugMismatch"));
         if (string.IsNullOrWhiteSpace(Reason))
-            ModelState.AddModelError(nameof(Reason), "Sabab majburiy.");
+            ModelState.AddModelError(nameof(Reason), L.T("Pnl_Sub_ReasonRequired"));
         if (!Understand)
-            ModelState.AddModelError(nameof(Understand), "Tasdiqlang.");
+            ModelState.AddModelError(nameof(Understand), L.T("Pnl_Ten_PleaseConfirm"));
         if (!ModelState.IsValid) { Step = 1; return Page(); }
         if (Step < 2)
         {
@@ -513,7 +514,7 @@ public class DeleteModel(ControlDbContext db, ProvisioningService provisioning) 
         }
         ProvisioningJob? job = null;
         if (!await TryAsync(async () => job = (await provisioning.EnqueueAsync(Tenant, ProvisioningJobType.Delete, Reason)).Job)) { Step = 1; return Page(); }
-        FlashOk = $"O'chirish navbatga qo'yildi (job #{job!.Id}).";
+        FlashOk = L.T("Pnl_Ten_DeleteQueued", job!.Id);
         return RedirectToPage("Details", new { id });
     }
 }
@@ -527,12 +528,12 @@ public class TrialModel(ControlDbContext db, TenantService tenants, Provisioning
 {
     public class TrialInput
     {
-        [Required(ErrorMessage = "Slug majburiy"), StringLength(63)] public string Slug { get; set; } = "";
-        [Required(ErrorMessage = "Yuridik nom majburiy"), StringLength(300)] public string LegalName { get; set; } = "";
+        [Required(ErrorMessageResourceType = typeof(PnlVal), ErrorMessageResourceName = nameof(PnlVal.SlugRequired)), StringLength(63)] public string Slug { get; set; } = "";
+        [Required(ErrorMessageResourceType = typeof(PnlVal), ErrorMessageResourceName = nameof(PnlVal.LegalNameRequired)), StringLength(300)] public string LegalName { get; set; } = "";
         [StringLength(14)] public string? Inn { get; set; }
         [StringLength(200)] public string? ContactName { get; set; }
         [StringLength(50)] public string? Phone { get; set; }
-        [StringLength(200), EmailAddress(ErrorMessage = "Email noto'g'ri")] public string? Email { get; set; }
+        [StringLength(200), EmailAddress(ErrorMessageResourceType = typeof(PnlVal), ErrorMessageResourceName = nameof(PnlVal.EmailInvalid))] public string? Email { get; set; }
         [StringLength(50)] public string? TelegramChatId { get; set; }
         public int? ServerId { get; set; }
         /// <summary>Namuna ma'lumotlar bilan (Database/Demo): mijoz bo'sh emas, to'ldirilgan tizimni ko'radi.</summary>
@@ -561,14 +562,14 @@ public class TrialModel(ControlDbContext db, TenantService tenants, Provisioning
         if (!await TryAsync(async () =>
             {
                 if (t.ServerId is null)
-                    t.ServerId = (await provisioning.PickServerAsync())?.Id ?? throw new DomainException("Bo'sh joyi bor faol server yo'q (Serverlar bo'limi).");
+                    t.ServerId = (await provisioning.PickServerAsync())?.Id ?? throw new DomainException(L.T("Pnl_Ten_NoFreeServer"));
                 await tenants.CreateAsync(t, startTrial: true);
             }))
             return Page();
         ProvisioningService.EnqueueResult? r = null;
         if (!await TryAsync(async () => r = await provisioning.EnqueueAsync(t, ProvisioningJobType.Create)))
         {
-            FlashError = "Tashkilot va sinov obunasi yaratildi, lekin baza jobi qo'shilmadi: " +
+            FlashError = L.T("Pnl_Ten_CreatedNoJob") + " " +
                          string.Join(" ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
             return RedirectToPage("Details", new { id = t.Id });
         }

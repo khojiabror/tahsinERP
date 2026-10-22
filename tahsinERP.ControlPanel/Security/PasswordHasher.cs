@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Security.Cryptography;
+using tahsinERP.ControlPanel.I18n;
 
 namespace tahsinERP.ControlPanel.Security;
 
@@ -55,9 +56,9 @@ public static class PasswordHasher
     public static string? ValidatePolicy(string? password)
     {
         if (string.IsNullOrEmpty(password) || password.Length < MinPasswordLength)
-            return $"Parol kamida {MinPasswordLength} belgidan iborat bo'lsin.";
+            return L.T("Pnl_Pwd_MinLength", MinPasswordLength);
         if (!password.Any(char.IsLetter) || !password.Any(char.IsDigit))
-            return "Parolda harf ham, raqam ham bo'lsin.";
+            return L.T("Pnl_Pwd_LettersDigits");
         return null;
     }
 }

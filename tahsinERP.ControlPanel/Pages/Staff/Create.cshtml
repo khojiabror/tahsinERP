@@ -1,17 +1,17 @@
 @page
 @model tahsinERP.ControlPanel.Pages.Staff.CreateModel
-@{ ViewData["Title"] = "Yangi xodim"; }
-<h1>Yangi xodim</h1>
+@{ ViewData["Title"] = L.T("Pnl_Staff_New"); }
+<h1>@L.T("Pnl_Staff_New")</h1>
 <form method="post" class="stack card">
     <div asp-validation-summary="All"></div>
     <div class="row">
         <div><label asp-for="Email">Email</label><input asp-for="Email" type="email" /></div>
-        <div><label asp-for="FullName">Ism familiya</label><input asp-for="FullName" type="text" /></div>
+        <div><label asp-for="FullName">@L.T("Pnl_FullName")</label><input asp-for="FullName" type="text" /></div>
     </div>
     <div class="row">
-        <div><label asp-for="Role">Rol</label>
+        <div><label asp-for="Role">@L.T("Pnl_Role")</label>
             <select asp-for="Role">@foreach (var r in Enum.GetValues<StaffRole>()) { <option value="@r">@Labels.Of(r)</option> }</select></div>
-        <div><label asp-for="Password">Vaqtinchalik parol</label><input asp-for="Password" autocomplete="new-password" /><div class="hint">Kamida 12 belgi, harf va raqam.</div></div>
+        <div><label asp-for="Password">@L.T("Pnl_Val_TempPassword")</label><input asp-for="Password" autocomplete="new-password" /><div class="hint">@L.T("Pnl_Acc_PasswordPolicyHint")</div></div>
     </div>
-    <div class="actions"><button type="submit">Qo'shish</button><a class="btn secondary" href="/Staff">Bekor</a></div>
+    <div class="actions"><button type="submit">@L.T("Add")</button><a class="btn secondary" href="/Staff">@L.T("Pnl_CancelShort")</a></div>
 </form>

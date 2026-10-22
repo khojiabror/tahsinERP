@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using tahsinERP.ControlPanel.Data;
 using tahsinERP.ControlPanel.Services;
 using tahsinERP.ControlPanel.Services.Bank;
+using tahsinERP.ControlPanel.I18n;
 
 namespace tahsinERP.ControlPanel.Pages.Bank;
 
@@ -34,13 +35,13 @@ public class IndexModel(ControlDbContext db, BankImportService bank) : PanelPage
     {
         if (Upload is null || Upload.Length == 0)
         {
-            ModelState.AddModelError(nameof(Upload), "Faylni tanlang.");
+            ModelState.AddModelError(nameof(Upload), L.T("Pnl_Bank_SelectFile"));
             await OnGetAsync();
             return Page();
         }
         if (Upload.Length > BankStatementParser.MaxBytes)
         {
-            ModelState.AddModelError(nameof(Upload), "Fayl juda katta (ko'pi bilan 5 MB).");
+            ModelState.AddModelError(nameof(Upload), L.T("Pnl_Bank_FileTooLarge"));
             await OnGetAsync();
             return Page();
         }
@@ -53,7 +54,7 @@ public class IndexModel(ControlDbContext db, BankImportService bank) : PanelPage
             await OnGetAsync();
             return Page();
         }
-        FlashOk = $"Yuklandi: {import!.Lines.Count} qator. Moslashni tekshirib, «Tanlanganlarni qo'llash» tugmasini bosing.";
+        FlashOk = L.T("Pnl_Bank_Uploaded", import!.Lines.Count);
         if (warnings.Count > 0)
             FlashError = string.Join(" ", warnings.Take(5)) + (warnings.Count > 5 ? $" (+{warnings.Count - 5})" : "");
         return RedirectToPage("Details", new { id = import.Id });
@@ -85,15 +86,15 @@ public class DetailsModel(ControlDbContext db, BankImportService bank) : PanelPa
         if (!await LoadAsync(id)) return NotFound();
         if (Selected.Count == 0)
         {
-            FlashError = "Hech qaysi qator tanlanmagan.";
+            FlashError = L.T("Pnl_Bank_NothingSelected");
             return RedirectToPage(new { id });
         }
         var results = await bank.ApplyAsync(id, Selected, StaffId);
         int ok = results.Count(r => r.Ok);
-        FlashOk = $"Qo'llandi: {ok} ta. " + string.Join("; ", results.Where(r => r.Ok).Take(10).Select(r => $"{r.LineNo}-qator: {r.Message}"));
+        FlashOk = L.T("Pnl_Bank_AppliedCount", ok) + " " + string.Join("; ", results.Where(r => r.Ok).Take(10).Select(r => L.T("Pnl_RowMessage", r.LineNo, r.Message)));
         var failed = results.Where(r => !r.Ok).ToList();
         if (failed.Count > 0)
-            FlashError = $"Qo'llanmadi: {failed.Count} ta. " + string.Join("; ", failed.Take(10).Select(r => $"{r.LineNo}-qator: {r.Message}"));
+            FlashError = L.T("Pnl_Bank_FailedCount", failed.Count) + " " + string.Join("; ", failed.Take(10).Select(r => L.T("Pnl_RowMessage", r.LineNo, r.Message)));
         return RedirectToPage(new { id });
     }
 
@@ -101,7 +102,7 @@ public class DetailsModel(ControlDbContext db, BankImportService bank) : PanelPa
     {
         if (!await LoadAsync(id)) return NotFound();
         if (!await TryAsync(() => bank.AssignAsync(LineId, InvoiceNumber, StaffId))) return Page();
-        FlashOk = string.IsNullOrWhiteSpace(InvoiceNumber) ? "Qator qayta moslandi." : "Hisob-faktura tanlandi.";
+        FlashOk = string.IsNullOrWhiteSpace(InvoiceNumber) ? L.T("Pnl_Bank_Rematched") : L.T("Pnl_Bank_InvoiceChosen");
         return RedirectToPage(new { id });
     }
 
@@ -109,18 +110,18 @@ public class DetailsModel(ControlDbContext db, BankImportService bank) : PanelPa
     {
         if (!await LoadAsync(id)) return NotFound();
         if (!await TryAsync(() => bank.SkipAsync(LineId, StaffId))) return Page();
-        FlashOk = "Qator o'tkazib yuborildi.";
+        FlashOk = L.T("Pnl_Bank_LineSkipped");
         return RedirectToPage(new { id });
     }
 
     public static string Of(BankMatchStatus s) => s switch
     {
-        BankMatchStatus.Matched => "Mos",
-        BankMatchStatus.Ambiguous => "Bir nechta",
-        BankMatchStatus.Unmatched => "Topilmadi",
-        BankMatchStatus.Duplicate => "Takror",
-        BankMatchStatus.NotIncoming => "Chiqim",
-        _ => "To'sib qo'yilgan",
+        BankMatchStatus.Matched => L.T("Pnl_BankMatch_Matched"),
+        BankMatchStatus.Ambiguous => L.T("Pnl_BankMatch_Ambiguous"),
+        BankMatchStatus.Unmatched => L.T("Pnl_BankMatch_Unmatched"),
+        BankMatchStatus.Duplicate => L.T("Pnl_BankMatch_Duplicate"),
+        BankMatchStatus.NotIncoming => L.T("Pnl_BankMatch_NotIncoming"),
+        _ => L.T("Pnl_BankMatch_Blocked"),
     };
 
     public static string Badge(BankMatchStatus s) => s switch
@@ -130,11 +131,11 @@ public class DetailsModel(ControlDbContext db, BankImportService bank) : PanelPa
 
     public static string Of(BankLineState s) => s switch
     {
-        BankLineState.Pending => "Kutilmoqda",
-        BankLineState.Applied => "Qo'llandi",
-        BankLineState.Skipped => "O'tkazildi",
-        BankLineState.Applying => "Jarayonda (to'lovlarni tekshiring)",
-        _ => "Xato",
+        BankLineState.Pending => L.T("Pnl_BankLine_Pending"),
+        BankLineState.Applied => L.T("Pnl_BankLine_Applied"),
+        BankLineState.Skipped => L.T("Pnl_BankLine_Skipped"),
+        BankLineState.Applying => L.T("Pnl_BankLine_Applying"),
+        _ => L.T("Pnl_JobStatus_Failed"),
     };
 
     public static bool CanApply(BankImportLine l) =>

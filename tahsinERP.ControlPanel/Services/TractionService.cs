@@ -3,6 +3,7 @@ using Microsoft.Extensions.Options;
 using tahsinERP.ControlPanel.Data;
 using tahsinERP.ControlPanel.Licensing;
 using tahsinERP.Services.Editions;
+using tahsinERP.ControlPanel.I18n;
 
 namespace tahsinERP.ControlPanel.Services;
 
@@ -45,8 +46,8 @@ public sealed class TractionService(ControlDbContext db, Clock clock, Provisioni
 
     public static string DocLabel(string t) => t switch
     {
-        "SALES_ORDER" => "Sotuv buyurtmasi", "PURCHASE_ORDER" => "Xarid buyurtmasi", "INCOME" => "Omborga kirim",
-        "SALES_INVOICE" => "Sotuv hisob-fakturasi", "PRODUCTION" => "Ishlab chiqarish", "WAYBILL" => "Yo'l varaqasi", "PAYROLL" => "Oylik",
+        "SALES_ORDER" => L.T("Pnl_Doc_SalesOrder"), "PURCHASE_ORDER" => L.T("Pnl_Doc_PurchaseOrder"), "INCOME" => L.T("Pnl_Doc_Income"),
+        "SALES_INVOICE" => L.T("Pnl_Doc_SalesInvoice"), "PRODUCTION" => L.T("Pnl_Doc_Production"), "WAYBILL" => L.T("Pnl_Doc_Waybill"), "PAYROLL" => L.T("Pnl_Doc_Payroll"),
         _ => t
     };
 
@@ -184,8 +185,8 @@ public sealed class TractionService(ControlDbContext db, Clock clock, Provisioni
         var labels = Enumerable.Range(0, f.Days).Select(i => f.From.AddDays(i)).ToList();
         var activeSeries = new Series(labels.Select(d => d.ToString("dd.MM")).ToList(), new()
         {
-            ["Faol foydalanuvchilar"] = labels.Select(d => du.Count(x => x.Date == d)).ToList(),
-            ["Faol tenantlar"] = labels.Select(d => du.Where(x => x.Date == d).Select(x => x.TenantId).Distinct().Count()).ToList(),
+            [L.T("Pnl_Tr_ActiveUsers")] = labels.Select(d => du.Count(x => x.Date == d)).ToList(),
+            [L.T("Pnl_Dash_ActiveTenants")] = labels.Select(d => du.Where(x => x.Date == d).Select(x => x.TenantId).Distinct().Count()).ToList(),
         });
         var moduleSeries = new Series(activeSeries.Labels, modules.Where(m => m.Actions > 0).Take(6)
             .ToDictionary(m => m.Name, m => labels.Select(d => dm.Where(x => x.Module == m.Module && x.Date == d).Sum(x => x.Count)).ToList()));
@@ -205,11 +206,11 @@ public sealed class TractionService(ControlDbContext db, Clock clock, Provisioni
         var active3 = everDu.GroupBy(x => x.TenantId).Where(g => g.Select(x => x.Date).Distinct().Count() >= 3).Select(g => g.Key).Where(withDoc.Contains).ToHashSet();
         var funnel = new List<FunnelStep>
         {
-            new("Sinov ochildi", funnelIds.Count),
-            new("Birinchi kirish", withLogin.Count),
-            new("Birinchi hujjat", withDoc.Count),
-            new("3+ kun faol", active3.Count),
-            new("To'ladi", funnelIds.Count(EverPaid)),
+            new(L.T("Pnl_Tr_FunnelTrial"), funnelIds.Count),
+            new(L.T("Pnl_Tr_FunnelFirstLogin"), withLogin.Count),
+            new(L.T("Pnl_Tr_FunnelFirstDoc"), withDoc.Count),
+            new(L.T("Pnl_Tr_Funnel3Days"), active3.Count),
+            new(L.T("Pnl_Tr_FunnelPaid"), funnelIds.Count(EverPaid)),
         };
 
         return new Report(f, overview, modules, pages, docs, actionTypes, tenantRows, cohorts, funnel, activeSeries, moduleSeries);

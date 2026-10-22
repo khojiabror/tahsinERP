@@ -28,7 +28,7 @@
     if (f && d.funnel) {
         new Chart(f, {
             type: 'bar',
-            data: { labels: d.funnel.labels, datasets: [{ label: 'Tenantlar', data: d.funnel.values, backgroundColor: '#3a6fb0' }] },
+            data: { labels: d.funnel.labels, datasets: [{ label: f.getAttribute('data-label') || 'Tenantlar', data: d.funnel.values, backgroundColor: '#3a6fb0' }] },
             options: { indexAxis: 'y', responsive: true, animation: false, plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true, ticks: { precision: 0 } } } }
         });
     }

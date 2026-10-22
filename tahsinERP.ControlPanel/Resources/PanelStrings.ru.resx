@@ -165,4 +165,3184 @@
   <data name="Auth_Footer" xml:space="preserve">
     <value>Несанкционированный доступ запрещён. Все попытки регистрируются.</value>
   </data>
+  <data name="Pnl_Acc_2faCode" xml:space="preserve">
+    <value>Код 2FA</value>
+  </data>
+  <data name="Pnl_Acc_AppCode" xml:space="preserve">
+    <value>6-значный код из приложения</value>
+  </data>
+  <data name="Pnl_Acc_AuditOn" xml:space="preserve">
+    <value>АУДИТ: ВКЛЮЧЁН</value>
+  </data>
+  <data name="Pnl_Acc_CodeInvalid" xml:space="preserve">
+    <value>Код неверен или устарел.</value>
+  </data>
+  <data name="Pnl_Acc_CodeMismatch" xml:space="preserve">
+    <value>Код не совпал. Проверьте точность часов на телефоне.</value>
+  </data>
+  <data name="Pnl_Acc_ConfirmAndLogin" xml:space="preserve">
+    <value>Подтвердить и войти</value>
+  </data>
+  <data name="Pnl_Acc_Continue" xml:space="preserve">
+    <value>Продолжить</value>
+  </data>
+  <data name="Pnl_Acc_CurrentPasswordWrong" xml:space="preserve">
+    <value>Текущий пароль неверен.</value>
+  </data>
+  <data name="Pnl_Acc_DeniedText" xml:space="preserve">
+    <value>Это действие недоступно для вашей роли.</value>
+  </data>
+  <data name="Pnl_Acc_Enroll2fa" xml:space="preserve">
+    <value>Подключение 2FA</value>
+  </data>
+  <data name="Pnl_Acc_Enroll2faHud" xml:space="preserve">
+    <value>ПОДКЛЮЧЕНИЕ 2FA</value>
+  </data>
+  <data name="Pnl_Acc_EnrollIntro" xml:space="preserve">
+    <value>Для входа в панель 2FA обязательна. Отсканируйте QR-код приложением-аутентификатором (Google Authenticator, Microsoft Authenticator, Aegis…).</value>
+  </data>
+  <data name="Pnl_Acc_IdentHud" xml:space="preserve">
+    <value>ИДЕНТИФИКАЦИЯ</value>
+  </data>
+  <data name="Pnl_Acc_LoginIntro" xml:space="preserve">
+    <value>Введите учётные данные сотрудника.</value>
+  </data>
+  <data name="Pnl_Acc_LoginTitle" xml:space="preserve">
+    <value>Вход в панель</value>
+  </data>
+  <data name="Pnl_Acc_LostPhoneHint" xml:space="preserve">
+    <value>Если телефон утерян — Owner сбросит 2FA на странице «Сотрудники».</value>
+  </data>
+  <data name="Pnl_Acc_ManualKey" xml:space="preserve">
+    <value>Если сканирование невозможно, введите ключ вручную:</value>
+  </data>
+  <data name="Pnl_Acc_NewPasswordRepeat" xml:space="preserve">
+    <value>Новый пароль (повтор)</value>
+  </data>
+  <data name="Pnl_Acc_NextStepHint" xml:space="preserve">
+    <value>Следующий шаг — 6-значный код из приложения-аутентификатора (2FA обязательна).</value>
+  </data>
+  <data name="Pnl_Acc_OneTimeCode" xml:space="preserve">
+    <value>Одноразовый код</value>
+  </data>
+  <data name="Pnl_Acc_OtherAccount" xml:space="preserve">
+    <value>Другая учётная запись</value>
+  </data>
+  <data name="Pnl_Acc_PasswordChanged" xml:space="preserve">
+    <value>Пароль изменён.</value>
+  </data>
+  <data name="Pnl_Acc_PasswordPolicyHint" xml:space="preserve">
+    <value>Не менее 12 символов, буквы и цифры.</value>
+  </data>
+  <data name="Pnl_Acc_PasswordsMismatch" xml:space="preserve">
+    <value>Пароли не совпадают.</value>
+  </data>
+  <data name="Pnl_Acc_QrCode" xml:space="preserve">
+    <value>QR-код</value>
+  </data>
+  <data name="Pnl_Acc_SecondFactorHud" xml:space="preserve">
+    <value>ВТОРОЙ ФАКТОР</value>
+  </data>
+  <data name="Pnl_Acc_SessionEncrypted" xml:space="preserve">
+    <value>СЕАНС: ЗАШИФРОВАН</value>
+  </data>
+  <data name="Pnl_Acc_TempLocked" xml:space="preserve">
+    <value>Учётная запись временно заблокирована.</value>
+  </data>
+  <data name="Pnl_Acc_ToHome" xml:space="preserve">
+    <value>На главную</value>
+  </data>
+  <data name="Pnl_Acc_Totp30s" xml:space="preserve">
+    <value>TOTP · 30 СЕКУНД</value>
+  </data>
+  <data name="Pnl_Acc_TotpIntro" xml:space="preserve">
+    <value>Введите 6-значный код из приложения-аутентификатора.</value>
+  </data>
+  <data name="Pnl_Acc_TwoStep" xml:space="preserve">
+    <value>Двухэтапная проверка</value>
+  </data>
+  <data name="Pnl_Acc_VerifyCode" xml:space="preserve">
+    <value>Код подтверждения</value>
+  </data>
+  <data name="Pnl_Act_ActionLower" xml:space="preserve">
+    <value>действие</value>
+  </data>
+  <data name="Pnl_Act_ActionsN" xml:space="preserve">
+    <value>действий: {0}</value>
+  </data>
+  <data name="Pnl_Act_AndLogs" xml:space="preserve">
+    <value>Активность и журналы</value>
+  </data>
+  <data name="Pnl_Act_Daily" xml:space="preserve">
+    <value>Активность по дням</value>
+  </data>
+  <data name="Pnl_Act_DailyAria" xml:space="preserve">
+    <value>Входы и действия по дням</value>
+  </data>
+  <data name="Pnl_Act_Hint" xml:space="preserve">
+    <value>Агент собирает данные из USER_ENTRIES / USERLOGS базы ERP (пробные и демо — каждые 15 минут, остальные — ежечасно). В панели хранится 90 дней. IP, MAC, Ф.И.О., email и пароли в панель не передаются; в тексте действий email/телефоны/длинные номера скрыты.</value>
+  </data>
+  <data name="Pnl_Act_InDays" xml:space="preserve">
+    <value>За {0} дн.</value>
+  </data>
+  <data name="Pnl_Act_LoginLower" xml:space="preserve">
+    <value>вход</value>
+  </data>
+  <data name="Pnl_Act_LoginsActions" xml:space="preserve">
+    <value>входов: {0}, действий: {1}</value>
+  </data>
+  <data name="Pnl_Act_LoginsUsersN" xml:space="preserve">
+    <value>входов: {0}, пользователей: {1}</value>
+  </data>
+  <data name="Pnl_Act_ModulesDays" xml:space="preserve">
+    <value>Модули ({0} дн.)</value>
+  </data>
+  <data name="Pnl_Act_Recent" xml:space="preserve">
+    <value>Последние входы и действия</value>
+  </data>
+  <data name="Pnl_Act_Summary" xml:space="preserve">
+    <value>входов: {0}, действий: {1}, активных пользователей: {2}</value>
+  </data>
+  <data name="Pnl_Act_Title" xml:space="preserve">
+    <value>Активность: {0}</value>
+  </data>
+  <data name="Pnl_ActiveLower" xml:space="preserve">
+    <value>активен</value>
+  </data>
+  <data name="Pnl_Activity" xml:space="preserve">
+    <value>Активность</value>
+  </data>
+  <data name="Pnl_ActivityLink" xml:space="preserve">
+    <value>активность</value>
+  </data>
+  <data name="Pnl_AddOnBadge" xml:space="preserve">
+    <value>доп. услуга</value>
+  </data>
+  <data name="Pnl_AddOnServices" xml:space="preserve">
+    <value>Дополнительные услуги</value>
+  </data>
+  <data name="Pnl_Agent" xml:space="preserve">
+    <value>Агент</value>
+  </data>
+  <data name="Pnl_AllLower" xml:space="preserve">
+    <value>все</value>
+  </data>
+  <data name="Pnl_AmountSom" xml:space="preserve">
+    <value>Сумма, сум</value>
+  </data>
+  <data name="Pnl_Apps_Archived" xml:space="preserve">
+    <value>Организация архивирована.</value>
+  </data>
+  <data name="Pnl_Apps_EmptyResponse" xml:space="preserve">
+    <value>Пустой ответ.</value>
+  </data>
+  <data name="Pnl_Apps_KeyMismatch" xml:space="preserve">
+    <value>Ключ API бота/сайта не совпадает (ControlPanel__Apps__AdminKey).</value>
+  </data>
+  <data name="Pnl_Apps_NoBaseDomain" xml:space="preserve">
+    <value>ControlPanel:Provisioning:BaseDomain не настроен — адрес ERP неизвестен.</value>
+  </data>
+  <data name="Pnl_Apps_NoConnection" xml:space="preserve">
+    <value>Нет связи с {0}: {1}</value>
+  </data>
+  <data name="Pnl_Apps_NotConfigured" xml:space="preserve">
+    <value>Подключение бота/сайта не настроено (ControlPanel:Apps).</value>
+  </data>
+  <data name="Pnl_Apps_OnlySaas" xml:space="preserve">
+    <value>Бот и сайт отсюда подключаются только для SaaS-организаций.</value>
+  </data>
+  <data name="Pnl_Audit_Action" xml:space="preserve">
+    <value>Действие</value>
+  </data>
+  <data name="Pnl_Audit_ActionPrefix" xml:space="preserve">
+    <value>Действие (начало)</value>
+  </data>
+  <data name="Pnl_Audit_After" xml:space="preserve">
+    <value>После</value>
+  </data>
+  <data name="Pnl_Audit_Before" xml:space="preserve">
+    <value>До</value>
+  </data>
+  <data name="Pnl_Audit_Client" xml:space="preserve">
+    <value>клиент #{0}</value>
+  </data>
+  <data name="Pnl_Audit_Entity" xml:space="preserve">
+    <value>Объект</value>
+  </data>
+  <data name="Pnl_Audit_System" xml:space="preserve">
+    <value>система</value>
+  </data>
+  <data name="Pnl_Audit_Title" xml:space="preserve">
+    <value>Журнал аудита</value>
+  </data>
+  <data name="Pnl_Auth_EmailExists" xml:space="preserve">
+    <value>Сотрудник с таким email уже есть.</value>
+  </data>
+  <data name="Pnl_Auth_EmailInvalid" xml:space="preserve">
+    <value>Неверный email.</value>
+  </data>
+  <data name="Pnl_Auth_Locked" xml:space="preserve">
+    <value>Учётная запись временно заблокирована (много неудачных попыток). Повторите позже.</value>
+  </data>
+  <data name="Pnl_Auth_LoginError" xml:space="preserve">
+    <value>Неверный email или пароль.</value>
+  </data>
+  <data name="Pnl_AutoRenew" xml:space="preserve">
+    <value>Автопродление</value>
+  </data>
+  <data name="Pnl_BankLine_Applied" xml:space="preserve">
+    <value>Применено</value>
+  </data>
+  <data name="Pnl_BankLine_Applying" xml:space="preserve">
+    <value>В процессе (проверьте платежи)</value>
+  </data>
+  <data name="Pnl_BankLine_Pending" xml:space="preserve">
+    <value>Ожидает</value>
+  </data>
+  <data name="Pnl_BankLine_Skipped" xml:space="preserve">
+    <value>Пропущено</value>
+  </data>
+  <data name="Pnl_BankMatch_Ambiguous" xml:space="preserve">
+    <value>Несколько</value>
+  </data>
+  <data name="Pnl_BankMatch_Blocked" xml:space="preserve">
+    <value>Заблокировано</value>
+  </data>
+  <data name="Pnl_BankMatch_Duplicate" xml:space="preserve">
+    <value>Дубликат</value>
+  </data>
+  <data name="Pnl_BankMatch_Matched" xml:space="preserve">
+    <value>Совпадает</value>
+  </data>
+  <data name="Pnl_BankMatch_NotIncoming" xml:space="preserve">
+    <value>Расход</value>
+  </data>
+  <data name="Pnl_BankMatch_Unmatched" xml:space="preserve">
+    <value>Не найдено</value>
+  </data>
+  <data name="Pnl_BankSvc_AmountExceeds" xml:space="preserve">
+    <value>{0}: сумма больше остатка ({1}).</value>
+  </data>
+  <data name="Pnl_BankSvc_CannotApplyLine" xml:space="preserve">
+    <value>Эту строку нельзя применить (исходящая или дубликат).</value>
+  </data>
+  <data name="Pnl_BankSvc_FailApplied" xml:space="preserve">
+    <value>уже применено</value>
+  </data>
+  <data name="Pnl_BankSvc_FailDuplicate" xml:space="preserve">
+    <value>дубликат — уже применено</value>
+  </data>
+  <data name="Pnl_BankSvc_FailError" xml:space="preserve">
+    <value>ошибка</value>
+  </data>
+  <data name="Pnl_BankSvc_FailNoInvoice" xml:space="preserve">
+    <value>счёт-фактура не выбран</value>
+  </data>
+  <data name="Pnl_BankSvc_FailSkipped" xml:space="preserve">
+    <value>пропущено</value>
+  </data>
+  <data name="Pnl_BankSvc_FileUploadedBefore" xml:space="preserve">
+    <value>Этот файл уже загружался — применённые строки будут помечены как «Дубликат».</value>
+  </data>
+  <data name="Pnl_BankSvc_InvoiceChanged" xml:space="preserve">
+    <value>Счёт-фактура тем временем изменился — повторите попытку.</value>
+  </data>
+  <data name="Pnl_BankSvc_InvoiceNotFound" xml:space="preserve">
+    <value>Счёт-фактура {0} не найден.</value>
+  </data>
+  <data name="Pnl_BankSvc_InvoiceNotPayable" xml:space="preserve">
+    <value>{0}: {1} — оплата не принимается.</value>
+  </data>
+  <data name="Pnl_BankSvc_LineAlreadyApplied" xml:space="preserve">
+    <value>Строка уже применена.</value>
+  </data>
+  <data name="Pnl_BankSvc_LineNotFound" xml:space="preserve">
+    <value>Строка не найдена.</value>
+  </data>
+  <data name="Pnl_BankSvc_NewKey" xml:space="preserve">
+    <value>новый ключ #{0}</value>
+  </data>
+  <data name="Pnl_BankSvc_NoPaymentLines" xml:space="preserve">
+    <value>В файле не найдено строк платежей.</value>
+  </data>
+  <data name="Pnl_Bank_Account" xml:space="preserve">
+    <value>Счёт</value>
+  </data>
+  <data name="Pnl_Bank_AllStatements" xml:space="preserve">
+    <value>Все выписки</value>
+  </data>
+  <data name="Pnl_Bank_AppliedCol" xml:space="preserve">
+    <value>Применено</value>
+  </data>
+  <data name="Pnl_Bank_AppliedCount" xml:space="preserve">
+    <value>Применено: {0}.</value>
+  </data>
+  <data name="Pnl_Bank_ApplyHint" xml:space="preserve">
+    <value>Каждая строка равнозначна «Оплата получена»: при полном погашении подписка продлевается и выпускается ключ. Отмеченный платёж можно только сторнировать.</value>
+  </data>
+  <data name="Pnl_Bank_ApplySelected" xml:space="preserve">
+    <value>Применить выбранные</value>
+  </data>
+  <data name="Pnl_Bank_Empty" xml:space="preserve">
+    <value>Выписки ещё не загружались.</value>
+  </data>
+  <data name="Pnl_Bank_FailedCount" xml:space="preserve">
+    <value>Не применено: {0}.</value>
+  </data>
+  <data name="Pnl_Bank_FileTooLarge" xml:space="preserve">
+    <value>Файл слишком большой (не более 5 МБ).</value>
+  </data>
+  <data name="Pnl_Bank_HelpColumns" xml:space="preserve">
+    <value>или CSV / XLSX: столбцы — дата, сумма, ИНН плательщика, назначение платежа (необязательно: № документа, плательщик, счёт). Входящие платежи сопоставляются с открытыми счетами-фактурами: сначала по номеру</value>
+  </data>
+  <data name="Pnl_Bank_HelpDuplicate" xml:space="preserve">
+    <value>Одна банковская транзакция (дата + сумма + № документа + счёт плательщика) не применяется дважды.</value>
+  </data>
+  <data name="Pnl_Bank_HelpFormat" xml:space="preserve">
+    <value>Файл обмена 1C «Клиент-Банк»</value>
+  </data>
+  <data name="Pnl_Bank_HelpMatch" xml:space="preserve">
+    <value>в назначении, затем по ИНН + точной сумме остатка. Ничего не применяется автоматически — подтверждение на следующей странице.</value>
+  </data>
+  <data name="Pnl_Bank_IncomingMatched" xml:space="preserve">
+    <value>Входящие / сопоставлено</value>
+  </data>
+  <data name="Pnl_Bank_InvoiceChosen" xml:space="preserve">
+    <value>Счёт-фактура выбран.</value>
+  </data>
+  <data name="Pnl_Bank_LineSkipped" xml:space="preserve">
+    <value>Строка пропущена.</value>
+  </data>
+  <data name="Pnl_Bank_Lines" xml:space="preserve">
+    <value>Строк</value>
+  </data>
+  <data name="Pnl_Bank_Matching" xml:space="preserve">
+    <value>Сопоставление</value>
+  </data>
+  <data name="Pnl_Bank_NothingSelected" xml:space="preserve">
+    <value>Не выбрано ни одной строки.</value>
+  </data>
+  <data name="Pnl_Bank_ReadyToApply" xml:space="preserve">
+    <value>Готово к применению</value>
+  </data>
+  <data name="Pnl_Bank_Rematched" xml:space="preserve">
+    <value>Строка сопоставлена заново.</value>
+  </data>
+  <data name="Pnl_Bank_SelectFile" xml:space="preserve">
+    <value>Выберите файл.</value>
+  </data>
+  <data name="Pnl_Bank_Skip" xml:space="preserve">
+    <value>Пропустить</value>
+  </data>
+  <data name="Pnl_Bank_StatementNo" xml:space="preserve">
+    <value>Выписка #{0}</value>
+  </data>
+  <data name="Pnl_Bank_Title" xml:space="preserve">
+    <value>Банковская выписка</value>
+  </data>
+  <data name="Pnl_Bank_UploadAndMatch" xml:space="preserve">
+    <value>Загрузить и сопоставить</value>
+  </data>
+  <data name="Pnl_Bank_Uploaded" xml:space="preserve">
+    <value>Загружено строк: {0}. Проверьте сопоставление и нажмите «Применить выбранные».</value>
+  </data>
+  <data name="Pnl_Bank_UploadedUtc" xml:space="preserve">
+    <value>Загружено (UTC)</value>
+  </data>
+  <data name="Pnl_Bill_AlreadyIssued" xml:space="preserve">
+    <value>Счёт-фактура уже выставлен.</value>
+  </data>
+  <data name="Pnl_Bill_AlreadyReversed" xml:space="preserve">
+    <value>Платёж уже сторнирован.</value>
+  </data>
+  <data name="Pnl_Bill_AmountExceeds" xml:space="preserve">
+    <value>Сумма больше остатка ({0}). Переплату решайте отдельно.</value>
+  </data>
+  <data name="Pnl_Bill_AmountPositive" xml:space="preserve">
+    <value>Сумма должна быть положительной.</value>
+  </data>
+  <data name="Pnl_Bill_ArchivedTenant" xml:space="preserve">
+    <value>Архивному тенанту счёт-фактура не выставляется.</value>
+  </data>
+  <data name="Pnl_Bill_AtLeastOneLine" xml:space="preserve">
+    <value>Нужна хотя бы одна строка.</value>
+  </data>
+  <data name="Pnl_Bill_CancelReasonRequired" xml:space="preserve">
+    <value>Причина отмены обязательна.</value>
+  </data>
+  <data name="Pnl_Bill_CannotCancel" xml:space="preserve">
+    <value>Этот счёт-фактуру нельзя аннулировать.</value>
+  </data>
+  <data name="Pnl_Bill_FullyPaid" xml:space="preserve">
+    <value>Счёт-фактура полностью оплачен.</value>
+  </data>
+  <data name="Pnl_Bill_HasPayments" xml:space="preserve">
+    <value>Есть платежи — сначала сторнируйте их.</value>
+  </data>
+  <data name="Pnl_Bill_KeyFailedWarning" xml:space="preserve">
+    <value>Платёж сохранён, но ключ не выпущен: {0} — выпустите повторно со страницы тенанта.</value>
+  </data>
+  <data name="Pnl_Bill_NoPriceAddOnMonth" xml:space="preserve">
+    <value>Месячная цена услуги «{0}» ещё не задана (страница «Тарифы»).</value>
+  </data>
+  <data name="Pnl_Bill_NoPriceAddOnYear" xml:space="preserve">
+    <value>Годовая цена услуги «{0}» ещё не задана (страница «Тарифы»).</value>
+  </data>
+  <data name="Pnl_Bill_NoPricePlanMonth" xml:space="preserve">
+    <value>Месячная цена пакета «{0}» ещё не задана (страница «Тарифы»).</value>
+  </data>
+  <data name="Pnl_Bill_NoPricePlanYear" xml:space="preserve">
+    <value>Годовая цена пакета «{0}» ещё не задана (страница «Тарифы»).</value>
+  </data>
+  <data name="Pnl_Bill_NotBoundWarning" xml:space="preserve">
+    <value>Тенант ещё не привязан к ERP — ключ будет выдан автоматически при регистрации (register).</value>
+  </data>
+  <data name="Pnl_Bill_OnlyDraftEditable" xml:space="preserve">
+    <value>Редактируется только черновик (Draft).</value>
+  </data>
+  <data name="Pnl_Bill_PaidAtFuture" xml:space="preserve">
+    <value>Дата оплаты не может быть в будущем.</value>
+  </data>
+  <data name="Pnl_Bill_PaidAtTooEarly" xml:space="preserve">
+    <value>Дата оплаты намного раньше даты счёта-фактуры — проверьте.</value>
+  </data>
+  <data name="Pnl_Bill_PayOnlyIssued" xml:space="preserve">
+    <value>Оплата отмечается только по выставленному счёту-фактуре.</value>
+  </data>
+  <data name="Pnl_Bill_PaymentNotFound" xml:space="preserve">
+    <value>Платёж не найден.</value>
+  </data>
+  <data name="Pnl_Bill_PeriodCountInvalid" xml:space="preserve">
+    <value>Неверное количество периодов.</value>
+  </data>
+  <data name="Pnl_Bill_ReverseReasonRequired" xml:space="preserve">
+    <value>Причина сторно обязательна.</value>
+  </data>
+  <data name="Pnl_Bill_RowNameEmpty" xml:space="preserve">
+    <value>Строка {0}: пустое наименование.</value>
+  </data>
+  <data name="Pnl_Bill_RowPriceNegative" xml:space="preserve">
+    <value>Строка {0}: отрицательная цена.</value>
+  </data>
+  <data name="Pnl_Bill_RowQtyPositive" xml:space="preserve">
+    <value>Строка {0}: количество должно быть положительным.</value>
+  </data>
+  <data name="Pnl_Bill_RowVatInvalid" xml:space="preserve">
+    <value>Строка {0}: неверная ставка НДС.</value>
+  </data>
+  <data name="Pnl_Bill_SubNotBillable" xml:space="preserve">
+    <value>По этой подписке нельзя выставить счёт-фактуру (отменена/истекла/пробная).</value>
+  </data>
+  <data name="Pnl_Bill_SubNotOfTenant" xml:space="preserve">
+    <value>Подписка не относится к этому тенанту.</value>
+  </data>
+  <data name="Pnl_Bill_ZeroTotal" xml:space="preserve">
+    <value>Счёт-фактура с нулевой суммой не выставляется.</value>
+  </data>
+  <data name="Pnl_Bound" xml:space="preserve">
+    <value>привязан</value>
+  </data>
+  <data name="Pnl_ByText" xml:space="preserve">
+    <value>по тексту</value>
+  </data>
+  <data name="Pnl_CancelReason" xml:space="preserve">
+    <value>Причина отмены</value>
+  </data>
+  <data name="Pnl_CancelShort" xml:space="preserve">
+    <value>Отмена</value>
+  </data>
+  <data name="Pnl_Choose" xml:space="preserve">
+    <value>Выбрать</value>
+  </data>
+  <data name="Pnl_Collected" xml:space="preserve">
+    <value>Собрано</value>
+  </data>
+  <data name="Pnl_ConcurrencyConflict" xml:space="preserve">
+    <value>Данные тем временем изменены другим сотрудником — обновите страницу и повторите попытку.</value>
+  </data>
+  <data name="Pnl_Connected" xml:space="preserve">
+    <value>подключена</value>
+  </data>
+  <data name="Pnl_Contact" xml:space="preserve">
+    <value>Контактное лицо</value>
+  </data>
+  <data name="Pnl_ContactPerson" xml:space="preserve">
+    <value>Контактное лицо</value>
+  </data>
+  <data name="Pnl_CreatedUtc" xml:space="preserve">
+    <value>Создано (UTC)</value>
+  </data>
+  <data name="Pnl_Dash_ActiveTenants" xml:space="preserve">
+    <value>Активные тенанты</value>
+  </data>
+  <data name="Pnl_Dash_DebtSom" xml:space="preserve">
+    <value>Долг, сум</value>
+  </data>
+  <data name="Pnl_Dash_Debtors" xml:space="preserve">
+    <value>Должники (срок оплаты истёк)</value>
+  </data>
+  <data name="Pnl_Dash_Ends" xml:space="preserve">
+    <value>Истекает</value>
+  </data>
+  <data name="Pnl_Dash_Expiring" xml:space="preserve">
+    <value>Срок истекает (14 дней)</value>
+  </data>
+  <data name="Pnl_Dash_FailedNotifications" xml:space="preserve">
+    <value>Не отправлено напоминаний: {0}</value>
+  </data>
+  <data name="Pnl_Dash_GraceSuspended" xml:space="preserve">
+    <value>Льготный / приостановлены</value>
+  </data>
+  <data name="Pnl_Dash_InTrial" xml:space="preserve">
+    <value>На пробном периоде</value>
+  </data>
+  <data name="Pnl_Dash_InactiveTrials" xml:space="preserve">
+    <value>Неактивные пробные (нет входа 3+ дня)</value>
+  </data>
+  <data name="Pnl_Dash_LastPullUtc" xml:space="preserve">
+    <value>Последний pull (UTC)</value>
+  </data>
+  <data name="Pnl_Dash_Left" xml:space="preserve">
+    <value>Осталось</value>
+  </data>
+  <data name="Pnl_Dash_MonthlyRevenue" xml:space="preserve">
+    <value>Ежемесячная выручка</value>
+  </data>
+  <data name="Pnl_Dash_MonthlyRevenueTitle" xml:space="preserve">
+    <value>Ежемесячная выручка (несторнированные платежи, по дате оплаты)</value>
+  </data>
+  <data name="Pnl_Dash_NoDebtors" xml:space="preserve">
+    <value>Должников нет.</value>
+  </data>
+  <data name="Pnl_Dash_OfflineOnPrem" xml:space="preserve">
+    <value>On-prem: нет связи с панелью</value>
+  </data>
+  <data name="Pnl_Dash_OldestDue" xml:space="preserve">
+    <value>Самый ранний срок</value>
+  </data>
+  <data name="Pnl_Dash_OnlineCheck" xml:space="preserve">
+    <value>Онлайн-проверка</value>
+  </data>
+  <data name="Pnl_Dash_OnlineRequired" xml:space="preserve">
+    <value>обязательна (ключ ≤ {0} дн.)</value>
+  </data>
+  <data name="Pnl_Dash_PaymentCount" xml:space="preserve">
+    <value>Количество платежей</value>
+  </data>
+  <data name="Pnl_Dash_RegTokenWaiting" xml:space="preserve">
+    <value>ожидается reg_token</value>
+  </data>
+  <data name="Pnl_Dash_RevenueSom" xml:space="preserve">
+    <value>Выручка, сум</value>
+  </data>
+  <data name="Pnl_Dash_SumWithVat" xml:space="preserve">
+    <value>сум, с НДС</value>
+  </data>
+  <data name="Pnl_Dash_Unbound" xml:space="preserve">
+    <value>Не привязаны к ERP</value>
+  </data>
+  <data name="Pnl_Dash_UnpaidTotal" xml:space="preserve">
+    <value>Всего не оплачено</value>
+  </data>
+  <data name="Pnl_DateUtc" xml:space="preserve">
+    <value>Дата (UTC)</value>
+  </data>
+  <data name="Pnl_Days" xml:space="preserve">
+    <value>Дней</value>
+  </data>
+  <data name="Pnl_DaysCount" xml:space="preserve">
+    <value>{0} дн.</value>
+  </data>
+  <data name="Pnl_DaysOverdue" xml:space="preserve">
+    <value>просрочено дней: {0}</value>
+  </data>
+  <data name="Pnl_Deployment" xml:space="preserve">
+    <value>Размещение</value>
+  </data>
+  <data name="Pnl_Deployment_OnPrem" xml:space="preserve">
+    <value>On-prem (сервер клиента)</value>
+  </data>
+  <data name="Pnl_Deployment_SaaS" xml:space="preserve">
+    <value>SaaS (облако)</value>
+  </data>
+  <data name="Pnl_Didox_AlreadySent" xml:space="preserve">
+    <value>Счёт-фактура уже отправлен в Didox (ID {0}).</value>
+  </data>
+  <data name="Pnl_Didox_NoInn" xml:space="preserve">
+    <value>Не указан ИНН организации (9 или 14 цифр) — Didox находит покупателя по ИНН.</value>
+  </data>
+  <data name="Pnl_Didox_NotConfigured" xml:space="preserve">
+    <value>Didox не настроен: {0}.</value>
+  </data>
+  <data name="Pnl_Didox_OnlyIssued" xml:space="preserve">
+    <value>Отправляется только выставленный (с номером) и не аннулированный счёт-фактура.</value>
+  </data>
+  <data name="Pnl_DisabledLower" xml:space="preserve">
+    <value>отключён</value>
+  </data>
+  <data name="Pnl_DocNo" xml:space="preserve">
+    <value>№ документа</value>
+  </data>
+  <data name="Pnl_Doc_Income" xml:space="preserve">
+    <value>Поступление на склад</value>
+  </data>
+  <data name="Pnl_Doc_Payroll" xml:space="preserve">
+    <value>Заработная плата</value>
+  </data>
+  <data name="Pnl_Doc_Production" xml:space="preserve">
+    <value>Производство</value>
+  </data>
+  <data name="Pnl_Doc_PurchaseOrder" xml:space="preserve">
+    <value>Заказ поставщику</value>
+  </data>
+  <data name="Pnl_Doc_SalesInvoice" xml:space="preserve">
+    <value>Счёт-фактура на реализацию</value>
+  </data>
+  <data name="Pnl_Doc_SalesOrder" xml:space="preserve">
+    <value>Заказ покупателя</value>
+  </data>
+  <data name="Pnl_Doc_Waybill" xml:space="preserve">
+    <value>Путевой лист</value>
+  </data>
+  <data name="Pnl_Document" xml:space="preserve">
+    <value>Документ</value>
+  </data>
+  <data name="Pnl_DraftLower" xml:space="preserve">
+    <value>черновик</value>
+  </data>
+  <data name="Pnl_Due" xml:space="preserve">
+    <value>Срок</value>
+  </data>
+  <data name="Pnl_DueDate" xml:space="preserve">
+    <value>Срок оплаты</value>
+  </data>
+  <data name="Pnl_EditNamed" xml:space="preserve">
+    <value>Редактирование: {0}</value>
+  </data>
+  <data name="Pnl_Employee" xml:space="preserve">
+    <value>Сотрудник</value>
+  </data>
+  <data name="Pnl_End" xml:space="preserve">
+    <value>Окончание</value>
+  </data>
+  <data name="Pnl_Err_InvoiceNotFound" xml:space="preserve">
+    <value>Счёт-фактура не найден.</value>
+  </data>
+  <data name="Pnl_Err_RequestId" xml:space="preserve">
+    <value>ID запроса:</value>
+  </data>
+  <data name="Pnl_Err_TenantNotFound" xml:space="preserve">
+    <value>Тенант не найден.</value>
+  </data>
+  <data name="Pnl_Err_Text" xml:space="preserve">
+    <value>Запрос не выполнен. Ошибка записана в журнал.</value>
+  </data>
+  <data name="Pnl_Err_Title" xml:space="preserve">
+    <value>Ошибка</value>
+  </data>
+  <data name="Pnl_Err_Unexpected" xml:space="preserve">
+    <value>Непредвиденная ошибка</value>
+  </data>
+  <data name="Pnl_File" xml:space="preserve">
+    <value>Файл</value>
+  </data>
+  <data name="Pnl_FirstName" xml:space="preserve">
+    <value>Имя</value>
+  </data>
+  <data name="Pnl_Format" xml:space="preserve">
+    <value>Формат</value>
+  </data>
+  <data name="Pnl_FullName" xml:space="preserve">
+    <value>Имя и фамилия</value>
+  </data>
+  <data name="Pnl_Inn" xml:space="preserve">
+    <value>ИНН</value>
+  </data>
+  <data name="Pnl_InnPinfl" xml:space="preserve">
+    <value>ИНН / ПИНФЛ</value>
+  </data>
+  <data name="Pnl_InvStatus_Cancelled" xml:space="preserve">
+    <value>Аннулирован</value>
+  </data>
+  <data name="Pnl_InvStatus_Draft" xml:space="preserve">
+    <value>Черновик</value>
+  </data>
+  <data name="Pnl_InvStatus_Issued" xml:space="preserve">
+    <value>Выставлен</value>
+  </data>
+  <data name="Pnl_InvStatus_Paid" xml:space="preserve">
+    <value>Оплачен</value>
+  </data>
+  <data name="Pnl_InvStatus_PartiallyPaid" xml:space="preserve">
+    <value>Частично оплачен</value>
+  </data>
+  <data name="Pnl_Inv_AmountInvalid" xml:space="preserve">
+    <value>Неверная сумма.</value>
+  </data>
+  <data name="Pnl_Inv_CancelInvoice" xml:space="preserve">
+    <value>Аннулировать счёт-фактуру</value>
+  </data>
+  <data name="Pnl_Inv_Cancelled" xml:space="preserve">
+    <value>Счёт-фактура аннулирован.</value>
+  </data>
+  <data name="Pnl_Inv_Checked" xml:space="preserve">
+    <value>проверено</value>
+  </data>
+  <data name="Pnl_Inv_CreateDraft" xml:space="preserve">
+    <value>Создать черновик</value>
+  </data>
+  <data name="Pnl_Inv_DateDue" xml:space="preserve">
+    <value>Дата / срок</value>
+  </data>
+  <data name="Pnl_Inv_DidoxDisabled" xml:space="preserve">
+    <value>Didox отключён.</value>
+  </data>
+  <data name="Pnl_Inv_DidoxManual" xml:space="preserve">
+    <value>Создайте счёт-фактуру вручную в кабинете Didox.</value>
+  </data>
+  <data name="Pnl_Inv_DidoxOff" xml:space="preserve">
+    <value>Интеграция с Didox отключена — не настроено:</value>
+  </data>
+  <data name="Pnl_Inv_DidoxOnlyIssued" xml:space="preserve">
+    <value>Отправляется только выставленный (с номером) и не аннулированный счёт-фактура.</value>
+  </data>
+  <data name="Pnl_Inv_DidoxSendHint" xml:space="preserve">
+    <value>Будет создан черновик; подпись — в кабинете Didox через E-IMZO. Покупатель определяется по ИНН.</value>
+  </data>
+  <data name="Pnl_Inv_DidoxSent" xml:space="preserve">
+    <value>Отправлено в Didox (черновик). Подпишите в кабинете Didox через E-IMZO — статус обновится автоматически.</value>
+  </data>
+  <data name="Pnl_Inv_DidoxState" xml:space="preserve">
+    <value>Статус Didox: {0}</value>
+  </data>
+  <data name="Pnl_Inv_DidoxStateFailed" xml:space="preserve">
+    <value>Не удалось получить статус Didox: {0}</value>
+  </data>
+  <data name="Pnl_Inv_DidoxTitle" xml:space="preserve">
+    <value>Didox (электронный счёт-фактура)</value>
+  </data>
+  <data name="Pnl_Inv_DraftCreated" xml:space="preserve">
+    <value>Черновик создан. Проверьте и нажмите «Выставить» (будет присвоен номер).</value>
+  </data>
+  <data name="Pnl_Inv_DraftNo" xml:space="preserve">
+    <value>Черновик #{0}</value>
+  </data>
+  <data name="Pnl_Inv_DraftNoLower" xml:space="preserve">
+    <value>черновик #{0}</value>
+  </data>
+  <data name="Pnl_Inv_DraftSaved" xml:space="preserve">
+    <value>Черновик сохранён.</value>
+  </data>
+  <data name="Pnl_Inv_EditDraft" xml:space="preserve">
+    <value>Редактирование черновика</value>
+  </data>
+  <data name="Pnl_Inv_Extended" xml:space="preserve">
+    <value>продлена</value>
+  </data>
+  <data name="Pnl_Inv_ExtendedNewKey" xml:space="preserve">
+    <value>Подписка продлена, выпущен новый ключ (#{0}, до {1}).</value>
+  </data>
+  <data name="Pnl_Inv_Issue" xml:space="preserve">
+    <value>Выставить (присвоить номер)</value>
+  </data>
+  <data name="Pnl_Inv_Issued" xml:space="preserve">
+    <value>Счёт-фактура выставлен: {0}.</value>
+  </data>
+  <data name="Pnl_Inv_LastAttemptError" xml:space="preserve">
+    <value>Ошибка последней попытки:</value>
+  </data>
+  <data name="Pnl_Inv_LinesHint" xml:space="preserve">
+    <value>Пустые строки пропускаются. Цены с НДС; сумма НДС = сумма × ставка / (100 + ставка).</value>
+  </data>
+  <data name="Pnl_Inv_New" xml:space="preserve">
+    <value>Новый счёт-фактура</value>
+  </data>
+  <data name="Pnl_Inv_NewHint" xml:space="preserve">
+    <value>Новый счёт-фактура — со страницы организации (по подписке).</value>
+  </data>
+  <data name="Pnl_Inv_NoPayments" xml:space="preserve">
+    <value>Платежей нет.</value>
+  </data>
+  <data name="Pnl_Inv_NoSubscription" xml:space="preserve">
+    <value>без подписки (отдельная услуга)</value>
+  </data>
+  <data name="Pnl_Inv_OfWhichVat" xml:space="preserve">
+    <value>в т. ч. НДС</value>
+  </data>
+  <data name="Pnl_Inv_OnlyOverdue" xml:space="preserve">
+    <value>Только просроченные</value>
+  </data>
+  <data name="Pnl_Inv_OverdueBadge" xml:space="preserve">
+    <value>просрочен</value>
+  </data>
+  <data name="Pnl_Inv_PaidRemaining" xml:space="preserve">
+    <value>Оплачено / остаток</value>
+  </data>
+  <data name="Pnl_Inv_PayHint" xml:space="preserve">
+    <value>Возможна частичная оплата. При полном погашении подписка продлевается и автоматически выпускается новый лицензионный ключ. Отмеченный платёж не удаляется — только сторно (Owner).</value>
+  </data>
+  <data name="Pnl_Inv_PaymentReceived" xml:space="preserve">
+    <value>Оплата получена</value>
+  </data>
+  <data name="Pnl_Inv_PaymentRecorded" xml:space="preserve">
+    <value>Оплата отмечена: {0}. Статус: {1}.</value>
+  </data>
+  <data name="Pnl_Inv_PaymentReversed" xml:space="preserve">
+    <value>Платёж сторнирован. Подписка и ключ не изменены — при необходимости решите вручную.</value>
+  </data>
+  <data name="Pnl_Inv_PeriodCount" xml:space="preserve">
+    <value>Количество периодов (мес./год)</value>
+  </data>
+  <data name="Pnl_Inv_PriceWithVat" xml:space="preserve">
+    <value>Цена, сум (с НДС)</value>
+  </data>
+  <data name="Pnl_Inv_ReasonRequired" xml:space="preserve">
+    <value>причина (обязательно)</value>
+  </data>
+  <data name="Pnl_Inv_Recalc" xml:space="preserve">
+    <value>Пересчитать стандартную строку</value>
+  </data>
+  <data name="Pnl_Inv_RecordPayment" xml:space="preserve">
+    <value>Отметить оплату</value>
+  </data>
+  <data name="Pnl_Inv_RecordedBy" xml:space="preserve">
+    <value>Кто отметил</value>
+  </data>
+  <data name="Pnl_Inv_Reference" xml:space="preserve">
+    <value>№ платёжного поручения / квитанции</value>
+  </data>
+  <data name="Pnl_Inv_RefreshStatus" xml:space="preserve">
+    <value>Обновить статус</value>
+  </data>
+  <data name="Pnl_Inv_RowPriceInvalid" xml:space="preserve">
+    <value>Строка {0}: неверная цена.</value>
+  </data>
+  <data name="Pnl_Inv_RowQtyInvalid" xml:space="preserve">
+    <value>Строка {0}: неверное количество.</value>
+  </data>
+  <data name="Pnl_Inv_RowVatInvalid" xml:space="preserve">
+    <value>Строка {0}: неверная ставка НДС.</value>
+  </data>
+  <data name="Pnl_Inv_SendDidox" xml:space="preserve">
+    <value>Отправить в Didox</value>
+  </data>
+  <data name="Pnl_Inv_Sent" xml:space="preserve">
+    <value>Отправлено</value>
+  </data>
+  <data name="Pnl_Inv_ServiceName" xml:space="preserve">
+    <value>Наименование услуги</value>
+  </data>
+  <data name="Pnl_Inv_SubscriptionHint" xml:space="preserve">
+    <value>Подписка (продлевается при полной оплате)</value>
+  </data>
+  <data name="Pnl_Inv_TotalWithVat" xml:space="preserve">
+    <value>Итого (с НДС)</value>
+  </data>
+  <data name="Pnl_Invoice" xml:space="preserve">
+    <value>Счёт-фактура</value>
+  </data>
+  <data name="Pnl_InvoiceLower" xml:space="preserve">
+    <value>счёт-фактура</value>
+  </data>
+  <data name="Pnl_JobStatus_Cancelled" xml:space="preserve">
+    <value>Отменено</value>
+  </data>
+  <data name="Pnl_JobStatus_Failed" xml:space="preserve">
+    <value>Ошибка</value>
+  </data>
+  <data name="Pnl_JobStatus_Pending" xml:space="preserve">
+    <value>В очереди</value>
+  </data>
+  <data name="Pnl_JobStatus_Running" xml:space="preserve">
+    <value>Выполняется</value>
+  </data>
+  <data name="Pnl_JobStatus_Succeeded" xml:space="preserve">
+    <value>Выполнено</value>
+  </data>
+  <data name="Pnl_JobType_Archive" xml:space="preserve">
+    <value>Архивация</value>
+  </data>
+  <data name="Pnl_JobType_Create" xml:space="preserve">
+    <value>Создание</value>
+  </data>
+  <data name="Pnl_JobType_Delete" xml:space="preserve">
+    <value>Удаление</value>
+  </data>
+  <data name="Pnl_JobType_EndTrial" xml:space="preserve">
+    <value>Завершение пробного периода</value>
+  </data>
+  <data name="Pnl_JobType_Reset" xml:space="preserve">
+    <value>Сброс</value>
+  </data>
+  <data name="Pnl_JobType_Resume" xml:space="preserve">
+    <value>Возобновление</value>
+  </data>
+  <data name="Pnl_JobType_Suspend" xml:space="preserve">
+    <value>Приостановка</value>
+  </data>
+  <data name="Pnl_Key" xml:space="preserve">
+    <value>Ключ</value>
+  </data>
+  <data name="Pnl_KindLower" xml:space="preserve">
+    <value>тип</value>
+  </data>
+  <data name="Pnl_LastAction" xml:space="preserve">
+    <value>Последнее действие</value>
+  </data>
+  <data name="Pnl_LastError" xml:space="preserve">
+    <value>Последняя ошибка</value>
+  </data>
+  <data name="Pnl_LastLogin" xml:space="preserve">
+    <value>Последний вход</value>
+  </data>
+  <data name="Pnl_LastLoginUtc" xml:space="preserve">
+    <value>Последний вход (UTC)</value>
+  </data>
+  <data name="Pnl_LastSeen" xml:space="preserve">
+    <value>Последняя связь</value>
+  </data>
+  <data name="Pnl_LastSeenUtc" xml:space="preserve">
+    <value>Последняя связь (UTC)</value>
+  </data>
+  <data name="Pnl_LegalName" xml:space="preserve">
+    <value>Юридическое наименование</value>
+  </data>
+  <data name="Pnl_LicSource_Auto" xml:space="preserve">
+    <value>Автоматически</value>
+  </data>
+  <data name="Pnl_LicSource_Manual" xml:space="preserve">
+    <value>Вручную</value>
+  </data>
+  <data name="Pnl_LicSource_Registration" xml:space="preserve">
+    <value>Регистрация</value>
+  </data>
+  <data name="Pnl_Lic_Current" xml:space="preserve">
+    <value>текущий</value>
+  </data>
+  <data name="Pnl_Lic_DownloadLic" xml:space="preserve">
+    <value>Скачать как файл .lic</value>
+  </data>
+  <data name="Pnl_Lic_EditionHint1" xml:space="preserve">
+    <value>Edition в ключе: код пакета + отмеченные услуги, например</value>
+  </data>
+  <data name="Pnl_Lic_EditionHint2" xml:space="preserve">
+    <value>Ключ, автоматически выпускаемый по подписке, вычисляет это сам.</value>
+  </data>
+  <data name="Pnl_Lic_EditionUsers" xml:space="preserve">
+    <value>Edition / пользователей</value>
+  </data>
+  <data name="Pnl_Lic_IndexHint" xml:space="preserve">
+    <value>Ключи не удаляются: новый ключ помечает старый как «заменён», отзыв фиксируется с причиной. Ручной выпуск — со страницы организации (только Owner).</value>
+  </data>
+  <data name="Pnl_Lic_Issued" xml:space="preserve">
+    <value>Ключ выпущен (#{0}).</value>
+  </data>
+  <data name="Pnl_Lic_IssuedAt" xml:space="preserve">
+    <value>Выпущен</value>
+  </data>
+  <data name="Pnl_Lic_KeyNo" xml:space="preserve">
+    <value>Ключ #{0}</value>
+  </data>
+  <data name="Pnl_Lic_KeyText" xml:space="preserve">
+    <value>Текст ключа</value>
+  </data>
+  <data name="Pnl_Lic_ManualIssue" xml:space="preserve">
+    <value>Ручной выпуск ключа</value>
+  </data>
+  <data name="Pnl_Lic_NoKeys" xml:space="preserve">
+    <value>Ключей нет.</value>
+  </data>
+  <data name="Pnl_Lic_NotBound" xml:space="preserve">
+    <value>Тенант ещё не привязан к ERP (нет InstallationId) — сначала нужна регистрация по reg_token.</value>
+  </data>
+  <data name="Pnl_Lic_OnPremHint" xml:space="preserve">
+    <value>Ключ on-prem ≤ 1 года (офлайн-ключ отозвать нельзя).</value>
+  </data>
+  <data name="Pnl_Lic_OnlyCurrent" xml:space="preserve">
+    <value>Только текущие (активные)</value>
+  </data>
+  <data name="Pnl_Lic_PackageEdition" xml:space="preserve">
+    <value>Пакет (Edition)</value>
+  </data>
+  <data name="Pnl_Lic_ReasonPlaceholder" xml:space="preserve">
+    <value>например: договор on-prem №12, 2026–2027</value>
+  </data>
+  <data name="Pnl_Lic_ReasonRequired" xml:space="preserve">
+    <value>Причина обязательна (для аудита).</value>
+  </data>
+  <data name="Pnl_Lic_ReplacementExpiry" xml:space="preserve">
+    <value>Взамен — короткий ключ до этой даты (необязательно)</value>
+  </data>
+  <data name="Pnl_Lic_RevokeHint" xml:space="preserve">
+    <value>SaaS: короткий ключ попадёт в ERP при следующем pull. Если дата пуста, ERP при pull получит 410 revoked, но сохранённый ключ работает до окончания срока (офлайн-ключ on-prem отозвать нельзя).</value>
+  </data>
+  <data name="Pnl_Lic_Revoked" xml:space="preserve">
+    <value>Ключ отозван. ERP при следующем pull получит 410 revoked; срок ключа истечёт сам.</value>
+  </data>
+  <data name="Pnl_Lic_RevokedBadge" xml:space="preserve">
+    <value>отозван</value>
+  </data>
+  <data name="Pnl_Lic_RevokedInfo" xml:space="preserve">
+    <value>отозван ({0}, {1}): {2}</value>
+  </data>
+  <data name="Pnl_Lic_RevokedNoReplacement" xml:space="preserve">
+    <value>Ключ отозван, но новый взамен не выпущен: {0}</value>
+  </data>
+  <data name="Pnl_Lic_RevokedWithReplacement" xml:space="preserve">
+    <value>Ключ отозван, взамен выпущен короткий ключ до {0} (#{1}).</value>
+  </data>
+  <data name="Pnl_Lic_SignAndIssue" xml:space="preserve">
+    <value>Подписать и выпустить</value>
+  </data>
+  <data name="Pnl_Lic_SignFailed" xml:space="preserve">
+    <value>Не удалось подписать: {0}</value>
+  </data>
+  <data name="Pnl_Lic_Signature" xml:space="preserve">
+    <value>Подпись</value>
+  </data>
+  <data name="Pnl_Lic_SigningKey" xml:space="preserve">
+    <value>Ключ подписи</value>
+  </data>
+  <data name="Pnl_Lic_Superseded" xml:space="preserve">
+    <value>заменён</value>
+  </data>
+  <data name="Pnl_Lic_SupersededBy" xml:space="preserve">
+    <value>заменён → #{0}</value>
+  </data>
+  <data name="Pnl_Lic_Title" xml:space="preserve">
+    <value>Лицензионные ключи</value>
+  </data>
+  <data name="Pnl_Lic_UnknownAddOn" xml:space="preserve">
+    <value>Неизвестная дополнительная услуга.</value>
+  </data>
+  <data name="Pnl_Lic_UnknownPackage" xml:space="preserve">
+    <value>Неизвестный пакет.</value>
+  </data>
+  <data name="Pnl_Lic_UsersUnlimited" xml:space="preserve">
+    <value>Пользователей (0 = без ограничений)</value>
+  </data>
+  <data name="Pnl_Locked" xml:space="preserve">
+    <value>заблокирован</value>
+  </data>
+  <data name="Pnl_Manage" xml:space="preserve">
+    <value>Управление</value>
+  </data>
+  <data name="Pnl_Method" xml:space="preserve">
+    <value>Способ</value>
+  </data>
+  <data name="Pnl_Module" xml:space="preserve">
+    <value>Модуль</value>
+  </data>
+  <data name="Pnl_ModuleLower" xml:space="preserve">
+    <value>модуль</value>
+  </data>
+  <data name="Pnl_Modules" xml:space="preserve">
+    <value>Модули</value>
+  </data>
+  <data name="Pnl_Month" xml:space="preserve">
+    <value>Месяц</value>
+  </data>
+  <data name="Pnl_NameTaken" xml:space="preserve">
+    <value>Это имя уже занято.</value>
+  </data>
+  <data name="Pnl_NeverLoggedIn" xml:space="preserve">
+    <value>ни разу не входил</value>
+  </data>
+  <data name="Pnl_NewLower" xml:space="preserve">
+    <value>новый</value>
+  </data>
+  <data name="Pnl_NoDataLower" xml:space="preserve">
+    <value>нет данных</value>
+  </data>
+  <data name="Pnl_NoLower" xml:space="preserve">
+    <value>нет</value>
+  </data>
+  <data name="Pnl_NoRecords" xml:space="preserve">
+    <value>Записей нет.</value>
+  </data>
+  <data name="Pnl_None" xml:space="preserve">
+    <value>Нет.</value>
+  </data>
+  <data name="Pnl_NotBound" xml:space="preserve">
+    <value>не привязан</value>
+  </data>
+  <data name="Pnl_NotConnected" xml:space="preserve">
+    <value>не подключена</value>
+  </data>
+  <data name="Pnl_NotFoundDot" xml:space="preserve">
+    <value>Не найдено.</value>
+  </data>
+  <data name="Pnl_NotSelected" xml:space="preserve">
+    <value>не выбран</value>
+  </data>
+  <data name="Pnl_NotSet" xml:space="preserve">
+    <value>не задано</value>
+  </data>
+  <data name="Pnl_NotYet" xml:space="preserve">
+    <value>ещё нет</value>
+  </data>
+  <data name="Pnl_NotifStatus_Failed" xml:space="preserve">
+    <value>Ошибка</value>
+  </data>
+  <data name="Pnl_NotifStatus_Logged" xml:space="preserve">
+    <value>Только в журнал</value>
+  </data>
+  <data name="Pnl_NotifStatus_Sent" xml:space="preserve">
+    <value>Отправлено</value>
+  </data>
+  <data name="Pnl_Notif_Channel" xml:space="preserve">
+    <value>Канал</value>
+  </data>
+  <data name="Pnl_Notif_Configured" xml:space="preserve">
+    <value>настроен</value>
+  </data>
+  <data name="Pnl_Notif_Empty" xml:space="preserve">
+    <value>Напоминаний пока нет.</value>
+  </data>
+  <data name="Pnl_Notif_Hint" xml:space="preserve">
+    <value>За 14, 7, 3, 1 день до окончания подписки и в день окончания — в Telegram-чат организации (и в чат сотрудников). Ежедневная фоновая задача.</value>
+  </data>
+  <data name="Pnl_Notif_NoToken" xml:space="preserve">
+    <value>нет токена бота — сообщения только пишутся в журнал</value>
+  </data>
+  <data name="Pnl_Notif_Recipient" xml:space="preserve">
+    <value>Получатель</value>
+  </data>
+  <data name="Pnl_Notif_RunDone" xml:space="preserve">
+    <value>Выполнено: изменён статус организаций — {0}, напоминаний — {1}.</value>
+  </data>
+  <data name="Pnl_Notif_RunNow" xml:space="preserve">
+    <value>Выполнить ежедневную задачу сейчас</value>
+  </data>
+  <data name="Pnl_Notif_Template" xml:space="preserve">
+    <value>Шаблон</value>
+  </data>
+  <data name="Pnl_Notif_Text" xml:space="preserve">
+    <value>Текст</value>
+  </data>
+  <data name="Pnl_Ntf_AddOn" xml:space="preserve">
+    <value>дополнительная услуга «{0}»</value>
+  </data>
+  <data name="Pnl_Ntf_DaysLeft" xml:space="preserve">
+    <value>истекает через {0} дн. ({1})</value>
+  </data>
+  <data name="Pnl_Ntf_EndsToday" xml:space="preserve">
+    <value>истекает СЕГОДНЯ</value>
+  </data>
+  <data name="Pnl_Ntf_PayTail" xml:space="preserve">
+    <value>Для бесперебойной работы оплачивайте счёт-фактуру вовремя.</value>
+  </data>
+  <data name="Pnl_Ntf_Subscription" xml:space="preserve">
+    <value>подписка «{0}»</value>
+  </data>
+  <data name="Pnl_Ntf_Text" xml:space="preserve">
+    <value>tahsinERP: {0} ({1}) — {2} {3}.</value>
+  </data>
+  <data name="Pnl_Ntf_Trial" xml:space="preserve">
+    <value>пробный период</value>
+  </data>
+  <data name="Pnl_Ntf_TrialTail" xml:space="preserve">
+    <value>Чтобы продолжить, свяжитесь с нами.</value>
+  </data>
+  <data name="Pnl_Organization" xml:space="preserve">
+    <value>Организация</value>
+  </data>
+  <data name="Pnl_Package" xml:space="preserve">
+    <value>Пакет</value>
+  </data>
+  <data name="Pnl_PackageLower" xml:space="preserve">
+    <value>пакет</value>
+  </data>
+  <data name="Pnl_Packages" xml:space="preserve">
+    <value>Пакеты</value>
+  </data>
+  <data name="Pnl_Parse_DocAmountUnread" xml:space="preserve">
+    <value>Документ {0} ({1}): сумма не распознана — пропущен.</value>
+  </data>
+  <data name="Pnl_Parse_DocDateUnread" xml:space="preserve">
+    <value>Документ {0} ({1}): дата не распознана — пропущен.</value>
+  </data>
+  <data name="Pnl_Parse_FileEmpty" xml:space="preserve">
+    <value>Файл пуст.</value>
+  </data>
+  <data name="Pnl_Parse_FileTooLarge" xml:space="preserve">
+    <value>Файл слишком большой (не более {0} МБ).</value>
+  </data>
+  <data name="Pnl_Parse_LastDocUnclosed" xml:space="preserve">
+    <value>Последний документ не закрыт «КонецДокумента» — пропущен.</value>
+  </data>
+  <data name="Pnl_Parse_NoDocs" xml:space="preserve">
+    <value>В файле не найдено платёжных документов (СекцияДокумент).</value>
+  </data>
+  <data name="Pnl_Parse_NoHeader" xml:space="preserve">
+    <value>Строка заголовка не найдена: нужны как минимум столбцы «Дата» и «Сумма» (необязательно: ИНН, Назначение платежа, № документа, Плательщик, Счёт).</value>
+  </data>
+  <data name="Pnl_Parse_NoInnCol" xml:space="preserve">
+    <value>Нет столбца «ИНН» — сопоставление только по номеру счёта-фактуры.</value>
+  </data>
+  <data name="Pnl_Parse_NoPurposeCol" xml:space="preserve">
+    <value>Нет столбца «Назначение платежа» — сопоставление только по ИНН + сумме.</value>
+  </data>
+  <data name="Pnl_Parse_NoSheet" xml:space="preserve">
+    <value>В файле XLSX не найден лист.</value>
+  </data>
+  <data name="Pnl_Parse_RowAmountUnread" xml:space="preserve">
+    <value>Строка {0}: сумма не распознана — пропущена.</value>
+  </data>
+  <data name="Pnl_Parse_RowDateUnread" xml:space="preserve">
+    <value>Строка {0}: дата не распознана — пропущена.</value>
+  </data>
+  <data name="Pnl_Parse_TooManyDocs" xml:space="preserve">
+    <value>В выписке больше {0} документов — загружайте по частям периода.</value>
+  </data>
+  <data name="Pnl_Parse_TooManyRows" xml:space="preserve">
+    <value>В файле больше {0} строк — загружайте по частям периода.</value>
+  </data>
+  <data name="Pnl_Parse_XlsOld" xml:space="preserve">
+    <value>Старый формат .xls не поддерживается — сохраните в Excel как .xlsx или CSV.</value>
+  </data>
+  <data name="Pnl_Parse_XlsxFailed" xml:space="preserve">
+    <value>Файл XLSX не прочитан: {0}</value>
+  </data>
+  <data name="Pnl_Parse_XlsxNotZip" xml:space="preserve">
+    <value>Файл XLSX не прочитан (не ZIP). Пересохраните его в Excel.</value>
+  </data>
+  <data name="Pnl_PayMethod_Bank" xml:space="preserve">
+    <value>Банковский перевод</value>
+  </data>
+  <data name="Pnl_PayMethod_Card" xml:space="preserve">
+    <value>Карта</value>
+  </data>
+  <data name="Pnl_PayMethod_Cash" xml:space="preserve">
+    <value>Наличные</value>
+  </data>
+  <data name="Pnl_PayMethod_Other" xml:space="preserve">
+    <value>Другое</value>
+  </data>
+  <data name="Pnl_Payer" xml:space="preserve">
+    <value>Плательщик</value>
+  </data>
+  <data name="Pnl_PaymentDate" xml:space="preserve">
+    <value>Дата оплаты</value>
+  </data>
+  <data name="Pnl_PaymentNo" xml:space="preserve">
+    <value>платёж #{0}</value>
+  </data>
+  <data name="Pnl_Payments" xml:space="preserve">
+    <value>Платежи</value>
+  </data>
+  <data name="Pnl_Period_Month" xml:space="preserve">
+    <value>Ежемесячно</value>
+  </data>
+  <data name="Pnl_Period_Trial" xml:space="preserve">
+    <value>Пробный</value>
+  </data>
+  <data name="Pnl_Period_Year" xml:space="preserve">
+    <value>Ежегодно</value>
+  </data>
+  <data name="Pnl_Plan_ActiveHint" xml:space="preserve">
+    <value>Активен (можно выбрать для новых подписок)</value>
+  </data>
+  <data name="Pnl_Plan_AddOnNoUsers" xml:space="preserve">
+    <value>Дополнительная услуга не зависит от числа пользователей (действует лимит пакета).</value>
+  </data>
+  <data name="Pnl_Plan_AmountInvalid" xml:space="preserve">
+    <value>Неверная сумма (например 1 500 000).</value>
+  </data>
+  <data name="Pnl_Plan_IndexHint" xml:space="preserve">
+    <value>Цены с НДС. Код пакета = Edition в лицензионном ключе; ERP открывает модули по этому коду (EditionModules). Пакеты фиксированные: если число пользователей превышает лимит — следующий пакет. «Дополнительная услуга» не входит в пакет, это отдельная подписка; в ключе добавляется к Edition как «+КОД» (например KORP+SITE).</value>
+  </data>
+  <data name="Pnl_Plan_IndexTitle" xml:space="preserve">
+    <value>Тарифы (пакеты)</value>
+  </data>
+  <data name="Pnl_Plan_Label" xml:space="preserve">
+    <value>Тариф:</value>
+  </data>
+  <data name="Pnl_Plan_Modules" xml:space="preserve">
+    <value>Модули (имена ProductModule в ERP, через запятую)</value>
+  </data>
+  <data name="Pnl_Plan_ModulesHint" xml:space="preserve">
+    <value>дополнительная услуга: Website. Справочно — ERP ограничивает доступ по Edition.</value>
+  </data>
+  <data name="Pnl_Plan_MonthSom" xml:space="preserve">
+    <value>В месяц, сум</value>
+  </data>
+  <data name="Pnl_Plan_PriceMonth" xml:space="preserve">
+    <value>Цена за месяц, сум (с НДС)</value>
+  </data>
+  <data name="Pnl_Plan_PriceYear" xml:space="preserve">
+    <value>Цена за год, сум (с НДС)</value>
+  </data>
+  <data name="Pnl_Plan_Title" xml:space="preserve">
+    <value>Тариф: {0}</value>
+  </data>
+  <data name="Pnl_Plan_TrialDays" xml:space="preserve">
+    <value>Пробный период, дней</value>
+  </data>
+  <data name="Pnl_Plan_UserLimit" xml:space="preserve">
+    <value>Лимит пользователей</value>
+  </data>
+  <data name="Pnl_Plan_VatRate" xml:space="preserve">
+    <value>Ставка НДС, %</value>
+  </data>
+  <data name="Pnl_Plan_YearSom" xml:space="preserve">
+    <value>В год, сум</value>
+  </data>
+  <data name="Pnl_Prov_AgentHasKey" xml:space="preserve">
+    <value>ключ есть</value>
+  </data>
+  <data name="Pnl_Prov_AgentNotConnected" xml:space="preserve">
+    <value>не подключён</value>
+  </data>
+  <data name="Pnl_Prov_Agents" xml:space="preserve">
+    <value>Агенты</value>
+  </data>
+  <data name="Pnl_Prov_AlreadyArchived" xml:space="preserve">
+    <value>Уже в архиве.</value>
+  </data>
+  <data name="Pnl_Prov_ArchiveReasonRequired" xml:space="preserve">
+    <value>Причина архивации обязательна.</value>
+  </data>
+  <data name="Pnl_Prov_Archived" xml:space="preserve">
+    <value>Тенант в архиве.</value>
+  </data>
+  <data name="Pnl_Prov_ArchivedNoDb" xml:space="preserve">
+    <value>Для архивного тенанта база не создаётся.</value>
+  </data>
+  <data name="Pnl_Prov_Attempt" xml:space="preserve">
+    <value>Попытка</value>
+  </data>
+  <data name="Pnl_Prov_Attempts" xml:space="preserve">
+    <value>Попытки</value>
+  </data>
+  <data name="Pnl_Prov_CancelOnly" xml:space="preserve">
+    <value>Отменить можно только задание в очереди или с ошибкой.</value>
+  </data>
+  <data name="Pnl_Prov_Cancelled" xml:space="preserve">
+    <value>Задание отменено.</value>
+  </data>
+  <data name="Pnl_Prov_CreatedBy" xml:space="preserve">
+    <value>Создал</value>
+  </data>
+  <data name="Pnl_Prov_DbExists" xml:space="preserve">
+    <value>База уже создана.</value>
+  </data>
+  <data name="Pnl_Prov_DeleteReasonRequired" xml:space="preserve">
+    <value>Причина удаления обязательна.</value>
+  </data>
+  <data name="Pnl_Prov_EndTrialReasonRequired" xml:space="preserve">
+    <value>Причина завершения пробного периода обязательна.</value>
+  </data>
+  <data name="Pnl_Prov_ExitCode" xml:space="preserve">
+    <value>Код выхода</value>
+  </data>
+  <data name="Pnl_Prov_Finished" xml:space="preserve">
+    <value>Завершено</value>
+  </data>
+  <data name="Pnl_Prov_Jobs" xml:space="preserve">
+    <value>Задания</value>
+  </data>
+  <data name="Pnl_Prov_NextAttempt" xml:space="preserve">
+    <value>Следующая попытка</value>
+  </data>
+  <data name="Pnl_Prov_NoActiveSub" xml:space="preserve">
+    <value>Нет активной подписки — сначала отметьте оплату или продлите подписку.</value>
+  </data>
+  <data name="Pnl_Prov_NoDb" xml:space="preserve">
+    <value>База ещё не создана.</value>
+  </data>
+  <data name="Pnl_Prov_NoDbArchive" xml:space="preserve">
+    <value>База ещё не создана — для архивации измените статус.</value>
+  </data>
+  <data name="Pnl_Prov_NoDbName" xml:space="preserve">
+    <value>Не задано имя базы (DbName).</value>
+  </data>
+  <data name="Pnl_Prov_NoJobs" xml:space="preserve">
+    <value>Заданий нет.</value>
+  </data>
+  <data name="Pnl_Prov_NoServer" xml:space="preserve">
+    <value>Тенант не привязан к серверу.</value>
+  </data>
+  <data name="Pnl_Prov_OnlySaas" xml:space="preserve">
+    <value>Развёртывание доступно только для SaaS-тенантов.</value>
+  </data>
+  <data name="Pnl_Prov_OnlySaasTrial" xml:space="preserve">
+    <value>Только для пробных SaaS-тенантов.</value>
+  </data>
+  <data name="Pnl_Prov_OnlyTrial" xml:space="preserve">
+    <value>Завершить можно только пробного (TRIAL) тенанта — для платного: «Архивировать» → «Удалить».</value>
+  </data>
+  <data name="Pnl_Prov_OtherActive" xml:space="preserve">
+    <value>У тенанта выполняется другое действие: {0} (#{1}). Дождитесь завершения или отмените.</value>
+  </data>
+  <data name="Pnl_Prov_OtherJob" xml:space="preserve">
+    <value>У тенанта есть другое активное задание.</value>
+  </data>
+  <data name="Pnl_Prov_Parameters" xml:space="preserve">
+    <value>Параметры</value>
+  </data>
+  <data name="Pnl_Prov_Queue" xml:space="preserve">
+    <value>Очередь развёртывания</value>
+  </data>
+  <data name="Pnl_Prov_Requeued" xml:space="preserve">
+    <value>Задание снова поставлено в очередь.</value>
+  </data>
+  <data name="Pnl_Prov_ResetOnlyDemo" xml:space="preserve">
+    <value>Восстановление только для демо-тенанта ('{0}').</value>
+  </data>
+  <data name="Pnl_Prov_Result" xml:space="preserve">
+    <value>Результат</value>
+  </data>
+  <data name="Pnl_Prov_Retry" xml:space="preserve">
+    <value>Повторить</value>
+  </data>
+  <data name="Pnl_Prov_RetryOnlyFailed" xml:space="preserve">
+    <value>Повторно запускается только задание, завершившееся с ошибкой.</value>
+  </data>
+  <data name="Pnl_Prov_SlugMismatch" xml:space="preserve">
+    <value>Slug для подтверждения не совпал.</value>
+  </data>
+  <data name="Pnl_Prov_StartedFinished" xml:space="preserve">
+    <value>Начато / завершено</value>
+  </data>
+  <data name="Pnl_Prov_TenantDeleted" xml:space="preserve">
+    <value>Тенант удалён.</value>
+  </data>
+  <data name="Pnl_Prov_UrlUnknown" xml:space="preserve">
+    <value>(адрес: {0}.&lt;домен&gt;)</value>
+  </data>
+  <data name="Pnl_Prov_WelcomeText" xml:space="preserve">
+    <value>tahsinERP: система для «{0}» готова.
+Адрес: {1}
+Логин: {2}
+Временный пароль: {3}
+При первом входе потребуется сменить пароль.</value>
+  </data>
+  <data name="Pnl_Purpose" xml:space="preserve">
+    <value>Назначение</value>
+  </data>
+  <data name="Pnl_Pwd_LettersDigits" xml:space="preserve">
+    <value>Пароль должен содержать и буквы, и цифры.</value>
+  </data>
+  <data name="Pnl_Pwd_MinLength" xml:space="preserve">
+    <value>Пароль должен содержать не менее {0} символов.</value>
+  </data>
+  <data name="Pnl_Reason" xml:space="preserve">
+    <value>Причина</value>
+  </data>
+  <data name="Pnl_ReasonMandatory" xml:space="preserve">
+    <value>Причина (обязательно)</value>
+  </data>
+  <data name="Pnl_Region" xml:space="preserve">
+    <value>Регион</value>
+  </data>
+  <data name="Pnl_RemainingLower" xml:space="preserve">
+    <value>остаток</value>
+  </data>
+  <data name="Pnl_Req_Approved" xml:space="preserve">
+    <value>Заявка #{0} подтверждена, создан черновик счёта-фактуры — проверьте и нажмите «Выставить».</value>
+  </data>
+  <data name="Pnl_Req_Empty" xml:space="preserve">
+    <value>Заявок нет.</value>
+  </data>
+  <data name="Pnl_Req_FromDate" xml:space="preserve">
+    <value>с {0}</value>
+  </data>
+  <data name="Pnl_Req_Hint" xml:space="preserve">
+    <value>Подтверждение: при необходимости автоматически создаются новая подписка (понижение — с конца текущего периода) и черновик счёта-фактуры. Цена берётся из пакета; черновик можно отредактировать (например, скидка за остаток текущего периода).</value>
+  </data>
+  <data name="Pnl_Req_Queue" xml:space="preserve">
+    <value>Очередь (ожидают)</value>
+  </data>
+  <data name="Pnl_Req_RejectReason" xml:space="preserve">
+    <value>Причина отказа</value>
+  </data>
+  <data name="Pnl_Req_Rejected" xml:space="preserve">
+    <value>Заявка #{0} отклонена, клиенту отправлено сообщение.</value>
+  </data>
+  <data name="Pnl_Req_Request" xml:space="preserve">
+    <value>Заявка</value>
+  </data>
+  <data name="Pnl_Req_Title" xml:space="preserve">
+    <value>Заявки клиентов (портал)</value>
+  </data>
+  <data name="Pnl_Req_Who" xml:space="preserve">
+    <value>Кто</value>
+  </data>
+  <data name="Pnl_Reversal" xml:space="preserve">
+    <value>Сторно</value>
+  </data>
+  <data name="Pnl_Risk_High" xml:space="preserve">
+    <value>Высокий</value>
+  </data>
+  <data name="Pnl_Risk_Low" xml:space="preserve">
+    <value>Низкий</value>
+  </data>
+  <data name="Pnl_Risk_Medium" xml:space="preserve">
+    <value>Средний</value>
+  </data>
+  <data name="Pnl_Role" xml:space="preserve">
+    <value>Роль</value>
+  </data>
+  <data name="Pnl_Role_Owner" xml:space="preserve">
+    <value>Владелец (Owner)</value>
+  </data>
+  <data name="Pnl_RowMessage" xml:space="preserve">
+    <value>Строка {0}: {1}</value>
+  </data>
+  <data name="Pnl_SavedDot" xml:space="preserve">
+    <value>Сохранено.</value>
+  </data>
+  <data name="Pnl_SavedNamed" xml:space="preserve">
+    <value>«{0}» сохранено.</value>
+  </data>
+  <data name="Pnl_SearchLabel" xml:space="preserve">
+    <value>Поиск</value>
+  </data>
+  <data name="Pnl_Server" xml:space="preserve">
+    <value>Сервер</value>
+  </data>
+  <data name="Pnl_Service" xml:space="preserve">
+    <value>Услуга</value>
+  </data>
+  <data name="Pnl_Show" xml:space="preserve">
+    <value>Показать</value>
+  </data>
+  <data name="Pnl_Source" xml:space="preserve">
+    <value>Источник</value>
+  </data>
+  <data name="Pnl_Srv_ActiveHint" xml:space="preserve">
+    <value>Активен (можно размещать новых тенантов)</value>
+  </data>
+  <data name="Pnl_Srv_Add" xml:space="preserve">
+    <value>Добавить сервер</value>
+  </data>
+  <data name="Pnl_Srv_Agent" xml:space="preserve">
+    <value>Агент развёртывания</value>
+  </data>
+  <data name="Pnl_Srv_AgentSetting" xml:space="preserve">
+    <value>настройка агента</value>
+  </data>
+  <data name="Pnl_Srv_Empty" xml:space="preserve">
+    <value>Серверы ещё не добавлены.</value>
+  </data>
+  <data name="Pnl_Srv_Exists" xml:space="preserve">
+    <value>есть</value>
+  </data>
+  <data name="Pnl_Srv_Hint" xml:space="preserve">
+    <value>Лимит буфера SQL Server Express 1.4 ГБ общий для всех баз тенантов — после ~15–20 активных тенантов нужен второй сервер. Логины/пароли здесь не хранятся.</value>
+  </data>
+  <data name="Pnl_Srv_Host" xml:space="preserve">
+    <value>Хост ERP (DNS/IP)</value>
+  </data>
+  <data name="Pnl_Srv_InstanceOnly" xml:space="preserve">
+    <value>Только имя экземпляра — логин/пароль здесь не хранятся.</value>
+  </data>
+  <data name="Pnl_Srv_IssueAgentKey" xml:space="preserve">
+    <value>Выпустить ключ агента</value>
+  </data>
+  <data name="Pnl_Srv_MaxTenants" xml:space="preserve">
+    <value>Максимум тенантов</value>
+  </data>
+  <data name="Pnl_Srv_New" xml:space="preserve">
+    <value>Новый сервер</value>
+  </data>
+  <data name="Pnl_Srv_NotFound" xml:space="preserve">
+    <value>Сервер не найден.</value>
+  </data>
+  <data name="Pnl_Srv_NotIssued" xml:space="preserve">
+    <value>не выпущен</value>
+  </data>
+  <data name="Pnl_Srv_OnErpServer" xml:space="preserve">
+    <value>На сервере ERP:</value>
+  </data>
+  <data name="Pnl_Srv_RotateAgentKey" xml:space="preserve">
+    <value>Заменить ключ агента (старый станет недействителен)</value>
+  </data>
+  <data name="Pnl_Srv_Saved" xml:space="preserve">
+    <value>Сервер «{0}» сохранён.</value>
+  </data>
+  <data name="Pnl_Srv_SecretHint" xml:space="preserve">
+    <value>или env службы, затем перезапустите агент (05_PROVISIONING.md).</value>
+  </data>
+  <data name="Pnl_Srv_SecretOnce" xml:space="preserve">
+    <value>Секрет агента (виден только сейчас):</value>
+  </data>
+  <data name="Pnl_Srv_Title" xml:space="preserve">
+    <value>Серверы ERP</value>
+  </data>
+  <data name="Pnl_Staff_Add" xml:space="preserve">
+    <value>Добавить сотрудника</value>
+  </data>
+  <data name="Pnl_Staff_Added" xml:space="preserve">
+    <value>Сотрудник добавлен: {0}. Передайте пароль по защищённому каналу; при первом входе подключается 2FA.</value>
+  </data>
+  <data name="Pnl_Staff_LastOwner" xml:space="preserve">
+    <value>Нельзя отключить/понизить последнего активного Owner.</value>
+  </data>
+  <data name="Pnl_Staff_New" xml:space="preserve">
+    <value>Новый сотрудник</value>
+  </data>
+  <data name="Pnl_Staff_NewTempPassword" xml:space="preserve">
+    <value>Новый временный пароль</value>
+  </data>
+  <data name="Pnl_Staff_PasswordReset" xml:space="preserve">
+    <value>Пароль изменён, блокировка снята.</value>
+  </data>
+  <data name="Pnl_Staff_ResetPasswordUnlock" xml:space="preserve">
+    <value>Сменить пароль и снять блокировку</value>
+  </data>
+  <data name="Pnl_Staff_ResetTotp" xml:space="preserve">
+    <value>Сбросить 2FA</value>
+  </data>
+  <data name="Pnl_Staff_ResetTotpHint" xml:space="preserve">
+    <value>Сбросьте при утере телефона — сотрудник подключит заново при следующем входе.</value>
+  </data>
+  <data name="Pnl_Staff_RolesHint" xml:space="preserve">
+    <value>Роли: Owner — всё (сторно, выпуск/отзыв ключей, тарифы, серверы, сотрудники); Продажи — организации, подписки, счета-фактуры, отметка оплат; Поддержка — просмотр и reg_token.</value>
+  </data>
+  <data name="Pnl_Staff_Title" xml:space="preserve">
+    <value>Сотрудник: {0}</value>
+  </data>
+  <data name="Pnl_Staff_TotpReset" xml:space="preserve">
+    <value>2FA сброшена — при следующем входе сотрудник отсканирует новый QR-код.</value>
+  </data>
+  <data name="Pnl_Start" xml:space="preserve">
+    <value>Начало</value>
+  </data>
+  <data name="Pnl_StartDate" xml:space="preserve">
+    <value>Дата начала</value>
+  </data>
+  <data name="Pnl_StatusLower" xml:space="preserve">
+    <value>статус</value>
+  </data>
+  <data name="Pnl_SubStatus_Active" xml:space="preserve">
+    <value>Активна</value>
+  </data>
+  <data name="Pnl_SubStatus_Cancelled" xml:space="preserve">
+    <value>Отменена</value>
+  </data>
+  <data name="Pnl_SubStatus_Expired" xml:space="preserve">
+    <value>Истекла</value>
+  </data>
+  <data name="Pnl_SubStatus_Pending" xml:space="preserve">
+    <value>Ожидает оплаты</value>
+  </data>
+  <data name="Pnl_Sub_AddOnActiveExists" xml:space="preserve">
+    <value>Услуга «{0}» активна (подписка #{1}) — для продления выставьте счёт-фактуру по этой подписке.</value>
+  </data>
+  <data name="Pnl_Sub_AddOnCreated" xml:space="preserve">
+    <value>Подписка на дополнительную услугу создана (ожидает оплаты). Теперь выставьте счёт-фактуру.</value>
+  </data>
+  <data name="Pnl_Sub_AddOnEditHint" xml:space="preserve">
+    <value>Подписка на дополнительную услугу — тариф и пользователи не меняются. Продление: счёт-фактура по этой подписке.</value>
+  </data>
+  <data name="Pnl_Sub_AddOnNoChange" xml:space="preserve">
+    <value>Подписку на дополнительную услугу нельзя перевести на другой тариф — при необходимости отмените и откройте новую.</value>
+  </data>
+  <data name="Pnl_Sub_AddOnPendingExists" xml:space="preserve">
+    <value>Неоплаченная подписка #{1} на услугу «{0}» уже существует.</value>
+  </data>
+  <data name="Pnl_Sub_AddOnsGroup" xml:space="preserve">
+    <value>Дополнительные услуги (отдельно от пакета)</value>
+  </data>
+  <data name="Pnl_Sub_AutoRenewHint" xml:space="preserve">
+    <value>Автопродление (отметка для напоминаний; оплата всё равно вручную)</value>
+  </data>
+  <data name="Pnl_Sub_Cancel" xml:space="preserve">
+    <value>Отменить подписку</value>
+  </data>
+  <data name="Pnl_Sub_CancelHint" xml:space="preserve">
+    <value>Ключ автоматически не сокращается — при необходимости отзовите его на странице «Ключи».</value>
+  </data>
+  <data name="Pnl_Sub_Cancelled" xml:space="preserve">
+    <value>Подписка отменена.</value>
+  </data>
+  <data name="Pnl_Sub_CancelledNoExtend" xml:space="preserve">
+    <value>Подписка отменена — продлить нельзя.</value>
+  </data>
+  <data name="Pnl_Sub_ChangePlanHint" xml:space="preserve">
+    <value>Смена пакета не пересчитывает цену автоматически — выставьте отдельный счёт-фактуру на разницу.</value>
+  </data>
+  <data name="Pnl_Sub_CreateAndInvoice" xml:space="preserve">
+    <value>Создать и перейти к счёту-фактуре</value>
+  </data>
+  <data name="Pnl_Sub_CreateHint" xml:space="preserve">
+    <value>Подписка создаётся в статусе «Ожидает оплаты»; активируется при полной оплате счёта-фактуры, и выпускается ключ. Дополнительная услуга (например Сайт-каталог) не затрагивает подписку на пакет: после оплаты в ключ добавляется «+КОД», по истечении срока — удаляется.</value>
+  </data>
+  <data name="Pnl_Sub_Created" xml:space="preserve">
+    <value>Подписка создана (ожидает оплаты). Теперь выставьте счёт-фактуру.</value>
+  </data>
+  <data name="Pnl_Sub_CurrentPackage" xml:space="preserve">
+    <value>Текущий пакет</value>
+  </data>
+  <data name="Pnl_Sub_MaxUsers" xml:space="preserve">
+    <value>В пакете {0} не более {1} пользователей.</value>
+  </data>
+  <data name="Pnl_Sub_MaxUsersNext" xml:space="preserve">
+    <value>В пакете {0} не более {1} пользователей. Больше — следующий пакет.</value>
+  </data>
+  <data name="Pnl_Sub_MonthShort" xml:space="preserve">
+    <value>мес.:</value>
+  </data>
+  <data name="Pnl_Sub_New" xml:space="preserve">
+    <value>Новая подписка</value>
+  </data>
+  <data name="Pnl_Sub_No" xml:space="preserve">
+    <value>Подписка #{0}</value>
+  </data>
+  <data name="Pnl_Sub_PackageLimit" xml:space="preserve">
+    <value>лимит пакета</value>
+  </data>
+  <data name="Pnl_Sub_PendingExists" xml:space="preserve">
+    <value>У этого тенанта уже есть неоплаченная (Pending) подписка.</value>
+  </data>
+  <data name="Pnl_Sub_PlanNotFound" xml:space="preserve">
+    <value>Тариф не найден.</value>
+  </data>
+  <data name="Pnl_Sub_PlanOrAddOn" xml:space="preserve">
+    <value>Пакет или дополнительная услуга</value>
+  </data>
+  <data name="Pnl_Sub_ReasonRequired" xml:space="preserve">
+    <value>Причина обязательна.</value>
+  </data>
+  <data name="Pnl_Sub_Saved" xml:space="preserve">
+    <value>Подписка сохранена. Если изменились пакет/пользователи — на странице тенанта «Обновить ключ по подписке».</value>
+  </data>
+  <data name="Pnl_Sub_TrialAuto" xml:space="preserve">
+    <value>Пробная подписка открывается автоматически при создании тенанта.</value>
+  </data>
+  <data name="Pnl_Sub_TrialNotEditable" xml:space="preserve">
+    <value>Пробная подписка не редактируется.</value>
+  </data>
+  <data name="Pnl_Sub_UsersHint" xml:space="preserve">
+    <value>Пусто — лимит пакета (фиксированный пакет). Для дополнительной услуги не учитывается.</value>
+  </data>
+  <data name="Pnl_Sub_YearShort" xml:space="preserve">
+    <value>год:</value>
+  </data>
+  <data name="Pnl_Subscription" xml:space="preserve">
+    <value>Подписка</value>
+  </data>
+  <data name="Pnl_Subscriptions" xml:space="preserve">
+    <value>Подписки</value>
+  </data>
+  <data name="Pnl_TenSvc_ArchiveViaProvisioning" xml:space="preserve">
+    <value>SaaS-тенант с созданной базой архивируется только действием «Архивировать» (развёртывание).</value>
+  </data>
+  <data name="Pnl_TenSvc_ArchivedNoRestore" xml:space="preserve">
+    <value>База архивированного тенанта удалена — вернуть статус вручную нельзя.</value>
+  </data>
+  <data name="Pnl_TenSvc_ArchivedNoToken" xml:space="preserve">
+    <value>Для архивного тенанта токен не выпускается.</value>
+  </data>
+  <data name="Pnl_TenSvc_CompanyIdPositive" xml:space="preserve">
+    <value>CompanyID должен быть положительным.</value>
+  </data>
+  <data name="Pnl_TenSvc_DbNameFormat" xml:space="preserve">
+    <value>Имя базы: только A-Z a-z 0-9 _ - . (1–100).</value>
+  </data>
+  <data name="Pnl_TenSvc_DbNameTaken" xml:space="preserve">
+    <value>Имя базы '{0}' занято.</value>
+  </data>
+  <data name="Pnl_TenSvc_InnFormat" xml:space="preserve">
+    <value>ИНН — 9 цифр (юридическое лицо) или ПИНФЛ — 14 цифр.</value>
+  </data>
+  <data name="Pnl_TenSvc_LegalNameRequired" xml:space="preserve">
+    <value>Юридическое наименование обязательно.</value>
+  </data>
+  <data name="Pnl_TenSvc_OfflineDaysRange" xml:space="preserve">
+    <value>Срок работы без интернета — {0}–{1} дней.</value>
+  </data>
+  <data name="Pnl_TenSvc_ProvisionedLocked" xml:space="preserve">
+    <value>У тенанта с созданной базой нельзя менять имя базы, сервер и размещение (база и tenants.json останутся со старыми значениями).</value>
+  </data>
+  <data name="Pnl_TenSvc_ServerFull" xml:space="preserve">
+    <value>Сервер '{0}' заполнен ({1}/{2}).</value>
+  </data>
+  <data name="Pnl_TenSvc_ServerInactive" xml:space="preserve">
+    <value>Сервер не найден или неактивен.</value>
+  </data>
+  <data name="Pnl_TenSvc_SlugFormat" xml:space="preserve">
+    <value>Slug: только строчные латинские буквы, цифры и '-', 1–63 символа, не начинается и не заканчивается на '-'.</value>
+  </data>
+  <data name="Pnl_TenSvc_SlugReserved" xml:space="preserve">
+    <value>'{0}' занят (зарезервирован для поддомена панели).</value>
+  </data>
+  <data name="Pnl_TenSvc_SlugTaken" xml:space="preserve">
+    <value>Slug '{0}' занят.</value>
+  </data>
+  <data name="Pnl_Ten_AdminTempPassword" xml:space="preserve">
+    <value>Временный пароль admin (виден только сейчас):</value>
+  </data>
+  <data name="Pnl_Ten_AllExceptArchive" xml:space="preserve">
+    <value>Все, кроме архива</value>
+  </data>
+  <data name="Pnl_Ten_ArchiveBtn" xml:space="preserve">
+    <value>Архивировать (бэкап + удаление базы)</value>
+  </data>
+  <data name="Pnl_Ten_ArchiveQueued" xml:space="preserve">
+    <value>Архивация поставлена в очередь.</value>
+  </data>
+  <data name="Pnl_Ten_AuditLast30" xml:space="preserve">
+    <value>Аудит (последние 30)</value>
+  </data>
+  <data name="Pnl_Ten_AutoRefresh" xml:space="preserve">
+    <value>страница обновится сама.</value>
+  </data>
+  <data name="Pnl_Ten_AutoServer" xml:space="preserve">
+    <value>автоматически (где больше места)</value>
+  </data>
+  <data name="Pnl_Ten_BackupBeforeDelete" xml:space="preserve">
+    <value>Сделать архив (.bak) перед удалением</value>
+  </data>
+  <data name="Pnl_Ten_BotAndSite" xml:space="preserve">
+    <value>Telegram-бот и сайт-каталог</value>
+  </data>
+  <data name="Pnl_Ten_BotConnect" xml:space="preserve">
+    <value>Подключить бота</value>
+  </data>
+  <data name="Pnl_Ten_BotConnected" xml:space="preserve">
+    <value>Бот подключён: @{0}. ERP → Дистрибуция → Настройки: «Имя Telegram-бота» = {0}.</value>
+  </data>
+  <data name="Pnl_Ten_BotDisable" xml:space="preserve">
+    <value>Отключить бота</value>
+  </data>
+  <data name="Pnl_Ten_BotDisabled" xml:space="preserve">
+    <value>Бот отключён.</value>
+  </data>
+  <data name="Pnl_Ten_BotHint1" xml:space="preserve">
+    <value>ERP → Дистрибуция → Настройки: «Имя Telegram-бота» =</value>
+  </data>
+  <data name="Pnl_Ten_BotHint2" xml:space="preserve">
+    <value>«Публичный адрес бота» = адрес бота. В BotFather</value>
+  </data>
+  <data name="Pnl_Ten_BotHint3" xml:space="preserve">
+    <value>домен бота (для Mini App).</value>
+  </data>
+  <data name="Pnl_Ten_BotNoTokenHint" xml:space="preserve">
+    <value>Если нажать без токена — обновятся адрес ERP и webhook.</value>
+  </data>
+  <data name="Pnl_Ten_BotToken" xml:space="preserve">
+    <value>Токен BotFather</value>
+  </data>
+  <data name="Pnl_Ten_BotTokenChange" xml:space="preserve">
+    <value>(если новый бот или сменился токен)</value>
+  </data>
+  <data name="Pnl_Ten_BotTokenHint" xml:space="preserve">
+    <value>Токен не хранится в панели — передаётся в приложение бота и шифруется там. Webhook устанавливается автоматически.</value>
+  </data>
+  <data name="Pnl_Ten_CatalogSnapshot" xml:space="preserve">
+    <value>Копия каталога</value>
+  </data>
+  <data name="Pnl_Ten_ChangeStatus" xml:space="preserve">
+    <value>Изменить статус</value>
+  </data>
+  <data name="Pnl_Ten_ChatHint" xml:space="preserve">
+    <value>Напоминания о сроках приходят в этот чат.</value>
+  </data>
+  <data name="Pnl_Ten_CompanyIdHint" xml:space="preserve">
+    <value>ERP передаёт сам при регистрации; обычно 1.</value>
+  </data>
+  <data name="Pnl_Ten_CompanyIdLocked" xml:space="preserve">
+    <value>CompanyID получен при регистрации ERP — при изменении ключ будет отклонён в ERP.</value>
+  </data>
+  <data name="Pnl_Ten_CreateHint" xml:space="preserve">
+    <value>Если не отмечено, организация создаётся в статусе «Приостановлена» и активируется после первой оплаты. Создание базы — кнопка «Создать базу» на странице организации (или быстрый путь: «Открыть пробный период»).</value>
+  </data>
+  <data name="Pnl_Ten_CreateJobQueued" xml:space="preserve">
+    <value>Задание на создание уже в очереди (#{0}).</value>
+  </data>
+  <data name="Pnl_Ten_Created" xml:space="preserve">
+    <value>«{0}» создана.</value>
+  </data>
+  <data name="Pnl_Ten_CreatedNoJob" xml:space="preserve">
+    <value>Организация и пробная подписка созданы, но задание на создание базы не добавлено:</value>
+  </data>
+  <data name="Pnl_Ten_DbCreated" xml:space="preserve">
+    <value>База создана</value>
+  </data>
+  <data name="Pnl_Ten_DbName" xml:space="preserve">
+    <value>Имя базы (SaaS)</value>
+  </data>
+  <data name="Pnl_Ten_DbNamePlaceholder" xml:space="preserve">
+    <value>DB_firma1 (если пусто — автоматически)</value>
+  </data>
+  <data name="Pnl_Ten_DbServer" xml:space="preserve">
+    <value>База / сервер</value>
+  </data>
+  <data name="Pnl_Ten_Default30" xml:space="preserve">
+    <value>по умолчанию (30)</value>
+  </data>
+  <data name="Pnl_Ten_DeleteForever" xml:space="preserve">
+    <value>Удалить безвозвратно</value>
+  </data>
+  <data name="Pnl_Ten_DeleteIrreversible" xml:space="preserve">
+    <value>необратимо</value>
+  </data>
+  <data name="Pnl_Ten_DeleteOnlyArchived" xml:space="preserve">
+    <value>Удаление доступно только для архивированного тенанта.</value>
+  </data>
+  <data name="Pnl_Ten_DeleteQueued" xml:space="preserve">
+    <value>Удаление поставлено в очередь (задание #{0}).</value>
+  </data>
+  <data name="Pnl_Ten_DeleteTitle" xml:space="preserve">
+    <value>Удаление: {0}</value>
+  </data>
+  <data name="Pnl_Ten_DeleteWarn1" xml:space="preserve">
+    <value>Это действие</value>
+  </data>
+  <data name="Pnl_Ten_DeleteWarn2" xml:space="preserve">
+    <value>удаляются база на сервере (если осталась), архивная копия</value>
+  </data>
+  <data name="Pnl_Ten_DeleteWarn3" xml:space="preserve">
+    <value>и запись в реестре ERP. Счета-фактуры, платежи и аудит остаются в панели.</value>
+  </data>
+  <data name="Pnl_Ten_Deleted" xml:space="preserve">
+    <value>Удалено</value>
+  </data>
+  <data name="Pnl_Ten_DisableLower" xml:space="preserve">
+    <value>отключить</value>
+  </data>
+  <data name="Pnl_Ten_EnableLower" xml:space="preserve">
+    <value>включить</value>
+  </data>
+  <data name="Pnl_Ten_EndTrialBtn" xml:space="preserve">
+    <value>Завершить пробный период и удалить базу</value>
+  </data>
+  <data name="Pnl_Ten_EndTrialHint" xml:space="preserve">
+    <value>Если клиент не пользуется пробным периодом — не дожидаясь 14 дней: подписка TRIAL отменяется, доступ сразу закрывается, база удаляется и исключается из реестра ERP. Для платных тенантов — «Архивировать» → «Удалить».</value>
+  </data>
+  <data name="Pnl_Ten_EndTrialPlaceholder" xml:space="preserve">
+    <value>например: 5 дней не входил, клиент не отвечает</value>
+  </data>
+  <data name="Pnl_Ten_EnsureLicense" xml:space="preserve">
+    <value>Обновить ключ по подписке</value>
+  </data>
+  <data name="Pnl_Ten_FinalConfirm" xml:space="preserve">
+    <value>Окончательное подтверждение.</value>
+  </data>
+  <data name="Pnl_Ten_FinalConfirmText" xml:space="preserve">
+    <value>База и резервная копия «{0}» ({1}) будут удалены.</value>
+  </data>
+  <data name="Pnl_Ten_InProgress" xml:space="preserve">
+    <value>Выполняется:</value>
+  </data>
+  <data name="Pnl_Ten_InviteFor" xml:space="preserve">
+    <value>Ссылка-приглашение для {0} (видна только сейчас, одноразовая):</value>
+  </data>
+  <data name="Pnl_Ten_InviteHint" xml:space="preserve">
+    <value>Отправьте клиенту лично (Telegram/email). По ссылке устанавливается пароль; старый пароль и сеансы аннулируются.</value>
+  </data>
+  <data name="Pnl_Ten_InviteLink" xml:space="preserve">
+    <value>ссылка-приглашение</value>
+  </data>
+  <data name="Pnl_Ten_InvitePending" xml:space="preserve">
+    <value>ожидает приглашения</value>
+  </data>
+  <data name="Pnl_Ten_InviteSentTg" xml:space="preserve">
+    <value>Также отправлено в привязанный Telegram-чат пользователя.</value>
+  </data>
+  <data name="Pnl_Ten_IssueRegToken" xml:space="preserve">
+    <value>Выпустить reg_token</value>
+  </data>
+  <data name="Pnl_Ten_KeyAdjusted" xml:space="preserve">
+    <value>Ключ приведён в соответствие с политикой: #{0}, до {1}.</value>
+  </data>
+  <data name="Pnl_Ten_KeyNotIssued" xml:space="preserve">
+    <value>Ключ не выпущен: {0}</value>
+  </data>
+  <data name="Pnl_Ten_KeyUpToDate" xml:space="preserve">
+    <value>Текущий ключ соответствует подписке — новый не нужен (или тенант не привязан / нет активной подписки).</value>
+  </data>
+  <data name="Pnl_Ten_LicHistory" xml:space="preserve">
+    <value>Лицензионные ключи (история)</value>
+  </data>
+  <data name="Pnl_Ten_New" xml:space="preserve">
+    <value>Новая организация</value>
+  </data>
+  <data name="Pnl_Ten_NewKeyIssued" xml:space="preserve">
+    <value>Выпущен новый ключ (#{0}).</value>
+  </data>
+  <data name="Pnl_Ten_NewRegToken" xml:space="preserve">
+    <value>Новый reg_token (виден только сейчас, действует 7 дней):</value>
+  </data>
+  <data name="Pnl_Ten_NoBack" xml:space="preserve">
+    <value>Нет, вернуться</value>
+  </data>
+  <data name="Pnl_Ten_NoEntry" xml:space="preserve">
+    <value>записи нет</value>
+  </data>
+  <data name="Pnl_Ten_NoFreeServer" xml:space="preserve">
+    <value>Нет активного сервера со свободным местом (раздел «Серверы»).</value>
+  </data>
+  <data name="Pnl_Ten_NoPortalUsers" xml:space="preserve">
+    <value>Пользователей портала нет.</value>
+  </data>
+  <data name="Pnl_Ten_NotEnabled" xml:space="preserve">
+    <value>не включён</value>
+  </data>
+  <data name="Pnl_Ten_NotTakenYet" xml:space="preserve">
+    <value>ещё не снята</value>
+  </data>
+  <data name="Pnl_Ten_OfflineDays" xml:space="preserve">
+    <value>Срок без интернета, дней</value>
+  </data>
+  <data name="Pnl_Ten_OfflineHint" xml:space="preserve">
+    <value>Обязательна: срок ключа (обновляется по истечении половины). Необязательна: при отсутствии связи столько дней ERP и панель предупреждают. 7–90.</value>
+  </data>
+  <data name="Pnl_Ten_OneMore" xml:space="preserve">
+    <value>Ещё один</value>
+  </data>
+  <data name="Pnl_Ten_OnlineCheck" xml:space="preserve">
+    <value>Онлайн-проверка (только on-prem)</value>
+  </data>
+  <data name="Pnl_Ten_OnlineHint1" xml:space="preserve">
+    <value>Для SaaS не учитывается. При обязательной ERP должна быть подключена к панели через</value>
+  </data>
+  <data name="Pnl_Ten_OnlineHint2" xml:space="preserve">
+    <value>, иначе ключ истечёт после льготного периода.</value>
+  </data>
+  <data name="Pnl_Ten_OnlineOptional" xml:space="preserve">
+    <value>Необязательна — ключ на срок договора (≤ 1 года), работает и без интернета</value>
+  </data>
+  <data name="Pnl_Ten_OnlineRequired" xml:space="preserve">
+    <value>Обязательна — короткий ключ, панель обновляет сама (ERP должна делать pull)</value>
+  </data>
+  <data name="Pnl_Ten_OpenTrial" xml:space="preserve">
+    <value>Открыть пробный период</value>
+  </data>
+  <data name="Pnl_Ten_OpenTrial14" xml:space="preserve">
+    <value>Открыть пробный период (14 дней)</value>
+  </data>
+  <data name="Pnl_Ten_OrgPage" xml:space="preserve">
+    <value>Страница организации</value>
+  </data>
+  <data name="Pnl_Ten_PaidSub" xml:space="preserve">
+    <value>Платная подписка / услуга</value>
+  </data>
+  <data name="Pnl_Ten_PleaseConfirm" xml:space="preserve">
+    <value>Подтвердите.</value>
+  </data>
+  <data name="Pnl_Ten_Portal" xml:space="preserve">
+    <value>Портал клиента</value>
+  </data>
+  <data name="Pnl_Ten_PortalUserUpdated" xml:space="preserve">
+    <value>Пользователь портала обновлён (его сеансы закрыты).</value>
+  </data>
+  <data name="Pnl_Ten_ProductsN" xml:space="preserve">
+    <value>товаров: {0}</value>
+  </data>
+  <data name="Pnl_Ten_ProvTitle" xml:space="preserve">
+    <value>Развёртывание (база и реестр ERP)</value>
+  </data>
+  <data name="Pnl_Ten_Provision" xml:space="preserve">
+    <value>Создать базу</value>
+  </data>
+  <data name="Pnl_Ten_PuAdd" xml:space="preserve">
+    <value>Добавить и получить ссылку-приглашение</value>
+  </data>
+  <data name="Pnl_Ten_PuLoginHint" xml:space="preserve">
+    <value>Вход: email или телефон + пароль + код из Telegram. Код отправляется в привязанный пользователем чат, иначе — в Telegram-чат организации.</value>
+  </data>
+  <data name="Pnl_Ten_PuOwner" xml:space="preserve">
+    <value>Owner (заявки, ключ)</value>
+  </data>
+  <data name="Pnl_Ten_PuViewer" xml:space="preserve">
+    <value>Viewer (только просмотр)</value>
+  </data>
+  <data name="Pnl_Ten_ReasonNote" xml:space="preserve">
+    <value>Причина / комментарий</value>
+  </data>
+  <data name="Pnl_Ten_RegTokenHint" xml:space="preserve">
+    <value>On-prem: введите в поле «Подключить к панели» на странице License в ERP. SaaS: provisioning записывает его в LICENSE_STATE.RegToken.</value>
+  </data>
+  <data name="Pnl_Ten_ResetFromTemplate" xml:space="preserve">
+    <value>Восстановить из шаблона</value>
+  </data>
+  <data name="Pnl_Ten_ResetPassword" xml:space="preserve">
+    <value>сбросить пароль</value>
+  </data>
+  <data name="Pnl_Ten_ResetQueued" xml:space="preserve">
+    <value>Восстановление поставлено в очередь.</value>
+  </data>
+  <data name="Pnl_Ten_Resumed" xml:space="preserve">
+    <value>Возобновлено.</value>
+  </data>
+  <data name="Pnl_Ten_RoleArrow" xml:space="preserve">
+    <value>роль</value>
+  </data>
+  <data name="Pnl_Ten_SaasOurServer" xml:space="preserve">
+    <value>SaaS (наш сервер)</value>
+  </data>
+  <data name="Pnl_Ten_SaasUrl" xml:space="preserve">
+    <value>Адрес SaaS:</value>
+  </data>
+  <data name="Pnl_Ten_SampleData" xml:space="preserve">
+    <value>С демо-данными (товары, контрагенты, ~3 месяца закупок/производства/продаж, сотрудники)</value>
+  </data>
+  <data name="Pnl_Ten_SampleHint" xml:space="preserve">
+    <value>Если не отмечено — пустая база (только справочники). В демо-базе пользователь demo отключается, вход только через admin.</value>
+  </data>
+  <data name="Pnl_Ten_SavedNoKey" xml:space="preserve">
+    <value>Сохранено, но ключ не выпущен: {0}</value>
+  </data>
+  <data name="Pnl_Ten_SearchPlaceholder" xml:space="preserve">
+    <value>название, slug, ИНН, телефон</value>
+  </data>
+  <data name="Pnl_Ten_SiteCatalog" xml:space="preserve">
+    <value>Сайт-каталог</value>
+  </data>
+  <data name="Pnl_Ten_SiteDisable" xml:space="preserve">
+    <value>Отключить сайт</value>
+  </data>
+  <data name="Pnl_Ten_SiteDisabled" xml:space="preserve">
+    <value>Сайт отключён.</value>
+  </data>
+  <data name="Pnl_Ten_SiteEnable" xml:space="preserve">
+    <value>Включить сайт</value>
+  </data>
+  <data name="Pnl_Ten_SiteEnabled" xml:space="preserve">
+    <value>Сайт включён — каталог будет получен из ERP в течение 1 минуты.</value>
+  </data>
+  <data name="Pnl_Ten_SiteHint" xml:space="preserve">
+    <value>Каталог берётся из настроек «Сайт» в ERP (товары, категории, контакты).</value>
+  </data>
+  <data name="Pnl_Ten_SlugHint" xml:space="preserve">
+    <value>Позже не изменяется. Зарезервированы: admin, my, pay, www, api…</value>
+  </data>
+  <data name="Pnl_Ten_SlugLabel" xml:space="preserve">
+    <value>Slug (поддомен)</value>
+  </data>
+  <data name="Pnl_Ten_SlugMismatch" xml:space="preserve">
+    <value>Slug не совпал.</value>
+  </data>
+  <data name="Pnl_Ten_SlugToConfirm" xml:space="preserve">
+    <value>Slug для подтверждения:</value>
+  </data>
+  <data name="Pnl_Ten_StartTrial" xml:space="preserve">
+    <value>Начать 14-дневный пробный период (TRIAL: модули Корпоративного, 5 пользователей)</value>
+  </data>
+  <data name="Pnl_Ten_StatusSet" xml:space="preserve">
+    <value>Статус: {0}.</value>
+  </data>
+  <data name="Pnl_Ten_Suspended" xml:space="preserve">
+    <value>Приостановлено.</value>
+  </data>
+  <data name="Pnl_Ten_TempPasswordHint" xml:space="preserve">
+    <value>Вход возможен после готовности базы (задание «Выполнено»); при первом входе пароль меняется. Если у тенанта есть Telegram-чат, сообщение отправляется и туда.</value>
+  </data>
+  <data name="Pnl_Ten_TrialChatHint" xml:space="preserve">
+    <value>Если указан, данные для входа отправятся в этот чат.</value>
+  </data>
+  <data name="Pnl_Ten_TrialEndedNoDb" xml:space="preserve">
+    <value>Пробный период завершён (база не создавалась) — тенант архивирован.</value>
+  </data>
+  <data name="Pnl_Ten_TrialEnding" xml:space="preserve">
+    <value>Пробный период завершается: доступ закрыт, база будет удалена. Задание #{0}.</value>
+  </data>
+  <data name="Pnl_Ten_TrialEndingBackup" xml:space="preserve">
+    <value>Пробный период завершается: доступ закрыт, база будет удалена (предварительно архив .bak). Задание #{0}.</value>
+  </data>
+  <data name="Pnl_Ten_TrialInfo" xml:space="preserve">
+    <value>TRIAL: модули Корпоративного, 5 пользователей, 14 дней. По окончании тенант приостанавливается (tenants.json enabled=false).</value>
+  </data>
+  <data name="Pnl_Ten_TrialOpened" xml:space="preserve">
+    <value>Для «{0}» открыт пробный период — создание базы поставлено в очередь</value>
+  </data>
+  <data name="Pnl_Ten_TrialPasswordHint" xml:space="preserve">
+    <value>Пароль виден только сейчас — передайте клиенту. Вход возможен после готовности базы (обычно 1 минута); при первом входе пароль меняется.</value>
+  </data>
+  <data name="Pnl_Ten_TrialStarted" xml:space="preserve">
+    <value>Начат 14-дневный пробный период.</value>
+  </data>
+  <data name="Pnl_Ten_TrialTgHint" xml:space="preserve">
+    <value>Когда всё будет готово, эти данные также отправятся в Telegram-чат тенанта.</value>
+  </data>
+  <data name="Pnl_Ten_TypeSlug" xml:space="preserve">
+    <value>Для подтверждения введите slug:</value>
+  </data>
+  <data name="Pnl_Ten_Understand" xml:space="preserve">
+    <value>Я понимаю, что данные и резервная копия не восстанавливаются</value>
+  </data>
+  <data name="Pnl_Ten_UnknownAction" xml:space="preserve">
+    <value>Неизвестное действие.</value>
+  </data>
+  <data name="Pnl_Ten_UnlinkTelegram" xml:space="preserve">
+    <value>Отвязать Telegram</value>
+  </data>
+  <data name="Pnl_Ten_UrlNotConfigured" xml:space="preserve">
+    <value>{0}.&lt;домен&gt; (ControlPanel:Provisioning:BaseDomain не настроен)</value>
+  </data>
+  <data name="Pnl_Ten_YesDelete" xml:space="preserve">
+    <value>Да, удалить безвозвратно</value>
+  </data>
+  <data name="Pnl_TenantStatus_Active" xml:space="preserve">
+    <value>Активна</value>
+  </data>
+  <data name="Pnl_TenantStatus_Archived" xml:space="preserve">
+    <value>Архив</value>
+  </data>
+  <data name="Pnl_TenantStatus_Grace" xml:space="preserve">
+    <value>Льготный период</value>
+  </data>
+  <data name="Pnl_TenantStatus_Suspended" xml:space="preserve">
+    <value>Приостановлена</value>
+  </data>
+  <data name="Pnl_TenantStatus_Trial" xml:space="preserve">
+    <value>Пробный период</value>
+  </data>
+  <data name="Pnl_Tenants" xml:space="preserve">
+    <value>Тенанты</value>
+  </data>
+  <data name="Pnl_TimeTashkent" xml:space="preserve">
+    <value>Время (Ташкент)</value>
+  </data>
+  <data name="Pnl_TimeUtc" xml:space="preserve">
+    <value>Время (UTC)</value>
+  </data>
+  <data name="Pnl_ToOrganization" xml:space="preserve">
+    <value>К организации</value>
+  </data>
+  <data name="Pnl_Tr_ActionType" xml:space="preserve">
+    <value>Тип действия</value>
+  </data>
+  <data name="Pnl_Tr_ActionTypes" xml:space="preserve">
+    <value>Типы действий:</value>
+  </data>
+  <data name="Pnl_Tr_ActionTypesHint" xml:space="preserve">
+    <value>ERP не журналирует просмотры — в основном создание/редактирование/удаление.</value>
+  </data>
+  <data name="Pnl_Tr_ActiveUser" xml:space="preserve">
+    <value>Активных пользователей</value>
+  </data>
+  <data name="Pnl_Tr_ActiveUsers" xml:space="preserve">
+    <value>Активные пользователи</value>
+  </data>
+  <data name="Pnl_Tr_Allowed" xml:space="preserve">
+    <value>Разрешено</value>
+  </data>
+  <data name="Pnl_Tr_BusinessVolume" xml:space="preserve">
+    <value>Объём бизнеса (документы)</value>
+  </data>
+  <data name="Pnl_Tr_CohortHint" xml:space="preserve">
+    <value>Строка — месяц создания тенанта; столбец — неделя после создания (H0 = первые 7 дней); значение — доля тенантов, активных хотя бы раз за эту неделю.</value>
+  </data>
+  <data name="Pnl_Tr_Cohorts" xml:space="preserve">
+    <value>Когорты и удержание</value>
+  </data>
+  <data name="Pnl_Tr_Count" xml:space="preserve">
+    <value>Количество</value>
+  </data>
+  <data name="Pnl_Tr_DauAvg" xml:space="preserve">
+    <value>DAU (среднее)</value>
+  </data>
+  <data name="Pnl_Tr_Defs" xml:space="preserve">
+    <value>Определения метрик:</value>
+  </data>
+  <data name="Pnl_Tr_DemoExcluded" xml:space="preserve">
+    <value>Демо-тенант не учитывается.</value>
+  </data>
+  <data name="Pnl_Tr_Docs" xml:space="preserve">
+    <value>Документы</value>
+  </data>
+  <data name="Pnl_Tr_Funnel" xml:space="preserve">
+    <value>Воронка (открывшие пробный период за период)</value>
+  </data>
+  <data name="Pnl_Tr_Funnel3Days" xml:space="preserve">
+    <value>Активен 3+ дня</value>
+  </data>
+  <data name="Pnl_Tr_FunnelFirstDoc" xml:space="preserve">
+    <value>Первый документ</value>
+  </data>
+  <data name="Pnl_Tr_FunnelFirstLogin" xml:space="preserve">
+    <value>Первый вход</value>
+  </data>
+  <data name="Pnl_Tr_FunnelPaid" xml:space="preserve">
+    <value>Оплатил</value>
+  </data>
+  <data name="Pnl_Tr_FunnelTrial" xml:space="preserve">
+    <value>Открыт пробный период</value>
+  </data>
+  <data name="Pnl_Tr_InMap" xml:space="preserve">
+    <value>В карте</value>
+  </data>
+  <data name="Pnl_Tr_Limit" xml:space="preserve">
+    <value>Лимит</value>
+  </data>
+  <data name="Pnl_Tr_MainDocs" xml:space="preserve">
+    <value>Основные документы</value>
+  </data>
+  <data name="Pnl_Tr_ModuleActionsDaily" xml:space="preserve">
+    <value>Действия по модулям (по дням)</value>
+  </data>
+  <data name="Pnl_Tr_MrrSom" xml:space="preserve">
+    <value>MRR (сум)</value>
+  </data>
+  <data name="Pnl_Tr_NoTenants" xml:space="preserve">
+    <value>Тенантов нет.</value>
+  </data>
+  <data name="Pnl_Tr_NotInEditionMap" xml:space="preserve">
+    <value>Нет в карте EditionModules</value>
+  </data>
+  <data name="Pnl_Tr_NotInMap" xml:space="preserve">
+    <value>нет в карте</value>
+  </data>
+  <data name="Pnl_Tr_OfWhichAddOns" xml:space="preserve">
+    <value>В т. ч. дополнительные услуги</value>
+  </data>
+  <data name="Pnl_Tr_Overview" xml:space="preserve">
+    <value>Общее</value>
+  </data>
+  <data name="Pnl_Tr_PageController" xml:space="preserve">
+    <value>Страница (controller)</value>
+  </data>
+  <data name="Pnl_Tr_PeriodHint" xml:space="preserve">
+    <value>{0} дн.; тренд — к предыдущему такому же периоду</value>
+  </data>
+  <data name="Pnl_Tr_PeriodRevenue" xml:space="preserve">
+    <value>Выручка за период</value>
+  </data>
+  <data name="Pnl_Tr_Prev" xml:space="preserve">
+    <value>Предыдущий</value>
+  </data>
+  <data name="Pnl_Tr_PrevPeriod" xml:space="preserve">
+    <value>Предыдущий период</value>
+  </data>
+  <data name="Pnl_Tr_Risk" xml:space="preserve">
+    <value>Риск</value>
+  </data>
+  <data name="Pnl_Tr_Score" xml:space="preserve">
+    <value>Балл</value>
+  </data>
+  <data name="Pnl_Tr_Tenant" xml:space="preserve">
+    <value>Тенантов</value>
+  </data>
+  <data name="Pnl_Tr_TenantsN" xml:space="preserve">
+    <value>тенантов: {0}</value>
+  </data>
+  <data name="Pnl_Tr_TopActions" xml:space="preserve">
+    <value>Самые частые действия</value>
+  </data>
+  <data name="Pnl_Tr_TrialToPaid" xml:space="preserve">
+    <value>Пробный → платный</value>
+  </data>
+  <data name="Pnl_Tr_Unused" xml:space="preserve">
+    <value>Не используются:</value>
+  </data>
+  <data name="Pnl_Tr_UnusedHint" xml:space="preserve">
+    <value>«Есть в пакете, не используется» — у скольких активных (пробных/активных/льготных) тенантов модуль есть в пакете, но за период нет ни одного действия: здесь нужно обучение, работа над UX или над самим модулем. Модуль дополнительной услуги (Сайт-каталог) учитывается только у купивших её тенантов; фильтр пакета «SITE» — тенанты с активной услугой.</value>
+  </data>
+  <data name="Pnl_Tr_UnusedInPackage" xml:space="preserve">
+    <value>Есть в пакете, не используется</value>
+  </data>
+  <data name="Pnl_Tr_UnusedInPackageCsv" xml:space="preserve">
+    <value>Есть в пакете, не используется (тенантов)</value>
+  </data>
+  <data name="Pnl_Tr_UnusedModules" xml:space="preserve">
+    <value>Неиспользуемые модули</value>
+  </data>
+  <data name="Pnl_Tr_UsersLimit" xml:space="preserve">
+    <value>Польз. / лимит</value>
+  </data>
+  <data name="Pnl_Url" xml:space="preserve">
+    <value>Адрес</value>
+  </data>
+  <data name="Pnl_UserLower" xml:space="preserve">
+    <value>пользователь</value>
+  </data>
+  <data name="Pnl_Users" xml:space="preserve">
+    <value>Пользователи</value>
+  </data>
+  <data name="Pnl_UsersAbbr" xml:space="preserve">
+    <value>польз.</value>
+  </data>
+  <data name="Pnl_UsersPlural" xml:space="preserve">
+    <value>Пользователи</value>
+  </data>
+  <data name="Pnl_UsersShort" xml:space="preserve">
+    <value>Польз.</value>
+  </data>
+  <data name="Pnl_Val_AppCodeRequired" xml:space="preserve">
+    <value>Введите 6-значный код из приложения</value>
+  </data>
+  <data name="Pnl_Val_CodeRequired" xml:space="preserve">
+    <value>Введите код</value>
+  </data>
+  <data name="Pnl_Val_CurrentPassword" xml:space="preserve">
+    <value>Текущий пароль</value>
+  </data>
+  <data name="Pnl_Val_EmailInvalid" xml:space="preserve">
+    <value>Неверный email</value>
+  </data>
+  <data name="Pnl_Val_EmailMandatory" xml:space="preserve">
+    <value>Email обязателен</value>
+  </data>
+  <data name="Pnl_Val_EmailRequired" xml:space="preserve">
+    <value>Введите email</value>
+  </data>
+  <data name="Pnl_Val_FullNameRequired" xml:space="preserve">
+    <value>Имя обязательно</value>
+  </data>
+  <data name="Pnl_Val_HostRequired" xml:space="preserve">
+    <value>Хост обязателен</value>
+  </data>
+  <data name="Pnl_Val_LegalNameRequired" xml:space="preserve">
+    <value>Юридическое наименование обязательно</value>
+  </data>
+  <data name="Pnl_Val_NameRequired" xml:space="preserve">
+    <value>Наименование обязательно</value>
+  </data>
+  <data name="Pnl_Val_NewPassword" xml:space="preserve">
+    <value>Новый пароль</value>
+  </data>
+  <data name="Pnl_Val_PasswordRequired" xml:space="preserve">
+    <value>Введите пароль</value>
+  </data>
+  <data name="Pnl_Val_PositiveNumber" xml:space="preserve">
+    <value>Положительное число</value>
+  </data>
+  <data name="Pnl_Val_Repeat" xml:space="preserve">
+    <value>Повтор</value>
+  </data>
+  <data name="Pnl_Val_SlugRequired" xml:space="preserve">
+    <value>Slug обязателен</value>
+  </data>
+  <data name="Pnl_Val_SqlInstanceRequired" xml:space="preserve">
+    <value>SQL instance обязателен</value>
+  </data>
+  <data name="Pnl_Val_TempPassword" xml:space="preserve">
+    <value>Временный пароль</value>
+  </data>
+  <data name="Pnl_Vat" xml:space="preserve">
+    <value>НДС</value>
+  </data>
+  <data name="Pnl_VatPercent" xml:space="preserve">
+    <value>НДС %</value>
+  </data>
+  <data name="Pnl_Version" xml:space="preserve">
+    <value>Версия</value>
+  </data>
+  <data name="Pnl_YesLower" xml:space="preserve">
+    <value>да</value>
+  </data>
+  <data name="Ptl_ResetTitle" xml:space="preserve">
+    <value>Восстановление пароля</value>
+  </data>
+  <data name="Ptl_HudReset" xml:space="preserve">
+    <value>ВОССТАНОВЛЕНИЕ ПАРОЛЯ</value>
+  </data>
+  <data name="Ptl_ToLoginPage" xml:space="preserve">
+    <value>На страницу входа</value>
+  </data>
+  <data name="Ptl_EmailOrPhone" xml:space="preserve">
+    <value>Email или телефон</value>
+  </data>
+  <data name="Ptl_SendLink" xml:space="preserve">
+    <value>Отправить ссылку</value>
+  </data>
+  <data name="Ptl_ResetHint" xml:space="preserve">
+    <value>Ссылка придёт в ваш личный канал (Telegram, SMS или email — выбирается в профиле) и сработает один раз. Если канал не привязан — запросите новую ссылку у нашего сотрудника.</value>
+  </data>
+  <data name="Ptl_HudClientId" xml:space="preserve">
+    <value>ИДЕНТИФИКАЦИЯ КЛИЕНТА</value>
+  </data>
+  <data name="Ptl_LoginHeading" xml:space="preserve">
+    <value>Вход в личный кабинет</value>
+  </data>
+  <data name="Ptl_LoginSub" xml:space="preserve">
+    <value>Счета-фактуры, платежи и лицензия — в одном месте.</value>
+  </data>
+  <data name="Ptl_LoginPlaceholder" xml:space="preserve">
+    <value>email или +998…</value>
+  </data>
+  <data name="Ptl_Continue" xml:space="preserve">
+    <value>Продолжить</value>
+  </data>
+  <data name="Ptl_LoginHint" xml:space="preserve">
+    <value>Следующий шаг — одноразовый код (Telegram или выбранные в профиле SMS / email).</value>
+  </data>
+  <data name="Ptl_SessionEncrypted" xml:space="preserve">
+    <value>СЕАНС: ЗАШИФРОВАН</value>
+  </data>
+  <data name="Ptl_ForgotLink" xml:space="preserve">
+    <value>Забыли пароль?</value>
+  </data>
+  <data name="Ptl_OtpTitle" xml:space="preserve">
+    <value>Код подтверждения</value>
+  </data>
+  <data name="Ptl_HudSecondFactor" xml:space="preserve">
+    <value>ВТОРОЙ ФАКТОР</value>
+  </data>
+  <data name="Ptl_CodeSentTo" xml:space="preserve">
+    <value>Код отправлен:</value>
+  </data>
+  <data name="Ptl_SixDigitCode" xml:space="preserve">
+    <value>6-значный код</value>
+  </data>
+  <data name="Ptl_ResendCode" xml:space="preserve">
+    <value>Отправить код повторно</value>
+  </data>
+  <data name="Ptl_HudOneTimeCode" xml:space="preserve">
+    <value>ОДНОРАЗОВЫЙ КОД</value>
+  </data>
+  <data name="Ptl_OtherAccount" xml:space="preserve">
+    <value>Другая учётная запись</value>
+  </data>
+  <data name="Ptl_SetPasswordTitle" xml:space="preserve">
+    <value>Установка пароля</value>
+  </data>
+  <data name="Ptl_HudInvite" xml:space="preserve">
+    <value>ПРИГЛАШЕНИЕ</value>
+  </data>
+  <data name="Ptl_PasswordSet" xml:space="preserve">
+    <value>Пароль установлен</value>
+  </data>
+  <data name="Ptl_LinkTelegram" xml:space="preserve">
+    <value>Привяжите Telegram</value>
+  </data>
+  <data name="Ptl_CodesComeHere" xml:space="preserve">
+    <value>коды входа будут приходить туда</value>
+  </data>
+  <data name="Ptl_ElseTenantChat" xml:space="preserve">
+    <value>(если не привяжете — в чат организации)</value>
+  </data>
+  <data name="Ptl_OpenTelegramBot" xml:space="preserve">
+    <value>Открыть Telegram-бот</value>
+  </data>
+  <data name="Ptl_BotStartHint" xml:space="preserve">
+    <value>Нажмите в боте кнопку «Start». Ссылка действует 24 часа и срабатывает один раз.</value>
+  </data>
+  <data name="Ptl_SendCommandToBot" xml:space="preserve">
+    <value>Отправьте Telegram-боту следующую команду:</value>
+  </data>
+  <data name="Ptl_LinkInvalid" xml:space="preserve">
+    <value>Ссылка недействительна</value>
+  </data>
+  <data name="Ptl_Welcome" xml:space="preserve">
+    <value>Добро пожаловать</value>
+  </data>
+  <data name="Ptl_NewPassword" xml:space="preserve">
+    <value>Новый пароль</value>
+  </data>
+  <data name="Ptl_RepeatPassword" xml:space="preserve">
+    <value>Повторите пароль</value>
+  </data>
+  <data name="Ptl_PasswordPolicyHint" xml:space="preserve">
+    <value>Не менее 12 символов, буквы и цифры.</value>
+  </data>
+  <data name="Ptl_SavePassword" xml:space="preserve">
+    <value>Сохранить пароль</value>
+  </data>
+  <data name="Ptl_Val_LoginRequired" xml:space="preserve">
+    <value>Введите email или номер телефона</value>
+  </data>
+  <data name="Ptl_Val_PasswordRequired" xml:space="preserve">
+    <value>Введите пароль</value>
+  </data>
+  <data name="Ptl_EnterCode" xml:space="preserve">
+    <value>Введите код</value>
+  </data>
+  <data name="Ptl_CodeInvalid" xml:space="preserve">
+    <value>Код неверен или его срок истёк.</value>
+  </data>
+  <data name="Ptl_NewCodeSent" xml:space="preserve">
+    <value>Новый код отправлен.</value>
+  </data>
+  <data name="Ptl_SubscriptionStatus" xml:space="preserve">
+    <value>Состояние подписки</value>
+  </data>
+  <data name="Ptl_SuspendedTitle" xml:space="preserve">
+    <value>Доступ к системе приостановлен.</value>
+  </data>
+  <data name="Ptl_SuspendedText" xml:space="preserve">
+    <value>Ваши данные сохраняются — доступ будет восстановлен после поступления оплаты.</value>
+  </data>
+  <data name="Ptl_GraceTitle" xml:space="preserve">
+    <value>Срок подписки истёк.</value>
+  </data>
+  <data name="Ptl_GraceText" xml:space="preserve">
+    <value>Льготный период: {0} дн., затем доступ будет приостановлен. Чтобы работать без перерыва, произведите оплату.</value>
+  </data>
+  <data name="Ptl_ExpiresIn" xml:space="preserve">
+    <value>До окончания подписки осталось &lt;strong&gt;{0} дн.&lt;/strong&gt; ({1}).</value>
+  </data>
+  <data name="Ptl_RenewRequest" xml:space="preserve">
+    <value>Заявка на продление</value>
+  </data>
+  <data name="Ptl_InvoiceWord" xml:space="preserve">
+    <value>Счёт-фактура</value>
+  </data>
+  <data name="Ptl_OverdueTail" xml:space="preserve">
+    <value>— срок оплаты истёк ({0}), остаток {1}.</value>
+  </data>
+  <data name="Ptl_HowToPay" xml:space="preserve">
+    <value>Как оплатить</value>
+  </data>
+  <data name="Ptl_Plan" xml:space="preserve">
+    <value>Пакет</value>
+  </data>
+  <data name="Ptl_Valid" xml:space="preserve">
+    <value>Действует</value>
+  </data>
+  <data name="Ptl_DaysLeft" xml:space="preserve">
+    <value>Осталось дней</value>
+  </data>
+  <data name="Ptl_UserLimit" xml:space="preserve">
+    <value>Лимит пользователей</value>
+  </data>
+  <data name="Ptl_Organization" xml:space="preserve">
+    <value>Организация</value>
+  </data>
+  <data name="Ptl_Inn" xml:space="preserve">
+    <value>ИНН</value>
+  </data>
+  <data name="Ptl_Deployment" xml:space="preserve">
+    <value>Размещение</value>
+  </data>
+  <data name="Ptl_CurrentPeriod" xml:space="preserve">
+    <value>Текущий период</value>
+  </data>
+  <data name="Ptl_Modules" xml:space="preserve">
+    <value>Модули</value>
+  </data>
+  <data name="Ptl_NextPeriod" xml:space="preserve">
+    <value>Следующий период</value>
+  </data>
+  <data name="Ptl_PaidLower" xml:space="preserve">
+    <value>оплачен</value>
+  </data>
+  <data name="Ptl_AwaitingPayment" xml:space="preserve">
+    <value>Ожидается оплата</value>
+  </data>
+  <data name="Ptl_Users" xml:space="preserve">
+    <value>Пользователи</value>
+  </data>
+  <data name="Ptl_UsersMaxText" xml:space="preserve">
+    <value>По пакету — не более {0}. Если нужно больше — пакет уровнем выше.</value>
+  </data>
+  <data name="Ptl_AddOns" xml:space="preserve">
+    <value>Дополнительные услуги</value>
+  </data>
+  <data name="Ptl_AddOnsHint" xml:space="preserve">
+    <value>Не входят в пакет: отдельная подписка и оплата. Активная услуга добавляется в лицензионный ключ, и в ERP открывается её раздел.</value>
+  </data>
+  <data name="Ptl_Service" xml:space="preserve">
+    <value>Услуга</value>
+  </data>
+  <data name="Ptl_AddOnActivatesOnPay" xml:space="preserve">
+    <value>активируется после оплаты счёта-фактуры</value>
+  </data>
+  <data name="Ptl_ContactManagerToConnect" xml:space="preserve">
+    <value>Для подключения свяжитесь с вашим менеджером</value>
+  </data>
+  <data name="Ptl_AddOnExpiresIn" xml:space="preserve">
+    <value>— до окончания услуги осталось &lt;strong&gt;{0} дн.&lt;/strong&gt; ({1}). Для продления свяжитесь с вашим менеджером.</value>
+  </data>
+  <data name="Ptl_OpenRequest" xml:space="preserve">
+    <value>Заявка на рассмотрении #{0}</value>
+  </data>
+  <data name="Ptl_DetailsLower" xml:space="preserve">
+    <value>подробнее</value>
+  </data>
+  <data name="Ptl_UnpaidInvoices" xml:space="preserve">
+    <value>Неоплаченные счета-фактуры</value>
+  </data>
+  <data name="Ptl_AllPaid" xml:space="preserve">
+    <value>Всё оплачено.</value>
+  </data>
+  <data name="Ptl_Due" xml:space="preserve">
+    <value>Срок</value>
+  </data>
+  <data name="Ptl_BalanceSom" xml:space="preserve">
+    <value>Остаток, сум</value>
+  </data>
+  <data name="Ptl_InvPayByBank" xml:space="preserve">
+    <value>Оплата через банк</value>
+  </data>
+  <data name="Ptl_InvDetailsLink" xml:space="preserve">
+    <value>реквизиты и инструкция</value>
+  </data>
+  <data name="Ptl_InvStatusHint" xml:space="preserve">
+    <value>После поступления оплаты сотрудник отметит её, и статус обновится.</value>
+  </data>
+  <data name="Ptl_NoInvoices" xml:space="preserve">
+    <value>Счетов-фактур пока нет.</value>
+  </data>
+  <data name="Ptl_DueDate" xml:space="preserve">
+    <value>Срок оплаты</value>
+  </data>
+  <data name="Ptl_TotalSom" xml:space="preserve">
+    <value>Итого, сум</value>
+  </data>
+  <data name="Ptl_Paid" xml:space="preserve">
+    <value>Оплачено</value>
+  </data>
+  <data name="Ptl_Pay" xml:space="preserve">
+    <value>Оплатить</value>
+  </data>
+  <data name="Ptl_InvPartiallyPaid" xml:space="preserve">
+    <value>Оплачено частично</value>
+  </data>
+  <data name="Ptl_InvUnpaid" xml:space="preserve">
+    <value>Не оплачено</value>
+  </data>
+  <data name="Ptl_Cancelled" xml:space="preserve">
+    <value>Отменено</value>
+  </data>
+  <data name="Ptl_Preparing" xml:space="preserve">
+    <value>Готовится</value>
+  </data>
+  <data name="Ptl_VendorNotReady" xml:space="preserve">
+    <value>Реквизиты ещё не заполнены. Пожалуйста, свяжитесь с нашим сотрудником.</value>
+  </data>
+  <data name="Ptl_Recipient" xml:space="preserve">
+    <value>Получатель</value>
+  </data>
+  <data name="Ptl_VatCode" xml:space="preserve">
+    <value>Код плательщика НДС</value>
+  </data>
+  <data name="Ptl_Bank" xml:space="preserve">
+    <value>Банк</value>
+  </data>
+  <data name="Ptl_Account" xml:space="preserve">
+    <value>Расчётный счёт</value>
+  </data>
+  <data name="Ptl_CopyLower" xml:space="preserve">
+    <value>копировать</value>
+  </data>
+  <data name="Ptl_Copy" xml:space="preserve">
+    <value>Копировать</value>
+  </data>
+  <data name="Ptl_Copied" xml:space="preserve">
+    <value>Скопировано</value>
+  </data>
+  <data name="Ptl_Mfo" xml:space="preserve">
+    <value>МФО</value>
+  </data>
+  <data name="Ptl_PayStep1" xml:space="preserve">
+    <value>Переведите оплату через банк (платёжным поручением) на указанный выше расчётный счёт.</value>
+  </data>
+  <data name="Ptl_PayStep2" xml:space="preserve">
+    <value>В назначении платежа обязательно укажите номер счёта-фактуры</value>
+  </data>
+  <data name="Ptl_ForExample" xml:space="preserve">
+    <value>например</value>
+  </data>
+  <data name="Ptl_PayStep2Tail" xml:space="preserve">
+    <value>иначе платёж будет идентифицирован с задержкой.</value>
+  </data>
+  <data name="Ptl_PayStep3" xml:space="preserve">
+    <value>Оплатите сумму, указанную в счёте-фактуре (с НДС). Частичная оплата также принимается.</value>
+  </data>
+  <data name="Ptl_PayStep4" xml:space="preserve">
+    <value>После поступления оплаты наш сотрудник отметит её, и подписка продлится автоматически. Онлайн-оплаты (картой) пока нет.</value>
+  </data>
+  <data name="Ptl_BalanceLower" xml:space="preserve">
+    <value>остаток</value>
+  </data>
+  <data name="Ptl_DueLower" xml:space="preserve">
+    <value>срок</value>
+  </data>
+  <data name="Ptl_PaymentPurposeLabel" xml:space="preserve">
+    <value>Назначение платежа:</value>
+  </data>
+  <data name="Ptl_PaymentPurposeText" xml:space="preserve">
+    <value>Оплата за услуги программного обеспечения tahsinERP по счёту-фактуре {0}, с НДС</value>
+  </data>
+  <data name="Ptl_LicenseHeading" xml:space="preserve">
+    <value>Лицензионный ключ (собственный сервер)</value>
+  </data>
+  <data name="Ptl_LicenseHint" xml:space="preserve">
+    <value>Введите ключ на странице «Лицензия» в ERP. Ключ работает только в вашей установке (InstallationId). При наличии интернета ERP обновляет ключ сама.</value>
+  </data>
+  <data name="Ptl_NoLicense" xml:space="preserve">
+    <value>Действующего ключа нет. Ключ выдаётся после оплаты; по вопросам обращайтесь к нашему сотруднику.</value>
+  </data>
+  <data name="Ptl_Installation" xml:space="preserve">
+    <value>Установка (InstallationId)</value>
+  </data>
+  <data name="Ptl_UsersCount" xml:space="preserve">
+    <value>пользователей: {0}</value>
+  </data>
+  <data name="Ptl_ExpiredLower" xml:space="preserve">
+    <value>просрочен</value>
+  </data>
+  <data name="Ptl_DownloadAsFile" xml:space="preserve">
+    <value>Скачать файлом</value>
+  </data>
+  <data name="Ptl_ShowKey" xml:space="preserve">
+    <value>Показать ключ</value>
+  </data>
+  <data name="Ptl_KeyOwnerOnly" xml:space="preserve">
+    <value>Ключ может просматривать только ответственное лицо организации (Owner).</value>
+  </data>
+  <data name="Ptl_FullName" xml:space="preserve">
+    <value>Имя</value>
+  </data>
+  <data name="Ptl_Role" xml:space="preserve">
+    <value>Роль</value>
+  </data>
+  <data name="Ptl_RoleOwner" xml:space="preserve">
+    <value>Ответственный (заявки, ключ)</value>
+  </data>
+  <data name="Ptl_RoleViewer" xml:space="preserve">
+    <value>Наблюдатель</value>
+  </data>
+  <data name="Ptl_TgNotLinked" xml:space="preserve">
+    <value>не привязан (коды приходят в чат организации)</value>
+  </data>
+  <data name="Ptl_TgLinked" xml:space="preserve">
+    <value>привязан</value>
+  </data>
+  <data name="Ptl_CodeChannel" xml:space="preserve">
+    <value>Канал кода входа</value>
+  </data>
+  <data name="Ptl_TelegramDefault" xml:space="preserve">
+    <value>Telegram (по умолчанию)</value>
+  </data>
+  <data name="Ptl_NoSmsEmail" xml:space="preserve">
+    <value>Каналы SMS / email пока недоступны (не настроены или не указан телефон/email).</value>
+  </data>
+  <data name="Ptl_CodesNowGoTo" xml:space="preserve">
+    <value>Сейчас коды приходят:</value>
+  </data>
+  <data name="Ptl_NoChannel" xml:space="preserve">
+    <value>канала нет</value>
+  </data>
+  <data name="Ptl_ChannelFallbackHint" xml:space="preserve">
+    <value>Если выбранный канал не работает — в Telegram. Ссылка для восстановления пароля тоже приходит в этот канал (в групповой чат организации — нет).</value>
+  </data>
+  <data name="Ptl_SendToBot" xml:space="preserve">
+    <value>Отправьте Telegram-боту:</value>
+  </data>
+  <data name="Ptl_LinkValidHint" xml:space="preserve">
+    <value>Ссылка действует 24 часа и срабатывает один раз. После привязки коды входа будут приходить в этот чат.</value>
+  </data>
+  <data name="Ptl_LinkTelegramBtn" xml:space="preserve">
+    <value>Привязать Telegram</value>
+  </data>
+  <data name="Ptl_RelinkTelegram" xml:space="preserve">
+    <value>Перепривязать к другому аккаунту Telegram</value>
+  </data>
+  <data name="Ptl_CurrentPassword" xml:space="preserve">
+    <value>Текущий пароль</value>
+  </data>
+  <data name="Ptl_Repeat" xml:space="preserve">
+    <value>Повторите</value>
+  </data>
+  <data name="Ptl_ChannelSaved" xml:space="preserve">
+    <value>Канал кода сохранён.</value>
+  </data>
+  <data name="Ptl_PasswordChanged" xml:space="preserve">
+    <value>Пароль изменён. Сеансы на других устройствах завершены.</value>
+  </data>
+  <data name="Ptl_RequestsHeading" xml:space="preserve">
+    <value>Повышение / продление тарифа</value>
+  </data>
+  <data name="Ptl_CurrentPlan" xml:space="preserve">
+    <value>Текущий пакет:</value>
+  </data>
+  <data name="Ptl_None" xml:space="preserve">
+    <value>нет</value>
+  </data>
+  <data name="Ptl_UntilDate" xml:space="preserve">
+    <value>до {0}</value>
+  </data>
+  <data name="Ptl_RequestsHint" xml:space="preserve">
+    <value>Заявку рассмотрит сотрудник и выставит счёт-фактуру. Понижение пакета вступает в силу только с конца текущего периода.</value>
+  </data>
+  <data name="Ptl_UpToUsers" xml:space="preserve">
+    <value>до {0} пользователей</value>
+  </data>
+  <data name="Ptl_PerMonth" xml:space="preserve">
+    <value>В месяц:</value>
+  </data>
+  <data name="Ptl_PerYear" xml:space="preserve">
+    <value>В год:</value>
+  </data>
+  <data name="Ptl_Negotiable" xml:space="preserve">
+    <value>по договорённости</value>
+  </data>
+  <data name="Ptl_Monthly" xml:space="preserve">
+    <value>Помесячно</value>
+  </data>
+  <data name="Ptl_Yearly" xml:space="preserve">
+    <value>Ежегодно</value>
+  </data>
+  <data name="Ptl_PeriodCount" xml:space="preserve">
+    <value>Количество периодов</value>
+  </data>
+  <data name="Ptl_SendRequest" xml:space="preserve">
+    <value>Отправить заявку</value>
+  </data>
+  <data name="Ptl_RequestOwnerOnly" xml:space="preserve">
+    <value>Отправлять заявки может только ответственное лицо организации (Owner).</value>
+  </data>
+  <data name="Ptl_RequestHistory" xml:space="preserve">
+    <value>История заявок</value>
+  </data>
+  <data name="Ptl_NoRequests" xml:space="preserve">
+    <value>Заявок нет.</value>
+  </data>
+  <data name="Ptl_Request" xml:space="preserve">
+    <value>Заявка</value>
+  </data>
+  <data name="Ptl_CommentResult" xml:space="preserve">
+    <value>Комментарий / результат</value>
+  </data>
+  <data name="Ptl_FromDate" xml:space="preserve">
+    <value>с {0}</value>
+  </data>
+  <data name="Ptl_InvoicePreparing" xml:space="preserve">
+    <value>счёт-фактура готовится</value>
+  </data>
+  <data name="Ptl_CancelLower" xml:space="preserve">
+    <value>отменить</value>
+  </data>
+  <data name="Ptl_ExplainRenew" xml:space="preserve">
+    <value>Продление: текущая подписка продолжится с {0}.</value>
+  </data>
+  <data name="Ptl_ExplainUpgrade" xml:space="preserve">
+    <value>Повышение тарифа: новый пакет сразу после оплаты (остаток текущего периода согласовывается с сотрудником).</value>
+  </data>
+  <data name="Ptl_ExplainChange" xml:space="preserve">
+    <value>Смена пакета/периода — только в конце текущего периода: с {0}.</value>
+  </data>
+  <data name="Ptl_ExplainNew" xml:space="preserve">
+    <value>Новая подписка: сразу после оплаты.</value>
+  </data>
+  <data name="Ptl_RequestSent" xml:space="preserve">
+    <value>Заявка отправлена. После рассмотрения сотрудником вы получите сообщение в Telegram.</value>
+  </data>
+  <data name="Ptl_RequestCancelled" xml:space="preserve">
+    <value>Заявка отменена.</value>
+  </data>
+  <data name="Ptl_ReqPending" xml:space="preserve">
+    <value>На рассмотрении</value>
+  </data>
+  <data name="Ptl_ReqApproved" xml:space="preserve">
+    <value>Одобрена</value>
+  </data>
+  <data name="Ptl_ReqRejected" xml:space="preserve">
+    <value>Отклонена</value>
+  </data>
+  <data name="Ptl_Kind_Renew" xml:space="preserve">
+    <value>продление</value>
+  </data>
+  <data name="Ptl_Kind_Upgrade" xml:space="preserve">
+    <value>повышение тарифа</value>
+  </data>
+  <data name="Ptl_Kind_ChangeAtPeriodEnd" xml:space="preserve">
+    <value>изменение в конце периода</value>
+  </data>
+  <data name="Ptl_Kind_New" xml:space="preserve">
+    <value>новая подписка</value>
+  </data>
+  <data name="Ptl_UnitYear" xml:space="preserve">
+    <value>г.</value>
+  </data>
+  <data name="Ptl_UnitMonth" xml:space="preserve">
+    <value>мес.</value>
+  </data>
+  <data name="Ptl_AddOnUpcoming" xml:space="preserve">
+    <value>Оплачено, ещё не началось</value>
+  </data>
+  <data name="Ptl_AddOnExpired" xml:space="preserve">
+    <value>Срок истёк</value>
+  </data>
+  <data name="Ptl_AddOnNotConnected" xml:space="preserve">
+    <value>Не подключено</value>
+  </data>
+  <data name="Ptl_OwnerOnlyAction" xml:space="preserve">
+    <value>Это действие доступно только ответственному лицу организации (роль Owner).</value>
+  </data>
+  <data name="Ptl_ConcurrencyConflict" xml:space="preserve">
+    <value>Данные за это время изменились — обновите страницу и повторите попытку.</value>
+  </data>
+  <data name="Ptl_OrgArchived" xml:space="preserve">
+    <value>Организация в архиве.</value>
+  </data>
+  <data name="Ptl_PlanNotFound" xml:space="preserve">
+    <value>Пакет не найден.</value>
+  </data>
+  <data name="Ptl_PeriodInvalid" xml:space="preserve">
+    <value>Неверный период.</value>
+  </data>
+  <data name="Ptl_PeriodCountRange" xml:space="preserve">
+    <value>Количество периодов: 1–{0}.</value>
+  </data>
+  <data name="Ptl_HasPendingRequest" xml:space="preserve">
+    <value>У вас уже есть заявка на рассмотрении. Сначала отмените её или дождитесь ответа.</value>
+  </data>
+  <data name="Ptl_NextPeriodPaid" xml:space="preserve">
+    <value>Следующий период (с {0}) уже оплачен. Отправьте новую заявку после его начала.</value>
+  </data>
+  <data name="Ptl_RequestNotFound" xml:space="preserve">
+    <value>Заявка не найдена.</value>
+  </data>
+  <data name="Ptl_RequestAlreadyDecided" xml:space="preserve">
+    <value>Заявка уже рассмотрена.</value>
+  </data>
+  <data name="Ptl_TenantHasPendingSub" xml:space="preserve">
+    <value>У организации есть неоплаченная подписка #{0} — сначала отмените её (Подписки).</value>
+  </data>
+  <data name="Ptl_RejectReasonRequired" xml:space="preserve">
+    <value>Причина отклонения обязательна (отправляется клиенту).</value>
+  </data>
+  <data name="Ptl_MsgStaffNewRequest" xml:space="preserve">
+    <value>tahsinERP портал: {0} ({1}) — новая заявка #{2}: {3}, «{4}», {5} {6}. Панель → Заявки.</value>
+  </data>
+  <data name="Ptl_MsgRequestApproved" xml:space="preserve">
+    <value>tahsinERP: ваша заявка #{0} одобрена ({1}, «{2}», {3} {4}). Счёт-фактура готовится — после выставления он появится в кабинете (Счета-фактуры).</value>
+  </data>
+  <data name="Ptl_MsgRequestRejected" xml:space="preserve">
+    <value>tahsinERP: ваша заявка #{0} отклонена. Причина: {1}</value>
+  </data>
+  <data name="Ptl_LoginError" xml:space="preserve">
+    <value>Неверный логин или пароль.</value>
+  </data>
+  <data name="Ptl_LockedError" xml:space="preserve">
+    <value>Учётная запись временно заблокирована (слишком много неудачных попыток). Повторите через 15 минут.</value>
+  </data>
+  <data name="Ptl_TenantNotFound" xml:space="preserve">
+    <value>Организация не найдена.</value>
+  </data>
+  <data name="Ptl_ArchivedTenantNoUser" xml:space="preserve">
+    <value>В архивную организацию нельзя добавить пользователя кабинета.</value>
+  </data>
+  <data name="Ptl_PhoneInvalid" xml:space="preserve">
+    <value>Неверный номер телефона (например, +998901234567).</value>
+  </data>
+  <data name="Ptl_EmailOrPhoneRequired" xml:space="preserve">
+    <value>Укажите email или телефон (логин для входа).</value>
+  </data>
+  <data name="Ptl_EmailInvalid" xml:space="preserve">
+    <value>Неверный email.</value>
+  </data>
+  <data name="Ptl_NameRequired" xml:space="preserve">
+    <value>Укажите имя.</value>
+  </data>
+  <data name="Ptl_EmailExists" xml:space="preserve">
+    <value>Пользователь кабинета с таким email уже существует.</value>
+  </data>
+  <data name="Ptl_PhoneExists" xml:space="preserve">
+    <value>Пользователь кабинета с таким телефоном уже существует.</value>
+  </data>
+  <data name="Ptl_UserInactive" xml:space="preserve">
+    <value>Пользователь отключён — сначала активируйте его.</value>
+  </data>
+  <data name="Ptl_TenantArchived" xml:space="preserve">
+    <value>Организация в архиве.</value>
+  </data>
+  <data name="Ptl_InviteLinkInvalid" xml:space="preserve">
+    <value>Ссылка недействительна или её срок истёк. Запросите новое приглашение.</value>
+  </data>
+  <data name="Ptl_PasswordsMismatch" xml:space="preserve">
+    <value>Пароли не совпадают.</value>
+  </data>
+  <data name="Ptl_NoTelegramForCode" xml:space="preserve">
+    <value>Для отправки кода не привязан Telegram. Запросите у сотрудника новую ссылку-приглашение.</value>
+  </data>
+  <data name="Ptl_CodeRecentlySent" xml:space="preserve">
+    <value>Код уже отправлен недавно — запросите повторно через {0} сек.</value>
+  </data>
+  <data name="Ptl_TooManyCodes" xml:space="preserve">
+    <value>Запрошено слишком много кодов. Повторите через 15 минут.</value>
+  </data>
+  <data name="Ptl_ChannelInvalid" xml:space="preserve">
+    <value>Неверный канал.</value>
+  </data>
+  <data name="Ptl_SmsUnavailable" xml:space="preserve">
+    <value>Канал SMS недоступен (не указан телефон или SMS не настроены).</value>
+  </data>
+  <data name="Ptl_EmailUnavailable" xml:space="preserve">
+    <value>Канал email недоступен (не указан email или почта не настроена).</value>
+  </data>
+  <data name="Ptl_ResetRequested" xml:space="preserve">
+    <value>Если с этим логином есть активная учётная запись, ссылка для восстановления пароля отправлена в её личный канал (Telegram, SMS или email). Ссылка срабатывает один раз. Если сообщение не пришло — запросите новую ссылку у нашего сотрудника.</value>
+  </data>
+  <data name="Ptl_CurrentPasswordWrong" xml:space="preserve">
+    <value>Неверный текущий пароль.</value>
+  </data>
+  <data name="Ptl_MsgInvite" xml:space="preserve">
+    <value>tahsinERP портал: ссылка для {0} (действует {1} ч., срабатывает один раз): {2}</value>
+  </data>
+  <data name="Ptl_InviteKindReset" xml:space="preserve">
+    <value>восстановления пароля</value>
+  </data>
+  <data name="Ptl_InviteKindInvite" xml:space="preserve">
+    <value>приглашения</value>
+  </data>
+  <data name="Ptl_TgPersonalChat" xml:space="preserve">
+    <value>Telegram (личный чат {0})</value>
+  </data>
+  <data name="Ptl_TgTenantChat" xml:space="preserve">
+    <value>Telegram (чат организации {0})</value>
+  </data>
+  <data name="Ptl_ServerLogLocal" xml:space="preserve">
+    <value>журнал сервера (локальный режим)</value>
+  </data>
+  <data name="Ptl_SmsTarget" xml:space="preserve">
+    <value>SMS ({0})</value>
+  </data>
+  <data name="Ptl_EmailTarget" xml:space="preserve">
+    <value>email ({0})</value>
+  </data>
+  <data name="Ptl_MsgOtp" xml:space="preserve">
+    <value>tahsinERP портал: код входа {0}. Действует {1} мин. Никому не сообщайте код.</value>
+  </data>
+  <data name="Ptl_MsgResetLink" xml:space="preserve">
+    <value>tahsinERP портал: ссылка для восстановления пароля ({0} мин., срабатывает один раз): {1} — если вы её не запрашивали, проигнорируйте сообщение.</value>
+  </data>
+  <data name="Ptl_MsgResetLinkSms" xml:space="preserve">
+    <value>tahsinERP портал: ссылка для восстановления пароля ({0} мин.): {1}</value>
+  </data>
+  <data name="Ptl_TgSendFailed" xml:space="preserve">
+    <value>Не удалось отправить через Telegram.</value>
+  </data>
+  <data name="Ptl_TgOtpFailed" xml:space="preserve">
+    <value>Не удалось отправить код через Telegram. Повторите попытку чуть позже.</value>
+  </data>
+  <data name="Ptl_SmsOtpFailed" xml:space="preserve">
+    <value>Не удалось отправить код по SMS. Повторите попытку чуть позже.</value>
+  </data>
+  <data name="Ptl_SmsFailed" xml:space="preserve">
+    <value>Не удалось отправить SMS.</value>
+  </data>
+  <data name="Ptl_EmailOtpFailed" xml:space="preserve">
+    <value>Не удалось отправить код по email. Повторите попытку чуть позже.</value>
+  </data>
+  <data name="Ptl_EmailFailed" xml:space="preserve">
+    <value>Не удалось отправить email.</value>
+  </data>
+  <data name="Ptl_EmailOtpSubject" xml:space="preserve">
+    <value>tahsinERP портал: код входа</value>
+  </data>
+  <data name="Ptl_EmailOtpBody" xml:space="preserve">
+    <value>Здравствуйте, {0}!
+
+tahsinERP портал: код входа {1}. Действует {2} мин.
+Никому не сообщайте код. Если вы его не запрашивали — смените пароль.</value>
+  </data>
+  <data name="Ptl_EmailResetSubject" xml:space="preserve">
+    <value>tahsinERP портал: восстановление пароля</value>
+  </data>
+  <data name="Ptl_EmailResetBody" xml:space="preserve">
+    <value>Здравствуйте, {0}!
+
+Ссылка для восстановления пароля (действует {1} мин., срабатывает один раз):
+{2}
+
+Если вы её не запрашивали — проигнорируйте это письмо, пароль не изменится.</value>
+  </data>
+  <data name="Ptl_BotLinkInvalid" xml:space="preserve">
+    <value>Код недействителен или его срок истёк. Получите новую ссылку в кабинете (Профиль) или запросите у сотрудника новое приглашение.</value>
+  </data>
+  <data name="Ptl_BotLinked" xml:space="preserve">
+    <value>Готово: {0}, этот чат привязан к кабинету tahsinERP. Коды входа будут приходить сюда.</value>
+  </data>
+  <data name="Ptl_BotInfo" xml:space="preserve">
+    <value>Бот tahsinERP. ID этого чата: {0}. Для привязки к кабинету воспользуйтесь ссылкой в кабинете.</value>
+  </data>
 </root>

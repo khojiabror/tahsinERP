@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using tahsinERP.ControlPanel.Data;
+using tahsinERP.ControlPanel.I18n;
 using tahsinERP.ControlPanel.Portal;
 using tahsinERP.ControlPanel.Services;
 
@@ -109,10 +110,10 @@ public class RequestsModel(ControlDbContext db, PortalRequestService service, Cl
         var (kind, eff) = PortalRequestService.Classify(Overview.Current, p, period, Today);
         return kind switch
         {
-            PortalRequestKind.Renew => $"Uzaytirish: joriy obuna {eff:dd.MM.yyyy} dan davom etadi.",
-            PortalRequestKind.Upgrade => "Tarifni oshirish: to'lovdan keyin darhol yangi paket (joriy davr qoldig'i xodim bilan kelishiladi).",
-            PortalRequestKind.ChangeAtPeriodEnd => $"Paket/davr o'zgarishi faqat joriy davr oxirida: {eff:dd.MM.yyyy} dan.",
-            _ => "Yangi obuna: to'lovdan keyin darhol.",
+            PortalRequestKind.Renew => L.T("Ptl_ExplainRenew", eff.ToString("dd.MM.yyyy")),
+            PortalRequestKind.Upgrade => L.T("Ptl_ExplainUpgrade"),
+            PortalRequestKind.ChangeAtPeriodEnd => L.T("Ptl_ExplainChange", eff.ToString("dd.MM.yyyy")),
+            _ => L.T("Ptl_ExplainNew"),
         };
     }
 
@@ -124,7 +125,7 @@ public class RequestsModel(ControlDbContext db, PortalRequestService service, Cl
         await LoadAsync();
         if (!await TryAsync(() => service.CreateAsync(TenantId, PortalUserId, PlanId, Period, PeriodCount, Comment)))
             return Page();
-        FlashOk = "So'rov yuborildi. Xodim ko'rib chiqqach Telegram orqali xabar olasiz.";
+        FlashOk = L.T("Ptl_RequestSent");
         return RedirectToPage();
     }
 
@@ -134,7 +135,7 @@ public class RequestsModel(ControlDbContext db, PortalRequestService service, Cl
         await LoadAsync();
         if (!await TryAsync(() => service.CancelAsync(RequestId, TenantId, PortalUserId)))
             return Page();
-        FlashOk = "So'rov bekor qilindi.";
+        FlashOk = L.T("Ptl_RequestCancelled");
         return RedirectToPage();
     }
 }
@@ -213,7 +214,7 @@ public class ProfileModel(ControlDbContext db, PortalAuthService auth, IOptions<
     {
         if (!await LoadAsync()) return RedirectToPage("/Portal/Login");
         if (!await TryAsync(() => auth.SetOtpChannelAsync(Me, Me.Tenant!, Channel))) return Page();
-        FlashOk = "Kod kanali saqlandi.";
+        FlashOk = L.T("Ptl_ChannelSaved");
         return RedirectToPage();
     }
 
@@ -226,7 +227,7 @@ public class ProfileModel(ControlDbContext db, PortalAuthService auth, IOptions<
             return Page();
         // SecurityStamp almashdi — joriy sessiya yangilanadi, boshqa qurilmalardagilari yopiladi.
         await HttpContext.SignInAsync(PortalSchemes.Portal, PortalPrincipal.Build(Me, PortalSchemes.Portal));
-        FlashOk = "Parol almashtirildi. Boshqa qurilmalardagi sessiyalar yopildi.";
+        FlashOk = L.T("Ptl_PasswordChanged");
         return RedirectToPage();
     }
 

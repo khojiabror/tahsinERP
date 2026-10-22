@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using tahsinERP.ControlPanel.Data;
 using tahsinERP.ControlPanel.Security;
 using tahsinERP.ControlPanel.Services;
+using tahsinERP.ControlPanel.I18n;
 
 namespace tahsinERP.ControlPanel.Pages.Plans;
 
@@ -19,7 +20,7 @@ public class IndexModel(ControlDbContext db) : PanelPageModel
 public class EditModel(ControlDbContext db, AuditLogger audit) : PanelPageModel
 {
     public Plan Plan { get; private set; } = null!;
-    [BindProperty, Required(ErrorMessage = "Nomi majburiy"), StringLength(100)] public string Name { get; set; } = "";
+    [BindProperty, Required(ErrorMessageResourceType = typeof(PnlVal), ErrorMessageResourceName = nameof(PnlVal.NameRequired)), StringLength(100)] public string Name { get; set; } = "";
     [BindProperty] public string? PriceMonth { get; set; }
     [BindProperty] public string? PriceYear { get; set; }
     [BindProperty, Range(1, 10000, ErrorMessage = "1–10000")] public int MaxUsers { get; set; }
@@ -60,7 +61,7 @@ public class EditModel(ControlDbContext db, AuditLogger audit) : PanelPageModel
         audit.Add("plan.update", "Plan", plan.Id, before,
             new { plan.Name, plan.PriceMonthTiyin, plan.PriceYearTiyin, plan.MaxUsers, plan.Modules, plan.VatRatePercent, plan.TrialDays, plan.IsActive });
         await db.SaveChangesAsync();
-        FlashOk = $"«{plan.Name}» saqlandi.";
+        FlashOk = L.T("Pnl_SavedNamed", plan.Name);
         return RedirectToPage("Index");
     }
 
@@ -68,7 +69,7 @@ public class EditModel(ControlDbContext db, AuditLogger audit) : PanelPageModel
     {
         if (string.IsNullOrWhiteSpace(text)) return null;
         if (Money.TryParse(text, out long t)) return t;
-        ModelState.AddModelError(field, "Summa noto'g'ri (masalan 1 500 000).");
+        ModelState.AddModelError(field, L.T("Pnl_Plan_AmountInvalid"));
         return null;
     }
 }

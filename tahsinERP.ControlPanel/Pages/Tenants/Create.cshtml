@@ -1,11 +1,11 @@
 @page
 @model tahsinERP.ControlPanel.Pages.Tenants.CreateModel
-@{ ViewData["Title"] = "Yangi tashkilot"; }
-<h1>Yangi tashkilot</h1>
+@{ ViewData["Title"] = L.T("Pnl_Ten_New"); }
+<h1>@L.T("Pnl_Ten_New")</h1>
 <form method="post" class="stack card">
     <div asp-validation-summary="All"></div>
     <partial name="_TenantForm" model="(Model.Input, Model.Servers, true)" />
-    <label class="check"><input asp-for="StartTrial" /> 14 kunlik sinov (TRIAL: Korporativ modullari, 5 foydalanuvchi) boshlansin</label>
-    <div class="hint">Belgilanmasa tashkilot «To'xtatilgan» holatida yaratiladi va birinchi to'lovdan keyin faollashadi. Baza yaratish — tashkilot sahifasidagi «Bazani yaratish» tugmasi (yoki tezkor yo'l: «Sinov ochish»).</div>
-    <div class="actions"><button type="submit">Yaratish</button><a class="btn secondary" href="/Tenants">Bekor</a></div>
+    <label class="check"><input asp-for="StartTrial" /> @L.T("Pnl_Ten_StartTrial")</label>
+    <div class="hint">@L.T("Pnl_Ten_CreateHint")</div>
+    <div class="actions"><button type="submit">@L.T("Create")</button><a class="btn secondary" href="/Tenants">@L.T("Pnl_CancelShort")</a></div>
 </form>

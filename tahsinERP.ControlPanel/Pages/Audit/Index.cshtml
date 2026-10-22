@@ -1,24 +1,24 @@
 @page
 @model tahsinERP.ControlPanel.Pages.Audit.IndexModel
-@{ ViewData["Title"] = "Audit"; }
-<h1>Audit jurnali</h1>
+@{ ViewData["Title"] = L.T("Pnl_NavAudit"); }
+<h1>@L.T("Pnl_Audit_Title")</h1>
 <form method="get" class="toolbar">
-    <div><label for="Entity">Obyekt</label>
+    <div><label for="Entity">@L.T("Pnl_Audit_Entity")</label>
         <select id="Entity" name="Entity">
-            <option value="">Hammasi</option>
+            <option value="">@L.T("All")</option>
             @foreach (var e in new[] { "Tenant", "Subscription", "Invoice", "Payment", "License", "Plan", "Server", "StaffUser" }) { <option value="@e" selected="@(Model.Entity == e)">@e</option> }
         </select></div>
     <div><label for="EntityId">ID</label><input id="EntityId" name="EntityId" value="@Model.EntityId" type="text" /></div>
-    <div><label for="Action">Amal (boshi)</label><input id="Action" name="Action" value="@Model.Action" type="text" placeholder="payment." /></div>
-    <button type="submit" class="secondary">Ko'rsatish</button>
+    <div><label for="Action">@L.T("Pnl_Audit_ActionPrefix")</label><input id="Action" name="Action" value="@Model.Action" type="text" placeholder="payment." /></div>
+    <button type="submit" class="secondary">@L.T("Pnl_Show")</button>
 </form>
 <table>
-    <tr><th>Vaqt (UTC)</th><th>Xodim</th><th>Amal</th><th>Obyekt</th><th>Oldin</th><th>Keyin</th><th>IP</th></tr>
+    <tr><th>@L.T("Pnl_TimeUtc")</th><th>@L.T("Pnl_Employee")</th><th>@L.T("Pnl_Audit_Action")</th><th>@L.T("Pnl_Audit_Entity")</th><th>@L.T("Pnl_Audit_Before")</th><th>@L.T("Pnl_Audit_After")</th><th>IP</th></tr>
     @foreach (var a in Model.Rows)
     {
         <tr>
             <td>@a.AtUtc.ToString("dd.MM.yyyy HH:mm:ss")</td>
-            <td>@(a.StaffUserId is int s ? Model.StaffNames.GetValueOrDefault(s, "#" + s) : a.PortalUserId is int pu ? "mijoz #" + pu : "tizim")</td>
+            <td>@(a.StaffUserId is int s ? Model.StaffNames.GetValueOrDefault(s, "#" + s) : a.PortalUserId is int pu ? L.T("Pnl_Audit_Client", pu) : L.T("Pnl_Audit_System"))</td>
             <td><code>@a.Action</code></td><td>@a.Entity #@a.EntityId</td>
             <td class="mono">@a.Before</td><td class="mono">@a.After</td><td>@a.Ip</td>
         </tr>

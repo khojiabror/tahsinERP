@@ -3,11 +3,11 @@
 @{ var i = Model.Input; }
 <div class="row">
     <div>
-        <label for="Input_Slug">Slug (subdomen)</label>
+        <label for="Input_Slug">@L.T("Pnl_Ten_SlugLabel")</label>
         @if (Model.IsNew)
         {
             <input id="Input_Slug" name="Input.Slug" value="@i.Slug" type="text" placeholder="firma1" />
-            <div class="hint">a-z, 0-9, '-'. SaaS manzili: &lt;slug&gt;.&lt;domen&gt;. Keyin o'zgartirilmaydi. Band: admin, my, pay, www, api…</div>
+            <div class="hint">a-z, 0-9, '-'. @L.T("Pnl_Ten_SaasUrl") &lt;slug&gt;.&lt;domen&gt;. @L.T("Pnl_Ten_SlugHint")</div>
         }
         else
         {
@@ -15,31 +15,31 @@
         }
     </div>
     <div>
-        <label for="Input_Deployment">Joylashuv</label>
+        <label for="Input_Deployment">@L.T("Pnl_Deployment")</label>
         <select id="Input_Deployment" name="Input.Deployment">
-            <option value="SaaS" selected="@(i.Deployment == DeploymentKind.SaaS)">SaaS (bizning server)</option>
-            <option value="OnPrem" selected="@(i.Deployment == DeploymentKind.OnPrem)">On-prem (mijoz serveri)</option>
+            <option value="SaaS" selected="@(i.Deployment == DeploymentKind.SaaS)">@L.T("Pnl_Ten_SaasOurServer")</option>
+            <option value="OnPrem" selected="@(i.Deployment == DeploymentKind.OnPrem)">@L.T("Pnl_Deployment_OnPrem")</option>
         </select>
     </div>
 </div>
-<div><label for="Input_LegalName">Yuridik nom</label><input id="Input_LegalName" name="Input.LegalName" value="@i.LegalName" type="text" /></div>
+<div><label for="Input_LegalName">@L.T("Pnl_LegalName")</label><input id="Input_LegalName" name="Input.LegalName" value="@i.LegalName" type="text" /></div>
 <div class="row">
-    <div><label for="Input_Inn">STIR / JShShIR</label><input id="Input_Inn" name="Input.Inn" value="@i.Inn" type="text" maxlength="14" /></div>
-    <div><label for="Input_CompanyId">CompanyID (ERP)</label><input id="Input_CompanyId" name="Input.CompanyId" value="@i.CompanyId" type="number" /><div class="hint">Ro'yxatdan o'tishda ERP o'zi yuboradi; odatda 1.</div></div>
+    <div><label for="Input_Inn">@L.T("Pnl_InnPinfl")</label><input id="Input_Inn" name="Input.Inn" value="@i.Inn" type="text" maxlength="14" /></div>
+    <div><label for="Input_CompanyId">CompanyID (ERP)</label><input id="Input_CompanyId" name="Input.CompanyId" value="@i.CompanyId" type="number" /><div class="hint">@L.T("Pnl_Ten_CompanyIdHint")</div></div>
 </div>
 <div class="row">
-    <div><label for="Input_ContactName">Mas'ul shaxs</label><input id="Input_ContactName" name="Input.ContactName" value="@i.ContactName" type="text" /></div>
-    <div><label for="Input_Phone">Telefon</label><input id="Input_Phone" name="Input.Phone" value="@i.Phone" type="text" placeholder="+998 90 123 45 67" /></div>
+    <div><label for="Input_ContactName">@L.T("Pnl_ContactPerson")</label><input id="Input_ContactName" name="Input.ContactName" value="@i.ContactName" type="text" /></div>
+    <div><label for="Input_Phone">@L.T("Phone")</label><input id="Input_Phone" name="Input.Phone" value="@i.Phone" type="text" placeholder="+998 90 123 45 67" /></div>
 </div>
 <div class="row">
     <div><label for="Input_Email">Email</label><input id="Input_Email" name="Input.Email" value="@i.Email" type="email" /></div>
-    <div><label for="Input_TelegramChatId">Telegram chat ID</label><input id="Input_TelegramChatId" name="Input.TelegramChatId" value="@i.TelegramChatId" type="text" /><div class="hint">Muddat eslatmalari shu chatga keladi.</div></div>
+    <div><label for="Input_TelegramChatId">Telegram chat ID</label><input id="Input_TelegramChatId" name="Input.TelegramChatId" value="@i.TelegramChatId" type="text" /><div class="hint">@L.T("Pnl_Ten_ChatHint")</div></div>
 </div>
-<div><label for="Input_Address">Manzil</label><input id="Input_Address" name="Input.Address" value="@i.Address" type="text" /></div>
+<div><label for="Input_Address">@L.T("Address")</label><input id="Input_Address" name="Input.Address" value="@i.Address" type="text" /></div>
 <div class="row">
-    <div><label for="Input_DbName">Baza nomi (SaaS)</label><input id="Input_DbName" name="Input.DbName" value="@i.DbName" type="text" placeholder="DB_firma1 (bo'sh bo'lsa avtomatik)" /></div>
+    <div><label for="Input_DbName">@L.T("Pnl_Ten_DbName")</label><input id="Input_DbName" name="Input.DbName" value="@i.DbName" type="text" placeholder="@L.T("Pnl_Ten_DbNamePlaceholder")" /></div>
     <div>
-        <label for="Input_ServerId">Server</label>
+        <label for="Input_ServerId">@L.T("Pnl_Server")</label>
         <select id="Input_ServerId" name="Input.ServerId">
             @foreach (var s in Model.Servers)
             {
@@ -50,17 +50,17 @@
 </div>
 <div class="row">
     <div>
-        <label for="Input_OnlineCheck">Onlayn tekshiruv (faqat on-prem)</label>
+        <label for="Input_OnlineCheck">@L.T("Pnl_Ten_OnlineCheck")</label>
         <select id="Input_OnlineCheck" name="Input.OnlineCheck">
-            <option value="Optional" selected="@(i.OnlineCheck == OnlineCheckMode.Optional)">Ixtiyoriy — kalit shartnoma davriga (≤ 1 yil), internetsiz ham ishlaydi</option>
-            <option value="Required" selected="@(i.OnlineCheck == OnlineCheckMode.Required)">Majburiy — qisqa kalit, panel o'zi yangilaydi (ERP pull qilishi shart)</option>
+            <option value="Optional" selected="@(i.OnlineCheck == OnlineCheckMode.Optional)">@L.T("Pnl_Ten_OnlineOptional")</option>
+            <option value="Required" selected="@(i.OnlineCheck == OnlineCheckMode.Required)">@L.T("Pnl_Ten_OnlineRequired")</option>
         </select>
-        <div class="hint">SaaS uchun e'tiborsiz. Majburiyda ERP <code>LicensePanelUrl</code> bilan panelga ulangan bo'lishi kerak, aks holda kalit grace muddatidan keyin tugaydi.</div>
+        <div class="hint">@L.T("Pnl_Ten_OnlineHint1") <code>LicensePanelUrl</code> @L.T("Pnl_Ten_OnlineHint2")</div>
     </div>
     <div>
-        <label for="Input_OfflineGraceDays">Internetsiz muddat, kun</label>
-        <input id="Input_OfflineGraceDays" name="Input.OfflineGraceDays" value="@i.OfflineGraceDays" type="number" min="7" max="90" placeholder="standart (30)" />
-        <div class="hint">Majburiy: kalit uzunligi (yarmi o'tganda yangilanadi). Ixtiyoriy: shuncha kun aloqa bo'lmasa ERP va panel ogohlantiradi. 7–90.</div>
+        <label for="Input_OfflineGraceDays">@L.T("Pnl_Ten_OfflineDays")</label>
+        <input id="Input_OfflineGraceDays" name="Input.OfflineGraceDays" value="@i.OfflineGraceDays" type="number" min="7" max="90" placeholder="@L.T("Pnl_Ten_Default30")" />
+        <div class="hint">@L.T("Pnl_Ten_OfflineHint")</div>
     </div>
 </div>
-<div><label for="Input_Notes">Izoh</label><textarea id="Input_Notes" name="Input.Notes">@i.Notes</textarea></div>
+<div><label for="Input_Notes">@L.T("Comment")</label><textarea id="Input_Notes" name="Input.Notes">@i.Notes</textarea></div>

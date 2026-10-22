@@ -97,7 +97,8 @@ public class TenantAppsTests(PanelFactory f) : IClassFixture<PanelFactory>
         var call = fake.Calls.Last(x => x.Op == "bot");
         Assert.Equal(("apps-firma", $"https://apps-firma.{PanelFactory.BaseDomain}/", "apps-firma", "123:secret-token"), (call.Slug, call.Erp, call.ErpTenant, call.Token));
 
-        page = await (await c.GetAsync(details)).Content.ReadAsStringAsync();
+        // matnlar resx'dan @L.T orqali — apostrof HTML-kodlanadi
+        page = WebUtility.HtmlDecode(await (await c.GetAsync(details)).Content.ReadAsStringAsync());
         Assert.Contains("@firma_bot", page);
         Assert.Contains("Botni o'chirish", page);
 

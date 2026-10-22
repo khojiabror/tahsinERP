@@ -2,6 +2,7 @@ using System.Net.Http.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using tahsinERP.ControlPanel.Data;
+using tahsinERP.ControlPanel.I18n;
 
 namespace tahsinERP.ControlPanel.Services;
 
@@ -88,11 +89,11 @@ public sealed class ExpiryReminderService(ControlDbContext db, ITelegramSender t
 
     public static string BuildText(Subscription s, int days)
     {
-        string when = days == 0 ? "BUGUN tugaydi" : $"tugashiga {days} kun qoldi ({s.EndDate:dd.MM.yyyy})";
-        string what = s.Period == BillingPeriod.Trial ? "sinov muddati"
-            : SubscriptionService.IsAddOn(s) ? $"«{s.Plan?.Name}» qo'shimcha xizmati" : $"«{s.Plan?.Name}» obunasi";
-        return $"tahsinERP: {s.Tenant?.LegalName} ({s.Tenant?.Slug}) — {what} {when}. " +
-               (s.Period == BillingPeriod.Trial ? "Davom ettirish uchun biz bilan bog'laning." : "Uzluksiz ishlash uchun hisob-fakturani o'z vaqtida to'lang.");
+        string when = days == 0 ? L.T("Pnl_Ntf_EndsToday") : L.T("Pnl_Ntf_DaysLeft", days, s.EndDate.ToString("dd.MM.yyyy"));
+        string what = s.Period == BillingPeriod.Trial ? L.T("Pnl_Ntf_Trial")
+            : SubscriptionService.IsAddOn(s) ? L.T("Pnl_Ntf_AddOn", s.Plan?.Name) : L.T("Pnl_Ntf_Subscription", s.Plan?.Name);
+        return L.T("Pnl_Ntf_Text", s.Tenant?.LegalName, s.Tenant?.Slug, what, when) + " " +
+               (s.Period == BillingPeriod.Trial ? L.T("Pnl_Ntf_TrialTail") : L.T("Pnl_Ntf_PayTail"));
     }
 
     private async Task<bool> SendOnceAsync(Subscription s, string template, string? chatId, string text, CancellationToken ct)

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using tahsinERP.ControlPanel.Data;
+using tahsinERP.ControlPanel.I18n;
 using tahsinERP.ControlPanel.Portal;
 using tahsinERP.ControlPanel.Services;
 
@@ -35,7 +36,7 @@ public abstract class PortalPageModel : PageModel
     /// <summary>Viewer roli o'zgartiruvchi amalni bajara olmaydi.</summary>
     protected Microsoft.AspNetCore.Mvc.IActionResult OwnerOnly()
     {
-        FlashError = "Bu amal faqat tashkilot mas'uli (Owner roli) uchun.";
+        FlashError = L.T("Ptl_OwnerOnlyAction");
         return RedirectToPage("/Portal/Index");
     }
 
@@ -52,18 +53,18 @@ public abstract class PortalPageModel : PageModel
         }
         catch (Exception ex) when (BillingService.IsConcurrencyConflict(ex))
         {
-            ModelState.AddModelError(string.Empty, "Ma'lumot shu orada o'zgardi — sahifani yangilab, qayta urinib ko'ring.");
+            ModelState.AddModelError(string.Empty, L.T("Ptl_ConcurrencyConflict"));
         }
         return false;
     }
 
     public static string InvoiceState(Invoice i) => i.Status switch
     {
-        InvoiceStatus.Paid => "To'langan",
-        InvoiceStatus.PartiallyPaid => "Qisman to'langan",
-        InvoiceStatus.Issued => "To'lanmagan",
-        InvoiceStatus.Cancelled => "Bekor qilingan",
-        _ => "Tayyorlanmoqda",
+        InvoiceStatus.Paid => L.T("Ptl_Paid"),
+        InvoiceStatus.PartiallyPaid => L.T("Ptl_InvPartiallyPaid"),
+        InvoiceStatus.Issued => L.T("Ptl_InvUnpaid"),
+        InvoiceStatus.Cancelled => L.T("Ptl_Cancelled"),
+        _ => L.T("Ptl_Preparing"),
     };
 
     public static string InvoiceBadge(Invoice i, DateOnly today) => i.Status switch
@@ -76,10 +77,10 @@ public abstract class PortalPageModel : PageModel
 
     public static string Of(PortalRequestStatus s) => s switch
     {
-        PortalRequestStatus.Pending => "Ko'rib chiqilmoqda",
-        PortalRequestStatus.Approved => "Tasdiqlangan",
-        PortalRequestStatus.Rejected => "Rad etilgan",
-        _ => "Bekor qilingan",
+        PortalRequestStatus.Pending => L.T("Ptl_ReqPending"),
+        PortalRequestStatus.Approved => L.T("Ptl_ReqApproved"),
+        PortalRequestStatus.Rejected => L.T("Ptl_ReqRejected"),
+        _ => L.T("Ptl_Cancelled"),
     };
 
     public static string Badge(PortalRequestStatus s) => s switch
@@ -88,5 +89,5 @@ public abstract class PortalPageModel : PageModel
     };
 
     public static string PaymentPurpose(Invoice i) =>
-        $"{i.Number} hisob-faktura bo'yicha tahsinERP dasturiy ta'minot xizmati uchun to'lov, QQS bilan";
+        L.T("Ptl_PaymentPurposeText", i.Number);
 }

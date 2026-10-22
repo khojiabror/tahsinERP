@@ -5,6 +5,7 @@ using Microsoft.Extensions.Options;
 using tahsinERP.ControlPanel.Data;
 using tahsinERP.ControlPanel.Security;
 using tahsinERP.Provisioning.Contracts;
+using tahsinERP.ControlPanel.I18n;
 
 namespace tahsinERP.ControlPanel.Services;
 
@@ -74,23 +75,23 @@ public sealed class ProvisioningService(ControlDbContext db, AuditLogger audit, 
         if (active != null)
         {
             if (active.Type == type) return new EnqueueResult(active, false, null);
-            throw new DomainException($"Tenantda boshqa amal bajarilmoqda: {active.Type} (#{active.Id}). Tugashini kuting yoki bekor qiling.");
+            throw new DomainException(L.T("Pnl_Prov_OtherActive", Pages.Labels.Of(active.Type), active.Id));
         }
 
-        if (t.Deployment != DeploymentKind.SaaS) throw new DomainException("Provisioning faqat SaaS tenantlar uchun.");
-        if (t.DeletedAtUtc != null) throw new DomainException("Tenant o'chirilgan.");
-        if (string.IsNullOrWhiteSpace(t.DbName)) throw new DomainException("Baza nomi (DbName) berilmagan.");
+        if (t.Deployment != DeploymentKind.SaaS) throw new DomainException(L.T("Pnl_Prov_OnlySaas"));
+        if (t.DeletedAtUtc != null) throw new DomainException(L.T("Pnl_Prov_TenantDeleted"));
+        if (string.IsNullOrWhiteSpace(t.DbName)) throw new DomainException(L.T("Pnl_Prov_NoDbName"));
         bool provisioned = t.ProvisionedAtUtc != null;
         string? tempPassword = null;
         var secrets = new JobSecrets();
         switch (type)
         {
             case ProvisioningJobType.Create:
-                if (provisioned) throw new DomainException("Baza allaqachon yaratilgan.");
-                if (t.Status == TenantStatus.Archived) throw new DomainException("Arxivdagi tenant uchun baza yaratilmaydi.");
+                if (provisioned) throw new DomainException(L.T("Pnl_Prov_DbExists"));
+                if (t.Status == TenantStatus.Archived) throw new DomainException(L.T("Pnl_Prov_ArchivedNoDb"));
                 if (t.ServerId is null)
                 {
-                    var server = await PickServerAsync(ct) ?? throw new DomainException("Bo'sh joyi bor faol server yo'q (Serverlar bo'limi).");
+                    var server = await PickServerAsync(ct) ?? throw new DomainException(L.T("Pnl_Ten_NoFreeServer"));
                     t.ServerId = server.Id;
                     audit.Add("tenant.server", "Tenant", t.Id, null, new { ServerId = server.Id, Reason = "Provisioning: avtomatik tanlandi" });
                 }
@@ -99,32 +100,32 @@ public sealed class ProvisioningService(ControlDbContext db, AuditLogger audit, 
                 secrets.RegToken = await tenants.IssueRegTokenAsync(t, ct);
                 break;
             case ProvisioningJobType.Reset:
-                if (!IsDemo(t)) throw new DomainException($"Qayta tiklash faqat demo tenant ('{O.DemoSlug}') uchun.");
-                if (t.Status == TenantStatus.Archived) throw new DomainException("Arxivdagi tenant.");
+                if (!IsDemo(t)) throw new DomainException(L.T("Pnl_Prov_ResetOnlyDemo", O.DemoSlug));
+                if (t.Status == TenantStatus.Archived) throw new DomainException(L.T("Pnl_Prov_Archived"));
                 // Shablondan tiklangan bazada InstallationId yo'q — ERP yangisini yaratib, shu token bilan qayta bog'lanadi.
                 secrets.RegToken = await tenants.IssueRegTokenAsync(t, ct);
                 break;
             case ProvisioningJobType.Suspend:
             case ProvisioningJobType.Resume:
-                if (!provisioned) throw new DomainException("Baza hali yaratilmagan.");
-                if (t.Status == TenantStatus.Archived) throw new DomainException("Arxivdagi tenant.");
+                if (!provisioned) throw new DomainException(L.T("Pnl_Prov_NoDb"));
+                if (t.Status == TenantStatus.Archived) throw new DomainException(L.T("Pnl_Prov_Archived"));
                 break;
             case ProvisioningJobType.Archive:
-                if (!provisioned) throw new DomainException("Baza hali yaratilmagan — arxivlash uchun holatni o'zgartiring.");
-                if (t.Status == TenantStatus.Archived) throw new DomainException("Allaqachon arxivda.");
-                if (string.IsNullOrWhiteSpace(reason)) throw new DomainException("Arxivlash sababi majburiy.");
+                if (!provisioned) throw new DomainException(L.T("Pnl_Prov_NoDbArchive"));
+                if (t.Status == TenantStatus.Archived) throw new DomainException(L.T("Pnl_Prov_AlreadyArchived"));
+                if (string.IsNullOrWhiteSpace(reason)) throw new DomainException(L.T("Pnl_Prov_ArchiveReasonRequired"));
                 break;
             case ProvisioningJobType.Delete:
-                if (t.Status != TenantStatus.Archived) throw new DomainException("O'chirish faqat arxivlangan tenant uchun.");
-                if (string.IsNullOrWhiteSpace(reason)) throw new DomainException("O'chirish sababi majburiy.");
+                if (t.Status != TenantStatus.Archived) throw new DomainException(L.T("Pnl_Ten_DeleteOnlyArchived"));
+                if (string.IsNullOrWhiteSpace(reason)) throw new DomainException(L.T("Pnl_Prov_DeleteReasonRequired"));
                 break;
             case ProvisioningJobType.EndTrial:
-                if (!provisioned) throw new DomainException("Baza hali yaratilmagan.");
-                if (t.Status == TenantStatus.Archived) throw new DomainException("Allaqachon arxivda.");
-                if (string.IsNullOrWhiteSpace(reason)) throw new DomainException("Sinovni yakunlash sababi majburiy.");
+                if (!provisioned) throw new DomainException(L.T("Pnl_Prov_NoDb"));
+                if (t.Status == TenantStatus.Archived) throw new DomainException(L.T("Pnl_Prov_AlreadyArchived"));
+                if (string.IsNullOrWhiteSpace(reason)) throw new DomainException(L.T("Pnl_Prov_EndTrialReasonRequired"));
                 break;
         }
-        if (t.ServerId is null) throw new DomainException("Tenant serverga biriktirilmagan.");
+        if (t.ServerId is null) throw new DomainException(L.T("Pnl_Prov_NoServer"));
 
         var payload = new JobPayload
         {
@@ -151,7 +152,7 @@ public sealed class ProvisioningService(ControlDbContext db, AuditLogger audit, 
     /// <summary>Xodim: tenantni to'xtatish (holat Suspended + Suspend job, agar baza yaratilgan bo'lsa).</summary>
     public async Task<ProvisioningJob?> SuspendAsync(Tenant t, string? reason, CancellationToken ct = default)
     {
-        if (t.Status == TenantStatus.Archived) throw new DomainException("Arxivdagi tenant.");
+        if (t.Status == TenantStatus.Archived) throw new DomainException(L.T("Pnl_Prov_Archived"));
         await tenants.ChangeStatusAsync(t, TenantStatus.Suspended, reason, ct);
         return t.ProvisionedAtUtc != null && t.Deployment == DeploymentKind.SaaS
             ? (await EnqueueAsync(t, ProvisioningJobType.Suspend, reason, ct: ct)).Job : null;
@@ -160,12 +161,12 @@ public sealed class ProvisioningService(ControlDbContext db, AuditLogger audit, 
     /// <summary>Xodim: qayta yoqish. Holat faol obunadan olinadi; obuna bo'lmasa — xato (kunlik tekshiruv baribir yana to'xtatardi).</summary>
     public async Task<ProvisioningJob?> ResumeAsync(Tenant t, string? reason, CancellationToken ct = default)
     {
-        if (t.Status == TenantStatus.Archived) throw new DomainException("Arxivdagi tenant.");
+        if (t.Status == TenantStatus.Archived) throw new DomainException(L.T("Pnl_Prov_Archived"));
         var today = clock.Today;
         var sub = await SubscriptionService.PackageOnly(db.Subscriptions).Where(s => s.TenantId == t.Id && s.Status == SubscriptionStatus.Active)
             .OrderByDescending(s => s.EndDate).FirstOrDefaultAsync(ct);
         if (sub is null || sub.EndDate < today)
-            throw new DomainException("Faol obuna yo'q — avval to'lovni belgilang yoki obunani uzaytiring.");
+            throw new DomainException(L.T("Pnl_Prov_NoActiveSub"));
         var target = sub.Period == BillingPeriod.Trial ? TenantStatus.Trial : TenantStatus.Active;
         await tenants.ChangeStatusAsync(t, target, reason ?? "Qayta yoqildi", ct);
         return t.ProvisionedAtUtc != null && t.Deployment == DeploymentKind.SaaS
@@ -187,10 +188,10 @@ public sealed class ProvisioningService(ControlDbContext db, AuditLogger audit, 
     /// </summary>
     public async Task<ProvisioningJob?> EndTrialAsync(Tenant t, string? reason, string? confirmSlug, bool backup, CancellationToken ct = default)
     {
-        if (string.IsNullOrWhiteSpace(reason)) throw new DomainException("Sinovni yakunlash sababi majburiy.");
-        if (!string.Equals(confirmSlug?.Trim(), t.Slug, StringComparison.Ordinal)) throw new DomainException("Tasdiqlash uchun slug mos kelmadi.");
-        if (t.Deployment != DeploymentKind.SaaS) throw new DomainException("Faqat SaaS sinov tenantlari uchun.");
-        if (!await IsTrialOnlyAsync(t, ct)) throw new DomainException("Faqat sinov (TRIAL) tenanti yakunlanadi — pullik tenant uchun «Arxivlash» → «O'chirish».");
+        if (string.IsNullOrWhiteSpace(reason)) throw new DomainException(L.T("Pnl_Prov_EndTrialReasonRequired"));
+        if (!string.Equals(confirmSlug?.Trim(), t.Slug, StringComparison.Ordinal)) throw new DomainException(L.T("Pnl_Prov_SlugMismatch"));
+        if (t.Deployment != DeploymentKind.SaaS) throw new DomainException(L.T("Pnl_Prov_OnlySaasTrial"));
+        if (!await IsTrialOnlyAsync(t, ct)) throw new DomainException(L.T("Pnl_Prov_OnlyTrial"));
 
         var subs = await db.Subscriptions.Where(s => s.TenantId == t.Id && s.Period == BillingPeriod.Trial
             && (s.Status == SubscriptionStatus.Active || s.Status == SubscriptionStatus.Pending)).ToListAsync(ct);
@@ -398,12 +399,12 @@ public sealed class ProvisioningService(ControlDbContext db, AuditLogger audit, 
     /// <summary>Xodim: Failed job'ni qayta navbatga qo'yish (urinishlar hisobi yangidan).</summary>
     public async Task RetryAsync(ProvisioningJob job, CancellationToken ct = default)
     {
-        if (job.Status != ProvisioningJobStatus.Failed) throw new DomainException("Faqat xato bilan tugagan job qayta ishga tushiriladi.");
+        if (job.Status != ProvisioningJobStatus.Failed) throw new DomainException(L.T("Pnl_Prov_RetryOnlyFailed"));
         if (await db.ProvisioningJobs.AnyAsync(j => j.TenantId == job.TenantId && j.Id != job.Id
                 && (j.Status == ProvisioningJobStatus.Pending || j.Status == ProvisioningJobStatus.Running), ct))
-            throw new DomainException("Tenantda boshqa faol job bor.");
+            throw new DomainException(L.T("Pnl_Prov_OtherJob"));
         if (job.Type == ProvisioningJobType.Create && await db.Tenants.AnyAsync(t => t.Id == job.TenantId && t.ProvisionedAtUtc != null, ct))
-            throw new DomainException("Baza allaqachon yaratilgan.");
+            throw new DomainException(L.T("Pnl_Prov_DbExists"));
         job.Status = ProvisioningJobStatus.Pending;
         job.Attempts = 0;
         job.NotBeforeUtc = clock.UtcNow;
@@ -417,7 +418,7 @@ public sealed class ProvisioningService(ControlDbContext db, AuditLogger audit, 
     public async Task CancelAsync(ProvisioningJob job, CancellationToken ct = default)
     {
         if (job.Status is not (ProvisioningJobStatus.Pending or ProvisioningJobStatus.Failed))
-            throw new DomainException("Faqat navbatdagi yoki xato bergan job bekor qilinadi.");
+            throw new DomainException(L.T("Pnl_Prov_CancelOnly"));
         var before = job.Status;
         job.Status = ProvisioningJobStatus.Cancelled;
         job.SecretsProtected = null;
@@ -441,9 +442,8 @@ public sealed class ProvisioningService(ControlDbContext db, AuditLogger audit, 
     {
         if (string.IsNullOrWhiteSpace(t.TelegramChatId)) return;
         var payload = JsonSerializer.Deserialize<JobPayload>(job.Payload, AgentProtocol.Json);
-        string url = TenantUrl(t) ?? $"(manzil: {t.Slug}.<domen>)";
-        string text = $"tahsinERP: «{t.LegalName}» uchun tizim tayyor.\nManzil: {url}\nLogin: {payload?.AdminLogin}\n" +
-                      $"Vaqtinchalik parol: {password}\nBirinchi kirishda parolni almashtirish so'raladi.";
+        string url = TenantUrl(t) ?? L.T("Pnl_Prov_UrlUnknown", t.Slug);
+        string text = L.T("Pnl_Prov_WelcomeText", t.LegalName, url, payload?.AdminLogin, password);
         // Notifications'ga parolsiz matn yoziladi.
         var n = new Notification
         {

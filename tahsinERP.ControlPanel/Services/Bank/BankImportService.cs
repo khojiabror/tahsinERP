@@ -5,6 +5,7 @@ using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using tahsinERP.ControlPanel.Data;
+using tahsinERP.ControlPanel.I18n;
 
 namespace tahsinERP.ControlPanel.Services.Bank;
 
@@ -47,11 +48,11 @@ public sealed partial class BankImportService(ControlDbContext db, AuditLogger a
     {
         var parsed = BankStatementParser.Parse(fileName, content);
         if (parsed.Lines.Count == 0)
-            throw new DomainException("Faylda to'lov qatori topilmadi. " + string.Join(" ", parsed.Warnings.Take(3)));
+            throw new DomainException(L.T("Pnl_BankSvc_NoPaymentLines") + " " + string.Join(" ", parsed.Warnings.Take(3)));
         var warnings = parsed.Warnings.ToList();
         string hash = Convert.ToHexStringLower(SHA256.HashData(content));
         if (await db.BankImports.AnyAsync(i => i.FileHash == hash, ct))
-            warnings.Insert(0, "Bu fayl avval ham yuklangan — qo'llangan qatorlar «Takror» deb belgilanadi.");
+            warnings.Insert(0, L.T("Pnl_BankSvc_FileUploadedBefore"));
 
         var ours = OurAccounts(parsed.Accounts);
         string? ourInn = Digits(vendor.Value.Inn);
@@ -189,9 +190,9 @@ public sealed partial class BankImportService(ControlDbContext db, AuditLogger a
     /// <summary>Xodim qatorga hisob-fakturani qo'lda tanlaydi (Ambiguous/Unmatched/Blocked). Bo'sh raqam — avtomatik moslashga qaytaradi.</summary>
     public async Task AssignAsync(long lineId, string? invoiceNumber, int staffId, CancellationToken ct = default)
     {
-        var line = await db.BankImportLines.FirstOrDefaultAsync(l => l.Id == lineId, ct) ?? throw new DomainException("Qator topilmadi.");
-        if (line.State is BankLineState.Applied or BankLineState.Applying) throw new DomainException("Qator allaqachon qo'llangan.");
-        if (line.MatchStatus is BankMatchStatus.NotIncoming or BankMatchStatus.Duplicate) throw new DomainException("Bu qatorni qo'llab bo'lmaydi (chiquvchi yoki takror).");
+        var line = await db.BankImportLines.FirstOrDefaultAsync(l => l.Id == lineId, ct) ?? throw new DomainException(L.T("Pnl_BankSvc_LineNotFound"));
+        if (line.State is BankLineState.Applied or BankLineState.Applying) throw new DomainException(L.T("Pnl_BankSvc_LineAlreadyApplied"));
+        if (line.MatchStatus is BankMatchStatus.NotIncoming or BankMatchStatus.Duplicate) throw new DomainException(L.T("Pnl_BankSvc_CannotApplyLine"));
         var before = new { line.MatchStatus, line.InvoiceId };
         string number = (invoiceNumber ?? "").Trim().ToUpperInvariant();
         if (number.Length == 0)
@@ -201,11 +202,11 @@ public sealed partial class BankImportService(ControlDbContext db, AuditLogger a
         else
         {
             var normalized = FindInvoiceNumbers(number).FirstOrDefault() ?? number;
-            var inv = await db.Invoices.FirstOrDefaultAsync(i => i.Number == normalized, ct) ?? throw new DomainException($"{normalized} hisob-faktura topilmadi.");
+            var inv = await db.Invoices.FirstOrDefaultAsync(i => i.Number == normalized, ct) ?? throw new DomainException(L.T("Pnl_BankSvc_InvoiceNotFound", normalized));
             if (inv.Status is not (InvoiceStatus.Issued or InvoiceStatus.PartiallyPaid))
-                throw new DomainException($"{inv.Number}: {Pages.Labels.Of(inv.Status).ToLowerInvariant()} — to'lov qabul qilinmaydi.");
+                throw new DomainException(L.T("Pnl_BankSvc_InvoiceNotPayable", inv.Number, Pages.Labels.Of(inv.Status).ToLowerInvariant()));
             if (line.AmountTiyin > inv.RemainingTiyin)
-                throw new DomainException($"{inv.Number}: summa qoldiqdan ({Money.FormatSom(inv.RemainingTiyin)}) katta.");
+                throw new DomainException(L.T("Pnl_BankSvc_AmountExceeds", inv.Number, Money.FormatSom(inv.RemainingTiyin)));
             Set(line, BankMatchStatus.Matched, BankMatchMethod.Manual, inv.Id, $"Xodim tanladi: {inv.Number}.");
         }
         line.State = BankLineState.Pending;
@@ -216,8 +217,8 @@ public sealed partial class BankImportService(ControlDbContext db, AuditLogger a
 
     public async Task SkipAsync(long lineId, int staffId, CancellationToken ct = default)
     {
-        var line = await db.BankImportLines.FirstOrDefaultAsync(l => l.Id == lineId, ct) ?? throw new DomainException("Qator topilmadi.");
-        if (line.State is BankLineState.Applied or BankLineState.Applying) throw new DomainException("Qator allaqachon qo'llangan.");
+        var line = await db.BankImportLines.FirstOrDefaultAsync(l => l.Id == lineId, ct) ?? throw new DomainException(L.T("Pnl_BankSvc_LineNotFound"));
+        if (line.State is BankLineState.Applied or BankLineState.Applying) throw new DomainException(L.T("Pnl_BankSvc_LineAlreadyApplied"));
         line.State = BankLineState.Skipped;
         audit.Add("bank.skip", "BankImportLine", line.Id, after: new { line.ImportId, line.LineNo }, staffIdOverride: staffId);
         await db.SaveChangesAsync(ct);
@@ -242,9 +243,9 @@ public sealed partial class BankImportService(ControlDbContext db, AuditLogger a
     private async Task<BankApplyOutcome> ApplyLineAsync(BankImportLine line, int staffId, CancellationToken ct)
     {
         BankApplyOutcome Fail(string m) => new(line.Id, line.LineNo, false, m, null);
-        if (line.State is BankLineState.Applied or BankLineState.Applying) return Fail("allaqachon qo'llangan");
-        if (line.State == BankLineState.Skipped) return Fail("o'tkazib yuborilgan");
-        if (line.MatchStatus != BankMatchStatus.Matched || line.InvoiceId is null) return Fail("hisob-faktura tanlanmagan");
+        if (line.State is BankLineState.Applied or BankLineState.Applying) return Fail(L.T("Pnl_BankSvc_FailApplied"));
+        if (line.State == BankLineState.Skipped) return Fail(L.T("Pnl_BankSvc_FailSkipped"));
+        if (line.MatchStatus != BankMatchStatus.Matched || line.InvoiceId is null) return Fail(L.T("Pnl_BankSvc_FailNoInvoice"));
 
         // 1) Band qilish (idempotentlik kafolati — bazada).
         line.AppliedKey = line.DedupKey;
@@ -260,7 +261,7 @@ public sealed partial class BankImportService(ControlDbContext db, AuditLogger a
             Set(line, BankMatchStatus.Duplicate, BankMatchMethod.None, null, "Bu bank tranzaksiyasi boshqa qatorda allaqachon qo'llangan.");
             line.State = BankLineState.Pending;
             await db.SaveChangesAsync(ct);
-            return Fail("takror — allaqachon qo'llangan");
+            return Fail(L.T("Pnl_BankSvc_FailDuplicate"));
         }
 
         // 2) To'lov — qo'lda belgilash bilan aynan bir xil yo'l, alohida kontekstda (xato bo'lsa bu kontekstga qoldiq qolmaydi).
@@ -274,7 +275,7 @@ public sealed partial class BankImportService(ControlDbContext db, AuditLogger a
                 line.DocNumber, Cut($"Bank ko'chirmasi #{line.ImportId}, {line.LineNo}-qator" + (line.PayerName is null ? "" : ", " + line.PayerName), 1000), staffId, ct);
         }
         catch (DomainException ex) { error = ex.Message; }
-        catch (Exception ex) when (BillingService.IsConcurrencyConflict(ex)) { error = "Hisob-faktura shu orada o'zgardi — qayta urinib ko'ring."; }
+        catch (Exception ex) when (BillingService.IsConcurrencyConflict(ex)) { error = L.T("Pnl_BankSvc_InvoiceChanged"); }
 
         if (result is null)
         {
@@ -283,7 +284,7 @@ public sealed partial class BankImportService(ControlDbContext db, AuditLogger a
             line.Error = Cut(error, 1000);
             await db.SaveChangesAsync(ct);
             log.LogWarning("Bank qatori #{Line} qo'llanmadi: {Error}", line.Id, error);
-            return Fail(error ?? "xato");
+            return Fail(error ?? L.T("Pnl_BankSvc_FailError"));
         }
         line.State = BankLineState.Applied;
         line.PaymentId = result.Payment.Id;
@@ -296,7 +297,7 @@ public sealed partial class BankImportService(ControlDbContext db, AuditLogger a
         }, staffIdOverride: staffId);
         await db.SaveChangesAsync(ct);
         string msg = $"{result.Invoice.Number}: {Money.FormatSom(line.AmountTiyin)} → {Pages.Labels.Of(result.Invoice.Status)}"
-                     + (result.IssuedLicense is not null ? $", yangi kalit #{result.IssuedLicense.Id}" : "")
+                     + (result.IssuedLicense is not null ? ", " + L.T("Pnl_BankSvc_NewKey", result.IssuedLicense.Id) : "")
                      + (result.LicenseWarning is not null ? $" ({result.LicenseWarning})" : "");
         return new BankApplyOutcome(line.Id, line.LineNo, true, msg, result);
     }

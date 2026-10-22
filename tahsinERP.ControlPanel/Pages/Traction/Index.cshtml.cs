@@ -4,6 +4,7 @@ using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 using tahsinERP.ControlPanel.Data;
 using tahsinERP.ControlPanel.Services;
+using tahsinERP.ControlPanel.I18n;
 
 namespace tahsinERP.ControlPanel.Pages.Traction;
 
@@ -66,19 +67,19 @@ public class IndexModel(TractionService traction, Clock clock) : PanelPageModel
         switch (section)
         {
             case "modules":
-                Line("Modul", "Nomi", "Tenantlar", "Amallar", "Oldingi davr", "Trend %", "Paketda bor, ishlatilmagan (tenant)");
+                Line(L.T("Pnl_Module"), L.T("Name"), L.T("Pnl_Tenants"), L.T("Actions"), L.T("Pnl_Tr_PrevPeriod"), "Trend %", L.T("Pnl_Tr_UnusedInPackageCsv"));
                 foreach (var m in r.Modules) Line(m.Module, m.Name, m.Tenants, m.Actions, m.PrevActions, m.TrendPct, m.UnusedInPackage);
                 break;
             case "pages":
-                Line("Controller", "Modul", "Amal turi", "Amallar", "Tenantlar", "Xaritada");
-                foreach (var p in r.Pages) Line(p.Controller, p.Module, p.ActionType, p.Actions, p.Tenants, p.Mapped ? "ha" : "yo'q");
+                Line("Controller", L.T("Pnl_Module"), L.T("Pnl_Tr_ActionType"), L.T("Actions"), L.T("Pnl_Tenants"), L.T("Pnl_Tr_InMap"));
+                foreach (var p in r.Pages) Line(p.Controller, p.Module, p.ActionType, p.Actions, p.Tenants, p.Mapped ? L.T("Pnl_YesLower") : L.T("Pnl_NoLower"));
                 break;
             case "cohorts":
-                Line(new object?[] { "Oy", "Tenantlar" }.Concat(Enumerable.Range(0, 12).Select(w => (object?)("H" + w))).ToArray());
+                Line(new object?[] { L.T("Pnl_Month"), L.T("Pnl_Tenants") }.Concat(Enumerable.Range(0, 12).Select(w => (object?)("H" + w))).ToArray());
                 foreach (var c in r.Cohorts) Line(new object?[] { c.Month, c.Size }.Concat(c.Weeks.Select(w => (object?)w)).ToArray());
                 break;
             default:
-                Line("Slug", "Nomi", "Holat", "Paket", "MRR (so'm)", "Oxirgi kirish (UTC)", "Faol foydalanuvchi", "Limit", "Modullar", "Ruxsat", "Amallar", "Oldingi", "Hujjatlar", "Ball", "Xavf", "Ishlatilmagan modullar");
+                Line("Slug", L.T("Name"), L.T("Status"), L.T("Pnl_Package"), L.T("Pnl_Tr_MrrSom"), L.T("Pnl_LastLoginUtc"), L.T("Pnl_Tr_ActiveUser"), L.T("Pnl_Tr_Limit"), L.T("Pnl_Modules"), L.T("Pnl_Tr_Allowed"), L.T("Actions"), L.T("Pnl_Tr_Prev"), L.T("Pnl_Tr_Docs"), L.T("Pnl_Tr_Score"), L.T("Pnl_Tr_Risk"), L.T("Pnl_Tr_UnusedModules"));
                 foreach (var t in SortRows(r.Tenants))
                     Line(t.Tenant.Slug, t.Tenant.LegalName, t.Tenant.Status, t.Edition ?? t.PlanCode, t.MrrTiyin / 100, t.LastLoginUtc?.ToString("yyyy-MM-dd HH:mm"), t.ActiveUsers, t.SeatLimit,
                         t.ModulesUsed, t.ModulesAllowed, t.Actions, t.PrevActions, t.Docs, t.Score, t.Risk, string.Join(",", t.UnusedModules));

@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using tahsinERP.ControlPanel.Data;
+using tahsinERP.ControlPanel.I18n;
 using tahsinERP.ControlPanel.Security;
 using tahsinERP.ControlPanel.Services;
 
@@ -28,8 +29,8 @@ public sealed class PortalAuthService(ControlDbContext db, AuditLogger audit, Cl
     public static readonly TimeSpan OtpResendInterval = TimeSpan.FromSeconds(60);
     public const int MaxOtpPerWindow = 5;
     public static readonly TimeSpan OtpWindow = TimeSpan.FromMinutes(15);
-    public const string GenericLoginError = "Login yoki parol noto'g'ri.";
-    public const string LockedError = "Hisob vaqtincha bloklangan (ko'p xato urinish). 15 daqiqadan keyin urinib ko'ring.";
+    public static string GenericLoginError => L.T("Ptl_LoginError");
+    public static string LockedError => L.T("Ptl_LockedError");
 
     private static readonly Lazy<string> DummyHash = new(() => PasswordHasher.Hash(Guid.NewGuid().ToString()));
 
@@ -43,16 +44,16 @@ public sealed class PortalAuthService(ControlDbContext db, AuditLogger audit, Cl
     public async Task<PortalUser> CreateUserAsync(int tenantId, string fullName, string? email, string? phone, PortalRole role, int staffId,
         CancellationToken ct = default)
     {
-        var tenant = await db.Tenants.FirstOrDefaultAsync(t => t.Id == tenantId, ct) ?? throw new DomainException("Tenant topilmadi.");
-        if (TenantClosed(tenant)) throw new DomainException("Arxivdagi tenantga portal foydalanuvchisi qo'shilmaydi.");
+        var tenant = await db.Tenants.FirstOrDefaultAsync(t => t.Id == tenantId, ct) ?? throw new DomainException(L.T("Ptl_TenantNotFound"));
+        if (TenantClosed(tenant)) throw new DomainException(L.T("Ptl_ArchivedTenantNoUser"));
         string? e = PortalIdentity.NormalizeEmail(email);
         string? p = string.IsNullOrWhiteSpace(phone) ? null : PortalIdentity.NormalizePhone(phone)
-            ?? throw new DomainException("Telefon raqami noto'g'ri (masalan +998901234567).");
-        if (e is null && p is null) throw new DomainException("Email yoki telefon kiriting (kirish uchun login).");
-        if (e is not null && (e.Length < 5 || !e.Contains('@') || e.Length > 200)) throw new DomainException("Email noto'g'ri.");
-        if (string.IsNullOrWhiteSpace(fullName)) throw new DomainException("Ism kiriting.");
-        if (e is not null && await db.PortalUsers.AnyAsync(u => u.Email == e, ct)) throw new DomainException("Bu email bilan portal foydalanuvchisi bor.");
-        if (p is not null && await db.PortalUsers.AnyAsync(u => u.Phone == p, ct)) throw new DomainException("Bu telefon bilan portal foydalanuvchisi bor.");
+            ?? throw new DomainException(L.T("Ptl_PhoneInvalid"));
+        if (e is null && p is null) throw new DomainException(L.T("Ptl_EmailOrPhoneRequired"));
+        if (e is not null && (e.Length < 5 || !e.Contains('@') || e.Length > 200)) throw new DomainException(L.T("Ptl_EmailInvalid"));
+        if (string.IsNullOrWhiteSpace(fullName)) throw new DomainException(L.T("Ptl_NameRequired"));
+        if (e is not null && await db.PortalUsers.AnyAsync(u => u.Email == e, ct)) throw new DomainException(L.T("Ptl_EmailExists"));
+        if (p is not null && await db.PortalUsers.AnyAsync(u => u.Phone == p, ct)) throw new DomainException(L.T("Ptl_PhoneExists"));
         var user = new PortalUser
         {
             TenantId = tenantId, FullName = fullName.Trim(), Email = e, Phone = p, Role = role, IsActive = true,
@@ -105,9 +106,9 @@ public sealed class PortalAuthService(ControlDbContext db, AuditLogger audit, Cl
     /// </summary>
     public async Task<InviteResult> CreateInviteAsync(PortalUser user, int staffId, string portalBaseUrl, PortalNotifier notifier, CancellationToken ct = default)
     {
-        if (!user.IsActive) throw new DomainException("Foydalanuvchi o'chirilgan — avval faollashtiring.");
+        if (!user.IsActive) throw new DomainException(L.T("Ptl_UserInactive"));
         var tenant = await db.Tenants.FirstAsync(t => t.Id == user.TenantId, ct);
-        if (TenantClosed(tenant)) throw new DomainException("Tenant arxivda.");
+        if (TenantClosed(tenant)) throw new DomainException(L.T("Ptl_TenantArchived"));
         await RevokeInvitesAsync(user.Id, ct);
         string token = PortalTokens.New("PI-");
         var invite = new PortalInvite
@@ -123,7 +124,7 @@ public sealed class PortalAuthService(ControlDbContext db, AuditLogger audit, Cl
         bool sent = false;
         if (!string.IsNullOrWhiteSpace(user.TelegramChatId))
             sent = await notifier.SendDirectAsync(user.TelegramChatId,
-                $"tahsinERP portal: {(reset ? "parolni tiklash" : "taklif")} havolasi ({O.InviteHours} soat amal qiladi, bir marta ishlaydi): {InviteUrl(portalBaseUrl, token)}", ct);
+                L.T("Ptl_MsgInvite", L.T(reset ? "Ptl_InviteKindReset" : "Ptl_InviteKindInvite"), O.InviteHours, InviteUrl(portalBaseUrl, token)), ct);
         return new InviteResult(token, invite, sent);
     }
 
@@ -131,7 +132,7 @@ public sealed class PortalAuthService(ControlDbContext db, AuditLogger audit, Cl
 
     public async Task<(InviteInfo? Info, string? Error)> FindInviteAsync(string? token, CancellationToken ct = default)
     {
-        const string bad = "Havola yaroqsiz yoki muddati o'tgan. Yangi taklif so'rang.";
+        string bad = L.T("Ptl_InviteLinkInvalid");
         if (string.IsNullOrWhiteSpace(token) || token.Length > 100) return (null, bad);
         string hash = PortalTokens.Hash(token);
         var invite = await db.PortalInvites.Include(i => i.PortalUser!).ThenInclude(u => u.Tenant).FirstOrDefaultAsync(i => i.TokenHash == hash, ct);
@@ -149,7 +150,7 @@ public sealed class PortalAuthService(ControlDbContext db, AuditLogger audit, Cl
     {
         var (info, error) = await FindInviteAsync(token, ct);
         if (info is null) throw new DomainException(error!);
-        if (password != confirm) throw new DomainException("Parollar mos emas.");
+        if (password != confirm) throw new DomainException(L.T("Ptl_PasswordsMismatch"));
         if (PasswordHasher.ValidatePolicy(password) is string err) throw new DomainException(err);
         var user = info.User;
         bool reset = user.PasswordHash is not null;
@@ -272,14 +273,14 @@ public sealed class PortalAuthService(ControlDbContext db, AuditLogger audit, Cl
         var tenant = user.Tenant ?? await db.Tenants.FirstAsync(t => t.Id == user.TenantId, ct);
         if (user.LockedUntilUtc > clock.UtcNow) throw new DomainException(LockedError);
         var target = ResolveTarget(user, tenant, out var sender)
-            ?? throw new DomainException("Kod yuborish uchun Telegram bog'lanmagan. Xodimdan yangi taklif havolasini so'rang.");
+            ?? throw new DomainException(L.T("Ptl_NoTelegramForCode"));
         DateTime now = clock.UtcNow;
         var recent = await db.PortalOtps.Where(o => o.PortalUserId == user.Id && o.CreatedAtUtc > now - OtpWindow)
             .OrderByDescending(o => o.CreatedAtUtc).Select(o => o.CreatedAtUtc).ToListAsync(ct);
         if (recent.Count > 0 && now - recent[0] < OtpResendInterval)
-            throw new DomainException($"Kod yaqinda yuborildi — {OtpResendInterval.TotalSeconds:0} soniyadan keyin qayta so'rang.");
+            throw new DomainException(L.T("Ptl_CodeRecentlySent", OtpResendInterval.TotalSeconds.ToString("0")));
         if (recent.Count >= MaxOtpPerWindow)
-            throw new DomainException("Juda ko'p kod so'raldi. 15 daqiqadan keyin urinib ko'ring.");
+            throw new DomainException(L.T("Ptl_TooManyCodes"));
 
         // Avvalgi ishlatilmagan kodlar yopiladi — faqat oxirgisi amal qiladi.
         await db.PortalOtps.Where(o => o.PortalUserId == user.Id && o.ConsumedAtUtc == null)
@@ -344,9 +345,9 @@ public sealed class PortalAuthService(ControlDbContext db, AuditLogger audit, Cl
     public async Task SetOtpChannelAsync(PortalUser user, Tenant tenant, string? channel, CancellationToken ct = default)
     {
         string c = (channel ?? "").Trim().ToLowerInvariant();
-        if (c is not ("telegram" or "sms" or "email")) throw new DomainException("Kanal noto'g'ri.");
+        if (c is not ("telegram" or "sms" or "email")) throw new DomainException(L.T("Ptl_ChannelInvalid"));
         if (c != "telegram" && AvailableChannels(user, tenant).All(t => t.Channel != c))
-            throw new DomainException(c == "sms" ? "SMS kanali mavjud emas (telefon kiritilmagan yoki SMS sozlanmagan)." : "Email kanali mavjud emas (email kiritilmagan yoki pochta sozlanmagan).");
+            throw new DomainException(L.T(c == "sms" ? "Ptl_SmsUnavailable" : "Ptl_EmailUnavailable"));
         var before = new { Channel = user.OtpChannel ?? "telegram" };
         user.OtpChannel = c == "telegram" ? null : c;
         audit.Add("portal.otp-channel", "PortalUser", user.Id, before, new { Channel = c }, portalUserId: user.Id);
@@ -355,9 +356,7 @@ public sealed class PortalAuthService(ControlDbContext db, AuditLogger audit, Cl
 
     // ── O'z-o'ziga parol tiklash (4-bosqich) ─────────────────────────────────────────────────────────────────────
 
-    public const string ResetRequestedMessage =
-        "Agar shu login bilan faol hisob bo'lsa, parolni tiklash havolasi uning shaxsiy kanaliga (Telegram, SMS yoki email) yuborildi. " +
-        "Havola bir marta ishlaydi. Xabar kelmasa — xodimimizdan yangi havola so'rang.";
+    public static string ResetRequestedMessage => L.T("Ptl_ResetRequested");
     public static readonly TimeSpan ResetInterval = TimeSpan.FromMinutes(2);
     public const int MaxResetsPerHour = 3;
 
@@ -430,8 +429,8 @@ public sealed class PortalAuthService(ControlDbContext db, AuditLogger audit, Cl
     public async Task ChangePasswordAsync(PortalUser user, string current, string next, string confirm, CancellationToken ct = default)
     {
         if (user.PasswordHash is null || !PasswordHasher.Verify(current ?? "", user.PasswordHash))
-            throw new DomainException("Joriy parol noto'g'ri.");
-        if (next != confirm) throw new DomainException("Parollar mos emas.");
+            throw new DomainException(L.T("Ptl_CurrentPasswordWrong"));
+        if (next != confirm) throw new DomainException(L.T("Ptl_PasswordsMismatch"));
         if (PasswordHasher.ValidatePolicy(next) is string err) throw new DomainException(err);
         user.PasswordHash = PasswordHasher.Hash(next);
         user.SecurityStamp = Guid.NewGuid().ToString("N");

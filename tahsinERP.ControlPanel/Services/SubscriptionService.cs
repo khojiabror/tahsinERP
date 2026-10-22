@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using tahsinERP.ControlPanel.Data;
+using tahsinERP.ControlPanel.I18n;
 
 namespace tahsinERP.ControlPanel.Services;
 
@@ -39,9 +40,9 @@ public sealed class SubscriptionService(ControlDbContext db, AuditLogger audit, 
     /// <summary>Pullik obuna (Pending — birinchi to'lovgacha). Qat'iy paket: Users = Plan.MaxUsers (kamroq ham bo'lishi mumkin, ko'p emas).</summary>
     public async Task<Subscription> CreateAsync(Tenant t, int planId, BillingPeriod period, int? users, DateOnly startDate, bool autoRenew, CancellationToken ct = default)
     {
-        var plan = await db.Plans.FirstOrDefaultAsync(p => p.Id == planId && p.IsActive, ct) ?? throw new DomainException("Tarif topilmadi.");
+        var plan = await db.Plans.FirstOrDefaultAsync(p => p.Id == planId && p.IsActive, ct) ?? throw new DomainException(L.T("Pnl_Sub_PlanNotFound"));
         if (plan.Code == PlanCodes.Trial || period == BillingPeriod.Trial)
-            throw new DomainException("Sinov obunasi tenant yaratilganda avtomatik ochiladi.");
+            throw new DomainException(L.T("Pnl_Sub_TrialAuto"));
         int u;
         if (plan.IsAddOn)
         {
@@ -51,16 +52,16 @@ public sealed class SubscriptionService(ControlDbContext db, AuditLogger audit, 
                 && (s.Status == SubscriptionStatus.Pending || s.Status == SubscriptionStatus.Active)).FirstOrDefaultAsync(ct);
             if (open is not null)
                 throw new DomainException(open.Status == SubscriptionStatus.Pending
-                    ? $"«{plan.Name}» xizmatiga to'lanmagan obuna #{open.Id} allaqachon bor."
-                    : $"«{plan.Name}» xizmati faol (obuna #{open.Id}) — uzaytirish uchun o'sha obunaga hisob-faktura chiqaring.");
+                    ? L.T("Pnl_Sub_AddOnPendingExists", plan.Name, open.Id)
+                    : L.T("Pnl_Sub_AddOnActiveExists", plan.Name, open.Id));
         }
         else
         {
             u = users ?? plan.MaxUsers;
             if (u <= 0 || u > plan.MaxUsers)
-                throw new DomainException($"{plan.Name} paketida ko'pi bilan {plan.MaxUsers} foydalanuvchi. Ko'prog'i — keyingi paket.");
+                throw new DomainException(L.T("Pnl_Sub_MaxUsersNext", plan.Name, plan.MaxUsers));
             if (await PackageOnly(db.Subscriptions).AnyAsync(s => s.TenantId == t.Id && s.Status == SubscriptionStatus.Pending, ct))
-                throw new DomainException("Bu tenantda to'lanmagan (Pending) obuna allaqachon bor.");
+                throw new DomainException(L.T("Pnl_Sub_PendingExists"));
         }
         var sub = new Subscription
         {
@@ -76,16 +77,16 @@ public sealed class SubscriptionService(ControlDbContext db, AuditLogger audit, 
 
     public async Task UpdateAsync(Subscription sub, int planId, int users, bool autoRenew, CancellationToken ct = default)
     {
-        var plan = await db.Plans.FirstOrDefaultAsync(p => p.Id == planId, ct) ?? throw new DomainException("Tarif topilmadi.");
+        var plan = await db.Plans.FirstOrDefaultAsync(p => p.Id == planId, ct) ?? throw new DomainException(L.T("Pnl_Sub_PlanNotFound"));
         sub.Plan ??= await db.Plans.FirstAsync(p => p.Id == sub.PlanId, ct);
         if (plan.IsAddOn || sub.Plan.IsAddOn)
         {
             if (plan.Id != sub.PlanId)
-                throw new DomainException("Qo'shimcha xizmat obunasini boshqa tarifga o'tkazib bo'lmaydi — kerak bo'lsa bekor qilib, yangisini oching.");
+                throw new DomainException(L.T("Pnl_Sub_AddOnNoChange"));
             users = 0;
         }
         else if (users <= 0 || users > plan.MaxUsers)
-            throw new DomainException($"{plan.Name} paketida ko'pi bilan {plan.MaxUsers} foydalanuvchi.");
+            throw new DomainException(L.T("Pnl_Sub_MaxUsers", plan.Name, plan.MaxUsers));
         var before = Snapshot(sub);
         sub.PlanId = plan.Id; sub.Plan = plan; sub.Users = users; sub.AutoRenew = autoRenew;
         audit.Add("subscription.update", "Subscription", sub.Id, before, Snapshot(sub));
@@ -94,7 +95,7 @@ public sealed class SubscriptionService(ControlDbContext db, AuditLogger audit, 
 
     public async Task CancelAsync(Subscription sub, string reason, CancellationToken ct = default)
     {
-        if (string.IsNullOrWhiteSpace(reason)) throw new DomainException("Sabab majburiy.");
+        if (string.IsNullOrWhiteSpace(reason)) throw new DomainException(L.T("Pnl_Sub_ReasonRequired"));
         var before = Snapshot(sub);
         sub.Status = SubscriptionStatus.Cancelled;
         audit.Add("subscription.cancel", "Subscription", sub.Id, before, new { sub.Status, Reason = reason });
@@ -112,7 +113,7 @@ public sealed class SubscriptionService(ControlDbContext db, AuditLogger audit, 
         var sub = await db.Subscriptions.Include(s => s.Plan).Include(s => s.Tenant)
             .FirstAsync(s => s.Id == invoice.SubscriptionId, ct);
         if (sub.Status == SubscriptionStatus.Cancelled)
-            throw new DomainException("Obuna bekor qilingan — uzaytirib bo'lmaydi.");
+            throw new DomainException(L.T("Pnl_Sub_CancelledNoExtend"));
         var before = Snapshot(sub);
         DateOnly today = clock.Today;
         DateOnly from = sub.Status == SubscriptionStatus.Pending

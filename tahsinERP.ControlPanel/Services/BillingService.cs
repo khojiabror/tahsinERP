@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using tahsinERP.ControlPanel.Data;
 using tahsinERP.ControlPanel.Licensing;
+using tahsinERP.ControlPanel.I18n;
 
 namespace tahsinERP.ControlPanel.Services;
 
@@ -32,7 +33,9 @@ public sealed class BillingService(ControlDbContext db, AuditLogger audit, Clock
     {
         long? price = sub.Period == BillingPeriod.Year ? plan.PriceYearTiyin : plan.PriceMonthTiyin;
         if (price is null)
-            throw new DomainException($"'{plan.Name}' {(plan.IsAddOn ? "xizmatining" : "paketining")} {(sub.Period == BillingPeriod.Year ? "yillik" : "oylik")} narxi hali belgilanmagan (Tariflar sahifasi).");
+            throw new DomainException(L.T(plan.IsAddOn
+                ? (sub.Period == BillingPeriod.Year ? "Pnl_Bill_NoPriceAddOnYear" : "Pnl_Bill_NoPriceAddOnMonth")
+                : (sub.Period == BillingPeriod.Year ? "Pnl_Bill_NoPricePlanYear" : "Pnl_Bill_NoPricePlanMonth"), plan.Name));
         string unit = sub.Period == BillingPeriod.Year ? "yil" : "oy";
         string what = plan.IsAddOn ? $"tahsinERP «{plan.Name}» qo'shimcha xizmati" : $"tahsinERP «{plan.Name}» paketi, {sub.Users} foydalanuvchi";
         return new InvoiceLineInput($"{what} — {periodCount} {unit}", periodCount, price.Value, plan.VatRatePercent);
@@ -41,16 +44,16 @@ public sealed class BillingService(ControlDbContext db, AuditLogger audit, Clock
     public async Task<Invoice> CreateDraftAsync(int tenantId, int? subscriptionId, int periodCount, IReadOnlyList<InvoiceLineInput> lines,
         string? note, int staffId, CancellationToken ct = default)
     {
-        var tenant = await db.Tenants.FirstOrDefaultAsync(t => t.Id == tenantId, ct) ?? throw new DomainException("Tenant topilmadi.");
-        if (tenant.Status == TenantStatus.Archived) throw new DomainException("Arxivdagi tenantga hisob-faktura chiqarilmaydi.");
+        var tenant = await db.Tenants.FirstOrDefaultAsync(t => t.Id == tenantId, ct) ?? throw new DomainException(L.T("Pnl_Err_TenantNotFound"));
+        if (tenant.Status == TenantStatus.Archived) throw new DomainException(L.T("Pnl_Bill_ArchivedTenant"));
         if (subscriptionId != null)
         {
             var sub = await db.Subscriptions.FirstOrDefaultAsync(s => s.Id == subscriptionId && s.TenantId == tenantId, ct)
-                ?? throw new DomainException("Obuna shu tenantga tegishli emas.");
+                ?? throw new DomainException(L.T("Pnl_Bill_SubNotOfTenant"));
             if (sub.Status is SubscriptionStatus.Cancelled or SubscriptionStatus.Expired || sub.Period == BillingPeriod.Trial)
-                throw new DomainException("Bu obunaga hisob-faktura chiqarib bo'lmaydi (bekor/muddati o'tgan/sinov).");
+                throw new DomainException(L.T("Pnl_Bill_SubNotBillable"));
             if (periodCount < 1 || periodCount > (sub.Period == BillingPeriod.Year ? 3 : 36))
-                throw new DomainException("Davrlar soni noto'g'ri.");
+                throw new DomainException(L.T("Pnl_Bill_PeriodCountInvalid"));
         }
         DateOnly today = clock.Today;
         var invoice = new Invoice
@@ -69,15 +72,15 @@ public sealed class BillingService(ControlDbContext db, AuditLogger audit, Clock
 
     public static void SetLines(Invoice invoice, IReadOnlyList<InvoiceLineInput> lines)
     {
-        if (lines.Count == 0) throw new DomainException("Kamida bitta qator bo'lsin.");
+        if (lines.Count == 0) throw new DomainException(L.T("Pnl_Bill_AtLeastOneLine"));
         invoice.Lines.Clear();
         int no = 1;
         foreach (var l in lines)
         {
-            if (string.IsNullOrWhiteSpace(l.Description)) throw new DomainException($"{no}-qator: nomi bo'sh.");
-            if (l.Quantity <= 0) throw new DomainException($"{no}-qator: miqdor musbat bo'lsin.");
-            if (l.UnitPriceTiyin < 0) throw new DomainException($"{no}-qator: narx manfiy.");
-            if (l.VatRatePercent < 0 || l.VatRatePercent > 100) throw new DomainException($"{no}-qator: QQS stavkasi noto'g'ri.");
+            if (string.IsNullOrWhiteSpace(l.Description)) throw new DomainException(L.T("Pnl_Bill_RowNameEmpty", no));
+            if (l.Quantity <= 0) throw new DomainException(L.T("Pnl_Bill_RowQtyPositive", no));
+            if (l.UnitPriceTiyin < 0) throw new DomainException(L.T("Pnl_Bill_RowPriceNegative", no));
+            if (l.VatRatePercent < 0 || l.VatRatePercent > 100) throw new DomainException(L.T("Pnl_Bill_RowVatInvalid", no));
             long amount = Money.LineAmount(l.Quantity, l.UnitPriceTiyin);
             invoice.Lines.Add(new InvoiceLine
             {
@@ -91,7 +94,7 @@ public sealed class BillingService(ControlDbContext db, AuditLogger audit, Clock
 
     public async Task UpdateDraftAsync(Invoice invoice, IReadOnlyList<InvoiceLineInput> lines, DateOnly dueDate, string? note, CancellationToken ct = default)
     {
-        if (invoice.Status != InvoiceStatus.Draft) throw new DomainException("Faqat qoralama (Draft) tahrirlanadi.");
+        if (invoice.Status != InvoiceStatus.Draft) throw new DomainException(L.T("Pnl_Bill_OnlyDraftEditable"));
         var before = Snapshot(invoice);
         db.InvoiceLines.RemoveRange(invoice.Lines);
         SetLines(invoice, lines);
@@ -104,8 +107,8 @@ public sealed class BillingService(ControlDbContext db, AuditLogger audit, Clock
     /// <summary>Raqam beradi (TE-YYYY-000001, yil bo'yicha uzluksiz) va Issued holatiga o'tkazadi.</summary>
     public async Task IssueAsync(Invoice invoice, CancellationToken ct = default)
     {
-        if (invoice.Status != InvoiceStatus.Draft) throw new DomainException("Hisob-faktura allaqachon chiqarilgan.");
-        if (invoice.TotalTiyin <= 0) throw new DomainException("Nol summali hisob-faktura chiqarilmaydi.");
+        if (invoice.Status != InvoiceStatus.Draft) throw new DomainException(L.T("Pnl_Bill_AlreadyIssued"));
+        if (invoice.TotalTiyin <= 0) throw new DomainException(L.T("Pnl_Bill_ZeroTotal"));
         await using var tx = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable, ct);
         DateOnly today = clock.Today;
         int value = await NextNumberAsync(today.Year, ct);
@@ -133,9 +136,9 @@ public sealed class BillingService(ControlDbContext db, AuditLogger audit, Clock
 
     public async Task CancelAsync(Invoice invoice, string reason, CancellationToken ct = default)
     {
-        if (string.IsNullOrWhiteSpace(reason)) throw new DomainException("Bekor qilish sababi majburiy.");
-        if (invoice.Status is InvoiceStatus.Cancelled or InvoiceStatus.Paid) throw new DomainException("Bu hisob-fakturani bekor qilib bo'lmaydi.");
-        if (invoice.PaidTiyin > 0) throw new DomainException("To'lov bor — avval to'lovlarni storno qiling.");
+        if (string.IsNullOrWhiteSpace(reason)) throw new DomainException(L.T("Pnl_Bill_CancelReasonRequired"));
+        if (invoice.Status is InvoiceStatus.Cancelled or InvoiceStatus.Paid) throw new DomainException(L.T("Pnl_Bill_CannotCancel"));
+        if (invoice.PaidTiyin > 0) throw new DomainException(L.T("Pnl_Bill_HasPayments"));
         var before = Snapshot(invoice);
         invoice.Status = InvoiceStatus.Cancelled;
         audit.Add("invoice.cancel", "Invoice", invoice.Id, before, new { invoice.Status, Reason = reason.Trim() });
@@ -144,7 +147,7 @@ public sealed class BillingService(ControlDbContext db, AuditLogger audit, Clock
 
     private async Task<Invoice> LoadAsync(int invoiceId, CancellationToken ct) =>
         await db.Invoices.Include(i => i.Lines).Include(i => i.Payments).Include(i => i.Tenant)
-            .FirstOrDefaultAsync(i => i.Id == invoiceId, ct) ?? throw new DomainException("Hisob-faktura topilmadi.");
+            .FirstOrDefaultAsync(i => i.Id == invoiceId, ct) ?? throw new DomainException(L.T("Pnl_Err_InvoiceNotFound"));
 
     private static void Recalculate(Invoice invoice)
     {
@@ -172,12 +175,12 @@ public sealed class BillingService(ControlDbContext db, AuditLogger audit, Clock
         {
             invoice = await LoadAsync(invoiceId, ct);
             if (invoice.Status is not (InvoiceStatus.Issued or InvoiceStatus.PartiallyPaid))
-                throw new DomainException(invoice.Status == InvoiceStatus.Paid ? "Hisob-faktura to'liq to'langan." : "To'lov faqat chiqarilgan hisob-fakturaga belgilanadi.");
-            if (amountTiyin <= 0) throw new DomainException("Summa musbat bo'lsin.");
+                throw new DomainException(invoice.Status == InvoiceStatus.Paid ? L.T("Pnl_Bill_FullyPaid") : L.T("Pnl_Bill_PayOnlyIssued"));
+            if (amountTiyin <= 0) throw new DomainException(L.T("Pnl_Bill_AmountPositive"));
             if (amountTiyin > invoice.RemainingTiyin)
-                throw new DomainException($"Summa qoldiqdan ({Money.FormatSom(invoice.RemainingTiyin)}) katta. Ortiqcha to'lovni alohida hal qiling.");
-            if (paidAt > clock.Today) throw new DomainException("To'lov sanasi kelajakda bo'lmasin.");
-            if (paidAt < invoice.IssueDate.AddDays(-60)) throw new DomainException("To'lov sanasi hisob-fakturadan ancha oldin — tekshiring.");
+                throw new DomainException(L.T("Pnl_Bill_AmountExceeds", Money.FormatSom(invoice.RemainingTiyin)));
+            if (paidAt > clock.Today) throw new DomainException(L.T("Pnl_Bill_PaidAtFuture"));
+            if (paidAt < invoice.IssueDate.AddDays(-60)) throw new DomainException(L.T("Pnl_Bill_PaidAtTooEarly"));
 
             var before = Snapshot(invoice);
             payment = new Payment
@@ -211,12 +214,12 @@ public sealed class BillingService(ControlDbContext db, AuditLogger audit, Clock
                 var tenant = invoice.Tenant!;
                 issued = await licenses.EnsureForTenantAsync(tenant, ct);
                 if (issued is null && tenant.InstallationId is null)
-                    warning = "Tenant hali ERP'ga bog'lanmagan — kalit ro'yxatdan o'tishda (register) avtomatik beriladi.";
+                    warning = L.T("Pnl_Bill_NotBoundWarning");
             }
             catch (Exception ex) when (ex is DomainException or System.Security.Cryptography.CryptographicException or InvalidOperationException or NotSupportedException)
             {
                 log.LogError(ex, "To'lovdan keyin kalit chiqmadi (invoice {Invoice})", invoice.Number);
-                warning = "To'lov saqlandi, lekin kalit chiqmadi: " + ex.Message + " — tenant sahifasidan qayta chiqaring.";
+                warning = L.T("Pnl_Bill_KeyFailedWarning", ex.Message);
             }
         }
         return new PaymentResult(payment, invoice, issued, warning);
@@ -225,9 +228,9 @@ public sealed class BillingService(ControlDbContext db, AuditLogger audit, Clock
     /// <summary>Storno: o'chirmaydi, IsReversed + sabab. Obuna avtomatik qisqartirilmaydi — xodim qaror qiladi (kalitni bekor qilish alohida).</summary>
     public async Task<Invoice> ReversePaymentAsync(int paymentId, string reason, int staffId, CancellationToken ct = default)
     {
-        if (string.IsNullOrWhiteSpace(reason)) throw new DomainException("Storno sababi majburiy.");
-        var payment = await db.Payments.FirstOrDefaultAsync(p => p.Id == paymentId, ct) ?? throw new DomainException("To'lov topilmadi.");
-        if (payment.IsReversed) throw new DomainException("To'lov allaqachon storno qilingan.");
+        if (string.IsNullOrWhiteSpace(reason)) throw new DomainException(L.T("Pnl_Bill_ReverseReasonRequired"));
+        var payment = await db.Payments.FirstOrDefaultAsync(p => p.Id == paymentId, ct) ?? throw new DomainException(L.T("Pnl_Bill_PaymentNotFound"));
+        if (payment.IsReversed) throw new DomainException(L.T("Pnl_Bill_AlreadyReversed"));
         var invoice = await LoadAsync(payment.InvoiceId, ct);
         var before = new { invoice.Status, invoice.PaidTiyin };
         payment.IsReversed = true;

@@ -1,20 +1,19 @@
 @page
 @model tahsinERP.ControlPanel.Pages.Bank.IndexModel
-@{ ViewData["Title"] = "Bank ko'chirmasi"; }
-<h1>Bank ko'chirmasi</h1>
+@{ ViewData["Title"] = L.T("Pnl_Bank_Title"); }
+<h1>@L.T("Pnl_Bank_Title")</h1>
 <div asp-validation-summary="All"></div>
 <form method="post" enctype="multipart/form-data" class="card stack">
-    <div><label asp-for="Upload">Fayl</label><input asp-for="Upload" type="file" accept=".txt,.csv,.xlsx" /></div>
+    <div><label asp-for="Upload">@L.T("Pnl_File")</label><input asp-for="Upload" type="file" accept=".txt,.csv,.xlsx" /></div>
     <div class="hint">
-        1C «Клиент-Банк» almashinuv fayli (<code>1CClientBankExchange</code>, .txt) yoki CSV / XLSX: ustunlar — sana, summa, to'lovchi STIR,
-        to'lov maqsadi (ixtiyoriy: hujjat №, to'lovchi, hisob). Kiruvchi to'lovlar ochiq hisob-fakturalarga moslanadi: avval maqsaddagi
-        <code>TE-YYYY-NNNNNN</code> raqami, keyin STIR + aniq qoldiq summa. Hech narsa avtomatik qo'llanmaydi — keyingi sahifada tasdiqlaysiz.
-        Bitta bank tranzaksiyasi (sana + summa + hujjat № + to'lovchi hisobi) ikki marta qo'llanmaydi.
+        @L.T("Pnl_Bank_HelpFormat") (<code>1CClientBankExchange</code>, .txt) @L.T("Pnl_Bank_HelpColumns")
+        <code>TE-YYYY-NNNNNN</code> @L.T("Pnl_Bank_HelpMatch")
+        @L.T("Pnl_Bank_HelpDuplicate")
     </div>
-    <div><button type="submit">Yuklash va moslash</button></div>
+    <div><button type="submit">@L.T("Pnl_Bank_UploadAndMatch")</button></div>
 </form>
 <table>
-    <tr><th>#</th><th>Fayl</th><th>Format</th><th>Davr</th><th>Yuklangan (UTC)</th><th class="num">Qator</th><th class="num">Qo'llashga tayyor</th><th class="num">Qo'llangan</th><th class="num">Summa</th></tr>
+    <tr><th>#</th><th>@L.T("Pnl_File")</th><th>@L.T("Pnl_Format")</th><th>@L.T("Period")</th><th>@L.T("Pnl_Bank_UploadedUtc")</th><th class="num">@L.T("Pnl_Bank_Lines")</th><th class="num">@L.T("Pnl_Bank_ReadyToApply")</th><th class="num">@L.T("Pnl_Bank_AppliedCol")</th><th class="num">@L.T("Amount")</th></tr>
     @foreach (var r in Model.Rows)
     {
         <tr>
@@ -26,4 +25,4 @@
         </tr>
     }
 </table>
-@if (Model.Rows.Count == 0) { <div class="empty">Hali ko'chirma yuklanmagan.</div> }
+@if (Model.Rows.Count == 0) { <div class="empty">@L.T("Pnl_Bank_Empty")</div> }

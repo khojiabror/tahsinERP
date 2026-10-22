@@ -1,4 +1,4 @@
 @page
 @model tahsinERP.ControlPanel.Pages.ErrorModel
-@{ ViewData["Title"] = "Xato"; }
-<div class="card"><h1>Kutilmagan xato</h1><p>So'rov bajarilmadi. Xato logga yozildi.</p><p class="hint">So'rov ID: @Model.RequestId</p></div>
+@{ ViewData["Title"] = L.T("Pnl_Err_Title"); }
+<div class="card"><h1>@L.T("Pnl_Err_Unexpected")</h1><p>@L.T("Pnl_Err_Text")</p><p class="hint">@L.T("Pnl_Err_RequestId") @Model.RequestId</p></div>

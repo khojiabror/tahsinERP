@@ -1,30 +1,30 @@
 @page
 @model ProfileModel
-@{ ViewData["Title"] = "Profil"; var me = Model.Me; }
-<h1>Profil</h1>
+@{ ViewData["Title"] = L.T("Ptl_Profile"); var me = Model.Me; }
+<h1>@L.T("Ptl_Profile")</h1>
 <div asp-validation-summary="ModelOnly"></div>
 <div class="card">
     <dl class="props">
-        <dt>Ism</dt><dd>@me.FullName</dd>
-        <dt>Login</dt><dd>@me.Email @me.Phone</dd>
-        <dt>Rol</dt><dd>@(me.Role == PortalRole.Owner ? "Mas'ul (so'rov yuborish, kalit)" : "Ko'ruvchi")</dd>
-        <dt>Telegram</dt><dd>@(me.TelegramChatId is null ? "bog'lanmagan (kodlar tashkilot chatiga keladi)" : "bog'langan")</dd>
+        <dt>@L.T("Ptl_FullName")</dt><dd>@me.FullName</dd>
+        <dt>@L.T("Username")</dt><dd>@me.Email @me.Phone</dd>
+        <dt>@L.T("Ptl_Role")</dt><dd>@(me.Role == PortalRole.Owner ? L.T("Ptl_RoleOwner") : L.T("Ptl_RoleViewer"))</dd>
+        <dt>Telegram</dt><dd>@(me.TelegramChatId is null ? L.T("Ptl_TgNotLinked") : L.T("Ptl_TgLinked"))</dd>
     </dl>
 </div>
-<h2>Kirish kodi kanali</h2>
+<h2>@L.T("Ptl_CodeChannel")</h2>
 <form method="post" asp-page-handler="Channel" class="card stack">
     @{ string current = me.OtpChannel ?? "telegram"; }
-    <label class="check"><input type="radio" name="Channel" value="telegram" checked="@(current == "telegram")" /> Telegram (standart)</label>
+    <label class="check"><input type="radio" name="Channel" value="telegram" checked="@(current == "telegram")" /> @L.T("Ptl_TelegramDefault")</label>
     @foreach (var c in Model.Channels.Where(c => c.Channel != "telegram"))
     {
         <label class="check"><input type="radio" name="Channel" value="@c.Channel" checked="@(current == c.Channel)" /> @c.Display</label>
     }
     @if (!Model.Channels.Any(c => c.Channel != "telegram"))
     {
-        <p class="hint">SMS / email kanallari hozircha mavjud emas (sozlanmagan yoki telefon/email kiritilmagan).</p>
+        <p class="hint">@L.T("Ptl_NoSmsEmail")</p>
     }
-    <p class="hint">Hozir kodlar keladi: @(Model.Channels.FirstOrDefault(c => c.Channel == Model.ActiveChannel)?.Display ?? Model.ActiveChannel ?? "kanal yo'q"). Tanlangan kanal ishlamasa — Telegram'ga. Parolni tiklash havolasi ham shu kanalga keladi (tashkilot guruh chatiga — yo'q).</p>
-    <div><button type="submit" class="secondary">Saqlash</button></div>
+    <p class="hint">@L.T("Ptl_CodesNowGoTo") @(Model.Channels.FirstOrDefault(c => c.Channel == Model.ActiveChannel)?.Display ?? Model.ActiveChannel ?? L.T("Ptl_NoChannel")). @L.T("Ptl_ChannelFallbackHint")</p>
+    <div><button type="submit" class="secondary">@L.T("Save")</button></div>
 </form>
 <h2>Telegram</h2>
 <div class="card">
@@ -32,26 +32,26 @@
     {
         @if (Model.LinkUrl.Length > 0)
         {
-            <p><a class="btn" href="@Model.LinkUrl" target="_blank" rel="noopener">Telegram botni ochish</a></p>
+            <p><a class="btn" href="@Model.LinkUrl" target="_blank" rel="noopener">@L.T("Ptl_OpenTelegramBot")</a></p>
         }
         else
         {
-            <p>Telegram botga yuboring:</p>
+            <p>@L.T("Ptl_SendToBot")</p>
             <p class="secret mono">/start @Model.LinkToken</p>
         }
-        <p class="hint">Havola 24 soat amal qiladi va bir marta ishlaydi. Bog'langach kirish kodlari shu chatga keladi.</p>
+        <p class="hint">@L.T("Ptl_LinkValidHint")</p>
     }
     else
     {
         <form method="post" asp-page-handler="Telegram">
-            <button type="submit" class="secondary">@(me.TelegramChatId is null ? "Telegram'ni bog'lash" : "Boshqa Telegram hisobiga o'tkazish")</button>
+            <button type="submit" class="secondary">@(me.TelegramChatId is null ? L.T("Ptl_LinkTelegramBtn") : L.T("Ptl_RelinkTelegram"))</button>
         </form>
     }
 </div>
-<h2>Parolni almashtirish</h2>
+<h2>@L.T("Pnl_ChangePassword")</h2>
 <form method="post" asp-page-handler="Password" class="card stack">
-    <div><label asp-for="Current">Joriy parol</label><input asp-for="Current" type="password" autocomplete="current-password" /></div>
-    <div><label asp-for="New">Yangi parol</label><input asp-for="New" type="password" autocomplete="new-password" /></div>
-    <div><label asp-for="Confirm">Takrorlang</label><input asp-for="Confirm" type="password" autocomplete="new-password" /></div>
-    <div><button type="submit">Saqlash</button></div>
+    <div><label asp-for="Current">@L.T("Ptl_CurrentPassword")</label><input asp-for="Current" type="password" autocomplete="current-password" /></div>
+    <div><label asp-for="New">@L.T("Ptl_NewPassword")</label><input asp-for="New" type="password" autocomplete="new-password" /></div>
+    <div><label asp-for="Confirm">@L.T("Ptl_Repeat")</label><input asp-for="Confirm" type="password" autocomplete="new-password" /></div>
+    <div><button type="submit">@L.T("Save")</button></div>
 </form>

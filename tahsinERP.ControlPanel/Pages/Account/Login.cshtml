@@ -1,12 +1,12 @@
 @page
 @model tahsinERP.ControlPanel.Pages.Account.LoginModel
-@{ ViewData["Title"] = "Kirish"; }
+@{ ViewData["Title"] = L.T("Login"); }
 <div class="card login">
-    <div class="hud-head"><span>// IDENTIFIKATSIYA</span><span>AUTH-01</span></div>
-    <h1>Panelga kirish</h1>
-    <p class="hud-sub">Xodim hisob ma'lumotlarini kiriting.</p>
-    @if (Model.TotpRequired) { <ol class="steps"><li class="on">Parol</li><li>2FA kod</li><li>Kirish</li></ol> }
-    else { <ol class="steps"><li class="on">Parol</li><li>Kirish</li></ol> }
+    <div class="hud-head"><span>// @L.T("Pnl_Acc_IdentHud")</span><span>AUTH-01</span></div>
+    <h1>@L.T("Pnl_Acc_LoginTitle")</h1>
+    <p class="hud-sub">@L.T("Pnl_Acc_LoginIntro")</p>
+    @if (Model.TotpRequired) { <ol class="steps"><li class="on">@L.T("Password")</li><li>@L.T("Pnl_Acc_2faCode")</li><li>@L.T("Login")</li></ol> }
+    else { <ol class="steps"><li class="on">@L.T("Password")</li><li>@L.T("Login")</li></ol> }
     <form method="post" class="stack">
         <div asp-validation-summary="All"></div>
         <div>
@@ -14,15 +14,15 @@
             <div class="field-ic"><svg class="i"><use href="#i-mail" /></svg><input asp-for="Email" type="email" autocomplete="username" placeholder="siz@tahsinerp.uz" autofocus /></div>
         </div>
         <div>
-            <label asp-for="Password">Parol</label>
+            <label asp-for="Password">@L.T("Password")</label>
             <div class="field-ic"><svg class="i"><use href="#i-lock" /></svg><input asp-for="Password" autocomplete="current-password" placeholder="••••••••••••" /></div>
         </div>
         <input type="hidden" asp-for="ReturnUrl" />
-        <button type="submit">Davom etish <svg class="i"><use href="#i-arrow" /></svg></button>
+        <button type="submit">@L.T("Pnl_Acc_Continue") <svg class="i"><use href="#i-arrow" /></svg></button>
         @if (Model.TotpRequired)
         {
-            <p class="hint">Keyingi qadam — autentifikator ilovasidagi 6 xonali kod (2FA majburiy).</p>
+            <p class="hint">@L.T("Pnl_Acc_NextStepHint")</p>
         }
     </form>
-    <div class="auth-meta"><span>SEANS: SHIFRLANGAN</span><span>AUDIT: YOQILGAN</span></div>
+    <div class="auth-meta"><span>@L.T("Pnl_Acc_SessionEncrypted")</span><span>@L.T("Pnl_Acc_AuditOn")</span></div>
 </div>

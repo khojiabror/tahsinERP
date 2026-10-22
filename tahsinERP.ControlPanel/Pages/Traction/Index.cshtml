@@ -2,78 +2,78 @@
 @model tahsinERP.ControlPanel.Pages.Traction.IndexModel
 @using tahsinERP.ControlPanel.Services
 @{
-    ViewData["Title"] = "Traction";
+    ViewData["Title"] = L.T("Pnl_NavTraction");
     var r = Model.R;
     var o = r.Overview;
     string Pct(double v) => (v * 100).ToString("0.#") + "%";
     string SortLink(string key, string text) => $"<a href=\"{Model.Query(key)}\">{text}{(Model.Sort == key ? " ▾" : "")}</a>";
 }
-<h1>Traction</h1>
-<p class="hint">Davr: @r.Filter.From.ToString("dd.MM.yyyy") – @r.Filter.To.ToString("dd.MM.yyyy") (@r.Filter.Days kun; trend — oldingi shuncha kun bilan). Demo tenant hisobga olinmaydi. Metrika ta'riflari: Docs/ControlPanel/07_TRACTION.md.</p>
+<h1>@L.T("Pnl_NavTraction")</h1>
+<p class="hint">@L.T("Period"): @r.Filter.From.ToString("dd.MM.yyyy") – @r.Filter.To.ToString("dd.MM.yyyy") (@L.T("Pnl_Tr_PeriodHint", r.Filter.Days)). @L.T("Pnl_Tr_DemoExcluded") @L.T("Pnl_Tr_Defs") Docs/ControlPanel/07_TRACTION.md.</p>
 <form method="get" class="actions">
     @foreach (var d in new[] { 7, 30, 90 })
     {
-        <a class="btn @(Model.From == null && Model.To == null && Model.Days == d ? "" : "secondary")" href="?Days=@d&Plan=@Model.Plan&Status=@Model.Status">@d kun</a>
+        <a class="btn @(Model.From == null && Model.To == null && Model.Days == d ? "" : "secondary")" href="?Days=@d&Plan=@Model.Plan&Status=@Model.Status">@L.T("Pnl_DaysCount", d)</a>
     }
     <input type="date" name="From" value="@Model.From?.ToString("yyyy-MM-dd")" />
     <input type="date" name="To" value="@Model.To?.ToString("yyyy-MM-dd")" />
-    <select name="Plan"><option value="">— paket —</option>@foreach (var p in new[] { "START", "BIZNES", "KORP", "TRIAL", "SITE" }) { <option value="@p" selected="@(Model.Plan == p)">@p</option> }</select>
-    <select name="Status"><option value="">— holat —</option>@foreach (var s in Enum.GetValues<TenantStatus>()) { <option value="@s" selected="@(Model.Status == s)">@Labels.Of(s)</option> }</select>
+    <select name="Plan"><option value="">— @L.T("Pnl_PackageLower") —</option>@foreach (var p in new[] { "START", "BIZNES", "KORP", "TRIAL", "SITE" }) { <option value="@p" selected="@(Model.Plan == p)">@p</option> }</select>
+    <select name="Status"><option value="">— @L.T("Pnl_StatusLower") —</option>@foreach (var s in Enum.GetValues<TenantStatus>()) { <option value="@s" selected="@(Model.Status == s)">@Labels.Of(s)</option> }</select>
     <input type="hidden" name="Days" value="@Model.Days" />
-    <button type="submit" class="secondary">Qo'llash</button>
+    <button type="submit" class="secondary">@L.T("Apply")</button>
 </form>
 
-<h2>Umumiy</h2>
+<h2>@L.T("Pnl_Tr_Overview")</h2>
 <div class="tiles">
-    <div class="tile"><div class="tile-v">@o.ActiveTenants <small>/ @o.TotalTenants</small></div><div class="tile-l">Faol tenantlar</div></div>
-    <div class="tile"><div class="tile-v">@o.Dau</div><div class="tile-l">DAU (o'rtacha)</div></div>
+    <div class="tile"><div class="tile-v">@o.ActiveTenants <small>/ @o.TotalTenants</small></div><div class="tile-l">@L.T("Pnl_Dash_ActiveTenants")</div></div>
+    <div class="tile"><div class="tile-v">@o.Dau</div><div class="tile-l">@L.T("Pnl_Tr_DauAvg")</div></div>
     <div class="tile"><div class="tile-v">@o.Wau</div><div class="tile-l">WAU</div></div>
     <div class="tile"><div class="tile-v">@o.Mau</div><div class="tile-l">MAU</div></div>
     <div class="tile"><div class="tile-v">@Pct(o.Stickiness)</div><div class="tile-l">Stickiness (DAU/MAU)</div></div>
-    <div class="tile"><div class="tile-v">@Pct(o.Conversion) <small>@o.TrialsConverted/@o.TrialsStarted</small></div><div class="tile-l">Sinov → pullik</div></div>
-    <div class="tile"><div class="tile-v">@Money.Format(o.MrrTiyin)</div><div class="tile-l">MRR (so'm)</div></div>
-    <div class="tile"><div class="tile-v">@Money.Format(o.AddOnMrrTiyin) <small>@o.AddOnTenants tenant</small></div><div class="tile-l">Shundan qo'shimcha xizmatlar</div></div>
-    <div class="tile"><div class="tile-v">@Money.Format(o.RevenueTiyin)</div><div class="tile-l">Davr tushumi</div></div>
+    <div class="tile"><div class="tile-v">@Pct(o.Conversion) <small>@o.TrialsConverted/@o.TrialsStarted</small></div><div class="tile-l">@L.T("Pnl_Tr_TrialToPaid")</div></div>
+    <div class="tile"><div class="tile-v">@Money.Format(o.MrrTiyin)</div><div class="tile-l">@L.T("Pnl_Tr_MrrSom")</div></div>
+    <div class="tile"><div class="tile-v">@Money.Format(o.AddOnMrrTiyin) <small>@L.T("Pnl_Tr_TenantsN", o.AddOnTenants)</small></div><div class="tile-l">@L.T("Pnl_Tr_OfWhichAddOns")</div></div>
+    <div class="tile"><div class="tile-v">@Money.Format(o.RevenueTiyin)</div><div class="tile-l">@L.T("Pnl_Tr_PeriodRevenue")</div></div>
     <div class="tile"><div class="tile-v">@Pct(o.ChurnRate) <small>@o.Churned/@o.PayingAtStart</small></div><div class="tile-l">Churn</div></div>
-    <div class="tile"><div class="tile-v">@o.DocsTotal</div><div class="tile-l">Asosiy hujjatlar</div></div>
+    <div class="tile"><div class="tile-v">@o.DocsTotal</div><div class="tile-l">@L.T("Pnl_Tr_MainDocs")</div></div>
 </div>
 <div class="cols">
-    <div class="card"><h3>Kunlik faollik</h3><canvas id="chart-active" height="160"></canvas></div>
-    <div class="card"><h3>Modullar bo'yicha amallar (kunlik)</h3><canvas id="chart-modules" height="160"></canvas></div>
+    <div class="card"><h3>@L.T("Pnl_Act_Daily")</h3><canvas id="chart-active" height="160"></canvas></div>
+    <div class="card"><h3>@L.T("Pnl_Tr_ModuleActionsDaily")</h3><canvas id="chart-modules" height="160"></canvas></div>
 </div>
 
-<h2>Modullar <a class="hint" href="@Model.Query(csv: "modules")">CSV</a></h2>
+<h2>@L.T("Pnl_Modules") <a class="hint" href="@Model.Query(csv: "modules")">CSV</a></h2>
 <table>
-    <tr><th>Modul</th><th class="num">Tenantlar</th><th class="num">Amallar</th><th class="num">Oldingi davr</th><th class="num">Trend</th><th class="num">Paketda bor, ishlatilmagan</th></tr>
+    <tr><th>@L.T("Pnl_Module")</th><th class="num">@L.T("Pnl_Tenants")</th><th class="num">@L.T("Actions")</th><th class="num">@L.T("Pnl_Tr_PrevPeriod")</th><th class="num">Trend</th><th class="num">@L.T("Pnl_Tr_UnusedInPackage")</th></tr>
     @foreach (var m in r.Modules)
     {
         <tr><td>@m.Name</td><td class="num">@m.Tenants</td><td class="num">@m.Actions</td><td class="num">@m.PrevActions</td>
-            <td class="num">@(m.TrendPct is double tp ? (tp > 0 ? "+" : "") + tp.ToString("0.#") + "%" : "yangi")</td>
-            <td class="num">@if (m.UnusedInPackage > 0) { <span class="badge warn">@m.UnusedInPackage tenant</span> }</td></tr>
+            <td class="num">@(m.TrendPct is double tp ? (tp > 0 ? "+" : "") + tp.ToString("0.#") + "%" : L.T("Pnl_NewLower"))</td>
+            <td class="num">@if (m.UnusedInPackage > 0) { <span class="badge warn">@L.T("Pnl_Tr_TenantsN", m.UnusedInPackage)</span> }</td></tr>
     }
 </table>
-<p class="hint">«Paketda bor, ishlatilmagan» — faol (sinov/faol/imtiyozli) tenantlardan nechtasining paketida modul bor, lekin davrda bitta ham amal yo'q: o'qitish, UX yoki modulning o'zi ustida ishlash kerak bo'lgan joy. Qo'shimcha xizmat (Sayt-katalog) moduli faqat uni sotib olgan tenantlarda hisoblanadi; paket filtri «SITE» — shu xizmat faol tenantlar.</p>
+<p class="hint">@L.T("Pnl_Tr_UnusedHint")</p>
 
 <div class="cols">
     <div>
-        <h2>Eng ko'p amallar <a class="hint" href="@Model.Query(csv: "pages")">CSV</a></h2>
+        <h2>@L.T("Pnl_Tr_TopActions") <a class="hint" href="@Model.Query(csv: "pages")">CSV</a></h2>
         <table>
-            <tr><th>Sahifa (controller)</th><th>Modul</th><th>Amal</th><th class="num">Soni</th><th class="num">Tenant</th></tr>
+            <tr><th>@L.T("Pnl_Tr_PageController")</th><th>@L.T("Pnl_Module")</th><th>@L.T("Pnl_Audit_Action")</th><th class="num">@L.T("Pnl_Tr_Count")</th><th class="num">@L.T("Pnl_Tr_Tenant")</th></tr>
             @foreach (var p in r.Pages.Take(25))
             {
-                <tr><td>@p.Controller @if (!p.Mapped) { <span class="badge muted" title="EditionModules xaritasida yo'q">xaritada yo'q</span> }</td><td>@TractionService.ModuleLabel(p.Module)</td><td>@p.ActionType</td><td class="num">@p.Actions</td><td class="num">@p.Tenants</td></tr>
+                <tr><td>@p.Controller @if (!p.Mapped) { <span class="badge muted" title="@L.T("Pnl_Tr_NotInEditionMap")">@L.T("Pnl_Tr_NotInMap")</span> }</td><td>@TractionService.ModuleLabel(p.Module)</td><td>@p.ActionType</td><td class="num">@p.Actions</td><td class="num">@p.Tenants</td></tr>
             }
         </table>
-        <div class="hint">Amal turlari: @string.Join(", ", r.ActionTypes.OrderByDescending(x => x.Value).Select(x => $"{x.Key} {x.Value}")). ERP ko'rishni loglamaydi — asosan yaratish/tahrir/o'chirish.</div>
+        <div class="hint">@L.T("Pnl_Tr_ActionTypes") @string.Join(", ", r.ActionTypes.OrderByDescending(x => x.Value).Select(x => $"{x.Key} {x.Value}")). @L.T("Pnl_Tr_ActionTypesHint")</div>
     </div>
     <div>
-        <h2>Biznes hajmi (hujjatlar)</h2>
+        <h2>@L.T("Pnl_Tr_BusinessVolume")</h2>
         <table>
-            <tr><th>Hujjat</th><th class="num">Soni</th><th class="num">Tenant</th></tr>
+            <tr><th>@L.T("Pnl_Document")</th><th class="num">@L.T("Pnl_Tr_Count")</th><th class="num">@L.T("Pnl_Tr_Tenant")</th></tr>
             @foreach (var d in r.Docs) { <tr><td>@TractionService.DocLabel(d.DocType)</td><td class="num">@d.Count</td><td class="num">@d.Tenants</td></tr> }
         </table>
-        <h2>Funnel (davrda sinov ochganlar)</h2>
-        <canvas id="chart-funnel" height="140"></canvas>
+        <h2>@L.T("Pnl_Tr_Funnel")</h2>
+        <canvas id="chart-funnel" height="140" data-label="@L.T("Pnl_Tenants")"></canvas>
         <table>
             @{ int first = Math.Max(1, r.Funnel.FirstOrDefault()?.Count ?? 1); }
             @foreach (var s in r.Funnel) { <tr><td>@s.Name</td><td class="num">@s.Count</td><td class="num">@((100.0 * s.Count / first).ToString("0"))%</td></tr> }
@@ -81,12 +81,12 @@
     </div>
 </div>
 
-<h2>Tenantlar <a class="hint" href="@Model.Query(csv: "tenants")">CSV</a></h2>
+<h2>@L.T("Pnl_Tenants") <a class="hint" href="@Model.Query(csv: "tenants")">CSV</a></h2>
 <table>
     <tr>
-        <th>@Html.Raw(SortLink("name", "Tashkilot"))</th><th>Holat</th><th>Paket</th><th class="num">@Html.Raw(SortLink("mrr", "MRR"))</th>
-        <th>@Html.Raw(SortLink("last", "Oxirgi kirish"))</th><th class="num">Foyd. / limit</th><th class="num">Modullar</th>
-        <th class="num">@Html.Raw(SortLink("actions", "Amallar"))</th><th class="num">Trend</th><th class="num">Hujjat</th><th class="num">@Html.Raw(SortLink("score", "Ball"))</th><th>Xavf</th>
+        <th>@Html.Raw(SortLink("name", Html.Encode(L.T("Pnl_Organization"))))</th><th>@L.T("Status")</th><th>@L.T("Pnl_Package")</th><th class="num">@Html.Raw(SortLink("mrr", "MRR"))</th>
+        <th>@Html.Raw(SortLink("last", Html.Encode(L.T("Pnl_LastLogin"))))</th><th class="num">@L.T("Pnl_Tr_UsersLimit")</th><th class="num">@L.T("Pnl_Modules")</th>
+        <th class="num">@Html.Raw(SortLink("actions", Html.Encode(L.T("Actions"))))</th><th class="num">Trend</th><th class="num">@L.T("Pnl_Document")</th><th class="num">@Html.Raw(SortLink("score", Html.Encode(L.T("Pnl_Tr_Score"))))</th><th>@L.T("Pnl_Tr_Risk")</th>
     </tr>
     @foreach (var t in Model.Rows)
     {
@@ -96,21 +96,21 @@
             <td>@t.Plan</td><td class="num">@Money.Format(t.MrrTiyin)</td>
             <td>@(t.LastLoginUtc?.ToString("dd.MM.yyyy HH:mm") ?? "—")</td>
             <td class="num">@t.ActiveUsers / @t.SeatLimit</td>
-            <td class="num" title="Ishlatilmagan: @string.Join(", ", t.UnusedModules)">@t.ModulesUsed / @t.ModulesAllowed</td>
+            <td class="num" title="@L.T("Pnl_Tr_Unused") @string.Join(", ", t.UnusedModules)">@t.ModulesUsed / @t.ModulesAllowed</td>
             <td class="num">@t.Actions</td>
-            <td class="num">@(t.PrevActions == 0 ? (t.Actions > 0 ? "yangi" : "—") : ((100.0 * (t.Actions - t.PrevActions) / t.PrevActions).ToString("+0;-0") + "%"))</td>
+            <td class="num">@(t.PrevActions == 0 ? (t.Actions > 0 ? L.T("Pnl_NewLower") : "—") : ((100.0 * (t.Actions - t.PrevActions) / t.PrevActions).ToString("+0;-0") + "%"))</td>
             <td class="num">@t.Docs</td>
             <td class="num"><strong>@t.Score</strong></td>
-            <td><span class="badge @(t.Risk == "Yuqori" ? "bad" : t.Risk == "O'rta" ? "warn" : "ok")">@t.Risk</span></td>
+            <td><span class="badge @(t.Risk == "Yuqori" ? "bad" : t.Risk == "O'rta" ? "warn" : "ok")">@(t.Risk == "Yuqori" ? L.T("Pnl_Risk_High") : t.Risk == "O'rta" ? L.T("Pnl_Risk_Medium") : L.T("Pnl_Risk_Low"))</span></td>
         </tr>
     }
 </table>
-@if (Model.Rows.Count == 0) { <div class="empty">Tenant yo'q.</div> }
+@if (Model.Rows.Count == 0) { <div class="empty">@L.T("Pnl_Tr_NoTenants")</div> }
 
-<h2>Kohortalar va retensiya <a class="hint" href="@Model.Query(csv: "cohorts")">CSV</a></h2>
-<p class="hint">Qator — tenant yaratilgan oy; ustun — yaratilgandan keyingi hafta (H0 = birinchi 7 kun); qiymat — o'sha haftada kamida bir marta faol bo'lgan tenantlar ulushi.</p>
+<h2>@L.T("Pnl_Tr_Cohorts") <a class="hint" href="@Model.Query(csv: "cohorts")">CSV</a></h2>
+<p class="hint">@L.T("Pnl_Tr_CohortHint")</p>
 <table class="cohort">
-    <tr><th>Oy</th><th class="num">Tenant</th>@for (int w = 0; w < 12; w++) { <th class="num">H@(w)</th> }</tr>
+    <tr><th>@L.T("Pnl_Month")</th><th class="num">@L.T("Pnl_Tr_Tenant")</th>@for (int w = 0; w < 12; w++) { <th class="num">H@(w)</th> }</tr>
     @foreach (var c in r.Cohorts)
     {
         <tr><td>@c.Month</td><td class="num">@c.Size</td>

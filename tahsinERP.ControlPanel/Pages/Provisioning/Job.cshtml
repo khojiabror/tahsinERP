@@ -7,25 +7,25 @@
     <a class="btn secondary" href="/Tenants/Details/@j.TenantId">← @j.Tenant?.LegalName</a>
     @if (Model.CanSell && j.Status == ProvisioningJobStatus.Failed)
     {
-        <form method="post" asp-page-handler="Retry" class="inline"><button type="submit">Qayta urinish</button></form>
+        <form method="post" asp-page-handler="Retry" class="inline"><button type="submit">@L.T("Pnl_Prov_Retry")</button></form>
     }
     @if (Model.CanSell && j.Status is ProvisioningJobStatus.Pending or ProvisioningJobStatus.Failed)
     {
-        <form method="post" asp-page-handler="Cancel" class="inline"><button type="submit" class="secondary">Bekor qilish</button></form>
+        <form method="post" asp-page-handler="Cancel" class="inline"><button type="submit" class="secondary">@L.T("Cancel")</button></form>
     }
 </div>
 <div class="card">
     <dl class="props">
-        <dt>Tashkilot</dt><dd><code>@j.Tenant?.Slug</code></dd>
-        <dt>Urinishlar</dt><dd>@j.Attempts / @j.MaxAttempts</dd>
-        <dt>Yaratdi</dt><dd>@(Model.CreatedBy ?? "tizim") — @j.CreatedAtUtc.ToString("dd.MM.yyyy HH:mm:ss") UTC</dd>
-        <dt>Boshlangan / tugagan</dt><dd>@j.StartedAtUtc?.ToString("dd.MM.yyyy HH:mm:ss") — @j.FinishedAtUtc?.ToString("dd.MM.yyyy HH:mm:ss")</dd>
-        <dt>Keyingi urinish</dt><dd>@(j.Status == ProvisioningJobStatus.Pending ? j.NotBeforeUtc.ToString("dd.MM.yyyy HH:mm:ss") : "")</dd>
+        <dt>@L.T("Pnl_Organization")</dt><dd><code>@j.Tenant?.Slug</code></dd>
+        <dt>@L.T("Pnl_Prov_Attempts")</dt><dd>@j.Attempts / @j.MaxAttempts</dd>
+        <dt>@L.T("Pnl_Prov_CreatedBy")</dt><dd>@(Model.CreatedBy ?? L.T("Pnl_Audit_System")) — @j.CreatedAtUtc.ToString("dd.MM.yyyy HH:mm:ss") UTC</dd>
+        <dt>@L.T("Pnl_Prov_StartedFinished")</dt><dd>@j.StartedAtUtc?.ToString("dd.MM.yyyy HH:mm:ss") — @j.FinishedAtUtc?.ToString("dd.MM.yyyy HH:mm:ss")</dd>
+        <dt>@L.T("Pnl_Prov_NextAttempt")</dt><dd>@(j.Status == ProvisioningJobStatus.Pending ? j.NotBeforeUtc.ToString("dd.MM.yyyy HH:mm:ss") : "")</dd>
         <dt>Lease</dt><dd>@j.LeaseUntilUtc?.ToString("dd.MM.yyyy HH:mm:ss")</dd>
-        <dt>Chiqish kodi</dt><dd>@j.ExitCode</dd>
-        <dt>Xato</dt><dd class="mono">@j.Error</dd>
-        <dt>Parametrlar</dt><dd class="mono">@j.Payload</dd>
-        <dt>Natija</dt><dd class="mono">@j.Result</dd>
+        <dt>@L.T("Pnl_Prov_ExitCode")</dt><dd>@j.ExitCode</dd>
+        <dt>@L.T("Pnl_Err_Title")</dt><dd class="mono">@j.Error</dd>
+        <dt>@L.T("Pnl_Prov_Parameters")</dt><dd class="mono">@j.Payload</dd>
+        <dt>@L.T("Pnl_Prov_Result")</dt><dd class="mono">@j.Result</dd>
     </dl>
 </div>
 <h2>Log</h2>

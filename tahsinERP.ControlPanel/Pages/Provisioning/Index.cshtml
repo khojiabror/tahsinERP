@@ -1,25 +1,25 @@
 @page
 @model tahsinERP.ControlPanel.Pages.Provisioning.IndexModel
-@{ ViewData["Title"] = "Provisioning"; }
-<h1>Provisioning navbati</h1>
+@{ ViewData["Title"] = L.T("Pnl_NavProvisioning"); }
+<h1>@L.T("Pnl_Prov_Queue")</h1>
 <form method="get" class="actions">
     <select name="Status">
-        <option value="">— barchasi —</option>
+        <option value="">— @L.T("Pnl_AllLower") —</option>
         @foreach (var s in Enum.GetValues<ProvisioningJobStatus>()) { <option value="@s" selected="@(Model.Status == s)">@Labels.Of(s)</option> }
     </select>
-    <button type="submit" class="secondary">Filtr</button>
+    <button type="submit" class="secondary">@L.T("Filter")</button>
 </form>
-<h2>Agentlar</h2>
+<h2>@L.T("Pnl_Prov_Agents")</h2>
 <table>
-    <tr><th>Server</th><th>Agent</th><th>Oxirgi aloqa (UTC)</th><th>Versiya</th></tr>
+    <tr><th>@L.T("Pnl_Server")</th><th>@L.T("Pnl_Agent")</th><th>@L.T("Pnl_LastSeenUtc")</th><th>@L.T("Pnl_Version")</th></tr>
     @foreach (var s in Model.Servers)
     {
-        <tr><td>@s.Name</td><td>@(s.AgentSecretProtected is null ? "ulanmagan" : "kalit bor")</td><td>@s.AgentLastSeenUtc?.ToString("dd.MM.yyyy HH:mm:ss")</td><td>@s.AgentVersion</td></tr>
+        <tr><td>@s.Name</td><td>@(s.AgentSecretProtected is null ? L.T("Pnl_Prov_AgentNotConnected") : L.T("Pnl_Prov_AgentHasKey"))</td><td>@s.AgentLastSeenUtc?.ToString("dd.MM.yyyy HH:mm:ss")</td><td>@s.AgentVersion</td></tr>
     }
 </table>
-<h2>Joblar</h2>
+<h2>@L.T("Pnl_Prov_Jobs")</h2>
 <table>
-    <tr><th>#</th><th>Tashkilot</th><th>Amal</th><th>Holat</th><th class="num">Urinish</th><th>Yaratilgan (UTC)</th><th>Tugagan</th><th>Xato</th></tr>
+    <tr><th>#</th><th>@L.T("Pnl_Organization")</th><th>@L.T("Pnl_Audit_Action")</th><th>@L.T("Status")</th><th class="num">@L.T("Pnl_Prov_Attempt")</th><th>@L.T("Pnl_CreatedUtc")</th><th>@L.T("Pnl_Prov_Finished")</th><th>@L.T("Pnl_Err_Title")</th></tr>
     @foreach (var j in Model.Jobs)
     {
         <tr>
@@ -34,4 +34,4 @@
         </tr>
     }
 </table>
-@if (Model.Jobs.Count == 0) { <div class="empty">Job yo'q.</div> }
+@if (Model.Jobs.Count == 0) { <div class="empty">@L.T("Pnl_Prov_NoJobs")</div> }

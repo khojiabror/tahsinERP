@@ -1,24 +1,24 @@
 @page
 @model LoginModel
-@{ ViewData["Title"] = "Kirish"; }
+@{ ViewData["Title"] = L.T("Login"); }
 <div class="card login">
-    <div class="hud-head"><span>// MIJOZ IDENTIFIKATSIYASI</span><span>AUTH-01</span></div>
-    <h1>Mijoz kabinetiga kirish</h1>
-    <p class="hud-sub">Hisob-fakturalar, to'lovlar va litsenziya — bir joyda.</p>
-    <ol class="steps"><li class="on">Parol</li><li>Kod</li><li>Kabinet</li></ol>
+    <div class="hud-head"><span>// @L.T("Ptl_HudClientId")</span><span>AUTH-01</span></div>
+    <h1>@L.T("Ptl_LoginHeading")</h1>
+    <p class="hud-sub">@L.T("Ptl_LoginSub")</p>
+    <ol class="steps"><li class="on">@L.T("Password")</li><li>@L.T("Code")</li><li>@L.T("Ptl_Crumb")</li></ol>
     <form method="post" class="stack">
         <div asp-validation-summary="All"></div>
         <div>
-            <label asp-for="Login">Email yoki telefon</label>
-            <div class="field-ic"><svg class="i"><use href="#i-user" /></svg><input asp-for="Login" type="text" autocomplete="username" placeholder="email yoki +998…" autofocus /></div>
+            <label asp-for="Login">@L.T("Ptl_EmailOrPhone")</label>
+            <div class="field-ic"><svg class="i"><use href="#i-user" /></svg><input asp-for="Login" type="text" autocomplete="username" placeholder="@L.T("Ptl_LoginPlaceholder")" autofocus /></div>
         </div>
         <div>
-            <label asp-for="Password">Parol</label>
+            <label asp-for="Password">@L.T("Password")</label>
             <div class="field-ic"><svg class="i"><use href="#i-lock" /></svg><input asp-for="Password" autocomplete="current-password" placeholder="••••••••••••" /></div>
         </div>
         <input type="hidden" asp-for="ReturnUrl" />
-        <button type="submit">Davom etish <svg class="i"><use href="#i-arrow" /></svg></button>
-        <p class="hint">Keyingi qadam — bir martalik kod (Telegram, yoki profilda tanlangan SMS / email).</p>
+        <button type="submit">@L.T("Ptl_Continue") <svg class="i"><use href="#i-arrow" /></svg></button>
+        <p class="hint">@L.T("Ptl_LoginHint")</p>
     </form>
-    <div class="auth-meta"><span>SEANS: SHIFRLANGAN</span><span><a href="/Forgot">Parolni unutdingizmi?</a></span></div>
+    <div class="auth-meta"><span>@L.T("Ptl_SessionEncrypted")</span><span><a href="/Forgot">@L.T("Ptl_ForgotLink")</a></span></div>
 </div>

@@ -1,6 +1,8 @@
 using tahsinERP.Services.Editions;
 using Microsoft.EntityFrameworkCore;
 using tahsinERP.ControlPanel.Data;
+using tahsinERP.ControlPanel.I18n;
+using tahsinERP.Localization;
 using tahsinERP.ControlPanel.Services;
 
 namespace tahsinERP.ControlPanel.Portal;
@@ -28,11 +30,11 @@ public sealed record AddOnStatus(Plan Plan, AddOnState State, Subscription? Subs
 {
     public string StateText => State switch
     {
-        AddOnState.Active => "Faol",
-        AddOnState.PendingPayment => "To'lov kutilmoqda",
-        AddOnState.Upcoming => "To'langan, hali boshlanmagan",
-        AddOnState.Expired => "Muddati tugagan",
-        _ => "Ulanmagan",
+        AddOnState.Active => L.T("Active"),
+        AddOnState.PendingPayment => L.T("Ptl_AwaitingPayment"),
+        AddOnState.Upcoming => L.T("Ptl_AddOnUpcoming"),
+        AddOnState.Expired => L.T("Ptl_AddOnExpired"),
+        _ => L.T("Ptl_AddOnNotConnected"),
     };
 
     public string Badge => State switch
@@ -123,17 +125,17 @@ public sealed class PortalRequestService(ControlDbContext db, AuditLogger audit,
         CancellationToken ct = default)
     {
         var tenant = await db.Tenants.FirstAsync(t => t.Id == tenantId, ct);
-        if (PortalAuthService.TenantClosed(tenant)) throw new DomainException("Tashkilot arxivda.");
+        if (PortalAuthService.TenantClosed(tenant)) throw new DomainException(L.T("Ptl_OrgArchived"));
         // Qo'shimcha xizmat portal so'rovi orqali emas — xodim alohida obuna ochadi (portalda holati ko'rinadi).
         var plan = await db.Plans.FirstOrDefaultAsync(p => p.Id == planId && p.IsActive && p.Code != PlanCodes.Trial && !p.IsAddOn, ct)
-            ?? throw new DomainException("Paket topilmadi.");
-        if (period is not (BillingPeriod.Month or BillingPeriod.Year)) throw new DomainException("Davr noto'g'ri.");
-        if (periodCount < 1 || periodCount > MaxPeriods(period)) throw new DomainException($"Davrlar soni 1–{MaxPeriods(period)}.");
+            ?? throw new DomainException(L.T("Ptl_PlanNotFound"));
+        if (period is not (BillingPeriod.Month or BillingPeriod.Year)) throw new DomainException(L.T("Ptl_PeriodInvalid"));
+        if (periodCount < 1 || periodCount > MaxPeriods(period)) throw new DomainException(L.T("Ptl_PeriodCountRange", MaxPeriods(period)));
         if (await db.PortalRequests.AnyAsync(r => r.TenantId == tenantId && r.Status == PortalRequestStatus.Pending, ct))
-            throw new DomainException("Sizda ko'rib chiqilayotgan so'rov bor. Avval uni bekor qiling yoki javobni kuting.");
+            throw new DomainException(L.T("Ptl_HasPendingRequest"));
         var ov = await OverviewAsync(tenantId, ct);
         if (ov.Upcoming is not null)
-            throw new DomainException($"Keyingi davr ({ov.Upcoming.StartDate:dd.MM.yyyy} dan) allaqachon to'langan. Yangi so'rovni o'sha davr boshlangach yuboring.");
+            throw new DomainException(L.T("Ptl_NextPeriodPaid", ov.Upcoming.StartDate.ToString("dd.MM.yyyy")));
         var (kind, effective) = Classify(ov.Current, plan, period, clock.Today);
         var req = new PortalRequest
         {
@@ -148,15 +150,17 @@ public sealed class PortalRequestService(ControlDbContext db, AuditLogger audit,
             after: new { req.TenantId, req.Kind, Plan = plan.Code, req.Period, req.PeriodCount, req.EffectiveDate, req.Comment }, portalUserId: portalUserId);
         await db.SaveChangesAsync(ct);
         await notifier.NotifyStaffAsync(tenantId, "portal-request", $"portal-req|{req.Id}|new",
-            $"tahsinERP portal: {tenant.LegalName} ({tenant.Slug}) — yangi so'rov #{req.Id}: {KindText(kind)}, «{plan.Name}», {periodCount} {PeriodUnit(period)}. Panel → So'rovlar.", ct);
+            // Xodimlar guruhiga — doim asosiy tilda (so'rov mijoz tilida kelgan bo'lishi mumkin).
+            L.TFor(Languages.Default, "Ptl_MsgStaffNewRequest", tenant.LegalName, tenant.Slug, req.Id, KindText(kind, Languages.Default), plan.Name,
+                periodCount, PeriodUnit(period, Languages.Default)), ct);
         return req;
     }
 
     public async Task CancelAsync(int requestId, int tenantId, int portalUserId, CancellationToken ct = default)
     {
         var req = await db.PortalRequests.FirstOrDefaultAsync(r => r.Id == requestId && r.TenantId == tenantId, ct)
-            ?? throw new DomainException("So'rov topilmadi.");
-        if (req.Status != PortalRequestStatus.Pending) throw new DomainException("So'rov allaqachon ko'rib chiqilgan.");
+            ?? throw new DomainException(L.T("Ptl_RequestNotFound"));
+        if (req.Status != PortalRequestStatus.Pending) throw new DomainException(L.T("Ptl_RequestAlreadyDecided"));
         req.Status = PortalRequestStatus.Cancelled;
         req.DecidedAtUtc = clock.UtcNow;
         audit.Add("portal.request.cancel", "PortalRequest", req.Id, new { Status = PortalRequestStatus.Pending }, new { req.Status }, portalUserId: portalUserId);
@@ -175,8 +179,8 @@ public sealed class PortalRequestService(ControlDbContext db, AuditLogger audit,
         await using (var tx = await db.Database.BeginTransactionAsync(ct))
         {
             req = await db.PortalRequests.Include(r => r.Tenant).Include(r => r.Plan).FirstOrDefaultAsync(r => r.Id == requestId, ct)
-                ?? throw new DomainException("So'rov topilmadi.");
-            if (req.Status != PortalRequestStatus.Pending) throw new DomainException("So'rov allaqachon ko'rib chiqilgan.");
+                ?? throw new DomainException(L.T("Ptl_RequestNotFound"));
+            if (req.Status != PortalRequestStatus.Pending) throw new DomainException(L.T("Ptl_RequestAlreadyDecided"));
             plan = req.Plan!;
             var tenant = req.Tenant!;
             // Holat so'rovdan keyin o'zgargan bo'lishi mumkin (to'lov, xodim amali) — tur qayta hisoblanadi.
@@ -196,12 +200,12 @@ public sealed class PortalRequestService(ControlDbContext db, AuditLogger audit,
             else
             {
                 if (ov.Pending is not null)
-                    throw new DomainException($"Tenantda to'lanmagan obuna #{ov.Pending.Id} bor — avval uni bekor qiling (Obunalar).");
+                    throw new DomainException(L.T("Ptl_TenantHasPendingSub", ov.Pending.Id));
                 target = await subscriptions.CreateAsync(tenant, plan.Id, req.Period, null, effective, autoRenew: false, ct);
             }
             var line = BillingService.DefaultLine(target, target.Plan!, req.PeriodCount);
             invoice = await billing.CreateDraftAsync(tenant.Id, target.Id, req.PeriodCount, [line],
-                $"Portal so'rovi #{req.Id} ({KindText(kind)})", staffId, ct);
+                $"Portal so'rovi #{req.Id} ({KindText(kind, Languages.Default)})" /* bazaga yoziladi — asosiy tilda */, staffId, ct);
 
             var before = new { req.Status, req.Kind };
             req.Kind = kind;
@@ -217,16 +221,15 @@ public sealed class PortalRequestService(ControlDbContext db, AuditLogger audit,
             await tx.CommitAsync(ct);
         }
         await notifier.NotifyTenantAsync(req.TenantId, "portal-request-approved", $"portal-req|{req.Id}|approved",
-            $"tahsinERP: so'rovingiz #{req.Id} tasdiqlandi ({KindText(req.Kind)}, «{plan.Name}», {req.PeriodCount} {PeriodUnit(req.Period)}). " +
-            "Hisob-faktura tayyorlanmoqda — chiqarilgach portalda (Hisob-fakturalar) ko'rinadi.", ct);
+            L.T("Ptl_MsgRequestApproved", req.Id, KindText(req.Kind), plan.Name, req.PeriodCount, PeriodUnit(req.Period)), ct);
         return invoice;
     }
 
     public async Task RejectAsync(int requestId, string reason, int staffId, CancellationToken ct = default)
     {
-        if (string.IsNullOrWhiteSpace(reason)) throw new DomainException("Rad etish sababi majburiy (mijozga yuboriladi).");
-        var req = await db.PortalRequests.FirstOrDefaultAsync(r => r.Id == requestId, ct) ?? throw new DomainException("So'rov topilmadi.");
-        if (req.Status != PortalRequestStatus.Pending) throw new DomainException("So'rov allaqachon ko'rib chiqilgan.");
+        if (string.IsNullOrWhiteSpace(reason)) throw new DomainException(L.T("Ptl_RejectReasonRequired"));
+        var req = await db.PortalRequests.FirstOrDefaultAsync(r => r.Id == requestId, ct) ?? throw new DomainException(L.T("Ptl_RequestNotFound"));
+        if (req.Status != PortalRequestStatus.Pending) throw new DomainException(L.T("Ptl_RequestAlreadyDecided"));
         req.Status = PortalRequestStatus.Rejected;
         req.DecisionReason = reason.Trim()[..Math.Min(reason.Trim().Length, 1000)];
         req.DecidedByStaffId = staffId;
@@ -235,16 +238,23 @@ public sealed class PortalRequestService(ControlDbContext db, AuditLogger audit,
             staffIdOverride: staffId);
         await db.SaveChangesAsync(ct);
         await notifier.NotifyTenantAsync(req.TenantId, "portal-request-rejected", $"portal-req|{req.Id}|rejected",
-            $"tahsinERP: so'rovingiz #{req.Id} rad etildi. Sabab: {req.DecisionReason}", ct);
+            L.T("Ptl_MsgRequestRejected", req.Id, req.DecisionReason), ct);
     }
 
-    public static string KindText(PortalRequestKind k) => k switch
+    public static string KindText(PortalRequestKind k) => L.T(KindKey(k));
+
+    /// <summary>Berilgan tilda (xodimlar xabari, bazaga yoziladigan izoh — asosiy tilda).</summary>
+    public static string KindText(PortalRequestKind k, string language) => L.TFor(language, KindKey(k));
+
+    private static string KindKey(PortalRequestKind k) => k switch
     {
-        PortalRequestKind.Renew => "uzaytirish",
-        PortalRequestKind.Upgrade => "tarifni oshirish",
-        PortalRequestKind.ChangeAtPeriodEnd => "davr oxirida o'zgartirish",
-        _ => "yangi obuna",
+        PortalRequestKind.Renew => "Ptl_Kind_Renew",
+        PortalRequestKind.Upgrade => "Ptl_Kind_Upgrade",
+        PortalRequestKind.ChangeAtPeriodEnd => "Ptl_Kind_ChangeAtPeriodEnd",
+        _ => "Ptl_Kind_New",
     };
 
-    public static string PeriodUnit(BillingPeriod p) => p == BillingPeriod.Year ? "yil" : "oy";
+    public static string PeriodUnit(BillingPeriod p) => L.T(p == BillingPeriod.Year ? "Ptl_UnitYear" : "Ptl_UnitMonth");
+
+    public static string PeriodUnit(BillingPeriod p, string language) => L.TFor(language, p == BillingPeriod.Year ? "Ptl_UnitYear" : "Ptl_UnitMonth");
 }

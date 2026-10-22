@@ -1,15 +1,15 @@
 @page
 @model tahsinERP.ControlPanel.Pages.Notifications.IndexModel
-@{ ViewData["Title"] = "Eslatmalar"; }
-<h1>Eslatmalar</h1>
-<p class="hint">Obuna tugashiga 14, 7, 3, 1 kun qolganda va tugagan kuni — tashkilotning Telegram chatiga (va xodimlar chatiga). Kunlik fon ishi.
-    Telegram: @(Model.TelegramConfigured ? "sozlangan" : "bot token yo'q — xabarlar faqat logga yoziladi").</p>
+@{ ViewData["Title"] = L.T("Pnl_NavNotifications"); }
+<h1>@L.T("Pnl_NavNotifications")</h1>
+<p class="hint">@L.T("Pnl_Notif_Hint")
+    Telegram: @(Model.TelegramConfigured ? L.T("Pnl_Notif_Configured") : L.T("Pnl_Notif_NoToken")).</p>
 @if (Model.IsOwner)
 {
-    <form method="post" asp-page-handler="Run" class="actions"><button type="submit" class="secondary">Kunlik ishni hozir bajarish</button></form>
+    <form method="post" asp-page-handler="Run" class="actions"><button type="submit" class="secondary">@L.T("Pnl_Notif_RunNow")</button></form>
 }
 <table>
-    <tr><th>Vaqt (UTC)</th><th>Tashkilot</th><th>Shablon</th><th>Kanal</th><th>Qabul qiluvchi</th><th>Holat</th><th>Matn</th></tr>
+    <tr><th>@L.T("Pnl_TimeUtc")</th><th>@L.T("Pnl_Organization")</th><th>@L.T("Pnl_Notif_Template")</th><th>@L.T("Pnl_Notif_Channel")</th><th>@L.T("Pnl_Notif_Recipient")</th><th>@L.T("Status")</th><th>@L.T("Pnl_Notif_Text")</th></tr>
     @foreach (var n in Model.Rows)
     {
         <tr>
@@ -21,4 +21,4 @@
         </tr>
     }
 </table>
-@if (Model.Rows.Count == 0) { <div class="empty">Hali eslatma yo'q.</div> }
+@if (Model.Rows.Count == 0) { <div class="empty">@L.T("Pnl_Notif_Empty")</div> }

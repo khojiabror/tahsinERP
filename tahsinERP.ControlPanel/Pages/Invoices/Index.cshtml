@@ -1,32 +1,32 @@
 @page
 @model tahsinERP.ControlPanel.Pages.Invoices.IndexModel
-@{ ViewData["Title"] = "Hisob-fakturalar"; }
-<h1>Hisob-fakturalar</h1>
+@{ ViewData["Title"] = L.T("Pnl_NavInvoices"); }
+<h1>@L.T("Pnl_NavInvoices")</h1>
 <form method="get" class="toolbar">
     <div>
-        <label for="Status">Holat</label>
+        <label for="Status">@L.T("Status")</label>
         <select id="Status" name="Status">
-            <option value="">Hammasi</option>
+            <option value="">@L.T("All")</option>
             @foreach (var s in Enum.GetValues<InvoiceStatus>()) { <option value="@s" selected="@(Model.Status == s)">@Labels.Of(s)</option> }
         </select>
     </div>
-    <label class="check"><input type="checkbox" name="Overdue" value="true" checked="@Model.Overdue" /> Faqat muddati o'tganlar</label>
-    <button type="submit" class="secondary">Ko'rsatish</button>
+    <label class="check"><input type="checkbox" name="Overdue" value="true" checked="@Model.Overdue" /> @L.T("Pnl_Inv_OnlyOverdue")</label>
+    <button type="submit" class="secondary">@L.T("Pnl_Show")</button>
 </form>
-<p class="hint">Yangi hisob-faktura — tashkilot sahifasidan (obuna bo'yicha).</p>
+<p class="hint">@L.T("Pnl_Inv_NewHint")</p>
 <table>
-    <tr><th>Raqam</th><th>Tashkilot</th><th>Sana</th><th>Muddat</th><th class="num">Jami</th><th class="num">QQS</th><th class="num">To'langan</th><th>Holat</th></tr>
+    <tr><th>@L.T("Number")</th><th>@L.T("Pnl_Organization")</th><th>@L.T("Date")</th><th>@L.T("Pnl_Due")</th><th class="num">@L.T("Total")</th><th class="num">@L.T("Pnl_Vat")</th><th class="num">@L.T("Pnl_InvStatus_Paid")</th><th>@L.T("Status")</th></tr>
     @foreach (var i in Model.Rows)
     {
         bool overdue = i.Status is InvoiceStatus.Issued or InvoiceStatus.PartiallyPaid && i.DueDate < Model.Today;
         <tr>
-            <td><a href="/Invoices/Details/@i.Id">@(i.Number ?? $"qoralama #{i.Id}")</a></td>
+            <td><a href="/Invoices/Details/@i.Id">@(i.Number ?? L.T("Pnl_Inv_DraftNoLower", i.Id))</a></td>
             <td>@i.Tenant!.LegalName</td>
             <td>@i.IssueDate.ToString("dd.MM.yyyy")</td>
-            <td>@i.DueDate.ToString("dd.MM.yyyy") @if (overdue) { <span class="badge bad">o'tgan</span> }</td>
+            <td>@i.DueDate.ToString("dd.MM.yyyy") @if (overdue) { <span class="badge bad">@L.T("Pnl_Inv_OverdueBadge")</span> }</td>
             <td class="num">@Money.Format(i.TotalTiyin)</td><td class="num">@Money.Format(i.VatTiyin)</td><td class="num">@Money.Format(i.PaidTiyin)</td>
             <td><span class="badge @Labels.Badge(i.Status)">@Labels.Of(i.Status)</span></td>
         </tr>
     }
 </table>
-@if (Model.Rows.Count == 0) { <div class="empty">Yo'q.</div> }
+@if (Model.Rows.Count == 0) { <div class="empty">@L.T("Pnl_None")</div> }

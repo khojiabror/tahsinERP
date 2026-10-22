@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using tahsinERP.ControlPanel.Data;
 using tahsinERP.ControlPanel.Services;
+using tahsinERP.ControlPanel.I18n;
 
 namespace tahsinERP.ControlPanel.Pages.Notifications;
 
@@ -24,7 +25,7 @@ public class IndexModel(ControlDbContext db, ITelegramSender telegram) : PanelPa
         if (!IsOwner) return Forbidden();
         int changed = await subs.RunLifecycleAsync();
         int sent = await reminders.RunAsync();
-        FlashOk = $"Bajarildi: {changed} tashkilot holati o'zgardi, {sent} eslatma.";
+        FlashOk = L.T("Pnl_Notif_RunDone", changed, sent);
         return RedirectToPage();
     }
 }

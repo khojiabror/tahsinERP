@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using tahsinERP.ControlPanel.Data;
 using tahsinERP.ControlPanel.Security;
+using tahsinERP.ControlPanel.I18n;
 
 namespace tahsinERP.ControlPanel.Services;
 
@@ -26,18 +27,18 @@ public sealed partial class TenantService(ControlDbContext db, AuditLogger audit
     public static string? ValidateSlug(string? slug)
     {
         if (string.IsNullOrWhiteSpace(slug) || !SlugRegex().IsMatch(slug))
-            return "Slug: faqat kichik lotin harflari, raqamlar va '-', 1–63 belgi, '-' bilan boshlanmasin/tugamasin.";
+            return L.T("Pnl_TenSvc_SlugFormat");
         if (ReservedSlugs.Contains(slug))
-            return $"'{slug}' band (panel subdomeni uchun ajratilgan).";
+            return L.T("Pnl_TenSvc_SlugReserved", slug);
         return null;
     }
 
     public static string? ValidateDbName(string? dbName) =>
-        string.IsNullOrEmpty(dbName) || DatabaseRegex().IsMatch(dbName) ? null : "Baza nomi: faqat A-Z a-z 0-9 _ - . (1–100).";
+        string.IsNullOrEmpty(dbName) || DatabaseRegex().IsMatch(dbName) ? null : L.T("Pnl_TenSvc_DbNameFormat");
 
     public static string? ValidateInn(string? inn) =>
         string.IsNullOrEmpty(inn) || ((inn.Length == 9 || inn.Length == 14) && inn.All(char.IsAsciiDigit))
-            ? null : "STIR 9 raqam (yuridik shaxs) yoki JShShIR 14 raqam bo'lsin.";
+            ? null : L.T("Pnl_TenSvc_InnFormat");
 
     public static string DefaultDbName(string slug) => "DB_" + slug.Replace('-', '_');
 
@@ -54,21 +55,21 @@ public sealed partial class TenantService(ControlDbContext db, AuditLogger audit
         t.Inn = string.IsNullOrWhiteSpace(t.Inn) ? null : t.Inn.Trim();
         t.DbName = string.IsNullOrWhiteSpace(t.DbName) ? null : t.DbName.Trim();
         string? error = ValidateSlug(t.Slug) ?? ValidateDbName(t.DbName) ?? ValidateInn(t.Inn);
-        if (error is null && t.LegalName.Length == 0) error = "Yuridik nom majburiy.";
-        if (error is null && t.CompanyId <= 0) error = "CompanyID musbat bo'lsin.";
+        if (error is null && t.LegalName.Length == 0) error = L.T("Pnl_TenSvc_LegalNameRequired");
+        if (error is null && t.CompanyId <= 0) error = L.T("Pnl_TenSvc_CompanyIdPositive");
         if (error is null && t.OfflineGraceDays is int g && (g < Licensing.LicenseIssuer.MinOfflineGraceDays || g > Licensing.LicenseIssuer.MaxOfflineGraceDays))
-            error = $"Internetsiz ishlash muddati {Licensing.LicenseIssuer.MinOfflineGraceDays}–{Licensing.LicenseIssuer.MaxOfflineGraceDays} kun bo'lsin.";
+            error = L.T("Pnl_TenSvc_OfflineDaysRange", Licensing.LicenseIssuer.MinOfflineGraceDays, Licensing.LicenseIssuer.MaxOfflineGraceDays);
         if (t.Deployment == DeploymentKind.SaaS) t.OnlineCheck = OnlineCheckMode.Optional; // SaaS — siyosat ma'nosiz
-        if (error is null && await db.Tenants.AnyAsync(x => x.Slug == t.Slug && x.Id != t.Id, ct)) error = $"'{t.Slug}' slug band.";
-        if (error is null && t.DbName != null && await db.Tenants.AnyAsync(x => x.DbName == t.DbName && x.Id != t.Id, ct)) error = $"'{t.DbName}' baza nomi band.";
+        if (error is null && await db.Tenants.AnyAsync(x => x.Slug == t.Slug && x.Id != t.Id, ct)) error = L.T("Pnl_TenSvc_SlugTaken", t.Slug);
+        if (error is null && t.DbName != null && await db.Tenants.AnyAsync(x => x.DbName == t.DbName && x.Id != t.Id, ct)) error = L.T("Pnl_TenSvc_DbNameTaken", t.DbName);
         if (error is null && t.ServerId != null)
         {
             var server = await db.Servers.FirstOrDefaultAsync(s => s.Id == t.ServerId, ct);
-            if (server is null || !server.IsActive) error = "Server topilmadi yoki faol emas.";
+            if (server is null || !server.IsActive) error = L.T("Pnl_TenSvc_ServerInactive");
             else
             {
                 int used = await db.Tenants.CountAsync(x => x.ServerId == server.Id && x.Id != t.Id && x.Status != TenantStatus.Archived, ct);
-                if (used >= server.MaxTenants) error = $"'{server.Name}' serveri to'lgan ({used}/{server.MaxTenants}).";
+                if (used >= server.MaxTenants) error = L.T("Pnl_TenSvc_ServerFull", server.Name, used, server.MaxTenants);
             }
         }
         if (error != null) throw new DomainException(error);
@@ -101,7 +102,7 @@ public sealed partial class TenantService(ControlDbContext db, AuditLogger audit
             if (e.Property(x => x.DbName).IsModified && !Equals(e.Property(x => x.DbName).OriginalValue, t.DbName)
                 || e.Property(x => x.ServerId).IsModified && !Equals(e.Property(x => x.ServerId).OriginalValue, t.ServerId)
                 || e.Property(x => x.Deployment).IsModified && !Equals(e.Property(x => x.Deployment).OriginalValue, t.Deployment))
-                throw new DomainException("Bazasi yaratilgan tenantning baza nomi, serveri va joylashuvini o'zgartirib bo'lmaydi (baza va tenants.json eski qiymatda qoladi).");
+                throw new DomainException(L.T("Pnl_TenSvc_ProvisionedLocked"));
         }
         await ValidateAsync(t, ct);
         audit.Add("tenant.update", "Tenant", t.Id, before, Snapshot(t));
@@ -114,11 +115,11 @@ public sealed partial class TenantService(ControlDbContext db, AuditLogger audit
     {
         if (t.Status == status) return;
         if (status == TenantStatus.Archived && string.IsNullOrWhiteSpace(reason))
-            throw new DomainException("Arxivlash sababi majburiy.");
+            throw new DomainException(L.T("Pnl_Prov_ArchiveReasonRequired"));
         if (status == TenantStatus.Archived && t.Deployment == DeploymentKind.SaaS && t.ProvisionedAtUtc != null)
-            throw new DomainException("Bazasi yaratilgan SaaS tenant faqat «Arxivlash» amali (provisioning) orqali arxivlanadi.");
+            throw new DomainException(L.T("Pnl_TenSvc_ArchiveViaProvisioning"));
         if (t.Status == TenantStatus.Archived && t.Deployment == DeploymentKind.SaaS && t.ProvisionedAtUtc != null)
-            throw new DomainException("Arxivlangan tenant bazasi o'chirilgan — holatni qo'lda qaytarib bo'lmaydi.");
+            throw new DomainException(L.T("Pnl_TenSvc_ArchivedNoRestore"));
         var before = t.Status;
         t.Status = status;
         audit.Add("tenant.status", "Tenant", t.Id, new { Status = before }, new { Status = status, Reason = reason });
@@ -132,7 +133,7 @@ public sealed partial class TenantService(ControlDbContext db, AuditLogger audit
     public async Task<string> IssueRegTokenAsync(Tenant t, CancellationToken ct = default)
     {
         if (t.Status == TenantStatus.Archived)
-            throw new DomainException("Arxivdagi tenant uchun token chiqarilmaydi.");
+            throw new DomainException(L.T("Pnl_TenSvc_ArchivedNoToken"));
         string token = "RT-" + Base32.Encode(RandomNumberGenerator.GetBytes(20));
         t.RegTokenHash = HashToken(token);
         t.RegTokenExpiresUtc = clock.UtcNow.AddDays(options.Value.RegTokenDays);

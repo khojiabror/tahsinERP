@@ -1,41 +1,41 @@
 @page
 @model tahsinERP.ControlPanel.Pages.Subscriptions.CreateModel
-@{ ViewData["Title"] = "Yangi obuna"; }
-<h1>Yangi obuna: @Model.Tenant.LegalName</h1>
+@{ ViewData["Title"] = L.T("Pnl_Sub_New"); }
+<h1>@L.T("Pnl_Sub_New"): @Model.Tenant.LegalName</h1>
 <form method="post" class="stack card">
     <div asp-validation-summary="All"></div>
     <input type="hidden" asp-for="TenantId" />
     <div class="row">
         <div>
-            <label asp-for="PlanId">Paket yoki qo'shimcha xizmat</label>
+            <label asp-for="PlanId">@L.T("Pnl_Sub_PlanOrAddOn")</label>
             <select asp-for="PlanId">
-                <optgroup label="Paketlar">
+                <optgroup label="@L.T("Pnl_Packages")">
                 @foreach (var p in Model.Plans.Where(p => !p.IsAddOn))
                 {
-                    <option value="@p.Id">@p.Name — @p.MaxUsers foyd. (oy: @(Money.Format(p.PriceMonthTiyin) ?? "?"), yil: @(Money.Format(p.PriceYearTiyin) ?? "?"))</option>
+                    <option value="@p.Id">@p.Name — @p.MaxUsers @L.T("Pnl_UsersAbbr") (@L.T("Pnl_Sub_MonthShort") @(Money.Format(p.PriceMonthTiyin) ?? "?"), @L.T("Pnl_Sub_YearShort") @(Money.Format(p.PriceYearTiyin) ?? "?"))</option>
                 }
                 </optgroup>
                 @if (Model.Plans.Any(p => p.IsAddOn))
                 {
-                    <optgroup label="Qo'shimcha xizmatlar (paketdan alohida)">
+                    <optgroup label="@L.T("Pnl_Sub_AddOnsGroup")">
                     @foreach (var p in Model.Plans.Where(p => p.IsAddOn))
                     {
-                        <option value="@p.Id">@p.Name (oy: @(Money.Format(p.PriceMonthTiyin) ?? "?"), yil: @(Money.Format(p.PriceYearTiyin) ?? "?"))</option>
+                        <option value="@p.Id">@p.Name (@L.T("Pnl_Sub_MonthShort") @(Money.Format(p.PriceMonthTiyin) ?? "?"), @L.T("Pnl_Sub_YearShort") @(Money.Format(p.PriceYearTiyin) ?? "?"))</option>
                     }
                     </optgroup>
                 }
             </select>
         </div>
         <div>
-            <label asp-for="Period">Davr</label>
-            <select asp-for="Period"><option value="Month">Oylik</option><option value="Year">Yillik</option></select>
+            <label asp-for="Period">@L.T("Period")</label>
+            <select asp-for="Period"><option value="Month">@L.T("Pnl_Period_Month")</option><option value="Year">@L.T("Pnl_Period_Year")</option></select>
         </div>
     </div>
     <div class="row">
-        <div><label asp-for="Users">Foydalanuvchilar</label><input asp-for="Users" type="number" placeholder="paket chegarasi" /><div class="hint">Bo'sh — paket chegarasi (qat'iy paket). Qo'shimcha xizmatda e'tiborga olinmaydi.</div></div>
-        <div><label asp-for="StartDate">Boshlanish sanasi</label><input asp-for="StartDate" type="date" /></div>
+        <div><label asp-for="Users">@L.T("Pnl_UsersPlural")</label><input asp-for="Users" type="number" placeholder="@L.T("Pnl_Sub_PackageLimit")" /><div class="hint">@L.T("Pnl_Sub_UsersHint")</div></div>
+        <div><label asp-for="StartDate">@L.T("Pnl_StartDate")</label><input asp-for="StartDate" type="date" /></div>
     </div>
-    <label class="check"><input asp-for="AutoRenew" /> Avtomatik uzaytirish (eslatma uchun belgi; to'lov baribir qo'lda)</label>
-    <div class="hint">Obuna «To'lov kutilmoqda» holatida yaratiladi; hisob-faktura to'liq to'langanda faollashadi va kalit chiqadi. Qo'shimcha xizmat (masalan Sayt-katalog) paket obunasiga tegmaydi: to'langach kalitga «+KOD» qo'shiladi, muddati tugasa olib tashlanadi.</div>
-    <div class="actions"><button type="submit">Yaratish va hisob-fakturaga o'tish</button><a class="btn secondary" href="/Tenants/Details/@Model.TenantId">Bekor</a></div>
+    <label class="check"><input asp-for="AutoRenew" /> @L.T("Pnl_Sub_AutoRenewHint")</label>
+    <div class="hint">@L.T("Pnl_Sub_CreateHint")</div>
+    <div class="actions"><button type="submit">@L.T("Pnl_Sub_CreateAndInvoice")</button><a class="btn secondary" href="/Tenants/Details/@Model.TenantId">@L.T("Pnl_CancelShort")</a></div>
 </form>

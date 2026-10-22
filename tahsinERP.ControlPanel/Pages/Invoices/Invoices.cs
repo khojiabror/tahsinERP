@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using tahsinERP.ControlPanel.Data;
 using tahsinERP.ControlPanel.Security;
 using tahsinERP.ControlPanel.Services;
+using tahsinERP.ControlPanel.I18n;
 
 namespace tahsinERP.ControlPanel.Pages.Invoices;
 
@@ -34,11 +35,11 @@ public class LineInput
             n++;
             if (l.IsEmpty) continue;
             if (!decimal.TryParse((l.Quantity ?? "1").Replace(',', '.'), NumberStyles.Number, CultureInfo.InvariantCulture, out var qty))
-                ms.AddModelError("", $"{n}-qator: miqdor noto'g'ri.");
+                ms.AddModelError("", L.T("Pnl_Inv_RowQtyInvalid", n));
             if (!Money.TryParse(l.UnitPrice, out long price))
-                ms.AddModelError("", $"{n}-qator: narx noto'g'ri.");
+                ms.AddModelError("", L.T("Pnl_Inv_RowPriceInvalid", n));
             if (!decimal.TryParse((l.VatRate ?? "12").Replace(',', '.'), NumberStyles.Number, CultureInfo.InvariantCulture, out var vat))
-                ms.AddModelError("", $"{n}-qator: QQS noto'g'ri.");
+                ms.AddModelError("", L.T("Pnl_Inv_RowVatInvalid", n));
             result.Add(new InvoiceLineInput(l.Description ?? "", qty, price, vat));
         }
         return result;
@@ -130,7 +131,7 @@ public class CreateModel(ControlDbContext db, BillingService billing) : PanelPag
             LineInput.Pad(Lines);
             return Page();
         }
-        FlashOk = "Qoralama yaratildi. Tekshirib, «Chiqarish» tugmasini bosing (raqam beriladi).";
+        FlashOk = L.T("Pnl_Inv_DraftCreated");
         return RedirectToPage("Details", new { id = inv!.Id });
     }
 }
@@ -169,7 +170,7 @@ public class EditModel(ControlDbContext db, BillingService billing) : PanelPageM
             LineInput.Pad(Lines);
             return Page();
         }
-        FlashOk = "Qoralama saqlandi.";
+        FlashOk = L.T("Pnl_Inv_DraftSaved");
         return RedirectToPage("Details", new { id });
     }
 }
@@ -219,7 +220,7 @@ public class DetailsModel(ControlDbContext db, BillingService billing, InvoicePd
         if (!CanSell) return Forbidden();
         if (!await LoadAsync(id)) return NotFound();
         if (!await TryAsync(() => billing.IssueAsync(Invoice))) return Page();
-        FlashOk = $"Hisob-faktura chiqarildi: {Invoice.Number}.";
+        FlashOk = L.T("Pnl_Inv_Issued", Invoice.Number);
         return RedirectToPage(new { id });
     }
 
@@ -228,7 +229,7 @@ public class DetailsModel(ControlDbContext db, BillingService billing, InvoicePd
         if (!CanSell) return Forbidden();
         if (!await LoadAsync(id)) return NotFound();
         if (!await TryAsync(() => billing.CancelAsync(Invoice, Reason ?? ""))) return Page();
-        FlashOk = "Hisob-faktura bekor qilindi.";
+        FlashOk = L.T("Pnl_Inv_Cancelled");
         return RedirectToPage(new { id });
     }
 
@@ -239,7 +240,7 @@ public class DetailsModel(ControlDbContext db, BillingService billing, InvoicePd
         if (!await LoadAsync(id)) return NotFound();
         if (!Money.TryParse(Amount, out long tiyin))
         {
-            ModelState.AddModelError(nameof(Amount), "Summa noto'g'ri.");
+            ModelState.AddModelError(nameof(Amount), L.T("Pnl_Inv_AmountInvalid"));
             return Page();
         }
         PaymentResult? result = null;
@@ -249,8 +250,8 @@ public class DetailsModel(ControlDbContext db, BillingService billing, InvoicePd
             return Page();
         }
         var r = result!;
-        FlashOk = $"To'lov belgilandi: {Money.FormatSom(tiyin)}. Holat: {Labels.Of(r.Invoice.Status)}."
-                  + (r.IssuedLicense is not null ? $" Obuna uzaytirildi, yangi kalit chiqdi (#{r.IssuedLicense.Id}, {r.IssuedLicense.ExpiryDate:dd.MM.yyyy} gacha)." : "");
+        FlashOk = L.T("Pnl_Inv_PaymentRecorded", Money.FormatSom(tiyin), Labels.Of(r.Invoice.Status))
+                  + (r.IssuedLicense is not null ? " " + L.T("Pnl_Inv_ExtendedNewKey", r.IssuedLicense.Id, r.IssuedLicense.ExpiryDate.ToString("dd.MM.yyyy")) : "");
         if (r.LicenseWarning is not null) FlashError = r.LicenseWarning;
         return RedirectToPage(new { id });
     }
@@ -261,7 +262,7 @@ public class DetailsModel(ControlDbContext db, BillingService billing, InvoicePd
         if (!CanSell) return Forbidden();
         if (!await LoadAsync(id)) return NotFound();
         if (!await TryAsync(() => didox.SendAsync(id, StaffId))) { await LoadAsync(id); return Page(); }
-        FlashOk = "Didox'ga yuborildi (qoralama). Didox kabinetida E-IMZO bilan imzolang — holat avtomatik yangilanadi.";
+        FlashOk = L.T("Pnl_Inv_DidoxSent");
         return RedirectToPage(new { id });
     }
 
@@ -269,8 +270,8 @@ public class DetailsModel(ControlDbContext db, BillingService billing, InvoicePd
     {
         if (!await LoadAsync(id)) return NotFound();
         var state = await didox.RefreshAsync(Invoice);
-        if (state is null) FlashError = "Didox holati olinmadi: " + (Invoice.DidoxError ?? "Didox o'chiq.");
-        else FlashOk = "Didox holati: " + state;
+        if (state is null) FlashError = L.T("Pnl_Inv_DidoxStateFailed", Invoice.DidoxError ?? L.T("Pnl_Inv_DidoxDisabled"));
+        else FlashOk = L.T("Pnl_Inv_DidoxState", state);
         return RedirectToPage(new { id });
     }
 
@@ -280,7 +281,7 @@ public class DetailsModel(ControlDbContext db, BillingService billing, InvoicePd
         if (!IsOwner) return Forbidden();
         if (!await LoadAsync(id)) return NotFound();
         if (!await TryAsync(() => billing.ReversePaymentAsync(PaymentId, Reason ?? "", StaffId))) return Page();
-        FlashOk = "To'lov storno qilindi. Obuna va kalit o'zgarmadi — kerak bo'lsa qo'lda hal qiling.";
+        FlashOk = L.T("Pnl_Inv_PaymentReversed");
         return RedirectToPage(new { id });
     }
 }

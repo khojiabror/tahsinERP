@@ -4,6 +4,8 @@ using System.Net.Mail;
 using System.Text.Json.Nodes;
 using Microsoft.Extensions.Options;
 using tahsinERP.ControlPanel.Data;
+using tahsinERP.ControlPanel.I18n;
+using tahsinERP.Localization;
 
 namespace tahsinERP.ControlPanel.Portal;
 
@@ -130,20 +132,21 @@ public sealed class SmsOtpSender(ISmsSender sms, IOptions<PortalOptions> options
     public OtpTarget? Resolve(PortalUser user, Tenant tenant) => ResolveReset(user);
 
     public OtpTarget? ResolveReset(PortalUser user) =>
-        sms.IsConfigured && !string.IsNullOrWhiteSpace(user.Phone) ? new OtpTarget("sms", "SMS (" + PortalIdentity.Mask(user.Phone) + ")", user.Phone) : null;
+        sms.IsConfigured && !string.IsNullOrWhiteSpace(user.Phone) ? new OtpTarget("sms", L.T("Ptl_SmsTarget", PortalIdentity.Mask(user.Phone)), user.Phone) : null;
 
     public async Task SendAsync(OtpTarget target, PortalUser user, string code, CancellationToken ct = default)
     {
-        try { await sms.SendAsync(target.Address!, $"tahsinERP portal: kirish kodi {code}. {options.Value.OtpMinutes} daqiqa amal qiladi. Kodni hech kimga bermang.", ct); }
+        // SMS matni Eskiz kabinetida tasdiqlangan shablonga mos bo'lishi shart — doim asosiy tilda (o'zbekcha).
+        try { await sms.SendAsync(target.Address!, L.TFor(Languages.Default, "Ptl_MsgOtp", code, options.Value.OtpMinutes), ct); }
         catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
-        { throw new OtpDeliveryException("Kodni SMS orqali yuborib bo'lmadi. Birozdan keyin qayta urinib ko'ring.", ex); }
+        { throw new OtpDeliveryException(L.T("Ptl_SmsOtpFailed"), ex); }
     }
 
     public async Task SendResetAsync(OtpTarget target, PortalUser user, string url, int minutes, CancellationToken ct = default)
     {
-        try { await sms.SendAsync(target.Address!, $"tahsinERP portal: parolni tiklash havolasi ({minutes} daqiqa): {url}", ct); }
+        try { await sms.SendAsync(target.Address!, L.TFor(Languages.Default, "Ptl_MsgResetLinkSms", minutes, url), ct); }
         catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
-        { throw new OtpDeliveryException("SMS yuborib bo'lmadi.", ex); }
+        { throw new OtpDeliveryException(L.T("Ptl_SmsFailed"), ex); }
     }
 }
 
@@ -155,7 +158,7 @@ public sealed class EmailOtpSender(IEmailSender email, IOptions<PortalOptions> o
     public OtpTarget? Resolve(PortalUser user, Tenant tenant) => ResolveReset(user);
 
     public OtpTarget? ResolveReset(PortalUser user) =>
-        email.IsConfigured && !string.IsNullOrWhiteSpace(user.Email) ? new OtpTarget("email", "email (" + MaskEmail(user.Email) + ")", user.Email) : null;
+        email.IsConfigured && !string.IsNullOrWhiteSpace(user.Email) ? new OtpTarget("email", L.T("Ptl_EmailTarget", MaskEmail(user.Email)), user.Email) : null;
 
     public static string MaskEmail(string e)
     {
@@ -167,21 +170,21 @@ public sealed class EmailOtpSender(IEmailSender email, IOptions<PortalOptions> o
     {
         try
         {
-            await email.SendAsync(target.Address!, "tahsinERP portal: kirish kodi",
-                $"Assalomu alaykum, {user.FullName}!\n\ntahsinERP portal: kirish kodi {code}. {options.Value.OtpMinutes} daqiqa amal qiladi.\nKodni hech kimga bermang. Siz so'ramagan bo'lsangiz — parolingizni almashtiring.", ct);
+            await email.SendAsync(target.Address!, L.T("Ptl_EmailOtpSubject"),
+                L.T("Ptl_EmailOtpBody", user.FullName, code, options.Value.OtpMinutes), ct);
         }
         catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or InvalidOperationException or FormatException)
-        { throw new OtpDeliveryException("Kodni email orqali yuborib bo'lmadi. Birozdan keyin qayta urinib ko'ring.", ex); }
+        { throw new OtpDeliveryException(L.T("Ptl_EmailOtpFailed"), ex); }
     }
 
     public async Task SendResetAsync(OtpTarget target, PortalUser user, string url, int minutes, CancellationToken ct = default)
     {
         try
         {
-            await email.SendAsync(target.Address!, "tahsinERP portal: parolni tiklash",
-                $"Assalomu alaykum, {user.FullName}!\n\nParolni tiklash havolasi ({minutes} daqiqa amal qiladi, bir marta ishlaydi):\n{url}\n\nSiz so'ramagan bo'lsangiz — bu xatga e'tibor bermang, parolingiz o'zgarmaydi.", ct);
+            await email.SendAsync(target.Address!, L.T("Ptl_EmailResetSubject"),
+                L.T("Ptl_EmailResetBody", user.FullName, minutes, url), ct);
         }
         catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or InvalidOperationException or FormatException)
-        { throw new OtpDeliveryException("Email yuborib bo'lmadi.", ex); }
+        { throw new OtpDeliveryException(L.T("Ptl_EmailFailed"), ex); }
     }
 }

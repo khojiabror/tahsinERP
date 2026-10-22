@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using tahsinERP.ControlPanel.Data;
 using tahsinERP.ControlPanel.Services;
+using tahsinERP.ControlPanel.I18n;
 
 namespace tahsinERP.ControlPanel.Security;
 
@@ -30,7 +31,7 @@ public sealed class StaffAuthService(ControlDbContext db, ISecretProtector prote
 {
     public const int MaxFailedAttempts = 5;
     public static readonly TimeSpan LockoutTime = TimeSpan.FromMinutes(15);
-    public const string GenericLoginError = "Email yoki parol noto'g'ri.";
+    public static string GenericLoginError => L.T("Pnl_Auth_LoginError");
     public const string Issuer = "tahsinERP Panel";
 
     // Mavjud bo'lmagan email uchun ham xesh hisoblanadi — javob vaqti bo'yicha email borligini bilib bo'lmasin.
@@ -48,7 +49,7 @@ public sealed class StaffAuthService(ControlDbContext db, ISecretProtector prote
             return (null, GenericLoginError);
         }
         if (user.LockedUntilUtc > clock.UtcNow)
-            return (null, "Hisob vaqtincha bloklangan (ko'p xato urinish). Keyinroq urinib ko'ring.");
+            return (null, L.T("Pnl_Auth_Locked"));
         if (!PasswordHasher.Verify(password ?? "", user.PasswordHash))
         {
             await RegisterFailureAsync(user, "password", ct);
@@ -155,9 +156,9 @@ public sealed class StaffAuthService(ControlDbContext db, ISecretProtector prote
     public async Task<StaffUser> CreateStaffAsync(string email, string fullName, StaffRole role, string password, int? createdBy, CancellationToken ct = default)
     {
         string e = NormalizeEmail(email);
-        if (e.Length < 5 || !e.Contains('@')) throw new DomainException("Email noto'g'ri.");
+        if (e.Length < 5 || !e.Contains('@')) throw new DomainException(L.T("Pnl_Auth_EmailInvalid"));
         if (PasswordHasher.ValidatePolicy(password) is string err) throw new DomainException(err);
-        if (await db.StaffUsers.AnyAsync(u => u.Email == e, ct)) throw new DomainException("Bu email bilan xodim bor.");
+        if (await db.StaffUsers.AnyAsync(u => u.Email == e, ct)) throw new DomainException(L.T("Pnl_Auth_EmailExists"));
         var user = new StaffUser
         {
             Email = e, FullName = fullName.Trim(), Role = role, PasswordHash = PasswordHasher.Hash(password),

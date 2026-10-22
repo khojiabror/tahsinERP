@@ -1,47 +1,47 @@
 @page
 @model PaymentModel
-@{ ViewData["Title"] = "To'lov rekvizitlari"; var v = Model.Vendor; }
-<h1>To'lov rekvizitlari</h1>
+@{ ViewData["Title"] = L.T("Ptl_NavPayment"); var v = Model.Vendor; }
+<h1>@L.T("Ptl_NavPayment")</h1>
 @if (!Model.VendorReady)
 {
-    <div class="warnbox">Rekvizitlar hali kiritilmagan. Iltimos, xodimimiz bilan bog'laning.</div>
+    <div class="warnbox">@L.T("Ptl_VendorNotReady")</div>
 }
 else
 {
     <div class="card">
         <dl class="props">
-            <dt>Qabul qiluvchi</dt><dd><strong>@v.LegalName</strong></dd>
-            <dt>STIR</dt><dd>@v.Inn</dd>
-            @if (!string.IsNullOrEmpty(v.VatCode)) { <dt>QQS to'lovchi kodi</dt><dd>@v.VatCode</dd> }
-            <dt>Bank</dt><dd>@v.BankName</dd>
-            <dt>Hisob raqami</dt><dd><span class="mono" id="acc">@v.BankAccount</span> <button type="button" class="link" data-copy="acc">nusxa olish</button></dd>
-            <dt>MFO</dt><dd>@v.Mfo</dd>
-            @if (!string.IsNullOrEmpty(v.Address)) { <dt>Manzil</dt><dd>@v.Address</dd> }
-            @if (!string.IsNullOrEmpty(v.Phone)) { <dt>Telefon</dt><dd>@v.Phone</dd> }
+            <dt>@L.T("Ptl_Recipient")</dt><dd><strong>@v.LegalName</strong></dd>
+            <dt>@L.T("Ptl_Inn")</dt><dd>@v.Inn</dd>
+            @if (!string.IsNullOrEmpty(v.VatCode)) { <dt>@L.T("Ptl_VatCode")</dt><dd>@v.VatCode</dd> }
+            <dt>@L.T("Ptl_Bank")</dt><dd>@v.BankName</dd>
+            <dt>@L.T("Ptl_Account")</dt><dd><span class="mono" id="acc">@v.BankAccount</span> <button type="button" class="link" data-copy="acc" data-copied="@(L.T("Ptl_Copied") + " ✓")">@L.T("Ptl_CopyLower")</button></dd>
+            <dt>@L.T("Ptl_Mfo")</dt><dd>@v.Mfo</dd>
+            @if (!string.IsNullOrEmpty(v.Address)) { <dt>@L.T("Address")</dt><dd>@v.Address</dd> }
+            @if (!string.IsNullOrEmpty(v.Phone)) { <dt>@L.T("Phone")</dt><dd>@v.Phone</dd> }
         </dl>
     </div>
 }
-<h2>Qanday to'lash</h2>
+<h2>@L.T("Ptl_HowToPay")</h2>
 <div class="card">
     <ol>
-        <li>Bank orqali (to'lov topshiriqnomasi) yuqoridagi hisob raqamiga o'tkazing.</li>
-        <li><strong>To'lov maqsadida albatta hisob-faktura raqamini yozing</strong> (masalan <code>TE-2026-000123</code>) — aks holda to'lov kechikib aniqlanadi.</li>
-        <li>Summani hisob-fakturadagidek (QQS bilan) to'lang. Qisman to'lov ham qabul qilinadi.</li>
-        <li>To'lov kelib tushgach xodimimiz uni belgilaydi va obuna avtomatik uzaytiriladi. Onlayn (karta) to'lov hozircha yo'q.</li>
+        <li>@L.T("Ptl_PayStep1")</li>
+        <li><strong>@L.T("Ptl_PayStep2")</strong> (@L.T("Ptl_ForExample") <code>TE-2026-000123</code>) — @L.T("Ptl_PayStep2Tail")</li>
+        <li>@L.T("Ptl_PayStep3")</li>
+        <li>@L.T("Ptl_PayStep4")</li>
     </ol>
 </div>
 @if (Model.Unpaid.Count > 0)
 {
-    <h2>To'lanmagan hisob-fakturalar</h2>
+    <h2>@L.T("Ptl_UnpaidInvoices")</h2>
     @foreach (var i in Model.Unpaid)
     {
         <div class="card">
-            <strong>@i.Number</strong> — qoldiq <strong>@Money.FormatSom(i.RemainingTiyin)</strong>, muddat @i.DueDate.ToString("dd.MM.yyyy")
+            <strong>@i.Number</strong> — @L.T("Ptl_BalanceLower") <strong>@Money.FormatSom(i.RemainingTiyin)</strong>, @L.T("Ptl_DueLower") @i.DueDate.ToString("dd.MM.yyyy")
             <div class="spaced">
-                <label for="purpose-@i.Id">To'lov maqsadi:</label>
+                <label for="purpose-@i.Id">@L.T("Ptl_PaymentPurposeLabel")</label>
                 <textarea id="purpose-@i.Id" readonly rows="2">@PortalPageModel.PaymentPurpose(i)</textarea>
                 <div class="actions spaced">
-                    <button type="button" class="secondary" data-copy="purpose-@i.Id">Nusxa olish</button>
+                    <button type="button" class="secondary" data-copy="purpose-@i.Id" data-copied="@(L.T("Ptl_Copied") + " ✓")">@L.T("Ptl_Copy")</button>
                     <a class="btn secondary" href="/Invoices?handler=Pdf&amp;id=@i.Id">PDF</a>
                 </div>
             </div>

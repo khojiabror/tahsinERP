@@ -1,20 +1,20 @@
 @page
 @model tahsinERP.ControlPanel.Pages.Account.TotpModel
-@{ ViewData["Title"] = "Tasdiqlash kodi"; }
+@{ ViewData["Title"] = L.T("Pnl_Acc_VerifyCode"); }
 <div class="card login">
-    <div class="hud-head"><span>// IKKINCHI OMIL</span><span>AUTH-02</span></div>
-    <h1>Tasdiqlash kodi</h1>
-    <p class="hud-sub">Autentifikator ilovasidagi 6 xonali kodni kiriting.</p>
-    <ol class="steps"><li class="done">Parol</li><li class="on">2FA kod</li><li>Kirish</li></ol>
+    <div class="hud-head"><span>// @L.T("Pnl_Acc_SecondFactorHud")</span><span>AUTH-02</span></div>
+    <h1>@L.T("Pnl_Acc_VerifyCode")</h1>
+    <p class="hud-sub">@L.T("Pnl_Acc_TotpIntro")</p>
+    <ol class="steps"><li class="done">@L.T("Password")</li><li class="on">@L.T("Pnl_Acc_2faCode")</li><li>@L.T("Login")</li></ol>
     <form method="post" class="stack">
         <div asp-validation-summary="All"></div>
         <div>
-            <label asp-for="Code">Bir martalik kod</label>
+            <label asp-for="Code">@L.T("Pnl_Acc_OneTimeCode")</label>
             <input asp-for="Code" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="7" placeholder="000000" autofocus />
         </div>
         <input type="hidden" asp-for="ReturnUrl" />
-        <button type="submit">Kirish <svg class="i"><use href="#i-arrow" /></svg></button>
-        <p class="hint">Telefon yo'qolgan bo'lsa — Owner 2FA'ni Xodimlar sahifasida qayta tiklaydi.</p>
+        <button type="submit">@L.T("Login") <svg class="i"><use href="#i-arrow" /></svg></button>
+        <p class="hint">@L.T("Pnl_Acc_LostPhoneHint")</p>
     </form>
-    <div class="auth-meta"><span>TOTP · 30 SONIYA</span><span><a href="/Account/Login">← Boshqa hisob</a></span></div>
+    <div class="auth-meta"><span>@L.T("Pnl_Acc_Totp30s")</span><span><a href="/Account/Login">← @L.T("Pnl_Acc_OtherAccount")</a></span></div>
 </div>

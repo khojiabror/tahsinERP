@@ -1,15 +1,15 @@
 @page
 @model tahsinERP.ControlPanel.Pages.Licenses.IndexModel
-@{ ViewData["Title"] = "Litsenziya kalitlari"; }
-<h1>Litsenziya kalitlari</h1>
+@{ ViewData["Title"] = L.T("Pnl_Lic_Title"); }
+<h1>@L.T("Pnl_Lic_Title")</h1>
 <form method="get" class="toolbar">
     @if (Model.TenantId is not null) { <input type="hidden" name="TenantId" value="@Model.TenantId" /> }
-    <label class="check"><input type="checkbox" name="OnlyCurrent" value="true" checked="@Model.OnlyCurrent" /> Faqat joriy (faol)</label>
-    <button type="submit" class="secondary">Ko'rsatish</button>
+    <label class="check"><input type="checkbox" name="OnlyCurrent" value="true" checked="@Model.OnlyCurrent" /> @L.T("Pnl_Lic_OnlyCurrent")</label>
+    <button type="submit" class="secondary">@L.T("Pnl_Show")</button>
 </form>
-<p class="hint">Kalitlar o'chirilmaydi: yangi kalit eskisini «almashtirilgan» qiladi, bekor qilish sabab bilan yoziladi. Qo'lda chiqarish — tashkilot sahifasidan (faqat Owner).</p>
+<p class="hint">@L.T("Pnl_Lic_IndexHint")</p>
 <table>
-    <tr><th>#</th><th>Tashkilot</th><th>Edition</th><th class="num">Foyd.</th><th>Muddat</th><th>Imzo</th><th>Manba</th><th>Chiqarilgan</th><th>Holat</th></tr>
+    <tr><th>#</th><th>@L.T("Pnl_Organization")</th><th>Edition</th><th class="num">@L.T("Pnl_UsersShort")</th><th>@L.T("Pnl_Due")</th><th>@L.T("Pnl_Lic_Signature")</th><th>@L.T("Pnl_Source")</th><th>@L.T("Pnl_Lic_IssuedAt")</th><th>@L.T("Status")</th></tr>
     @foreach (var l in Model.Rows)
     {
         <tr>
@@ -18,8 +18,8 @@
             <td>@l.Edition</td><td class="num">@l.MaxUsers</td>
             <td>@l.StartDate.ToString("dd.MM.yyyy") – @l.ExpiryDate.ToString("dd.MM.yyyy")</td>
             <td>@l.KeyId</td><td>@Labels.Of(l.Source)</td><td>@l.IssuedAtUtc.ToString("dd.MM.yyyy HH:mm")</td>
-            <td>@if (l.RevokedAtUtc != null) { <span class="badge bad">bekor</span> } else if (l.SupersededById != null) { <span class="badge muted">almashtirilgan</span> } else { <span class="badge ok">joriy</span> }</td>
+            <td>@if (l.RevokedAtUtc != null) { <span class="badge bad">@L.T("Pnl_Lic_RevokedBadge")</span> } else if (l.SupersededById != null) { <span class="badge muted">@L.T("Pnl_Lic_Superseded")</span> } else { <span class="badge ok">@L.T("Pnl_Lic_Current")</span> }</td>
         </tr>
     }
 </table>
-@if (Model.Rows.Count == 0) { <div class="empty">Kalit yo'q.</div> }
+@if (Model.Rows.Count == 0) { <div class="empty">@L.T("Pnl_Lic_NoKeys")</div> }

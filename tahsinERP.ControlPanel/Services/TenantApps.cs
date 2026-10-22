@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using Microsoft.Extensions.Options;
 using tahsinERP.ControlPanel.Data;
+using tahsinERP.ControlPanel.I18n;
 
 namespace tahsinERP.ControlPanel.Services;
 
@@ -66,7 +67,7 @@ public sealed class AppsHttpClient(HttpClient http, IOptions<AppsOptions> option
     private async Task<T> SendAsync<T>(HttpMethod method, string? baseUrl, string slug, string suffix, object? body, CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(baseUrl) || string.IsNullOrWhiteSpace(O.AdminKey))
-            throw new DomainException("Bot/sayt ulanishi sozlanmagan (ControlPanel:Apps).");
+            throw new DomainException(L.T("Pnl_Apps_NotConfigured"));
         using var req = new HttpRequestMessage(method, $"{baseUrl.TrimEnd('/')}/admin/api/tenants/{Uri.EscapeDataString(slug)}{suffix}");
         req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", O.AdminKey);
         if (body != null) req.Content = JsonContent.Create(body, options: Json);
@@ -74,12 +75,12 @@ public sealed class AppsHttpClient(HttpClient http, IOptions<AppsOptions> option
         try { res = await http.SendAsync(req, ct); }
         catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
         {
-            throw new DomainException($"{new Uri(baseUrl).Host} bilan aloqa yo'q: {ex.Message}");
+            throw new DomainException(L.T("Pnl_Apps_NoConnection", new Uri(baseUrl).Host, ex.Message));
         }
         using (res)
         {
             if (res.IsSuccessStatusCode)
-                return await res.Content.ReadFromJsonAsync<T>(Json, ct) ?? throw new DomainException("Bo'sh javob.");
+                return await res.Content.ReadFromJsonAsync<T>(Json, ct) ?? throw new DomainException(L.T("Pnl_Apps_EmptyResponse"));
             string error = $"{(int)res.StatusCode}";
             try
             {
@@ -88,7 +89,7 @@ public sealed class AppsHttpClient(HttpClient http, IOptions<AppsOptions> option
             }
             catch (JsonException) { }
             throw new DomainException(res.StatusCode == System.Net.HttpStatusCode.Unauthorized
-                ? "Bot/sayt API kaliti mos emas (ControlPanel__Apps__AdminKey)." : error);
+                ? L.T("Pnl_Apps_KeyMismatch") : error);
         }
     }
 }
@@ -107,12 +108,12 @@ public sealed class TenantAppsService(IAppsClient apps, ProvisioningService prov
     }
 
     private string ErpUrl(Tenant t) =>
-        (provisioning.TenantUrl(t) ?? throw new DomainException("ControlPanel:Provisioning:BaseDomain sozlanmagan — ERP manzili noma'lum.")) + "/";
+        (provisioning.TenantUrl(t) ?? throw new DomainException(L.T("Pnl_Apps_NoBaseDomain"))) + "/";
 
     private static void EnsureSaaS(Tenant t)
     {
-        if (t.Deployment != DeploymentKind.SaaS) throw new DomainException("Bot va sayt shu yerdan faqat SaaS firmalar uchun ulanadi.");
-        if (t.Status == TenantStatus.Archived) throw new DomainException("Firma arxivlangan.");
+        if (t.Deployment != DeploymentKind.SaaS) throw new DomainException(L.T("Pnl_Apps_OnlySaas"));
+        if (t.Status == TenantStatus.Archived) throw new DomainException(L.T("Pnl_Apps_Archived"));
     }
 
     public async Task<BotAppStatus> ConnectBotAsync(Tenant t, string? token, CancellationToken ct = default)

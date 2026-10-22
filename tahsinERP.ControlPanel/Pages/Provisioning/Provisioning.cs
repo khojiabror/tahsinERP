@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using tahsinERP.ControlPanel.Data;
 using tahsinERP.ControlPanel.Services;
+using tahsinERP.ControlPanel.I18n;
 
 namespace tahsinERP.ControlPanel.Pages.Provisioning;
 
@@ -46,7 +47,7 @@ public class JobModel(ControlDbContext db, ProvisioningService provisioning) : P
         if (!CanSell || (Job.Type is ProvisioningJobType.Archive or ProvisioningJobType.Delete && !IsOwner)) return Forbidden();
         if (await TryAsync(() => provisioning.RetryAsync(Job)))
         {
-            FlashOk = "Job qayta navbatga qo'yildi.";
+            FlashOk = L.T("Pnl_Prov_Requeued");
             return RedirectToPage(new { id });
         }
         return Page();
@@ -58,7 +59,7 @@ public class JobModel(ControlDbContext db, ProvisioningService provisioning) : P
         if (!CanSell) return Forbidden();
         if (await TryAsync(() => provisioning.CancelAsync(Job)))
         {
-            FlashOk = "Job bekor qilindi.";
+            FlashOk = L.T("Pnl_Prov_Cancelled");
             return RedirectToPage(new { id });
         }
         return Page();

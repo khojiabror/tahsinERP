@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using tahsinERP.ControlPanel.Data;
 using tahsinERP.ControlPanel.Security;
 using tahsinERP.ControlPanel.Services;
+using tahsinERP.ControlPanel.I18n;
 
 namespace tahsinERP.ControlPanel.Pages.Subscriptions;
 
@@ -42,7 +43,7 @@ public class CreateModel(ControlDbContext db, SubscriptionService subscriptions,
         Subscription? sub = null;
         if (!await TryAsync(async () => sub = await subscriptions.CreateAsync(Tenant, PlanId, Period, Users, StartDate, AutoRenew)))
             return Page();
-        FlashOk = (sub!.Plan?.IsAddOn == true ? "Qo'shimcha xizmat obunasi" : "Obuna") + " yaratildi (to'lov kutilmoqda). Endi hisob-faktura chiqaring.";
+        FlashOk = sub!.Plan?.IsAddOn == true ? L.T("Pnl_Sub_AddOnCreated") : L.T("Pnl_Sub_Created");
         return RedirectToPage("/Invoices/Create", new { tenantId = TenantId, subscriptionId = sub!.Id });
     }
 }
@@ -76,9 +77,9 @@ public class EditModel(ControlDbContext db, SubscriptionService subscriptions) :
     public async Task<IActionResult> OnPostAsync(int id)
     {
         if (!await LoadAsync(id)) return NotFound();
-        if (Sub.Period == BillingPeriod.Trial) { ModelState.AddModelError("", "Sinov obunasi tahrirlanmaydi."); return Page(); }
+        if (Sub.Period == BillingPeriod.Trial) { ModelState.AddModelError("", L.T("Pnl_Sub_TrialNotEditable")); return Page(); }
         if (!await TryAsync(() => subscriptions.UpdateAsync(Sub, PlanId, Users, AutoRenew))) return Page();
-        FlashOk = "Obuna saqlandi. Paket/foydalanuvchi o'zgargan bo'lsa — tenant sahifasida «Kalitni obunadan yangilash».";
+        FlashOk = L.T("Pnl_Sub_Saved");
         return RedirectToPage("/Tenants/Details", new { id = Sub.TenantId });
     }
 
@@ -86,7 +87,7 @@ public class EditModel(ControlDbContext db, SubscriptionService subscriptions) :
     {
         if (!await LoadAsync(id)) return NotFound();
         if (!await TryAsync(() => subscriptions.CancelAsync(Sub, Reason ?? ""))) return Page();
-        FlashOk = "Obuna bekor qilindi.";
+        FlashOk = L.T("Pnl_Sub_Cancelled");
         return RedirectToPage("/Tenants/Details", new { id = Sub.TenantId });
     }
 }

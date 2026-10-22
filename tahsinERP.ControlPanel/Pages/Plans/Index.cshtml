@@ -1,22 +1,22 @@
 @page
 @model tahsinERP.ControlPanel.Pages.Plans.IndexModel
-@{ ViewData["Title"] = "Tariflar"; }
-<h1>Tariflar (paketlar)</h1>
-<p class="hint">Narxlar QQS bilan. Paket kodi = litsenziya kalitidagi Edition; ERP modullarni shu kod bo'yicha ochadi (EditionModules). Qat'iy paketlar: foydalanuvchi soni chegaradan oshsa — keyingi paket. «Qo'shimcha xizmat» — paketga kirmaydi, alohida obuna; kalitda Edition'ga «+KOD» bo'lib qo'shiladi (masalan KORP+SITE).</p>
+@{ ViewData["Title"] = L.T("Pnl_NavPlans"); }
+<h1>@L.T("Pnl_Plan_IndexTitle")</h1>
+<p class="hint">@L.T("Pnl_Plan_IndexHint")</p>
 <table>
-    <tr><th>Kod</th><th>Nomi</th><th class="num">Oylik, so'm</th><th class="num">Yillik, so'm</th><th class="num">Foydalanuvchi</th><th>Modullar</th><th class="num">QQS %</th><th>Holat</th><th></th></tr>
+    <tr><th>@L.T("Code")</th><th>@L.T("Name")</th><th class="num">@L.T("Pnl_Plan_MonthSom")</th><th class="num">@L.T("Pnl_Plan_YearSom")</th><th class="num">@L.T("Pnl_Users")</th><th>@L.T("Pnl_Modules")</th><th class="num">@L.T("Pnl_VatPercent")</th><th>@L.T("Status")</th><th></th></tr>
     @foreach (var p in Model.Plans)
     {
         <tr>
             <td><code>@p.Code</code></td>
-            <td>@p.Name @if (p.IsAddOn) { <span class="badge info">qo'shimcha xizmat</span> }</td>
-            <td class="num">@(Money.Format(p.PriceMonthTiyin) ?? "belgilanmagan")</td>
-            <td class="num">@(Money.Format(p.PriceYearTiyin) ?? "belgilanmagan")</td>
+            <td>@p.Name @if (p.IsAddOn) { <span class="badge info">@L.T("Pnl_AddOnBadge")</span> }</td>
+            <td class="num">@(Money.Format(p.PriceMonthTiyin) ?? L.T("Pnl_NotSet"))</td>
+            <td class="num">@(Money.Format(p.PriceYearTiyin) ?? L.T("Pnl_NotSet"))</td>
             <td class="num">@(p.IsAddOn ? "—" : p.MaxUsers.ToString())</td>
             <td>@p.Modules.Replace(",", ", ")</td>
             <td class="num">@p.VatRatePercent.ToString("0.##")</td>
-            <td>@(p.IsActive ? "faol" : "o'chirilgan")</td>
-            <td>@if (Model.IsOwner) { <a href="/Plans/Edit/@p.Id">Tahrirlash</a> }</td>
+            <td>@(p.IsActive ? L.T("Pnl_ActiveLower") : L.T("Pnl_DisabledLower"))</td>
+            <td>@if (Model.IsOwner) { <a href="/Plans/Edit/@p.Id">@L.T("Edit")</a> }</td>
         </tr>
     }
 </table>

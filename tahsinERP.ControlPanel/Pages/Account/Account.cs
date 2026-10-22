@@ -10,6 +10,7 @@ using QRCoder;
 using tahsinERP.ControlPanel.Data;
 using tahsinERP.ControlPanel.Security;
 using tahsinERP.ControlPanel.Services;
+using tahsinERP.ControlPanel.I18n;
 
 namespace tahsinERP.ControlPanel.Pages.Account;
 
@@ -37,8 +38,8 @@ internal static class AccountFlow
 [EnableRateLimiting("login")]
 public class LoginModel(StaffAuthService auth, IOptions<SecurityOptions> security) : PageModel
 {
-    [BindProperty, Required(ErrorMessage = "Email kiriting"), EmailAddress(ErrorMessage = "Email noto'g'ri")] public string Email { get; set; } = "";
-    [BindProperty, Required(ErrorMessage = "Parol kiriting"), DataType(DataType.Password)] public string Password { get; set; } = "";
+    [BindProperty, Required(ErrorMessageResourceType = typeof(PnlVal), ErrorMessageResourceName = nameof(PnlVal.EmailRequired)), EmailAddress(ErrorMessageResourceType = typeof(PnlVal), ErrorMessageResourceName = nameof(PnlVal.EmailInvalid))] public string Email { get; set; } = "";
+    [BindProperty, Required(ErrorMessageResourceType = typeof(PnlVal), ErrorMessageResourceName = nameof(PnlVal.PasswordRequired)), DataType(DataType.Password)] public string Password { get; set; } = "";
     [BindProperty(SupportsGet = true)] public string? ReturnUrl { get; set; }
     public bool TotpRequired => security.Value.RequireStaffTotp;
 
@@ -73,7 +74,7 @@ public class LoginModel(StaffAuthService auth, IOptions<SecurityOptions> securit
 [EnableRateLimiting("login")]
 public class TotpModel(ControlDbContext db, StaffAuthService auth) : PageModel
 {
-    [BindProperty, Required(ErrorMessage = "Kodni kiriting")] public string Code { get; set; } = "";
+    [BindProperty, Required(ErrorMessageResourceType = typeof(PnlVal), ErrorMessageResourceName = nameof(PnlVal.CodeRequired))] public string Code { get; set; } = "";
     [BindProperty(SupportsGet = true)] public string? ReturnUrl { get; set; }
 
     public async Task<IActionResult> OnGetAsync()
@@ -91,7 +92,7 @@ public class TotpModel(ControlDbContext db, StaffAuthService auth) : PageModel
         if (!ModelState.IsValid) return Page();
         if (!await auth.VerifyTotpAndCompleteAsync(user, Code))
         {
-            ModelState.AddModelError(string.Empty, user.LockedUntilUtc != null ? "Hisob vaqtincha bloklandi." : "Kod noto'g'ri yoki eskirgan.");
+            ModelState.AddModelError(string.Empty, user.LockedUntilUtc != null ? L.T("Pnl_Acc_TempLocked") : L.T("Pnl_Acc_CodeInvalid"));
             return Page();
         }
         await AccountFlow.CompleteAsync(this, user);
@@ -104,7 +105,7 @@ public class TotpModel(ControlDbContext db, StaffAuthService auth) : PageModel
 public class EnrollTotpModel(ControlDbContext db, StaffAuthService auth, ISecretProtector protector) : PageModel
 {
     [BindProperty] public string ProtectedSecret { get; set; } = "";
-    [BindProperty, Required(ErrorMessage = "Ilovadagi 6 xonali kodni kiriting")] public string Code { get; set; } = "";
+    [BindProperty, Required(ErrorMessageResourceType = typeof(PnlVal), ErrorMessageResourceName = nameof(PnlVal.AppCodeRequired))] public string Code { get; set; } = "";
     [BindProperty(SupportsGet = true)] public string? ReturnUrl { get; set; }
     public string SecretText { get; private set; } = "";
     public string QrDataUri { get; private set; } = "";
@@ -136,7 +137,7 @@ public class EnrollTotpModel(ControlDbContext db, StaffAuthService auth, ISecret
         if (!ModelState.IsValid) return Page();
         if (!await auth.EnrollTotpAndCompleteAsync(user, secret, Code))
         {
-            ModelState.AddModelError(string.Empty, "Kod mos kelmadi. Telefon soati to'g'riligini tekshiring.");
+            ModelState.AddModelError(string.Empty, L.T("Pnl_Acc_CodeMismatch"));
             return Page();
         }
         await AccountFlow.CompleteAsync(this, user);
@@ -173,9 +174,9 @@ public class DeniedModel : PageModel
 
 public class ChangePasswordModel(ControlDbContext db, AuditLogger audit) : PanelPageModel
 {
-    [BindProperty, Required(ErrorMessage = "Joriy parol"), DataType(DataType.Password)] public string Current { get; set; } = "";
-    [BindProperty, Required(ErrorMessage = "Yangi parol"), DataType(DataType.Password)] public string New { get; set; } = "";
-    [BindProperty, Required(ErrorMessage = "Takror"), DataType(DataType.Password)] public string Confirm { get; set; } = "";
+    [BindProperty, Required(ErrorMessageResourceType = typeof(PnlVal), ErrorMessageResourceName = nameof(PnlVal.CurrentPassword)), DataType(DataType.Password)] public string Current { get; set; } = "";
+    [BindProperty, Required(ErrorMessageResourceType = typeof(PnlVal), ErrorMessageResourceName = nameof(PnlVal.NewPassword)), DataType(DataType.Password)] public string New { get; set; } = "";
+    [BindProperty, Required(ErrorMessageResourceType = typeof(PnlVal), ErrorMessageResourceName = nameof(PnlVal.Repeat)), DataType(DataType.Password)] public string Confirm { get; set; } = "";
 
     public void OnGet() { }
 
@@ -184,8 +185,8 @@ public class ChangePasswordModel(ControlDbContext db, AuditLogger audit) : Panel
         if (!ModelState.IsValid) return Page();
         var user = await db.StaffUsers.FindAsync(StaffId);
         if (user is null) return RedirectToPage("/Account/Login");
-        if (!PasswordHasher.Verify(Current, user.PasswordHash)) ModelState.AddModelError(nameof(Current), "Joriy parol noto'g'ri.");
-        else if (New != Confirm) ModelState.AddModelError(nameof(Confirm), "Parollar mos emas.");
+        if (!PasswordHasher.Verify(Current, user.PasswordHash)) ModelState.AddModelError(nameof(Current), L.T("Pnl_Acc_CurrentPasswordWrong"));
+        else if (New != Confirm) ModelState.AddModelError(nameof(Confirm), L.T("Pnl_Acc_PasswordsMismatch"));
         else if (PasswordHasher.ValidatePolicy(New) is string err) ModelState.AddModelError(nameof(New), err);
         if (!ModelState.IsValid) return Page();
         user.PasswordHash = PasswordHasher.Hash(New);
@@ -193,7 +194,7 @@ public class ChangePasswordModel(ControlDbContext db, AuditLogger audit) : Panel
         audit.Add("staff.password", "StaffUser", user.Id);
         await db.SaveChangesAsync();
         await HttpContext.SignInAsync(AuthSchemes.Staff, StaffAuthService.BuildPrincipal(user, AuthSchemes.Staff));
-        FlashOk = "Parol almashtirildi.";
+        FlashOk = L.T("Pnl_Acc_PasswordChanged");
         return RedirectToPage("/Index");
     }
 }

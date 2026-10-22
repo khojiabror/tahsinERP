@@ -1,19 +1,19 @@
 @page
 @model tahsinERP.ControlPanel.Pages.Staff.IndexModel
-@{ ViewData["Title"] = "Xodimlar"; }
-<h1>Xodimlar</h1>
-<div class="actions"><a class="btn" href="/Staff/Create">+ Xodim qo'shish</a></div>
-<p class="hint">Rollar: Owner — hammasi (storno, kalit chiqarish/bekor qilish, tariflar, serverlar, xodimlar); Sotuv — tashkilot, obuna, hisob-faktura, to'lov belgilash; Qo'llab-quvvatlash — ko'rish va reg_token.</p>
+@{ ViewData["Title"] = L.T("Pnl_NavStaff"); }
+<h1>@L.T("Pnl_NavStaff")</h1>
+<div class="actions"><a class="btn" href="/Staff/Create">+ @L.T("Pnl_Staff_Add")</a></div>
+<p class="hint">@L.T("Pnl_Staff_RolesHint")</p>
 <table>
-    <tr><th>Email</th><th>Ism</th><th>Rol</th><th>2FA</th><th>Holat</th><th>Oxirgi kirish (UTC)</th><th></th></tr>
+    <tr><th>Email</th><th>@L.T("Pnl_FirstName")</th><th>@L.T("Pnl_Role")</th><th>2FA</th><th>@L.T("Status")</th><th>@L.T("Pnl_LastLoginUtc")</th><th></th></tr>
     @foreach (var s in Model.Rows)
     {
         <tr>
             <td>@s.Email</td><td>@s.FullName</td><td>@Labels.Of(s.Role)</td>
-            <td>@(s.TotpSecretProtected is null ? "ulanmagan" : "ulangan")</td>
-            <td>@(s.IsActive ? (s.LockedUntilUtc > DateTime.UtcNow ? "bloklangan" : "faol") : "o'chirilgan")</td>
+            <td>@(s.TotpSecretProtected is null ? L.T("Pnl_NotConnected") : L.T("Pnl_Connected"))</td>
+            <td>@(s.IsActive ? (s.LockedUntilUtc > DateTime.UtcNow ? L.T("Pnl_Locked") : L.T("Pnl_ActiveLower")) : L.T("Pnl_DisabledLower"))</td>
             <td>@s.LastLoginUtc?.ToString("dd.MM.yyyy HH:mm")</td>
-            <td><a href="/Staff/Edit/@s.Id">Boshqarish</a></td>
+            <td><a href="/Staff/Edit/@s.Id">@L.T("Pnl_Manage")</a></td>
         </tr>
     }
 </table>

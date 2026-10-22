@@ -165,4 +165,3184 @@
   <data name="Auth_Footer" xml:space="preserve">
     <value>Ruxsatsiz kirish taqiqlanadi. Barcha urinishlar qayd etiladi.</value>
   </data>
+  <data name="Pnl_Acc_2faCode" xml:space="preserve">
+    <value>2FA kod</value>
+  </data>
+  <data name="Pnl_Acc_AppCode" xml:space="preserve">
+    <value>Ilovadagi 6 xonali kod</value>
+  </data>
+  <data name="Pnl_Acc_AuditOn" xml:space="preserve">
+    <value>AUDIT: YOQILGAN</value>
+  </data>
+  <data name="Pnl_Acc_CodeInvalid" xml:space="preserve">
+    <value>Kod noto'g'ri yoki eskirgan.</value>
+  </data>
+  <data name="Pnl_Acc_CodeMismatch" xml:space="preserve">
+    <value>Kod mos kelmadi. Telefon soati to'g'riligini tekshiring.</value>
+  </data>
+  <data name="Pnl_Acc_ConfirmAndLogin" xml:space="preserve">
+    <value>Tasdiqlash va kirish</value>
+  </data>
+  <data name="Pnl_Acc_Continue" xml:space="preserve">
+    <value>Davom etish</value>
+  </data>
+  <data name="Pnl_Acc_CurrentPasswordWrong" xml:space="preserve">
+    <value>Joriy parol noto'g'ri.</value>
+  </data>
+  <data name="Pnl_Acc_DeniedText" xml:space="preserve">
+    <value>Bu amal sizning rolingiz uchun yopiq.</value>
+  </data>
+  <data name="Pnl_Acc_Enroll2fa" xml:space="preserve">
+    <value>2FA ulash</value>
+  </data>
+  <data name="Pnl_Acc_Enroll2faHud" xml:space="preserve">
+    <value>2FA ULASH</value>
+  </data>
+  <data name="Pnl_Acc_EnrollIntro" xml:space="preserve">
+    <value>Panelga kirish uchun 2FA majburiy. Autentifikator ilovasi (Google Authenticator, Microsoft Authenticator, Aegis…) bilan QR kodni skanerlang.</value>
+  </data>
+  <data name="Pnl_Acc_IdentHud" xml:space="preserve">
+    <value>IDENTIFIKATSIYA</value>
+  </data>
+  <data name="Pnl_Acc_LoginIntro" xml:space="preserve">
+    <value>Xodim hisob ma'lumotlarini kiriting.</value>
+  </data>
+  <data name="Pnl_Acc_LoginTitle" xml:space="preserve">
+    <value>Panelga kirish</value>
+  </data>
+  <data name="Pnl_Acc_LostPhoneHint" xml:space="preserve">
+    <value>Telefon yo'qolgan bo'lsa — Owner 2FA'ni Xodimlar sahifasida qayta tiklaydi.</value>
+  </data>
+  <data name="Pnl_Acc_ManualKey" xml:space="preserve">
+    <value>Skanerlab bo'lmasa, kalitni qo'lda kiriting:</value>
+  </data>
+  <data name="Pnl_Acc_NewPasswordRepeat" xml:space="preserve">
+    <value>Yangi parol (takror)</value>
+  </data>
+  <data name="Pnl_Acc_NextStepHint" xml:space="preserve">
+    <value>Keyingi qadam — autentifikator ilovasidagi 6 xonali kod (2FA majburiy).</value>
+  </data>
+  <data name="Pnl_Acc_OneTimeCode" xml:space="preserve">
+    <value>Bir martalik kod</value>
+  </data>
+  <data name="Pnl_Acc_OtherAccount" xml:space="preserve">
+    <value>Boshqa hisob</value>
+  </data>
+  <data name="Pnl_Acc_PasswordChanged" xml:space="preserve">
+    <value>Parol almashtirildi.</value>
+  </data>
+  <data name="Pnl_Acc_PasswordPolicyHint" xml:space="preserve">
+    <value>Kamida 12 belgi, harf va raqam.</value>
+  </data>
+  <data name="Pnl_Acc_PasswordsMismatch" xml:space="preserve">
+    <value>Parollar mos emas.</value>
+  </data>
+  <data name="Pnl_Acc_QrCode" xml:space="preserve">
+    <value>QR kod</value>
+  </data>
+  <data name="Pnl_Acc_SecondFactorHud" xml:space="preserve">
+    <value>IKKINCHI OMIL</value>
+  </data>
+  <data name="Pnl_Acc_SessionEncrypted" xml:space="preserve">
+    <value>SEANS: SHIFRLANGAN</value>
+  </data>
+  <data name="Pnl_Acc_TempLocked" xml:space="preserve">
+    <value>Hisob vaqtincha bloklandi.</value>
+  </data>
+  <data name="Pnl_Acc_ToHome" xml:space="preserve">
+    <value>Bosh sahifaga</value>
+  </data>
+  <data name="Pnl_Acc_Totp30s" xml:space="preserve">
+    <value>TOTP · 30 SONIYA</value>
+  </data>
+  <data name="Pnl_Acc_TotpIntro" xml:space="preserve">
+    <value>Autentifikator ilovasidagi 6 xonali kodni kiriting.</value>
+  </data>
+  <data name="Pnl_Acc_TwoStep" xml:space="preserve">
+    <value>Ikki bosqichli tasdiqlash</value>
+  </data>
+  <data name="Pnl_Acc_VerifyCode" xml:space="preserve">
+    <value>Tasdiqlash kodi</value>
+  </data>
+  <data name="Pnl_Act_ActionLower" xml:space="preserve">
+    <value>amal</value>
+  </data>
+  <data name="Pnl_Act_ActionsN" xml:space="preserve">
+    <value>{0} amal</value>
+  </data>
+  <data name="Pnl_Act_AndLogs" xml:space="preserve">
+    <value>Faollik va loglar</value>
+  </data>
+  <data name="Pnl_Act_Daily" xml:space="preserve">
+    <value>Kunlik faollik</value>
+  </data>
+  <data name="Pnl_Act_DailyAria" xml:space="preserve">
+    <value>Kunlik kirish va amallar</value>
+  </data>
+  <data name="Pnl_Act_Hint" xml:space="preserve">
+    <value>Agent ERP bazasidagi USER_ENTRIES / USERLOGS dan yig'adi (sinov va demo — 15 daqiqada, qolganlar — soatda). Panelda 90 kun saqlanadi. IP, MAC, F.I.Sh., email va parollar panelga yuborilmaydi; amal matnida email/telefon/uzun raqamlar yashirilgan.</value>
+  </data>
+  <data name="Pnl_Act_InDays" xml:space="preserve">
+    <value>{0} kunda</value>
+  </data>
+  <data name="Pnl_Act_LoginLower" xml:space="preserve">
+    <value>kirish</value>
+  </data>
+  <data name="Pnl_Act_LoginsActions" xml:space="preserve">
+    <value>{0} kirish, {1} amal</value>
+  </data>
+  <data name="Pnl_Act_LoginsUsersN" xml:space="preserve">
+    <value>{0} kirish, {1} foydalanuvchi</value>
+  </data>
+  <data name="Pnl_Act_ModulesDays" xml:space="preserve">
+    <value>Modullar ({0} kun)</value>
+  </data>
+  <data name="Pnl_Act_Recent" xml:space="preserve">
+    <value>So'nggi kirish va amallar</value>
+  </data>
+  <data name="Pnl_Act_Summary" xml:space="preserve">
+    <value>{0} kirish, {1} amal, faol foydalanuvchilar: {2}</value>
+  </data>
+  <data name="Pnl_Act_Title" xml:space="preserve">
+    <value>Faollik: {0}</value>
+  </data>
+  <data name="Pnl_ActiveLower" xml:space="preserve">
+    <value>faol</value>
+  </data>
+  <data name="Pnl_Activity" xml:space="preserve">
+    <value>Faollik</value>
+  </data>
+  <data name="Pnl_ActivityLink" xml:space="preserve">
+    <value>faollik</value>
+  </data>
+  <data name="Pnl_AddOnBadge" xml:space="preserve">
+    <value>qo'shimcha xizmat</value>
+  </data>
+  <data name="Pnl_AddOnServices" xml:space="preserve">
+    <value>Qo'shimcha xizmatlar</value>
+  </data>
+  <data name="Pnl_Agent" xml:space="preserve">
+    <value>Agent</value>
+  </data>
+  <data name="Pnl_AllLower" xml:space="preserve">
+    <value>barchasi</value>
+  </data>
+  <data name="Pnl_AmountSom" xml:space="preserve">
+    <value>Summa, so'm</value>
+  </data>
+  <data name="Pnl_Apps_Archived" xml:space="preserve">
+    <value>Firma arxivlangan.</value>
+  </data>
+  <data name="Pnl_Apps_EmptyResponse" xml:space="preserve">
+    <value>Bo'sh javob.</value>
+  </data>
+  <data name="Pnl_Apps_KeyMismatch" xml:space="preserve">
+    <value>Bot/sayt API kaliti mos emas (ControlPanel__Apps__AdminKey).</value>
+  </data>
+  <data name="Pnl_Apps_NoBaseDomain" xml:space="preserve">
+    <value>ControlPanel:Provisioning:BaseDomain sozlanmagan — ERP manzili noma'lum.</value>
+  </data>
+  <data name="Pnl_Apps_NoConnection" xml:space="preserve">
+    <value>{0} bilan aloqa yo'q: {1}</value>
+  </data>
+  <data name="Pnl_Apps_NotConfigured" xml:space="preserve">
+    <value>Bot/sayt ulanishi sozlanmagan (ControlPanel:Apps).</value>
+  </data>
+  <data name="Pnl_Apps_OnlySaas" xml:space="preserve">
+    <value>Bot va sayt shu yerdan faqat SaaS firmalar uchun ulanadi.</value>
+  </data>
+  <data name="Pnl_Audit_Action" xml:space="preserve">
+    <value>Amal</value>
+  </data>
+  <data name="Pnl_Audit_ActionPrefix" xml:space="preserve">
+    <value>Amal (boshi)</value>
+  </data>
+  <data name="Pnl_Audit_After" xml:space="preserve">
+    <value>Keyin</value>
+  </data>
+  <data name="Pnl_Audit_Before" xml:space="preserve">
+    <value>Oldin</value>
+  </data>
+  <data name="Pnl_Audit_Client" xml:space="preserve">
+    <value>mijoz #{0}</value>
+  </data>
+  <data name="Pnl_Audit_Entity" xml:space="preserve">
+    <value>Obyekt</value>
+  </data>
+  <data name="Pnl_Audit_System" xml:space="preserve">
+    <value>tizim</value>
+  </data>
+  <data name="Pnl_Audit_Title" xml:space="preserve">
+    <value>Audit jurnali</value>
+  </data>
+  <data name="Pnl_Auth_EmailExists" xml:space="preserve">
+    <value>Bu email bilan xodim bor.</value>
+  </data>
+  <data name="Pnl_Auth_EmailInvalid" xml:space="preserve">
+    <value>Email noto'g'ri.</value>
+  </data>
+  <data name="Pnl_Auth_Locked" xml:space="preserve">
+    <value>Hisob vaqtincha bloklangan (ko'p xato urinish). Keyinroq urinib ko'ring.</value>
+  </data>
+  <data name="Pnl_Auth_LoginError" xml:space="preserve">
+    <value>Email yoki parol noto'g'ri.</value>
+  </data>
+  <data name="Pnl_AutoRenew" xml:space="preserve">
+    <value>Avtomatik uzaytirish</value>
+  </data>
+  <data name="Pnl_BankLine_Applied" xml:space="preserve">
+    <value>Qo'llandi</value>
+  </data>
+  <data name="Pnl_BankLine_Applying" xml:space="preserve">
+    <value>Jarayonda (to'lovlarni tekshiring)</value>
+  </data>
+  <data name="Pnl_BankLine_Pending" xml:space="preserve">
+    <value>Kutilmoqda</value>
+  </data>
+  <data name="Pnl_BankLine_Skipped" xml:space="preserve">
+    <value>O'tkazildi</value>
+  </data>
+  <data name="Pnl_BankMatch_Ambiguous" xml:space="preserve">
+    <value>Bir nechta</value>
+  </data>
+  <data name="Pnl_BankMatch_Blocked" xml:space="preserve">
+    <value>To'sib qo'yilgan</value>
+  </data>
+  <data name="Pnl_BankMatch_Duplicate" xml:space="preserve">
+    <value>Takror</value>
+  </data>
+  <data name="Pnl_BankMatch_Matched" xml:space="preserve">
+    <value>Mos</value>
+  </data>
+  <data name="Pnl_BankMatch_NotIncoming" xml:space="preserve">
+    <value>Chiqim</value>
+  </data>
+  <data name="Pnl_BankMatch_Unmatched" xml:space="preserve">
+    <value>Topilmadi</value>
+  </data>
+  <data name="Pnl_BankSvc_AmountExceeds" xml:space="preserve">
+    <value>{0}: summa qoldiqdan ({1}) katta.</value>
+  </data>
+  <data name="Pnl_BankSvc_CannotApplyLine" xml:space="preserve">
+    <value>Bu qatorni qo'llab bo'lmaydi (chiquvchi yoki takror).</value>
+  </data>
+  <data name="Pnl_BankSvc_FailApplied" xml:space="preserve">
+    <value>allaqachon qo'llangan</value>
+  </data>
+  <data name="Pnl_BankSvc_FailDuplicate" xml:space="preserve">
+    <value>takror — allaqachon qo'llangan</value>
+  </data>
+  <data name="Pnl_BankSvc_FailError" xml:space="preserve">
+    <value>xato</value>
+  </data>
+  <data name="Pnl_BankSvc_FailNoInvoice" xml:space="preserve">
+    <value>hisob-faktura tanlanmagan</value>
+  </data>
+  <data name="Pnl_BankSvc_FailSkipped" xml:space="preserve">
+    <value>o'tkazib yuborilgan</value>
+  </data>
+  <data name="Pnl_BankSvc_FileUploadedBefore" xml:space="preserve">
+    <value>Bu fayl avval ham yuklangan — qo'llangan qatorlar «Takror» deb belgilanadi.</value>
+  </data>
+  <data name="Pnl_BankSvc_InvoiceChanged" xml:space="preserve">
+    <value>Hisob-faktura shu orada o'zgardi — qayta urinib ko'ring.</value>
+  </data>
+  <data name="Pnl_BankSvc_InvoiceNotFound" xml:space="preserve">
+    <value>{0} hisob-faktura topilmadi.</value>
+  </data>
+  <data name="Pnl_BankSvc_InvoiceNotPayable" xml:space="preserve">
+    <value>{0}: {1} — to'lov qabul qilinmaydi.</value>
+  </data>
+  <data name="Pnl_BankSvc_LineAlreadyApplied" xml:space="preserve">
+    <value>Qator allaqachon qo'llangan.</value>
+  </data>
+  <data name="Pnl_BankSvc_LineNotFound" xml:space="preserve">
+    <value>Qator topilmadi.</value>
+  </data>
+  <data name="Pnl_BankSvc_NewKey" xml:space="preserve">
+    <value>yangi kalit #{0}</value>
+  </data>
+  <data name="Pnl_BankSvc_NoPaymentLines" xml:space="preserve">
+    <value>Faylda to'lov qatori topilmadi.</value>
+  </data>
+  <data name="Pnl_Bank_Account" xml:space="preserve">
+    <value>Hisob</value>
+  </data>
+  <data name="Pnl_Bank_AllStatements" xml:space="preserve">
+    <value>Barcha ko'chirmalar</value>
+  </data>
+  <data name="Pnl_Bank_AppliedCol" xml:space="preserve">
+    <value>Qo'llangan</value>
+  </data>
+  <data name="Pnl_Bank_AppliedCount" xml:space="preserve">
+    <value>Qo'llandi: {0} ta.</value>
+  </data>
+  <data name="Pnl_Bank_ApplyHint" xml:space="preserve">
+    <value>Har qator — «To'lov qabul qilindi» bilan bir xil: to'liq yopilsa obuna uzaytiriladi va kalit chiqadi. Belgilangan to'lov faqat storno qilinadi.</value>
+  </data>
+  <data name="Pnl_Bank_ApplySelected" xml:space="preserve">
+    <value>Tanlanganlarni qo'llash</value>
+  </data>
+  <data name="Pnl_Bank_Empty" xml:space="preserve">
+    <value>Hali ko'chirma yuklanmagan.</value>
+  </data>
+  <data name="Pnl_Bank_FailedCount" xml:space="preserve">
+    <value>Qo'llanmadi: {0} ta.</value>
+  </data>
+  <data name="Pnl_Bank_FileTooLarge" xml:space="preserve">
+    <value>Fayl juda katta (ko'pi bilan 5 MB).</value>
+  </data>
+  <data name="Pnl_Bank_HelpColumns" xml:space="preserve">
+    <value>yoki CSV / XLSX: ustunlar — sana, summa, to'lovchi STIR, to'lov maqsadi (ixtiyoriy: hujjat №, to'lovchi, hisob). Kiruvchi to'lovlar ochiq hisob-fakturalarga moslanadi: avval maqsaddagi</value>
+  </data>
+  <data name="Pnl_Bank_HelpDuplicate" xml:space="preserve">
+    <value>Bitta bank tranzaksiyasi (sana + summa + hujjat № + to'lovchi hisobi) ikki marta qo'llanmaydi.</value>
+  </data>
+  <data name="Pnl_Bank_HelpFormat" xml:space="preserve">
+    <value>1C «Клиент-Банк» almashinuv fayli</value>
+  </data>
+  <data name="Pnl_Bank_HelpMatch" xml:space="preserve">
+    <value>raqami, keyin STIR + aniq qoldiq summa. Hech narsa avtomatik qo'llanmaydi — keyingi sahifada tasdiqlaysiz.</value>
+  </data>
+  <data name="Pnl_Bank_IncomingMatched" xml:space="preserve">
+    <value>Kiruvchi / mos</value>
+  </data>
+  <data name="Pnl_Bank_InvoiceChosen" xml:space="preserve">
+    <value>Hisob-faktura tanlandi.</value>
+  </data>
+  <data name="Pnl_Bank_LineSkipped" xml:space="preserve">
+    <value>Qator o'tkazib yuborildi.</value>
+  </data>
+  <data name="Pnl_Bank_Lines" xml:space="preserve">
+    <value>Qator</value>
+  </data>
+  <data name="Pnl_Bank_Matching" xml:space="preserve">
+    <value>Moslash</value>
+  </data>
+  <data name="Pnl_Bank_NothingSelected" xml:space="preserve">
+    <value>Hech qaysi qator tanlanmagan.</value>
+  </data>
+  <data name="Pnl_Bank_ReadyToApply" xml:space="preserve">
+    <value>Qo'llashga tayyor</value>
+  </data>
+  <data name="Pnl_Bank_Rematched" xml:space="preserve">
+    <value>Qator qayta moslandi.</value>
+  </data>
+  <data name="Pnl_Bank_SelectFile" xml:space="preserve">
+    <value>Faylni tanlang.</value>
+  </data>
+  <data name="Pnl_Bank_Skip" xml:space="preserve">
+    <value>O'tkazish</value>
+  </data>
+  <data name="Pnl_Bank_StatementNo" xml:space="preserve">
+    <value>Ko'chirma #{0}</value>
+  </data>
+  <data name="Pnl_Bank_Title" xml:space="preserve">
+    <value>Bank ko'chirmasi</value>
+  </data>
+  <data name="Pnl_Bank_UploadAndMatch" xml:space="preserve">
+    <value>Yuklash va moslash</value>
+  </data>
+  <data name="Pnl_Bank_Uploaded" xml:space="preserve">
+    <value>Yuklandi: {0} qator. Moslashni tekshirib, «Tanlanganlarni qo'llash» tugmasini bosing.</value>
+  </data>
+  <data name="Pnl_Bank_UploadedUtc" xml:space="preserve">
+    <value>Yuklangan (UTC)</value>
+  </data>
+  <data name="Pnl_Bill_AlreadyIssued" xml:space="preserve">
+    <value>Hisob-faktura allaqachon chiqarilgan.</value>
+  </data>
+  <data name="Pnl_Bill_AlreadyReversed" xml:space="preserve">
+    <value>To'lov allaqachon storno qilingan.</value>
+  </data>
+  <data name="Pnl_Bill_AmountExceeds" xml:space="preserve">
+    <value>Summa qoldiqdan ({0}) katta. Ortiqcha to'lovni alohida hal qiling.</value>
+  </data>
+  <data name="Pnl_Bill_AmountPositive" xml:space="preserve">
+    <value>Summa musbat bo'lsin.</value>
+  </data>
+  <data name="Pnl_Bill_ArchivedTenant" xml:space="preserve">
+    <value>Arxivdagi tenantga hisob-faktura chiqarilmaydi.</value>
+  </data>
+  <data name="Pnl_Bill_AtLeastOneLine" xml:space="preserve">
+    <value>Kamida bitta qator bo'lsin.</value>
+  </data>
+  <data name="Pnl_Bill_CancelReasonRequired" xml:space="preserve">
+    <value>Bekor qilish sababi majburiy.</value>
+  </data>
+  <data name="Pnl_Bill_CannotCancel" xml:space="preserve">
+    <value>Bu hisob-fakturani bekor qilib bo'lmaydi.</value>
+  </data>
+  <data name="Pnl_Bill_FullyPaid" xml:space="preserve">
+    <value>Hisob-faktura to'liq to'langan.</value>
+  </data>
+  <data name="Pnl_Bill_HasPayments" xml:space="preserve">
+    <value>To'lov bor — avval to'lovlarni storno qiling.</value>
+  </data>
+  <data name="Pnl_Bill_KeyFailedWarning" xml:space="preserve">
+    <value>To'lov saqlandi, lekin kalit chiqmadi: {0} — tenant sahifasidan qayta chiqaring.</value>
+  </data>
+  <data name="Pnl_Bill_NoPriceAddOnMonth" xml:space="preserve">
+    <value>'{0}' xizmatining oylik narxi hali belgilanmagan (Tariflar sahifasi).</value>
+  </data>
+  <data name="Pnl_Bill_NoPriceAddOnYear" xml:space="preserve">
+    <value>'{0}' xizmatining yillik narxi hali belgilanmagan (Tariflar sahifasi).</value>
+  </data>
+  <data name="Pnl_Bill_NoPricePlanMonth" xml:space="preserve">
+    <value>'{0}' paketining oylik narxi hali belgilanmagan (Tariflar sahifasi).</value>
+  </data>
+  <data name="Pnl_Bill_NoPricePlanYear" xml:space="preserve">
+    <value>'{0}' paketining yillik narxi hali belgilanmagan (Tariflar sahifasi).</value>
+  </data>
+  <data name="Pnl_Bill_NotBoundWarning" xml:space="preserve">
+    <value>Tenant hali ERP'ga bog'lanmagan — kalit ro'yxatdan o'tishda (register) avtomatik beriladi.</value>
+  </data>
+  <data name="Pnl_Bill_OnlyDraftEditable" xml:space="preserve">
+    <value>Faqat qoralama (Draft) tahrirlanadi.</value>
+  </data>
+  <data name="Pnl_Bill_PaidAtFuture" xml:space="preserve">
+    <value>To'lov sanasi kelajakda bo'lmasin.</value>
+  </data>
+  <data name="Pnl_Bill_PaidAtTooEarly" xml:space="preserve">
+    <value>To'lov sanasi hisob-fakturadan ancha oldin — tekshiring.</value>
+  </data>
+  <data name="Pnl_Bill_PayOnlyIssued" xml:space="preserve">
+    <value>To'lov faqat chiqarilgan hisob-fakturaga belgilanadi.</value>
+  </data>
+  <data name="Pnl_Bill_PaymentNotFound" xml:space="preserve">
+    <value>To'lov topilmadi.</value>
+  </data>
+  <data name="Pnl_Bill_PeriodCountInvalid" xml:space="preserve">
+    <value>Davrlar soni noto'g'ri.</value>
+  </data>
+  <data name="Pnl_Bill_ReverseReasonRequired" xml:space="preserve">
+    <value>Storno sababi majburiy.</value>
+  </data>
+  <data name="Pnl_Bill_RowNameEmpty" xml:space="preserve">
+    <value>{0}-qator: nomi bo'sh.</value>
+  </data>
+  <data name="Pnl_Bill_RowPriceNegative" xml:space="preserve">
+    <value>{0}-qator: narx manfiy.</value>
+  </data>
+  <data name="Pnl_Bill_RowQtyPositive" xml:space="preserve">
+    <value>{0}-qator: miqdor musbat bo'lsin.</value>
+  </data>
+  <data name="Pnl_Bill_RowVatInvalid" xml:space="preserve">
+    <value>{0}-qator: QQS stavkasi noto'g'ri.</value>
+  </data>
+  <data name="Pnl_Bill_SubNotBillable" xml:space="preserve">
+    <value>Bu obunaga hisob-faktura chiqarib bo'lmaydi (bekor/muddati o'tgan/sinov).</value>
+  </data>
+  <data name="Pnl_Bill_SubNotOfTenant" xml:space="preserve">
+    <value>Obuna shu tenantga tegishli emas.</value>
+  </data>
+  <data name="Pnl_Bill_ZeroTotal" xml:space="preserve">
+    <value>Nol summali hisob-faktura chiqarilmaydi.</value>
+  </data>
+  <data name="Pnl_Bound" xml:space="preserve">
+    <value>bog'langan</value>
+  </data>
+  <data name="Pnl_ByText" xml:space="preserve">
+    <value>matn bo'yicha</value>
+  </data>
+  <data name="Pnl_CancelReason" xml:space="preserve">
+    <value>Bekor qilish sababi</value>
+  </data>
+  <data name="Pnl_CancelShort" xml:space="preserve">
+    <value>Bekor</value>
+  </data>
+  <data name="Pnl_Choose" xml:space="preserve">
+    <value>Tanlash</value>
+  </data>
+  <data name="Pnl_Collected" xml:space="preserve">
+    <value>Yig'ilgan</value>
+  </data>
+  <data name="Pnl_ConcurrencyConflict" xml:space="preserve">
+    <value>Ma'lumot shu orada boshqa xodim tomonidan o'zgartirildi — sahifani yangilab, qayta urinib ko'ring.</value>
+  </data>
+  <data name="Pnl_Connected" xml:space="preserve">
+    <value>ulangan</value>
+  </data>
+  <data name="Pnl_Contact" xml:space="preserve">
+    <value>Mas'ul</value>
+  </data>
+  <data name="Pnl_ContactPerson" xml:space="preserve">
+    <value>Mas'ul shaxs</value>
+  </data>
+  <data name="Pnl_CreatedUtc" xml:space="preserve">
+    <value>Yaratilgan (UTC)</value>
+  </data>
+  <data name="Pnl_Dash_ActiveTenants" xml:space="preserve">
+    <value>Faol tenantlar</value>
+  </data>
+  <data name="Pnl_Dash_DebtSom" xml:space="preserve">
+    <value>Qarz, so'm</value>
+  </data>
+  <data name="Pnl_Dash_Debtors" xml:space="preserve">
+    <value>Qarzdorlar (to'lov muddati o'tgan)</value>
+  </data>
+  <data name="Pnl_Dash_Ends" xml:space="preserve">
+    <value>Tugaydi</value>
+  </data>
+  <data name="Pnl_Dash_Expiring" xml:space="preserve">
+    <value>Muddati yaqinlashganlar (14 kun)</value>
+  </data>
+  <data name="Pnl_Dash_FailedNotifications" xml:space="preserve">
+    <value>{0} ta eslatma yuborilmadi</value>
+  </data>
+  <data name="Pnl_Dash_GraceSuspended" xml:space="preserve">
+    <value>Imtiyozli / to'xtatilgan</value>
+  </data>
+  <data name="Pnl_Dash_InTrial" xml:space="preserve">
+    <value>Sinovda</value>
+  </data>
+  <data name="Pnl_Dash_InactiveTrials" xml:space="preserve">
+    <value>Faol emas sinovlar (3+ kun kirilmagan)</value>
+  </data>
+  <data name="Pnl_Dash_LastPullUtc" xml:space="preserve">
+    <value>Oxirgi pull (UTC)</value>
+  </data>
+  <data name="Pnl_Dash_Left" xml:space="preserve">
+    <value>Qoldi</value>
+  </data>
+  <data name="Pnl_Dash_MonthlyRevenue" xml:space="preserve">
+    <value>Oylik tushum</value>
+  </data>
+  <data name="Pnl_Dash_MonthlyRevenueTitle" xml:space="preserve">
+    <value>Oylik tushum (storno qilinmagan to'lovlar, to'lov sanasi bo'yicha)</value>
+  </data>
+  <data name="Pnl_Dash_NoDebtors" xml:space="preserve">
+    <value>Qarzdor yo'q.</value>
+  </data>
+  <data name="Pnl_Dash_OfflineOnPrem" xml:space="preserve">
+    <value>On-prem: panel bilan aloqa yo'q</value>
+  </data>
+  <data name="Pnl_Dash_OldestDue" xml:space="preserve">
+    <value>Eng eski muddat</value>
+  </data>
+  <data name="Pnl_Dash_OnlineCheck" xml:space="preserve">
+    <value>Onlayn tekshiruv</value>
+  </data>
+  <data name="Pnl_Dash_OnlineRequired" xml:space="preserve">
+    <value>majburiy (kalit ≤ {0} kun)</value>
+  </data>
+  <data name="Pnl_Dash_PaymentCount" xml:space="preserve">
+    <value>To'lovlar soni</value>
+  </data>
+  <data name="Pnl_Dash_RegTokenWaiting" xml:space="preserve">
+    <value>reg_token kutilmoqda</value>
+  </data>
+  <data name="Pnl_Dash_RevenueSom" xml:space="preserve">
+    <value>Tushum, so'm</value>
+  </data>
+  <data name="Pnl_Dash_SumWithVat" xml:space="preserve">
+    <value>so'm, QQS bilan</value>
+  </data>
+  <data name="Pnl_Dash_Unbound" xml:space="preserve">
+    <value>ERP'ga bog'lanmagan</value>
+  </data>
+  <data name="Pnl_Dash_UnpaidTotal" xml:space="preserve">
+    <value>To'lanmagan jami</value>
+  </data>
+  <data name="Pnl_DateUtc" xml:space="preserve">
+    <value>Sana (UTC)</value>
+  </data>
+  <data name="Pnl_Days" xml:space="preserve">
+    <value>Kun</value>
+  </data>
+  <data name="Pnl_DaysCount" xml:space="preserve">
+    <value>{0} kun</value>
+  </data>
+  <data name="Pnl_DaysOverdue" xml:space="preserve">
+    <value>{0} kun o'tdi</value>
+  </data>
+  <data name="Pnl_Deployment" xml:space="preserve">
+    <value>Joylashuv</value>
+  </data>
+  <data name="Pnl_Deployment_OnPrem" xml:space="preserve">
+    <value>On-prem (mijoz serveri)</value>
+  </data>
+  <data name="Pnl_Deployment_SaaS" xml:space="preserve">
+    <value>SaaS (bulut)</value>
+  </data>
+  <data name="Pnl_Didox_AlreadySent" xml:space="preserve">
+    <value>Hisob-faktura Didox'ga allaqachon yuborilgan (ID {0}).</value>
+  </data>
+  <data name="Pnl_Didox_NoInn" xml:space="preserve">
+    <value>Tashkilot STIR'i (9 yoki 14 raqam) kiritilmagan — Didox xaridorni STIR bo'yicha topadi.</value>
+  </data>
+  <data name="Pnl_Didox_NotConfigured" xml:space="preserve">
+    <value>Didox sozlanmagan: {0}.</value>
+  </data>
+  <data name="Pnl_Didox_OnlyIssued" xml:space="preserve">
+    <value>Faqat chiqarilgan (raqamli) va bekor qilinmagan hisob-faktura yuboriladi.</value>
+  </data>
+  <data name="Pnl_DisabledLower" xml:space="preserve">
+    <value>o'chirilgan</value>
+  </data>
+  <data name="Pnl_DocNo" xml:space="preserve">
+    <value>Hujjat №</value>
+  </data>
+  <data name="Pnl_Doc_Income" xml:space="preserve">
+    <value>Omborga kirim</value>
+  </data>
+  <data name="Pnl_Doc_Payroll" xml:space="preserve">
+    <value>Oylik</value>
+  </data>
+  <data name="Pnl_Doc_Production" xml:space="preserve">
+    <value>Ishlab chiqarish</value>
+  </data>
+  <data name="Pnl_Doc_PurchaseOrder" xml:space="preserve">
+    <value>Xarid buyurtmasi</value>
+  </data>
+  <data name="Pnl_Doc_SalesInvoice" xml:space="preserve">
+    <value>Sotuv hisob-fakturasi</value>
+  </data>
+  <data name="Pnl_Doc_SalesOrder" xml:space="preserve">
+    <value>Sotuv buyurtmasi</value>
+  </data>
+  <data name="Pnl_Doc_Waybill" xml:space="preserve">
+    <value>Yo'l varaqasi</value>
+  </data>
+  <data name="Pnl_Document" xml:space="preserve">
+    <value>Hujjat</value>
+  </data>
+  <data name="Pnl_DraftLower" xml:space="preserve">
+    <value>qoralama</value>
+  </data>
+  <data name="Pnl_Due" xml:space="preserve">
+    <value>Muddat</value>
+  </data>
+  <data name="Pnl_DueDate" xml:space="preserve">
+    <value>To'lov muddati</value>
+  </data>
+  <data name="Pnl_EditNamed" xml:space="preserve">
+    <value>Tahrirlash: {0}</value>
+  </data>
+  <data name="Pnl_Employee" xml:space="preserve">
+    <value>Xodim</value>
+  </data>
+  <data name="Pnl_End" xml:space="preserve">
+    <value>Tugash</value>
+  </data>
+  <data name="Pnl_Err_InvoiceNotFound" xml:space="preserve">
+    <value>Hisob-faktura topilmadi.</value>
+  </data>
+  <data name="Pnl_Err_RequestId" xml:space="preserve">
+    <value>So'rov ID:</value>
+  </data>
+  <data name="Pnl_Err_TenantNotFound" xml:space="preserve">
+    <value>Tenant topilmadi.</value>
+  </data>
+  <data name="Pnl_Err_Text" xml:space="preserve">
+    <value>So'rov bajarilmadi. Xato logga yozildi.</value>
+  </data>
+  <data name="Pnl_Err_Title" xml:space="preserve">
+    <value>Xato</value>
+  </data>
+  <data name="Pnl_Err_Unexpected" xml:space="preserve">
+    <value>Kutilmagan xato</value>
+  </data>
+  <data name="Pnl_File" xml:space="preserve">
+    <value>Fayl</value>
+  </data>
+  <data name="Pnl_FirstName" xml:space="preserve">
+    <value>Ism</value>
+  </data>
+  <data name="Pnl_Format" xml:space="preserve">
+    <value>Format</value>
+  </data>
+  <data name="Pnl_FullName" xml:space="preserve">
+    <value>Ism familiya</value>
+  </data>
+  <data name="Pnl_Inn" xml:space="preserve">
+    <value>STIR</value>
+  </data>
+  <data name="Pnl_InnPinfl" xml:space="preserve">
+    <value>STIR / JShShIR</value>
+  </data>
+  <data name="Pnl_InvStatus_Cancelled" xml:space="preserve">
+    <value>Bekor qilingan</value>
+  </data>
+  <data name="Pnl_InvStatus_Draft" xml:space="preserve">
+    <value>Qoralama</value>
+  </data>
+  <data name="Pnl_InvStatus_Issued" xml:space="preserve">
+    <value>Chiqarilgan</value>
+  </data>
+  <data name="Pnl_InvStatus_Paid" xml:space="preserve">
+    <value>To'langan</value>
+  </data>
+  <data name="Pnl_InvStatus_PartiallyPaid" xml:space="preserve">
+    <value>Qisman to'langan</value>
+  </data>
+  <data name="Pnl_Inv_AmountInvalid" xml:space="preserve">
+    <value>Summa noto'g'ri.</value>
+  </data>
+  <data name="Pnl_Inv_CancelInvoice" xml:space="preserve">
+    <value>Hisob-fakturani bekor qilish</value>
+  </data>
+  <data name="Pnl_Inv_Cancelled" xml:space="preserve">
+    <value>Hisob-faktura bekor qilindi.</value>
+  </data>
+  <data name="Pnl_Inv_Checked" xml:space="preserve">
+    <value>tekshirildi</value>
+  </data>
+  <data name="Pnl_Inv_CreateDraft" xml:space="preserve">
+    <value>Qoralama yaratish</value>
+  </data>
+  <data name="Pnl_Inv_DateDue" xml:space="preserve">
+    <value>Sana / muddat</value>
+  </data>
+  <data name="Pnl_Inv_DidoxDisabled" xml:space="preserve">
+    <value>Didox o'chiq.</value>
+  </data>
+  <data name="Pnl_Inv_DidoxManual" xml:space="preserve">
+    <value>Hisob-fakturani Didox kabinetida qo'lda yarating.</value>
+  </data>
+  <data name="Pnl_Inv_DidoxOff" xml:space="preserve">
+    <value>Didox integratsiyasi o'chiq — sozlanmagan:</value>
+  </data>
+  <data name="Pnl_Inv_DidoxOnlyIssued" xml:space="preserve">
+    <value>Faqat chiqarilgan (raqamli), bekor qilinmagan hisob-faktura yuboriladi.</value>
+  </data>
+  <data name="Pnl_Inv_DidoxSendHint" xml:space="preserve">
+    <value>Qoralama yaratiladi; imzo — Didox kabinetida E-IMZO bilan. Xaridor STIR bo'yicha topiladi.</value>
+  </data>
+  <data name="Pnl_Inv_DidoxSent" xml:space="preserve">
+    <value>Didox'ga yuborildi (qoralama). Didox kabinetida E-IMZO bilan imzolang — holat avtomatik yangilanadi.</value>
+  </data>
+  <data name="Pnl_Inv_DidoxState" xml:space="preserve">
+    <value>Didox holati: {0}</value>
+  </data>
+  <data name="Pnl_Inv_DidoxStateFailed" xml:space="preserve">
+    <value>Didox holati olinmadi: {0}</value>
+  </data>
+  <data name="Pnl_Inv_DidoxTitle" xml:space="preserve">
+    <value>Didox (e-hisob-faktura)</value>
+  </data>
+  <data name="Pnl_Inv_DraftCreated" xml:space="preserve">
+    <value>Qoralama yaratildi. Tekshirib, «Chiqarish» tugmasini bosing (raqam beriladi).</value>
+  </data>
+  <data name="Pnl_Inv_DraftNo" xml:space="preserve">
+    <value>Qoralama #{0}</value>
+  </data>
+  <data name="Pnl_Inv_DraftNoLower" xml:space="preserve">
+    <value>qoralama #{0}</value>
+  </data>
+  <data name="Pnl_Inv_DraftSaved" xml:space="preserve">
+    <value>Qoralama saqlandi.</value>
+  </data>
+  <data name="Pnl_Inv_EditDraft" xml:space="preserve">
+    <value>Qoralamani tahrirlash</value>
+  </data>
+  <data name="Pnl_Inv_Extended" xml:space="preserve">
+    <value>uzaytirilgan</value>
+  </data>
+  <data name="Pnl_Inv_ExtendedNewKey" xml:space="preserve">
+    <value>Obuna uzaytirildi, yangi kalit chiqdi (#{0}, {1} gacha).</value>
+  </data>
+  <data name="Pnl_Inv_Issue" xml:space="preserve">
+    <value>Chiqarish (raqam berish)</value>
+  </data>
+  <data name="Pnl_Inv_Issued" xml:space="preserve">
+    <value>Hisob-faktura chiqarildi: {0}.</value>
+  </data>
+  <data name="Pnl_Inv_LastAttemptError" xml:space="preserve">
+    <value>Oxirgi urinish xatosi:</value>
+  </data>
+  <data name="Pnl_Inv_LinesHint" xml:space="preserve">
+    <value>Bo'sh qatorlar tashlab yuboriladi. Narxlar QQS bilan; QQS summasi = summa × stavka / (100 + stavka).</value>
+  </data>
+  <data name="Pnl_Inv_New" xml:space="preserve">
+    <value>Yangi hisob-faktura</value>
+  </data>
+  <data name="Pnl_Inv_NewHint" xml:space="preserve">
+    <value>Yangi hisob-faktura — tashkilot sahifasidan (obuna bo'yicha).</value>
+  </data>
+  <data name="Pnl_Inv_NoPayments" xml:space="preserve">
+    <value>To'lov yo'q.</value>
+  </data>
+  <data name="Pnl_Inv_NoSubscription" xml:space="preserve">
+    <value>obunasiz (alohida xizmat)</value>
+  </data>
+  <data name="Pnl_Inv_OfWhichVat" xml:space="preserve">
+    <value>shundan QQS</value>
+  </data>
+  <data name="Pnl_Inv_OnlyOverdue" xml:space="preserve">
+    <value>Faqat muddati o'tganlar</value>
+  </data>
+  <data name="Pnl_Inv_OverdueBadge" xml:space="preserve">
+    <value>o'tgan</value>
+  </data>
+  <data name="Pnl_Inv_PaidRemaining" xml:space="preserve">
+    <value>To'langan / qoldiq</value>
+  </data>
+  <data name="Pnl_Inv_PayHint" xml:space="preserve">
+    <value>Qisman to'lov mumkin. To'liq yopilsa: obuna uzaytiriladi va yangi litsenziya kaliti avtomatik chiqadi. Belgilangan to'lov o'chirilmaydi — faqat storno (Owner).</value>
+  </data>
+  <data name="Pnl_Inv_PaymentReceived" xml:space="preserve">
+    <value>To'lov qabul qilindi</value>
+  </data>
+  <data name="Pnl_Inv_PaymentRecorded" xml:space="preserve">
+    <value>To'lov belgilandi: {0}. Holat: {1}.</value>
+  </data>
+  <data name="Pnl_Inv_PaymentReversed" xml:space="preserve">
+    <value>To'lov storno qilindi. Obuna va kalit o'zgarmadi — kerak bo'lsa qo'lda hal qiling.</value>
+  </data>
+  <data name="Pnl_Inv_PeriodCount" xml:space="preserve">
+    <value>Davrlar soni (oy/yil)</value>
+  </data>
+  <data name="Pnl_Inv_PriceWithVat" xml:space="preserve">
+    <value>Narx, so'm (QQS bilan)</value>
+  </data>
+  <data name="Pnl_Inv_ReasonRequired" xml:space="preserve">
+    <value>sabab (majburiy)</value>
+  </data>
+  <data name="Pnl_Inv_Recalc" xml:space="preserve">
+    <value>Standart qatorni qayta hisoblash</value>
+  </data>
+  <data name="Pnl_Inv_RecordPayment" xml:space="preserve">
+    <value>To'lovni belgilash</value>
+  </data>
+  <data name="Pnl_Inv_RecordedBy" xml:space="preserve">
+    <value>Kim belgiladi</value>
+  </data>
+  <data name="Pnl_Inv_Reference" xml:space="preserve">
+    <value>To'lov topshirig'i / kvitansiya №</value>
+  </data>
+  <data name="Pnl_Inv_RefreshStatus" xml:space="preserve">
+    <value>Holatni yangilash</value>
+  </data>
+  <data name="Pnl_Inv_RowPriceInvalid" xml:space="preserve">
+    <value>{0}-qator: narx noto'g'ri.</value>
+  </data>
+  <data name="Pnl_Inv_RowQtyInvalid" xml:space="preserve">
+    <value>{0}-qator: miqdor noto'g'ri.</value>
+  </data>
+  <data name="Pnl_Inv_RowVatInvalid" xml:space="preserve">
+    <value>{0}-qator: QQS noto'g'ri.</value>
+  </data>
+  <data name="Pnl_Inv_SendDidox" xml:space="preserve">
+    <value>Didox'ga yuborish</value>
+  </data>
+  <data name="Pnl_Inv_Sent" xml:space="preserve">
+    <value>Yuborilgan</value>
+  </data>
+  <data name="Pnl_Inv_ServiceName" xml:space="preserve">
+    <value>Xizmat nomi</value>
+  </data>
+  <data name="Pnl_Inv_SubscriptionHint" xml:space="preserve">
+    <value>Obuna (to'liq to'langanda uzaytiriladi)</value>
+  </data>
+  <data name="Pnl_Inv_TotalWithVat" xml:space="preserve">
+    <value>Jami (QQS bilan)</value>
+  </data>
+  <data name="Pnl_Invoice" xml:space="preserve">
+    <value>Hisob-faktura</value>
+  </data>
+  <data name="Pnl_InvoiceLower" xml:space="preserve">
+    <value>hisob-faktura</value>
+  </data>
+  <data name="Pnl_JobStatus_Cancelled" xml:space="preserve">
+    <value>Bekor qilindi</value>
+  </data>
+  <data name="Pnl_JobStatus_Failed" xml:space="preserve">
+    <value>Xato</value>
+  </data>
+  <data name="Pnl_JobStatus_Pending" xml:space="preserve">
+    <value>Navbatda</value>
+  </data>
+  <data name="Pnl_JobStatus_Running" xml:space="preserve">
+    <value>Bajarilmoqda</value>
+  </data>
+  <data name="Pnl_JobStatus_Succeeded" xml:space="preserve">
+    <value>Bajarildi</value>
+  </data>
+  <data name="Pnl_JobType_Archive" xml:space="preserve">
+    <value>Arxivlash</value>
+  </data>
+  <data name="Pnl_JobType_Create" xml:space="preserve">
+    <value>Yaratish</value>
+  </data>
+  <data name="Pnl_JobType_Delete" xml:space="preserve">
+    <value>O'chirish</value>
+  </data>
+  <data name="Pnl_JobType_EndTrial" xml:space="preserve">
+    <value>Sinovni yakunlash</value>
+  </data>
+  <data name="Pnl_JobType_Reset" xml:space="preserve">
+    <value>Qayta tiklash</value>
+  </data>
+  <data name="Pnl_JobType_Resume" xml:space="preserve">
+    <value>Qayta yoqish</value>
+  </data>
+  <data name="Pnl_JobType_Suspend" xml:space="preserve">
+    <value>To'xtatish</value>
+  </data>
+  <data name="Pnl_Key" xml:space="preserve">
+    <value>Kalit</value>
+  </data>
+  <data name="Pnl_KindLower" xml:space="preserve">
+    <value>tur</value>
+  </data>
+  <data name="Pnl_LastAction" xml:space="preserve">
+    <value>Oxirgi amal</value>
+  </data>
+  <data name="Pnl_LastError" xml:space="preserve">
+    <value>Oxirgi xato</value>
+  </data>
+  <data name="Pnl_LastLogin" xml:space="preserve">
+    <value>Oxirgi kirish</value>
+  </data>
+  <data name="Pnl_LastLoginUtc" xml:space="preserve">
+    <value>Oxirgi kirish (UTC)</value>
+  </data>
+  <data name="Pnl_LastSeen" xml:space="preserve">
+    <value>Oxirgi aloqa</value>
+  </data>
+  <data name="Pnl_LastSeenUtc" xml:space="preserve">
+    <value>Oxirgi aloqa (UTC)</value>
+  </data>
+  <data name="Pnl_LegalName" xml:space="preserve">
+    <value>Yuridik nom</value>
+  </data>
+  <data name="Pnl_LicSource_Auto" xml:space="preserve">
+    <value>Avtomatik</value>
+  </data>
+  <data name="Pnl_LicSource_Manual" xml:space="preserve">
+    <value>Qo'lda</value>
+  </data>
+  <data name="Pnl_LicSource_Registration" xml:space="preserve">
+    <value>Ro'yxatdan o'tish</value>
+  </data>
+  <data name="Pnl_Lic_Current" xml:space="preserve">
+    <value>joriy</value>
+  </data>
+  <data name="Pnl_Lic_DownloadLic" xml:space="preserve">
+    <value>.lic fayl sifatida yuklab olish</value>
+  </data>
+  <data name="Pnl_Lic_EditionHint1" xml:space="preserve">
+    <value>Kalitdagi Edition: paket kodi + belgilangan xizmatlar, masalan</value>
+  </data>
+  <data name="Pnl_Lic_EditionHint2" xml:space="preserve">
+    <value>Obunadan avtomatik chiqadigan kalit buni o'zi hisoblaydi.</value>
+  </data>
+  <data name="Pnl_Lic_EditionUsers" xml:space="preserve">
+    <value>Edition / foydalanuvchi</value>
+  </data>
+  <data name="Pnl_Lic_IndexHint" xml:space="preserve">
+    <value>Kalitlar o'chirilmaydi: yangi kalit eskisini «almashtirilgan» qiladi, bekor qilish sabab bilan yoziladi. Qo'lda chiqarish — tashkilot sahifasidan (faqat Owner).</value>
+  </data>
+  <data name="Pnl_Lic_Issued" xml:space="preserve">
+    <value>Kalit chiqarildi (#{0}).</value>
+  </data>
+  <data name="Pnl_Lic_IssuedAt" xml:space="preserve">
+    <value>Chiqarilgan</value>
+  </data>
+  <data name="Pnl_Lic_KeyNo" xml:space="preserve">
+    <value>Kalit #{0}</value>
+  </data>
+  <data name="Pnl_Lic_KeyText" xml:space="preserve">
+    <value>Kalit matni</value>
+  </data>
+  <data name="Pnl_Lic_ManualIssue" xml:space="preserve">
+    <value>Kalitni qo'lda chiqarish</value>
+  </data>
+  <data name="Pnl_Lic_NoKeys" xml:space="preserve">
+    <value>Kalit yo'q.</value>
+  </data>
+  <data name="Pnl_Lic_NotBound" xml:space="preserve">
+    <value>Tenant hali ERP'ga bog'lanmagan (InstallationId yo'q) — avval reg_token bilan ro'yxatdan o'tsin.</value>
+  </data>
+  <data name="Pnl_Lic_OnPremHint" xml:space="preserve">
+    <value>On-prem kalit ≤ 1 yil (offline kalitni qaytarib olib bo'lmaydi).</value>
+  </data>
+  <data name="Pnl_Lic_OnlyCurrent" xml:space="preserve">
+    <value>Faqat joriy (faol)</value>
+  </data>
+  <data name="Pnl_Lic_PackageEdition" xml:space="preserve">
+    <value>Paket (Edition)</value>
+  </data>
+  <data name="Pnl_Lic_ReasonPlaceholder" xml:space="preserve">
+    <value>masalan: on-prem shartnoma №12, 2026–2027</value>
+  </data>
+  <data name="Pnl_Lic_ReasonRequired" xml:space="preserve">
+    <value>Sabab majburiy (audit uchun).</value>
+  </data>
+  <data name="Pnl_Lic_ReplacementExpiry" xml:space="preserve">
+    <value>O'rniga qisqa kalit, shu sanagacha (ixtiyoriy)</value>
+  </data>
+  <data name="Pnl_Lic_RevokeHint" xml:space="preserve">
+    <value>SaaS: qisqa kalit keyingi pull'da ERP'ga yetib boradi. Sana bo'sh bo'lsa ERP pull'da 410 revoked oladi, lekin saqlangan kalit muddati tugaguncha ishlaydi (on-prem offline kalitni qaytarib olib bo'lmaydi).</value>
+  </data>
+  <data name="Pnl_Lic_Revoked" xml:space="preserve">
+    <value>Kalit bekor qilindi. ERP keyingi pull'da 410 revoked oladi; kalit muddati o'zi tugaydi.</value>
+  </data>
+  <data name="Pnl_Lic_RevokedBadge" xml:space="preserve">
+    <value>bekor</value>
+  </data>
+  <data name="Pnl_Lic_RevokedInfo" xml:space="preserve">
+    <value>bekor qilingan ({0}, {1}): {2}</value>
+  </data>
+  <data name="Pnl_Lic_RevokedNoReplacement" xml:space="preserve">
+    <value>Kalit bekor qilindi, lekin o'rniga yangisi chiqmadi: {0}</value>
+  </data>
+  <data name="Pnl_Lic_RevokedWithReplacement" xml:space="preserve">
+    <value>Kalit bekor qilindi, o'rniga {0} gacha qisqa kalit chiqdi (#{1}).</value>
+  </data>
+  <data name="Pnl_Lic_SignAndIssue" xml:space="preserve">
+    <value>Imzolash va chiqarish</value>
+  </data>
+  <data name="Pnl_Lic_SignFailed" xml:space="preserve">
+    <value>Imzolab bo'lmadi: {0}</value>
+  </data>
+  <data name="Pnl_Lic_Signature" xml:space="preserve">
+    <value>Imzo</value>
+  </data>
+  <data name="Pnl_Lic_SigningKey" xml:space="preserve">
+    <value>Imzo kaliti</value>
+  </data>
+  <data name="Pnl_Lic_Superseded" xml:space="preserve">
+    <value>almashtirilgan</value>
+  </data>
+  <data name="Pnl_Lic_SupersededBy" xml:space="preserve">
+    <value>almashtirilgan → #{0}</value>
+  </data>
+  <data name="Pnl_Lic_Title" xml:space="preserve">
+    <value>Litsenziya kalitlari</value>
+  </data>
+  <data name="Pnl_Lic_UnknownAddOn" xml:space="preserve">
+    <value>Noma'lum qo'shimcha xizmat.</value>
+  </data>
+  <data name="Pnl_Lic_UnknownPackage" xml:space="preserve">
+    <value>Noma'lum paket.</value>
+  </data>
+  <data name="Pnl_Lic_UsersUnlimited" xml:space="preserve">
+    <value>Foydalanuvchilar (0 = cheksiz)</value>
+  </data>
+  <data name="Pnl_Locked" xml:space="preserve">
+    <value>bloklangan</value>
+  </data>
+  <data name="Pnl_Manage" xml:space="preserve">
+    <value>Boshqarish</value>
+  </data>
+  <data name="Pnl_Method" xml:space="preserve">
+    <value>Usul</value>
+  </data>
+  <data name="Pnl_Module" xml:space="preserve">
+    <value>Modul</value>
+  </data>
+  <data name="Pnl_ModuleLower" xml:space="preserve">
+    <value>modul</value>
+  </data>
+  <data name="Pnl_Modules" xml:space="preserve">
+    <value>Modullar</value>
+  </data>
+  <data name="Pnl_Month" xml:space="preserve">
+    <value>Oy</value>
+  </data>
+  <data name="Pnl_NameTaken" xml:space="preserve">
+    <value>Bu nom band.</value>
+  </data>
+  <data name="Pnl_NeverLoggedIn" xml:space="preserve">
+    <value>umuman kirmagan</value>
+  </data>
+  <data name="Pnl_NewLower" xml:space="preserve">
+    <value>yangi</value>
+  </data>
+  <data name="Pnl_NoDataLower" xml:space="preserve">
+    <value>ma'lumot yo'q</value>
+  </data>
+  <data name="Pnl_NoLower" xml:space="preserve">
+    <value>yo'q</value>
+  </data>
+  <data name="Pnl_NoRecords" xml:space="preserve">
+    <value>Yozuv yo'q.</value>
+  </data>
+  <data name="Pnl_None" xml:space="preserve">
+    <value>Yo'q.</value>
+  </data>
+  <data name="Pnl_NotBound" xml:space="preserve">
+    <value>bog'lanmagan</value>
+  </data>
+  <data name="Pnl_NotConnected" xml:space="preserve">
+    <value>ulanmagan</value>
+  </data>
+  <data name="Pnl_NotFoundDot" xml:space="preserve">
+    <value>Topilmadi.</value>
+  </data>
+  <data name="Pnl_NotSelected" xml:space="preserve">
+    <value>tanlanmagan</value>
+  </data>
+  <data name="Pnl_NotSet" xml:space="preserve">
+    <value>belgilanmagan</value>
+  </data>
+  <data name="Pnl_NotYet" xml:space="preserve">
+    <value>hali yo'q</value>
+  </data>
+  <data name="Pnl_NotifStatus_Failed" xml:space="preserve">
+    <value>Xato</value>
+  </data>
+  <data name="Pnl_NotifStatus_Logged" xml:space="preserve">
+    <value>Faqat log</value>
+  </data>
+  <data name="Pnl_NotifStatus_Sent" xml:space="preserve">
+    <value>Yuborildi</value>
+  </data>
+  <data name="Pnl_Notif_Channel" xml:space="preserve">
+    <value>Kanal</value>
+  </data>
+  <data name="Pnl_Notif_Configured" xml:space="preserve">
+    <value>sozlangan</value>
+  </data>
+  <data name="Pnl_Notif_Empty" xml:space="preserve">
+    <value>Hali eslatma yo'q.</value>
+  </data>
+  <data name="Pnl_Notif_Hint" xml:space="preserve">
+    <value>Obuna tugashiga 14, 7, 3, 1 kun qolganda va tugagan kuni — tashkilotning Telegram chatiga (va xodimlar chatiga). Kunlik fon ishi.</value>
+  </data>
+  <data name="Pnl_Notif_NoToken" xml:space="preserve">
+    <value>bot token yo'q — xabarlar faqat logga yoziladi</value>
+  </data>
+  <data name="Pnl_Notif_Recipient" xml:space="preserve">
+    <value>Qabul qiluvchi</value>
+  </data>
+  <data name="Pnl_Notif_RunDone" xml:space="preserve">
+    <value>Bajarildi: {0} tashkilot holati o'zgardi, {1} eslatma.</value>
+  </data>
+  <data name="Pnl_Notif_RunNow" xml:space="preserve">
+    <value>Kunlik ishni hozir bajarish</value>
+  </data>
+  <data name="Pnl_Notif_Template" xml:space="preserve">
+    <value>Shablon</value>
+  </data>
+  <data name="Pnl_Notif_Text" xml:space="preserve">
+    <value>Matn</value>
+  </data>
+  <data name="Pnl_Ntf_AddOn" xml:space="preserve">
+    <value>«{0}» qo'shimcha xizmati</value>
+  </data>
+  <data name="Pnl_Ntf_DaysLeft" xml:space="preserve">
+    <value>tugashiga {0} kun qoldi ({1})</value>
+  </data>
+  <data name="Pnl_Ntf_EndsToday" xml:space="preserve">
+    <value>BUGUN tugaydi</value>
+  </data>
+  <data name="Pnl_Ntf_PayTail" xml:space="preserve">
+    <value>Uzluksiz ishlash uchun hisob-fakturani o'z vaqtida to'lang.</value>
+  </data>
+  <data name="Pnl_Ntf_Subscription" xml:space="preserve">
+    <value>«{0}» obunasi</value>
+  </data>
+  <data name="Pnl_Ntf_Text" xml:space="preserve">
+    <value>tahsinERP: {0} ({1}) — {2} {3}.</value>
+  </data>
+  <data name="Pnl_Ntf_Trial" xml:space="preserve">
+    <value>sinov muddati</value>
+  </data>
+  <data name="Pnl_Ntf_TrialTail" xml:space="preserve">
+    <value>Davom ettirish uchun biz bilan bog'laning.</value>
+  </data>
+  <data name="Pnl_Organization" xml:space="preserve">
+    <value>Tashkilot</value>
+  </data>
+  <data name="Pnl_Package" xml:space="preserve">
+    <value>Paket</value>
+  </data>
+  <data name="Pnl_PackageLower" xml:space="preserve">
+    <value>paket</value>
+  </data>
+  <data name="Pnl_Packages" xml:space="preserve">
+    <value>Paketlar</value>
+  </data>
+  <data name="Pnl_Parse_DocAmountUnread" xml:space="preserve">
+    <value>{0}-hujjat ({1}): summa o'qilmadi — o'tkazib yuborildi.</value>
+  </data>
+  <data name="Pnl_Parse_DocDateUnread" xml:space="preserve">
+    <value>{0}-hujjat ({1}): sana o'qilmadi — o'tkazib yuborildi.</value>
+  </data>
+  <data name="Pnl_Parse_FileEmpty" xml:space="preserve">
+    <value>Fayl bo'sh.</value>
+  </data>
+  <data name="Pnl_Parse_FileTooLarge" xml:space="preserve">
+    <value>Fayl juda katta (ko'pi bilan {0} MB).</value>
+  </data>
+  <data name="Pnl_Parse_LastDocUnclosed" xml:space="preserve">
+    <value>Oxirgi hujjat «КонецДокумента» bilan yopilmagan — e'tiborsiz qoldirildi.</value>
+  </data>
+  <data name="Pnl_Parse_NoDocs" xml:space="preserve">
+    <value>Faylda to'lov hujjati (СекцияДокумент) topilmadi.</value>
+  </data>
+  <data name="Pnl_Parse_NoHeader" xml:space="preserve">
+    <value>Sarlavha qatori topilmadi: kamida «Sana» va «Summa» ustunlari bo'lsin (ixtiyoriy: STIR, To'lov maqsadi, Hujjat №, To'lovchi, Hisob).</value>
+  </data>
+  <data name="Pnl_Parse_NoInnCol" xml:space="preserve">
+    <value>«STIR» ustuni yo'q — moslash faqat hisob-faktura raqami bo'yicha.</value>
+  </data>
+  <data name="Pnl_Parse_NoPurposeCol" xml:space="preserve">
+    <value>«To'lov maqsadi» ustuni yo'q — moslash faqat STIR + summa bo'yicha.</value>
+  </data>
+  <data name="Pnl_Parse_NoSheet" xml:space="preserve">
+    <value>XLSX faylda varaq topilmadi.</value>
+  </data>
+  <data name="Pnl_Parse_RowAmountUnread" xml:space="preserve">
+    <value>{0}-qator: summa o'qilmadi — o'tkazib yuborildi.</value>
+  </data>
+  <data name="Pnl_Parse_RowDateUnread" xml:space="preserve">
+    <value>{0}-qator: sana o'qilmadi — o'tkazib yuborildi.</value>
+  </data>
+  <data name="Pnl_Parse_TooManyDocs" xml:space="preserve">
+    <value>Ko'chirmada {0} tadan ko'p hujjat — davrni bo'lib yuklang.</value>
+  </data>
+  <data name="Pnl_Parse_TooManyRows" xml:space="preserve">
+    <value>Faylda {0} tadan ko'p qator — davrni bo'lib yuklang.</value>
+  </data>
+  <data name="Pnl_Parse_XlsOld" xml:space="preserve">
+    <value>Eski .xls formati qo'llanmaydi — Excel'da .xlsx yoki CSV qilib saqlang.</value>
+  </data>
+  <data name="Pnl_Parse_XlsxFailed" xml:space="preserve">
+    <value>XLSX fayl o'qilmadi: {0}</value>
+  </data>
+  <data name="Pnl_Parse_XlsxNotZip" xml:space="preserve">
+    <value>XLSX fayl o'qilmadi (ZIP emas). Faylni Excel'da qayta saqlang.</value>
+  </data>
+  <data name="Pnl_PayMethod_Bank" xml:space="preserve">
+    <value>Bank o'tkazmasi</value>
+  </data>
+  <data name="Pnl_PayMethod_Card" xml:space="preserve">
+    <value>Karta</value>
+  </data>
+  <data name="Pnl_PayMethod_Cash" xml:space="preserve">
+    <value>Naqd</value>
+  </data>
+  <data name="Pnl_PayMethod_Other" xml:space="preserve">
+    <value>Boshqa</value>
+  </data>
+  <data name="Pnl_Payer" xml:space="preserve">
+    <value>To'lovchi</value>
+  </data>
+  <data name="Pnl_PaymentDate" xml:space="preserve">
+    <value>To'lov sanasi</value>
+  </data>
+  <data name="Pnl_PaymentNo" xml:space="preserve">
+    <value>to'lov #{0}</value>
+  </data>
+  <data name="Pnl_Payments" xml:space="preserve">
+    <value>To'lovlar</value>
+  </data>
+  <data name="Pnl_Period_Month" xml:space="preserve">
+    <value>Oylik</value>
+  </data>
+  <data name="Pnl_Period_Trial" xml:space="preserve">
+    <value>Sinov</value>
+  </data>
+  <data name="Pnl_Period_Year" xml:space="preserve">
+    <value>Yillik</value>
+  </data>
+  <data name="Pnl_Plan_ActiveHint" xml:space="preserve">
+    <value>Faol (yangi obunalarda tanlash mumkin)</value>
+  </data>
+  <data name="Pnl_Plan_AddOnNoUsers" xml:space="preserve">
+    <value>Qo'shimcha xizmat — foydalanuvchiga bog'liq emas (paket chegarasi amal qiladi).</value>
+  </data>
+  <data name="Pnl_Plan_AmountInvalid" xml:space="preserve">
+    <value>Summa noto'g'ri (masalan 1 500 000).</value>
+  </data>
+  <data name="Pnl_Plan_IndexHint" xml:space="preserve">
+    <value>Narxlar QQS bilan. Paket kodi = litsenziya kalitidagi Edition; ERP modullarni shu kod bo'yicha ochadi (EditionModules). Qat'iy paketlar: foydalanuvchi soni chegaradan oshsa — keyingi paket. «Qo'shimcha xizmat» — paketga kirmaydi, alohida obuna; kalitda Edition'ga «+KOD» bo'lib qo'shiladi (masalan KORP+SITE).</value>
+  </data>
+  <data name="Pnl_Plan_IndexTitle" xml:space="preserve">
+    <value>Tariflar (paketlar)</value>
+  </data>
+  <data name="Pnl_Plan_Label" xml:space="preserve">
+    <value>Tarif:</value>
+  </data>
+  <data name="Pnl_Plan_Modules" xml:space="preserve">
+    <value>Modullar (ERP ProductModule nomlari, vergul bilan)</value>
+  </data>
+  <data name="Pnl_Plan_ModulesHint" xml:space="preserve">
+    <value>qo'shimcha xizmat: Website. Ma'lumot uchun — ERP cheklovni Edition bo'yicha qiladi.</value>
+  </data>
+  <data name="Pnl_Plan_MonthSom" xml:space="preserve">
+    <value>Oylik, so'm</value>
+  </data>
+  <data name="Pnl_Plan_PriceMonth" xml:space="preserve">
+    <value>Oylik narx, so'm (QQS bilan)</value>
+  </data>
+  <data name="Pnl_Plan_PriceYear" xml:space="preserve">
+    <value>Yillik narx, so'm (QQS bilan)</value>
+  </data>
+  <data name="Pnl_Plan_Title" xml:space="preserve">
+    <value>Tarif: {0}</value>
+  </data>
+  <data name="Pnl_Plan_TrialDays" xml:space="preserve">
+    <value>Sinov muddati, kun</value>
+  </data>
+  <data name="Pnl_Plan_UserLimit" xml:space="preserve">
+    <value>Foydalanuvchilar chegarasi</value>
+  </data>
+  <data name="Pnl_Plan_VatRate" xml:space="preserve">
+    <value>QQS stavkasi, %</value>
+  </data>
+  <data name="Pnl_Plan_YearSom" xml:space="preserve">
+    <value>Yillik, so'm</value>
+  </data>
+  <data name="Pnl_Prov_AgentHasKey" xml:space="preserve">
+    <value>kalit bor</value>
+  </data>
+  <data name="Pnl_Prov_AgentNotConnected" xml:space="preserve">
+    <value>ulanmagan</value>
+  </data>
+  <data name="Pnl_Prov_Agents" xml:space="preserve">
+    <value>Agentlar</value>
+  </data>
+  <data name="Pnl_Prov_AlreadyArchived" xml:space="preserve">
+    <value>Allaqachon arxivda.</value>
+  </data>
+  <data name="Pnl_Prov_ArchiveReasonRequired" xml:space="preserve">
+    <value>Arxivlash sababi majburiy.</value>
+  </data>
+  <data name="Pnl_Prov_Archived" xml:space="preserve">
+    <value>Arxivdagi tenant.</value>
+  </data>
+  <data name="Pnl_Prov_ArchivedNoDb" xml:space="preserve">
+    <value>Arxivdagi tenant uchun baza yaratilmaydi.</value>
+  </data>
+  <data name="Pnl_Prov_Attempt" xml:space="preserve">
+    <value>Urinish</value>
+  </data>
+  <data name="Pnl_Prov_Attempts" xml:space="preserve">
+    <value>Urinishlar</value>
+  </data>
+  <data name="Pnl_Prov_CancelOnly" xml:space="preserve">
+    <value>Faqat navbatdagi yoki xato bergan job bekor qilinadi.</value>
+  </data>
+  <data name="Pnl_Prov_Cancelled" xml:space="preserve">
+    <value>Job bekor qilindi.</value>
+  </data>
+  <data name="Pnl_Prov_CreatedBy" xml:space="preserve">
+    <value>Yaratdi</value>
+  </data>
+  <data name="Pnl_Prov_DbExists" xml:space="preserve">
+    <value>Baza allaqachon yaratilgan.</value>
+  </data>
+  <data name="Pnl_Prov_DeleteReasonRequired" xml:space="preserve">
+    <value>O'chirish sababi majburiy.</value>
+  </data>
+  <data name="Pnl_Prov_EndTrialReasonRequired" xml:space="preserve">
+    <value>Sinovni yakunlash sababi majburiy.</value>
+  </data>
+  <data name="Pnl_Prov_ExitCode" xml:space="preserve">
+    <value>Chiqish kodi</value>
+  </data>
+  <data name="Pnl_Prov_Finished" xml:space="preserve">
+    <value>Tugagan</value>
+  </data>
+  <data name="Pnl_Prov_Jobs" xml:space="preserve">
+    <value>Joblar</value>
+  </data>
+  <data name="Pnl_Prov_NextAttempt" xml:space="preserve">
+    <value>Keyingi urinish</value>
+  </data>
+  <data name="Pnl_Prov_NoActiveSub" xml:space="preserve">
+    <value>Faol obuna yo'q — avval to'lovni belgilang yoki obunani uzaytiring.</value>
+  </data>
+  <data name="Pnl_Prov_NoDb" xml:space="preserve">
+    <value>Baza hali yaratilmagan.</value>
+  </data>
+  <data name="Pnl_Prov_NoDbArchive" xml:space="preserve">
+    <value>Baza hali yaratilmagan — arxivlash uchun holatni o'zgartiring.</value>
+  </data>
+  <data name="Pnl_Prov_NoDbName" xml:space="preserve">
+    <value>Baza nomi (DbName) berilmagan.</value>
+  </data>
+  <data name="Pnl_Prov_NoJobs" xml:space="preserve">
+    <value>Job yo'q.</value>
+  </data>
+  <data name="Pnl_Prov_NoServer" xml:space="preserve">
+    <value>Tenant serverga biriktirilmagan.</value>
+  </data>
+  <data name="Pnl_Prov_OnlySaas" xml:space="preserve">
+    <value>Provisioning faqat SaaS tenantlar uchun.</value>
+  </data>
+  <data name="Pnl_Prov_OnlySaasTrial" xml:space="preserve">
+    <value>Faqat SaaS sinov tenantlari uchun.</value>
+  </data>
+  <data name="Pnl_Prov_OnlyTrial" xml:space="preserve">
+    <value>Faqat sinov (TRIAL) tenanti yakunlanadi — pullik tenant uchun «Arxivlash» → «O'chirish».</value>
+  </data>
+  <data name="Pnl_Prov_OtherActive" xml:space="preserve">
+    <value>Tenantda boshqa amal bajarilmoqda: {0} (#{1}). Tugashini kuting yoki bekor qiling.</value>
+  </data>
+  <data name="Pnl_Prov_OtherJob" xml:space="preserve">
+    <value>Tenantda boshqa faol job bor.</value>
+  </data>
+  <data name="Pnl_Prov_Parameters" xml:space="preserve">
+    <value>Parametrlar</value>
+  </data>
+  <data name="Pnl_Prov_Queue" xml:space="preserve">
+    <value>Provisioning navbati</value>
+  </data>
+  <data name="Pnl_Prov_Requeued" xml:space="preserve">
+    <value>Job qayta navbatga qo'yildi.</value>
+  </data>
+  <data name="Pnl_Prov_ResetOnlyDemo" xml:space="preserve">
+    <value>Qayta tiklash faqat demo tenant ('{0}') uchun.</value>
+  </data>
+  <data name="Pnl_Prov_Result" xml:space="preserve">
+    <value>Natija</value>
+  </data>
+  <data name="Pnl_Prov_Retry" xml:space="preserve">
+    <value>Qayta urinish</value>
+  </data>
+  <data name="Pnl_Prov_RetryOnlyFailed" xml:space="preserve">
+    <value>Faqat xato bilan tugagan job qayta ishga tushiriladi.</value>
+  </data>
+  <data name="Pnl_Prov_SlugMismatch" xml:space="preserve">
+    <value>Tasdiqlash uchun slug mos kelmadi.</value>
+  </data>
+  <data name="Pnl_Prov_StartedFinished" xml:space="preserve">
+    <value>Boshlangan / tugagan</value>
+  </data>
+  <data name="Pnl_Prov_TenantDeleted" xml:space="preserve">
+    <value>Tenant o'chirilgan.</value>
+  </data>
+  <data name="Pnl_Prov_UrlUnknown" xml:space="preserve">
+    <value>(manzil: {0}.&lt;domen&gt;)</value>
+  </data>
+  <data name="Pnl_Prov_WelcomeText" xml:space="preserve">
+    <value>tahsinERP: «{0}» uchun tizim tayyor.
+Manzil: {1}
+Login: {2}
+Vaqtinchalik parol: {3}
+Birinchi kirishda parolni almashtirish so'raladi.</value>
+  </data>
+  <data name="Pnl_Purpose" xml:space="preserve">
+    <value>Maqsad</value>
+  </data>
+  <data name="Pnl_Pwd_LettersDigits" xml:space="preserve">
+    <value>Parolda harf ham, raqam ham bo'lsin.</value>
+  </data>
+  <data name="Pnl_Pwd_MinLength" xml:space="preserve">
+    <value>Parol kamida {0} belgidan iborat bo'lsin.</value>
+  </data>
+  <data name="Pnl_Reason" xml:space="preserve">
+    <value>Sabab</value>
+  </data>
+  <data name="Pnl_ReasonMandatory" xml:space="preserve">
+    <value>Sabab (majburiy)</value>
+  </data>
+  <data name="Pnl_Region" xml:space="preserve">
+    <value>Hudud</value>
+  </data>
+  <data name="Pnl_RemainingLower" xml:space="preserve">
+    <value>qoldiq</value>
+  </data>
+  <data name="Pnl_Req_Approved" xml:space="preserve">
+    <value>So'rov #{0} tasdiqlandi, qoralama hisob-faktura yaratildi — tekshirib «Chiqarish» tugmasini bosing.</value>
+  </data>
+  <data name="Pnl_Req_Empty" xml:space="preserve">
+    <value>So'rov yo'q.</value>
+  </data>
+  <data name="Pnl_Req_FromDate" xml:space="preserve">
+    <value>{0} dan</value>
+  </data>
+  <data name="Pnl_Req_Hint" xml:space="preserve">
+    <value>Tasdiqlash: kerak bo'lsa yangi obuna (pasaytirish — joriy davr oxiridan) va qoralama hisob-faktura avtomatik yaratiladi. Narx paketdan olinadi; qoralamani tahrirlash mumkin (masalan joriy davr qoldig'i uchun chegirma).</value>
+  </data>
+  <data name="Pnl_Req_Queue" xml:space="preserve">
+    <value>Navbat (kutilmoqda)</value>
+  </data>
+  <data name="Pnl_Req_RejectReason" xml:space="preserve">
+    <value>Rad etish sababi</value>
+  </data>
+  <data name="Pnl_Req_Rejected" xml:space="preserve">
+    <value>So'rov #{0} rad etildi, mijozga xabar yuborildi.</value>
+  </data>
+  <data name="Pnl_Req_Request" xml:space="preserve">
+    <value>So'rov</value>
+  </data>
+  <data name="Pnl_Req_Title" xml:space="preserve">
+    <value>Mijoz so'rovlari (portal)</value>
+  </data>
+  <data name="Pnl_Req_Who" xml:space="preserve">
+    <value>Kim</value>
+  </data>
+  <data name="Pnl_Reversal" xml:space="preserve">
+    <value>Storno</value>
+  </data>
+  <data name="Pnl_Risk_High" xml:space="preserve">
+    <value>Yuqori</value>
+  </data>
+  <data name="Pnl_Risk_Low" xml:space="preserve">
+    <value>Past</value>
+  </data>
+  <data name="Pnl_Risk_Medium" xml:space="preserve">
+    <value>O'rta</value>
+  </data>
+  <data name="Pnl_Role" xml:space="preserve">
+    <value>Rol</value>
+  </data>
+  <data name="Pnl_Role_Owner" xml:space="preserve">
+    <value>Egasi (Owner)</value>
+  </data>
+  <data name="Pnl_RowMessage" xml:space="preserve">
+    <value>{0}-qator: {1}</value>
+  </data>
+  <data name="Pnl_SavedDot" xml:space="preserve">
+    <value>Saqlandi.</value>
+  </data>
+  <data name="Pnl_SavedNamed" xml:space="preserve">
+    <value>«{0}» saqlandi.</value>
+  </data>
+  <data name="Pnl_SearchLabel" xml:space="preserve">
+    <value>Qidiruv</value>
+  </data>
+  <data name="Pnl_Server" xml:space="preserve">
+    <value>Server</value>
+  </data>
+  <data name="Pnl_Service" xml:space="preserve">
+    <value>Xizmat</value>
+  </data>
+  <data name="Pnl_Show" xml:space="preserve">
+    <value>Ko'rsatish</value>
+  </data>
+  <data name="Pnl_Source" xml:space="preserve">
+    <value>Manba</value>
+  </data>
+  <data name="Pnl_Srv_ActiveHint" xml:space="preserve">
+    <value>Faol (yangi tenantlar joylashtirilishi mumkin)</value>
+  </data>
+  <data name="Pnl_Srv_Add" xml:space="preserve">
+    <value>Server qo'shish</value>
+  </data>
+  <data name="Pnl_Srv_Agent" xml:space="preserve">
+    <value>Provisioning agenti</value>
+  </data>
+  <data name="Pnl_Srv_AgentSetting" xml:space="preserve">
+    <value>agent sozlamasi</value>
+  </data>
+  <data name="Pnl_Srv_Empty" xml:space="preserve">
+    <value>Hali server qo'shilmagan.</value>
+  </data>
+  <data name="Pnl_Srv_Exists" xml:space="preserve">
+    <value>bor</value>
+  </data>
+  <data name="Pnl_Srv_Hint" xml:space="preserve">
+    <value>SQL Server Express 1.4 GB bufer chegarasi barcha tenant bazalari uchun umumiy — ~15–20 faol tenantdan keyin ikkinchi server. Login/parollar bu yerda saqlanmaydi.</value>
+  </data>
+  <data name="Pnl_Srv_Host" xml:space="preserve">
+    <value>ERP host (DNS/IP)</value>
+  </data>
+  <data name="Pnl_Srv_InstanceOnly" xml:space="preserve">
+    <value>Faqat instance nomi — login/parol bu yerda saqlanmaydi.</value>
+  </data>
+  <data name="Pnl_Srv_IssueAgentKey" xml:space="preserve">
+    <value>Agent kalitini chiqarish</value>
+  </data>
+  <data name="Pnl_Srv_MaxTenants" xml:space="preserve">
+    <value>Ko'pi bilan tenant</value>
+  </data>
+  <data name="Pnl_Srv_New" xml:space="preserve">
+    <value>Yangi server</value>
+  </data>
+  <data name="Pnl_Srv_NotFound" xml:space="preserve">
+    <value>Server topilmadi.</value>
+  </data>
+  <data name="Pnl_Srv_NotIssued" xml:space="preserve">
+    <value>chiqarilmagan</value>
+  </data>
+  <data name="Pnl_Srv_OnErpServer" xml:space="preserve">
+    <value>ERP serverida:</value>
+  </data>
+  <data name="Pnl_Srv_RotateAgentKey" xml:space="preserve">
+    <value>Agent kalitini almashtirish (eskisi bekor bo'ladi)</value>
+  </data>
+  <data name="Pnl_Srv_Saved" xml:space="preserve">
+    <value>Server «{0}» saqlandi.</value>
+  </data>
+  <data name="Pnl_Srv_SecretHint" xml:space="preserve">
+    <value>yoki xizmat env'i, so'ng agentni qayta ishga tushiring (05_PROVISIONING.md).</value>
+  </data>
+  <data name="Pnl_Srv_SecretOnce" xml:space="preserve">
+    <value>Agent siri (faqat hozir ko'rinadi):</value>
+  </data>
+  <data name="Pnl_Srv_Title" xml:space="preserve">
+    <value>ERP serverlari</value>
+  </data>
+  <data name="Pnl_Staff_Add" xml:space="preserve">
+    <value>Xodim qo'shish</value>
+  </data>
+  <data name="Pnl_Staff_Added" xml:space="preserve">
+    <value>Xodim qo'shildi: {0}. Parolni xavfsiz kanal orqali bering; birinchi kirishda 2FA ulanadi.</value>
+  </data>
+  <data name="Pnl_Staff_LastOwner" xml:space="preserve">
+    <value>Oxirgi faol Owner'ni o'chirib/pasaytirib bo'lmaydi.</value>
+  </data>
+  <data name="Pnl_Staff_New" xml:space="preserve">
+    <value>Yangi xodim</value>
+  </data>
+  <data name="Pnl_Staff_NewTempPassword" xml:space="preserve">
+    <value>Yangi vaqtinchalik parol</value>
+  </data>
+  <data name="Pnl_Staff_PasswordReset" xml:space="preserve">
+    <value>Parol almashtirildi, blok olib tashlandi.</value>
+  </data>
+  <data name="Pnl_Staff_ResetPasswordUnlock" xml:space="preserve">
+    <value>Parolni almashtirish va blokni olish</value>
+  </data>
+  <data name="Pnl_Staff_ResetTotp" xml:space="preserve">
+    <value>2FA'ni tiklash</value>
+  </data>
+  <data name="Pnl_Staff_ResetTotpHint" xml:space="preserve">
+    <value>Telefon yo'qolganda tiklang — xodim keyingi kirishda qayta ulaydi.</value>
+  </data>
+  <data name="Pnl_Staff_RolesHint" xml:space="preserve">
+    <value>Rollar: Owner — hammasi (storno, kalit chiqarish/bekor qilish, tariflar, serverlar, xodimlar); Sotuv — tashkilot, obuna, hisob-faktura, to'lov belgilash; Qo'llab-quvvatlash — ko'rish va reg_token.</value>
+  </data>
+  <data name="Pnl_Staff_Title" xml:space="preserve">
+    <value>Xodim: {0}</value>
+  </data>
+  <data name="Pnl_Staff_TotpReset" xml:space="preserve">
+    <value>2FA tiklandi — xodim keyingi kirishda yangi QR kodni skanerlaydi.</value>
+  </data>
+  <data name="Pnl_Start" xml:space="preserve">
+    <value>Boshlanish</value>
+  </data>
+  <data name="Pnl_StartDate" xml:space="preserve">
+    <value>Boshlanish sanasi</value>
+  </data>
+  <data name="Pnl_StatusLower" xml:space="preserve">
+    <value>holat</value>
+  </data>
+  <data name="Pnl_SubStatus_Active" xml:space="preserve">
+    <value>Faol</value>
+  </data>
+  <data name="Pnl_SubStatus_Cancelled" xml:space="preserve">
+    <value>Bekor qilingan</value>
+  </data>
+  <data name="Pnl_SubStatus_Expired" xml:space="preserve">
+    <value>Tugagan</value>
+  </data>
+  <data name="Pnl_SubStatus_Pending" xml:space="preserve">
+    <value>To'lov kutilmoqda</value>
+  </data>
+  <data name="Pnl_Sub_AddOnActiveExists" xml:space="preserve">
+    <value>«{0}» xizmati faol (obuna #{1}) — uzaytirish uchun o'sha obunaga hisob-faktura chiqaring.</value>
+  </data>
+  <data name="Pnl_Sub_AddOnCreated" xml:space="preserve">
+    <value>Qo'shimcha xizmat obunasi yaratildi (to'lov kutilmoqda). Endi hisob-faktura chiqaring.</value>
+  </data>
+  <data name="Pnl_Sub_AddOnEditHint" xml:space="preserve">
+    <value>Qo'shimcha xizmat obunasi — tarif va foydalanuvchilar o'zgarmaydi. Uzaytirish: shu obunaga hisob-faktura.</value>
+  </data>
+  <data name="Pnl_Sub_AddOnNoChange" xml:space="preserve">
+    <value>Qo'shimcha xizmat obunasini boshqa tarifga o'tkazib bo'lmaydi — kerak bo'lsa bekor qilib, yangisini oching.</value>
+  </data>
+  <data name="Pnl_Sub_AddOnPendingExists" xml:space="preserve">
+    <value>«{0}» xizmatiga to'lanmagan obuna #{1} allaqachon bor.</value>
+  </data>
+  <data name="Pnl_Sub_AddOnsGroup" xml:space="preserve">
+    <value>Qo'shimcha xizmatlar (paketdan alohida)</value>
+  </data>
+  <data name="Pnl_Sub_AutoRenewHint" xml:space="preserve">
+    <value>Avtomatik uzaytirish (eslatma uchun belgi; to'lov baribir qo'lda)</value>
+  </data>
+  <data name="Pnl_Sub_Cancel" xml:space="preserve">
+    <value>Obunani bekor qilish</value>
+  </data>
+  <data name="Pnl_Sub_CancelHint" xml:space="preserve">
+    <value>Kalit avtomatik qisqartirilmaydi — kerak bo'lsa Kalitlar sahifasida bekor qiling.</value>
+  </data>
+  <data name="Pnl_Sub_Cancelled" xml:space="preserve">
+    <value>Obuna bekor qilindi.</value>
+  </data>
+  <data name="Pnl_Sub_CancelledNoExtend" xml:space="preserve">
+    <value>Obuna bekor qilingan — uzaytirib bo'lmaydi.</value>
+  </data>
+  <data name="Pnl_Sub_ChangePlanHint" xml:space="preserve">
+    <value>Paketni o'zgartirish narxni avtomatik qayta hisoblamaydi — farq uchun alohida hisob-faktura chiqaring.</value>
+  </data>
+  <data name="Pnl_Sub_CreateAndInvoice" xml:space="preserve">
+    <value>Yaratish va hisob-fakturaga o'tish</value>
+  </data>
+  <data name="Pnl_Sub_CreateHint" xml:space="preserve">
+    <value>Obuna «To'lov kutilmoqda» holatida yaratiladi; hisob-faktura to'liq to'langanda faollashadi va kalit chiqadi. Qo'shimcha xizmat (masalan Sayt-katalog) paket obunasiga tegmaydi: to'langach kalitga «+KOD» qo'shiladi, muddati tugasa olib tashlanadi.</value>
+  </data>
+  <data name="Pnl_Sub_Created" xml:space="preserve">
+    <value>Obuna yaratildi (to'lov kutilmoqda). Endi hisob-faktura chiqaring.</value>
+  </data>
+  <data name="Pnl_Sub_CurrentPackage" xml:space="preserve">
+    <value>Joriy paket</value>
+  </data>
+  <data name="Pnl_Sub_MaxUsers" xml:space="preserve">
+    <value>{0} paketida ko'pi bilan {1} foydalanuvchi.</value>
+  </data>
+  <data name="Pnl_Sub_MaxUsersNext" xml:space="preserve">
+    <value>{0} paketida ko'pi bilan {1} foydalanuvchi. Ko'prog'i — keyingi paket.</value>
+  </data>
+  <data name="Pnl_Sub_MonthShort" xml:space="preserve">
+    <value>oy:</value>
+  </data>
+  <data name="Pnl_Sub_New" xml:space="preserve">
+    <value>Yangi obuna</value>
+  </data>
+  <data name="Pnl_Sub_No" xml:space="preserve">
+    <value>Obuna #{0}</value>
+  </data>
+  <data name="Pnl_Sub_PackageLimit" xml:space="preserve">
+    <value>paket chegarasi</value>
+  </data>
+  <data name="Pnl_Sub_PendingExists" xml:space="preserve">
+    <value>Bu tenantda to'lanmagan (Pending) obuna allaqachon bor.</value>
+  </data>
+  <data name="Pnl_Sub_PlanNotFound" xml:space="preserve">
+    <value>Tarif topilmadi.</value>
+  </data>
+  <data name="Pnl_Sub_PlanOrAddOn" xml:space="preserve">
+    <value>Paket yoki qo'shimcha xizmat</value>
+  </data>
+  <data name="Pnl_Sub_ReasonRequired" xml:space="preserve">
+    <value>Sabab majburiy.</value>
+  </data>
+  <data name="Pnl_Sub_Saved" xml:space="preserve">
+    <value>Obuna saqlandi. Paket/foydalanuvchi o'zgargan bo'lsa — tenant sahifasida «Kalitni obunadan yangilash».</value>
+  </data>
+  <data name="Pnl_Sub_TrialAuto" xml:space="preserve">
+    <value>Sinov obunasi tenant yaratilganda avtomatik ochiladi.</value>
+  </data>
+  <data name="Pnl_Sub_TrialNotEditable" xml:space="preserve">
+    <value>Sinov obunasi tahrirlanmaydi.</value>
+  </data>
+  <data name="Pnl_Sub_UsersHint" xml:space="preserve">
+    <value>Bo'sh — paket chegarasi (qat'iy paket). Qo'shimcha xizmatda e'tiborga olinmaydi.</value>
+  </data>
+  <data name="Pnl_Sub_YearShort" xml:space="preserve">
+    <value>yil:</value>
+  </data>
+  <data name="Pnl_Subscription" xml:space="preserve">
+    <value>Obuna</value>
+  </data>
+  <data name="Pnl_Subscriptions" xml:space="preserve">
+    <value>Obunalar</value>
+  </data>
+  <data name="Pnl_TenSvc_ArchiveViaProvisioning" xml:space="preserve">
+    <value>Bazasi yaratilgan SaaS tenant faqat «Arxivlash» amali (provisioning) orqali arxivlanadi.</value>
+  </data>
+  <data name="Pnl_TenSvc_ArchivedNoRestore" xml:space="preserve">
+    <value>Arxivlangan tenant bazasi o'chirilgan — holatni qo'lda qaytarib bo'lmaydi.</value>
+  </data>
+  <data name="Pnl_TenSvc_ArchivedNoToken" xml:space="preserve">
+    <value>Arxivdagi tenant uchun token chiqarilmaydi.</value>
+  </data>
+  <data name="Pnl_TenSvc_CompanyIdPositive" xml:space="preserve">
+    <value>CompanyID musbat bo'lsin.</value>
+  </data>
+  <data name="Pnl_TenSvc_DbNameFormat" xml:space="preserve">
+    <value>Baza nomi: faqat A-Z a-z 0-9 _ - . (1–100).</value>
+  </data>
+  <data name="Pnl_TenSvc_DbNameTaken" xml:space="preserve">
+    <value>'{0}' baza nomi band.</value>
+  </data>
+  <data name="Pnl_TenSvc_InnFormat" xml:space="preserve">
+    <value>STIR 9 raqam (yuridik shaxs) yoki JShShIR 14 raqam bo'lsin.</value>
+  </data>
+  <data name="Pnl_TenSvc_LegalNameRequired" xml:space="preserve">
+    <value>Yuridik nom majburiy.</value>
+  </data>
+  <data name="Pnl_TenSvc_OfflineDaysRange" xml:space="preserve">
+    <value>Internetsiz ishlash muddati {0}–{1} kun bo'lsin.</value>
+  </data>
+  <data name="Pnl_TenSvc_ProvisionedLocked" xml:space="preserve">
+    <value>Bazasi yaratilgan tenantning baza nomi, serveri va joylashuvini o'zgartirib bo'lmaydi (baza va tenants.json eski qiymatda qoladi).</value>
+  </data>
+  <data name="Pnl_TenSvc_ServerFull" xml:space="preserve">
+    <value>'{0}' serveri to'lgan ({1}/{2}).</value>
+  </data>
+  <data name="Pnl_TenSvc_ServerInactive" xml:space="preserve">
+    <value>Server topilmadi yoki faol emas.</value>
+  </data>
+  <data name="Pnl_TenSvc_SlugFormat" xml:space="preserve">
+    <value>Slug: faqat kichik lotin harflari, raqamlar va '-', 1–63 belgi, '-' bilan boshlanmasin/tugamasin.</value>
+  </data>
+  <data name="Pnl_TenSvc_SlugReserved" xml:space="preserve">
+    <value>'{0}' band (panel subdomeni uchun ajratilgan).</value>
+  </data>
+  <data name="Pnl_TenSvc_SlugTaken" xml:space="preserve">
+    <value>'{0}' slug band.</value>
+  </data>
+  <data name="Pnl_Ten_AdminTempPassword" xml:space="preserve">
+    <value>Admin vaqtinchalik paroli (faqat hozir ko'rinadi):</value>
+  </data>
+  <data name="Pnl_Ten_AllExceptArchive" xml:space="preserve">
+    <value>Arxivdan tashqari hammasi</value>
+  </data>
+  <data name="Pnl_Ten_ArchiveBtn" xml:space="preserve">
+    <value>Arxivlash (backup + bazani o'chirish)</value>
+  </data>
+  <data name="Pnl_Ten_ArchiveQueued" xml:space="preserve">
+    <value>Arxivlash navbatga qo'yildi.</value>
+  </data>
+  <data name="Pnl_Ten_AuditLast30" xml:space="preserve">
+    <value>Audit (oxirgi 30)</value>
+  </data>
+  <data name="Pnl_Ten_AutoRefresh" xml:space="preserve">
+    <value>sahifa o'zi yangilanadi.</value>
+  </data>
+  <data name="Pnl_Ten_AutoServer" xml:space="preserve">
+    <value>avtomatik (bo'sh joyi ko'p)</value>
+  </data>
+  <data name="Pnl_Ten_BackupBeforeDelete" xml:space="preserve">
+    <value>O'chirishdan oldin arxiv (.bak) olinsin</value>
+  </data>
+  <data name="Pnl_Ten_BotAndSite" xml:space="preserve">
+    <value>Telegram bot va sayt-katalog</value>
+  </data>
+  <data name="Pnl_Ten_BotConnect" xml:space="preserve">
+    <value>Botni ulash</value>
+  </data>
+  <data name="Pnl_Ten_BotConnected" xml:space="preserve">
+    <value>Bot ulandi: @{0}. ERP → Distributsiya → Sozlamalar: «Telegram bot nomi» = {0}.</value>
+  </data>
+  <data name="Pnl_Ten_BotDisable" xml:space="preserve">
+    <value>Botni o'chirish</value>
+  </data>
+  <data name="Pnl_Ten_BotDisabled" xml:space="preserve">
+    <value>Bot o'chirildi.</value>
+  </data>
+  <data name="Pnl_Ten_BotHint1" xml:space="preserve">
+    <value>ERP → Distributsiya → Sozlamalar: «Telegram bot nomi» =</value>
+  </data>
+  <data name="Pnl_Ten_BotHint2" xml:space="preserve">
+    <value>«Bot ochiq manzili» = bot manzili. BotFather'da</value>
+  </data>
+  <data name="Pnl_Ten_BotHint3" xml:space="preserve">
+    <value>bot domeni (Mini App uchun).</value>
+  </data>
+  <data name="Pnl_Ten_BotNoTokenHint" xml:space="preserve">
+    <value>Tokensiz bosilsa — ERP manzili va webhook yangilanadi.</value>
+  </data>
+  <data name="Pnl_Ten_BotToken" xml:space="preserve">
+    <value>BotFather tokeni</value>
+  </data>
+  <data name="Pnl_Ten_BotTokenChange" xml:space="preserve">
+    <value>(yangi bot yoki token almashsa)</value>
+  </data>
+  <data name="Pnl_Ten_BotTokenHint" xml:space="preserve">
+    <value>Token panelda saqlanmaydi — bot ilovasiga uzatiladi va u yerda shifrlanadi. Webhook avtomatik o'rnatiladi.</value>
+  </data>
+  <data name="Pnl_Ten_CatalogSnapshot" xml:space="preserve">
+    <value>Katalog nusxasi</value>
+  </data>
+  <data name="Pnl_Ten_ChangeStatus" xml:space="preserve">
+    <value>Holatni o'zgartirish</value>
+  </data>
+  <data name="Pnl_Ten_ChatHint" xml:space="preserve">
+    <value>Muddat eslatmalari shu chatga keladi.</value>
+  </data>
+  <data name="Pnl_Ten_CompanyIdHint" xml:space="preserve">
+    <value>Ro'yxatdan o'tishda ERP o'zi yuboradi; odatda 1.</value>
+  </data>
+  <data name="Pnl_Ten_CompanyIdLocked" xml:space="preserve">
+    <value>CompanyID ERP ro'yxatdan o'tganda olingan — o'zgartirsangiz kalit ERP'da rad etiladi.</value>
+  </data>
+  <data name="Pnl_Ten_CreateHint" xml:space="preserve">
+    <value>Belgilanmasa tashkilot «To'xtatilgan» holatida yaratiladi va birinchi to'lovdan keyin faollashadi. Baza yaratish — tashkilot sahifasidagi «Bazani yaratish» tugmasi (yoki tezkor yo'l: «Sinov ochish»).</value>
+  </data>
+  <data name="Pnl_Ten_CreateJobQueued" xml:space="preserve">
+    <value>Yaratish jobi allaqachon navbatda (#{0}).</value>
+  </data>
+  <data name="Pnl_Ten_Created" xml:space="preserve">
+    <value>«{0}» yaratildi.</value>
+  </data>
+  <data name="Pnl_Ten_CreatedNoJob" xml:space="preserve">
+    <value>Tashkilot va sinov obunasi yaratildi, lekin baza jobi qo'shilmadi:</value>
+  </data>
+  <data name="Pnl_Ten_DbCreated" xml:space="preserve">
+    <value>Baza yaratilgan</value>
+  </data>
+  <data name="Pnl_Ten_DbName" xml:space="preserve">
+    <value>Baza nomi (SaaS)</value>
+  </data>
+  <data name="Pnl_Ten_DbNamePlaceholder" xml:space="preserve">
+    <value>DB_firma1 (bo'sh bo'lsa avtomatik)</value>
+  </data>
+  <data name="Pnl_Ten_DbServer" xml:space="preserve">
+    <value>Baza / server</value>
+  </data>
+  <data name="Pnl_Ten_Default30" xml:space="preserve">
+    <value>standart (30)</value>
+  </data>
+  <data name="Pnl_Ten_DeleteForever" xml:space="preserve">
+    <value>Butunlay o'chirish</value>
+  </data>
+  <data name="Pnl_Ten_DeleteIrreversible" xml:space="preserve">
+    <value>qaytarilmaydi</value>
+  </data>
+  <data name="Pnl_Ten_DeleteOnlyArchived" xml:space="preserve">
+    <value>O'chirish faqat arxivlangan tenant uchun.</value>
+  </data>
+  <data name="Pnl_Ten_DeleteQueued" xml:space="preserve">
+    <value>O'chirish navbatga qo'yildi (job #{0}).</value>
+  </data>
+  <data name="Pnl_Ten_DeleteTitle" xml:space="preserve">
+    <value>O'chirish: {0}</value>
+  </data>
+  <data name="Pnl_Ten_DeleteWarn1" xml:space="preserve">
+    <value>Bu amal</value>
+  </data>
+  <data name="Pnl_Ten_DeleteWarn2" xml:space="preserve">
+    <value>serverdagi baza (agar qolgan bo'lsa), arxiv zaxirasi</value>
+  </data>
+  <data name="Pnl_Ten_DeleteWarn3" xml:space="preserve">
+    <value>va ERP reestridagi yozuv o'chiriladi. Hisob-fakturalar, to'lovlar va audit panelda qoladi.</value>
+  </data>
+  <data name="Pnl_Ten_Deleted" xml:space="preserve">
+    <value>O'chirilgan</value>
+  </data>
+  <data name="Pnl_Ten_DisableLower" xml:space="preserve">
+    <value>o'chirish</value>
+  </data>
+  <data name="Pnl_Ten_EnableLower" xml:space="preserve">
+    <value>yoqish</value>
+  </data>
+  <data name="Pnl_Ten_EndTrialBtn" xml:space="preserve">
+    <value>Sinovni yakunlash va bazani o'chirish</value>
+  </data>
+  <data name="Pnl_Ten_EndTrialHint" xml:space="preserve">
+    <value>Mijoz sinovdan foydalanmayotgan bo'lsa — 14 kunni kutmasdan: TRIAL obunasi bekor qilinadi, kirish darhol yopiladi, baza o'chiriladi va ERP reestridan chiqariladi. Pullik tenantlar uchun — «Arxivlash» → «O'chirish».</value>
+  </data>
+  <data name="Pnl_Ten_EndTrialPlaceholder" xml:space="preserve">
+    <value>masalan: 5 kun kirmadi, mijoz javob bermadi</value>
+  </data>
+  <data name="Pnl_Ten_EnsureLicense" xml:space="preserve">
+    <value>Kalitni obunadan yangilash</value>
+  </data>
+  <data name="Pnl_Ten_FinalConfirm" xml:space="preserve">
+    <value>Yakuniy tasdiq.</value>
+  </data>
+  <data name="Pnl_Ten_FinalConfirmText" xml:space="preserve">
+    <value>«{0}» ({1}) bazasi va zaxirasi o'chiriladi.</value>
+  </data>
+  <data name="Pnl_Ten_InProgress" xml:space="preserve">
+    <value>Bajarilmoqda:</value>
+  </data>
+  <data name="Pnl_Ten_InviteFor" xml:space="preserve">
+    <value>{0} uchun taklif havolasi (faqat hozir ko'rinadi, bir martalik):</value>
+  </data>
+  <data name="Pnl_Ten_InviteHint" xml:space="preserve">
+    <value>Mijozga shaxsan yuboring (Telegram/email). Havola orqali parol o'rnatiladi; eski parol va sessiyalar bekor bo'ladi.</value>
+  </data>
+  <data name="Pnl_Ten_InviteLink" xml:space="preserve">
+    <value>taklif havolasi</value>
+  </data>
+  <data name="Pnl_Ten_InvitePending" xml:space="preserve">
+    <value>taklif kutilmoqda</value>
+  </data>
+  <data name="Pnl_Ten_InviteSentTg" xml:space="preserve">
+    <value>Foydalanuvchining bog'langan Telegram chatiga ham yuborildi.</value>
+  </data>
+  <data name="Pnl_Ten_IssueRegToken" xml:space="preserve">
+    <value>reg_token chiqarish</value>
+  </data>
+  <data name="Pnl_Ten_KeyAdjusted" xml:space="preserve">
+    <value>Kalit siyosatga moslandi: #{0}, {1} gacha.</value>
+  </data>
+  <data name="Pnl_Ten_KeyNotIssued" xml:space="preserve">
+    <value>Kalit chiqmadi: {0}</value>
+  </data>
+  <data name="Pnl_Ten_KeyUpToDate" xml:space="preserve">
+    <value>Joriy kalit obunaga mos — yangi kalit kerak emas (yoki tenant bog'lanmagan / faol obuna yo'q).</value>
+  </data>
+  <data name="Pnl_Ten_LicHistory" xml:space="preserve">
+    <value>Litsenziya kalitlari (tarix)</value>
+  </data>
+  <data name="Pnl_Ten_New" xml:space="preserve">
+    <value>Yangi tashkilot</value>
+  </data>
+  <data name="Pnl_Ten_NewKeyIssued" xml:space="preserve">
+    <value>Yangi kalit chiqarildi (#{0}).</value>
+  </data>
+  <data name="Pnl_Ten_NewRegToken" xml:space="preserve">
+    <value>Yangi reg_token (faqat hozir ko'rinadi, 7 kun amal qiladi):</value>
+  </data>
+  <data name="Pnl_Ten_NoBack" xml:space="preserve">
+    <value>Yo'q, qaytish</value>
+  </data>
+  <data name="Pnl_Ten_NoEntry" xml:space="preserve">
+    <value>yozuv yo'q</value>
+  </data>
+  <data name="Pnl_Ten_NoFreeServer" xml:space="preserve">
+    <value>Bo'sh joyi bor faol server yo'q (Serverlar bo'limi).</value>
+  </data>
+  <data name="Pnl_Ten_NoPortalUsers" xml:space="preserve">
+    <value>Portal foydalanuvchisi yo'q.</value>
+  </data>
+  <data name="Pnl_Ten_NotEnabled" xml:space="preserve">
+    <value>yoqilmagan</value>
+  </data>
+  <data name="Pnl_Ten_NotTakenYet" xml:space="preserve">
+    <value>hali olinmagan</value>
+  </data>
+  <data name="Pnl_Ten_OfflineDays" xml:space="preserve">
+    <value>Internetsiz muddat, kun</value>
+  </data>
+  <data name="Pnl_Ten_OfflineHint" xml:space="preserve">
+    <value>Majburiy: kalit uzunligi (yarmi o'tganda yangilanadi). Ixtiyoriy: shuncha kun aloqa bo'lmasa ERP va panel ogohlantiradi. 7–90.</value>
+  </data>
+  <data name="Pnl_Ten_OneMore" xml:space="preserve">
+    <value>Yana bitta</value>
+  </data>
+  <data name="Pnl_Ten_OnlineCheck" xml:space="preserve">
+    <value>Onlayn tekshiruv (faqat on-prem)</value>
+  </data>
+  <data name="Pnl_Ten_OnlineHint1" xml:space="preserve">
+    <value>SaaS uchun e'tiborsiz. Majburiyda ERP</value>
+  </data>
+  <data name="Pnl_Ten_OnlineHint2" xml:space="preserve">
+    <value>bilan panelga ulangan bo'lishi kerak, aks holda kalit grace muddatidan keyin tugaydi.</value>
+  </data>
+  <data name="Pnl_Ten_OnlineOptional" xml:space="preserve">
+    <value>Ixtiyoriy — kalit shartnoma davriga (≤ 1 yil), internetsiz ham ishlaydi</value>
+  </data>
+  <data name="Pnl_Ten_OnlineRequired" xml:space="preserve">
+    <value>Majburiy — qisqa kalit, panel o'zi yangilaydi (ERP pull qilishi shart)</value>
+  </data>
+  <data name="Pnl_Ten_OpenTrial" xml:space="preserve">
+    <value>Sinov ochish</value>
+  </data>
+  <data name="Pnl_Ten_OpenTrial14" xml:space="preserve">
+    <value>Sinov ochish (14 kun)</value>
+  </data>
+  <data name="Pnl_Ten_OrgPage" xml:space="preserve">
+    <value>Tashkilot sahifasi</value>
+  </data>
+  <data name="Pnl_Ten_PaidSub" xml:space="preserve">
+    <value>Pullik obuna / xizmat</value>
+  </data>
+  <data name="Pnl_Ten_PleaseConfirm" xml:space="preserve">
+    <value>Tasdiqlang.</value>
+  </data>
+  <data name="Pnl_Ten_Portal" xml:space="preserve">
+    <value>Mijoz portali</value>
+  </data>
+  <data name="Pnl_Ten_PortalUserUpdated" xml:space="preserve">
+    <value>Portal foydalanuvchisi yangilandi (uning sessiyalari yopildi).</value>
+  </data>
+  <data name="Pnl_Ten_ProductsN" xml:space="preserve">
+    <value>{0} tovar</value>
+  </data>
+  <data name="Pnl_Ten_ProvTitle" xml:space="preserve">
+    <value>Provisioning (baza va ERP reestri)</value>
+  </data>
+  <data name="Pnl_Ten_Provision" xml:space="preserve">
+    <value>Bazani yaratish</value>
+  </data>
+  <data name="Pnl_Ten_PuAdd" xml:space="preserve">
+    <value>Qo'shish va taklif havolasini olish</value>
+  </data>
+  <data name="Pnl_Ten_PuLoginHint" xml:space="preserve">
+    <value>Kirish: email yoki telefon + parol + Telegram kodi. Kod foydalanuvchi bog'lagan chatga, bo'lmasa tashkilotning Telegram chatiga yuboriladi.</value>
+  </data>
+  <data name="Pnl_Ten_PuOwner" xml:space="preserve">
+    <value>Owner (so'rov, kalit)</value>
+  </data>
+  <data name="Pnl_Ten_PuViewer" xml:space="preserve">
+    <value>Viewer (faqat ko'rish)</value>
+  </data>
+  <data name="Pnl_Ten_ReasonNote" xml:space="preserve">
+    <value>Sabab / izoh</value>
+  </data>
+  <data name="Pnl_Ten_RegTokenHint" xml:space="preserve">
+    <value>On-prem: ERP License sahifasidagi «Panelga ulash» maydoniga kiriting. SaaS: provisioning LICENSE_STATE.RegToken ga yozadi.</value>
+  </data>
+  <data name="Pnl_Ten_ResetFromTemplate" xml:space="preserve">
+    <value>Shablondan qayta tiklash</value>
+  </data>
+  <data name="Pnl_Ten_ResetPassword" xml:space="preserve">
+    <value>parolni tiklash</value>
+  </data>
+  <data name="Pnl_Ten_ResetQueued" xml:space="preserve">
+    <value>Qayta tiklash navbatga qo'yildi.</value>
+  </data>
+  <data name="Pnl_Ten_Resumed" xml:space="preserve">
+    <value>Qayta yoqildi.</value>
+  </data>
+  <data name="Pnl_Ten_RoleArrow" xml:space="preserve">
+    <value>rol</value>
+  </data>
+  <data name="Pnl_Ten_SaasOurServer" xml:space="preserve">
+    <value>SaaS (bizning server)</value>
+  </data>
+  <data name="Pnl_Ten_SaasUrl" xml:space="preserve">
+    <value>SaaS manzili:</value>
+  </data>
+  <data name="Pnl_Ten_SampleData" xml:space="preserve">
+    <value>Namuna ma'lumotlar bilan (mahsulotlar, kontragentlar, ~3 oylik xarid/ishlab chiqarish/sotuv, xodimlar)</value>
+  </data>
+  <data name="Pnl_Ten_SampleHint" xml:space="preserve">
+    <value>Belgilanmasa — bo'sh baza (faqat spravochniklar). Namuna bazada demo foydalanuvchi o'chirib qo'yiladi, kirish faqat admin orqali.</value>
+  </data>
+  <data name="Pnl_Ten_SavedNoKey" xml:space="preserve">
+    <value>Saqlandi, lekin kalit chiqmadi: {0}</value>
+  </data>
+  <data name="Pnl_Ten_SearchPlaceholder" xml:space="preserve">
+    <value>nom, slug, STIR, telefon</value>
+  </data>
+  <data name="Pnl_Ten_SiteCatalog" xml:space="preserve">
+    <value>Sayt-katalog</value>
+  </data>
+  <data name="Pnl_Ten_SiteDisable" xml:space="preserve">
+    <value>Saytni o'chirish</value>
+  </data>
+  <data name="Pnl_Ten_SiteDisabled" xml:space="preserve">
+    <value>Sayt o'chirildi.</value>
+  </data>
+  <data name="Pnl_Ten_SiteEnable" xml:space="preserve">
+    <value>Saytni yoqish</value>
+  </data>
+  <data name="Pnl_Ten_SiteEnabled" xml:space="preserve">
+    <value>Sayt yoqildi — katalog 1 daqiqa ichida ERP'dan olinadi.</value>
+  </data>
+  <data name="Pnl_Ten_SiteHint" xml:space="preserve">
+    <value>Katalog ERP'dagi «Sayt» sozlamalaridan olinadi (tovarlar, kategoriyalar, aloqa).</value>
+  </data>
+  <data name="Pnl_Ten_SlugHint" xml:space="preserve">
+    <value>Keyin o'zgartirilmaydi. Band: admin, my, pay, www, api…</value>
+  </data>
+  <data name="Pnl_Ten_SlugLabel" xml:space="preserve">
+    <value>Slug (subdomen)</value>
+  </data>
+  <data name="Pnl_Ten_SlugMismatch" xml:space="preserve">
+    <value>Slug mos kelmadi.</value>
+  </data>
+  <data name="Pnl_Ten_SlugToConfirm" xml:space="preserve">
+    <value>Tasdiqlash uchun slug:</value>
+  </data>
+  <data name="Pnl_Ten_StartTrial" xml:space="preserve">
+    <value>14 kunlik sinov (TRIAL: Korporativ modullari, 5 foydalanuvchi) boshlansin</value>
+  </data>
+  <data name="Pnl_Ten_StatusSet" xml:space="preserve">
+    <value>Holat: {0}.</value>
+  </data>
+  <data name="Pnl_Ten_Suspended" xml:space="preserve">
+    <value>To'xtatildi.</value>
+  </data>
+  <data name="Pnl_Ten_TempPasswordHint" xml:space="preserve">
+    <value>Baza tayyor bo'lgach (job «Bajarildi») kirish mumkin; birinchi kirishda parol almashtiriladi. Tenant Telegram chati bo'lsa, xabar u yerga ham yuboriladi.</value>
+  </data>
+  <data name="Pnl_Ten_TrialChatHint" xml:space="preserve">
+    <value>Bo'lsa, kirish ma'lumotlari shu chatga yuboriladi.</value>
+  </data>
+  <data name="Pnl_Ten_TrialEndedNoDb" xml:space="preserve">
+    <value>Sinov yakunlandi (baza yaratilmagan edi) — tenant arxivlandi.</value>
+  </data>
+  <data name="Pnl_Ten_TrialEnding" xml:space="preserve">
+    <value>Sinov yakunlanmoqda: kirish yopildi, baza o'chiriladi. Job #{0}.</value>
+  </data>
+  <data name="Pnl_Ten_TrialEndingBackup" xml:space="preserve">
+    <value>Sinov yakunlanmoqda: kirish yopildi, baza o'chiriladi (oldin .bak arxiv). Job #{0}.</value>
+  </data>
+  <data name="Pnl_Ten_TrialInfo" xml:space="preserve">
+    <value>TRIAL: Korporativ modullari, 5 foydalanuvchi, 14 kun. Tugagach tenant to'xtatiladi (tenants.json enabled=false).</value>
+  </data>
+  <data name="Pnl_Ten_TrialOpened" xml:space="preserve">
+    <value>«{0}» uchun sinov ochildi — baza yaratish navbatga qo'yildi</value>
+  </data>
+  <data name="Pnl_Ten_TrialPasswordHint" xml:space="preserve">
+    <value>Parol faqat hozir ko'rinadi — mijozga yetkazing. Baza tayyor bo'lgach (odatda 1 daqiqa) kirish mumkin; birinchi kirishda parol almashtiriladi.</value>
+  </data>
+  <data name="Pnl_Ten_TrialStarted" xml:space="preserve">
+    <value>14 kunlik sinov boshlandi.</value>
+  </data>
+  <data name="Pnl_Ten_TrialTgHint" xml:space="preserve">
+    <value>Tayyor bo'lganda shu ma'lumot tenant Telegram chatiga ham yuboriladi.</value>
+  </data>
+  <data name="Pnl_Ten_TypeSlug" xml:space="preserve">
+    <value>Tasdiqlash uchun slug'ni yozing:</value>
+  </data>
+  <data name="Pnl_Ten_Understand" xml:space="preserve">
+    <value>Ma'lumot va zaxira qayta tiklanmasligini tushunaman</value>
+  </data>
+  <data name="Pnl_Ten_UnknownAction" xml:space="preserve">
+    <value>Noma'lum amal.</value>
+  </data>
+  <data name="Pnl_Ten_UnlinkTelegram" xml:space="preserve">
+    <value>Telegram'ni uzish</value>
+  </data>
+  <data name="Pnl_Ten_UrlNotConfigured" xml:space="preserve">
+    <value>{0}.&lt;domen&gt; (ControlPanel:Provisioning:BaseDomain sozlanmagan)</value>
+  </data>
+  <data name="Pnl_Ten_YesDelete" xml:space="preserve">
+    <value>Ha, butunlay o'chirish</value>
+  </data>
+  <data name="Pnl_TenantStatus_Active" xml:space="preserve">
+    <value>Faol</value>
+  </data>
+  <data name="Pnl_TenantStatus_Archived" xml:space="preserve">
+    <value>Arxiv</value>
+  </data>
+  <data name="Pnl_TenantStatus_Grace" xml:space="preserve">
+    <value>Imtiyozli muddat</value>
+  </data>
+  <data name="Pnl_TenantStatus_Suspended" xml:space="preserve">
+    <value>To'xtatilgan</value>
+  </data>
+  <data name="Pnl_TenantStatus_Trial" xml:space="preserve">
+    <value>Sinov</value>
+  </data>
+  <data name="Pnl_Tenants" xml:space="preserve">
+    <value>Tenantlar</value>
+  </data>
+  <data name="Pnl_TimeTashkent" xml:space="preserve">
+    <value>Vaqt (Toshkent)</value>
+  </data>
+  <data name="Pnl_TimeUtc" xml:space="preserve">
+    <value>Vaqt (UTC)</value>
+  </data>
+  <data name="Pnl_ToOrganization" xml:space="preserve">
+    <value>Tashkilotga</value>
+  </data>
+  <data name="Pnl_Tr_ActionType" xml:space="preserve">
+    <value>Amal turi</value>
+  </data>
+  <data name="Pnl_Tr_ActionTypes" xml:space="preserve">
+    <value>Amal turlari:</value>
+  </data>
+  <data name="Pnl_Tr_ActionTypesHint" xml:space="preserve">
+    <value>ERP ko'rishni loglamaydi — asosan yaratish/tahrir/o'chirish.</value>
+  </data>
+  <data name="Pnl_Tr_ActiveUser" xml:space="preserve">
+    <value>Faol foydalanuvchi</value>
+  </data>
+  <data name="Pnl_Tr_ActiveUsers" xml:space="preserve">
+    <value>Faol foydalanuvchilar</value>
+  </data>
+  <data name="Pnl_Tr_Allowed" xml:space="preserve">
+    <value>Ruxsat</value>
+  </data>
+  <data name="Pnl_Tr_BusinessVolume" xml:space="preserve">
+    <value>Biznes hajmi (hujjatlar)</value>
+  </data>
+  <data name="Pnl_Tr_CohortHint" xml:space="preserve">
+    <value>Qator — tenant yaratilgan oy; ustun — yaratilgandan keyingi hafta (H0 = birinchi 7 kun); qiymat — o'sha haftada kamida bir marta faol bo'lgan tenantlar ulushi.</value>
+  </data>
+  <data name="Pnl_Tr_Cohorts" xml:space="preserve">
+    <value>Kohortalar va retensiya</value>
+  </data>
+  <data name="Pnl_Tr_Count" xml:space="preserve">
+    <value>Soni</value>
+  </data>
+  <data name="Pnl_Tr_DauAvg" xml:space="preserve">
+    <value>DAU (o'rtacha)</value>
+  </data>
+  <data name="Pnl_Tr_Defs" xml:space="preserve">
+    <value>Metrika ta'riflari:</value>
+  </data>
+  <data name="Pnl_Tr_DemoExcluded" xml:space="preserve">
+    <value>Demo tenant hisobga olinmaydi.</value>
+  </data>
+  <data name="Pnl_Tr_Docs" xml:space="preserve">
+    <value>Hujjatlar</value>
+  </data>
+  <data name="Pnl_Tr_Funnel" xml:space="preserve">
+    <value>Funnel (davrda sinov ochganlar)</value>
+  </data>
+  <data name="Pnl_Tr_Funnel3Days" xml:space="preserve">
+    <value>3+ kun faol</value>
+  </data>
+  <data name="Pnl_Tr_FunnelFirstDoc" xml:space="preserve">
+    <value>Birinchi hujjat</value>
+  </data>
+  <data name="Pnl_Tr_FunnelFirstLogin" xml:space="preserve">
+    <value>Birinchi kirish</value>
+  </data>
+  <data name="Pnl_Tr_FunnelPaid" xml:space="preserve">
+    <value>To'ladi</value>
+  </data>
+  <data name="Pnl_Tr_FunnelTrial" xml:space="preserve">
+    <value>Sinov ochildi</value>
+  </data>
+  <data name="Pnl_Tr_InMap" xml:space="preserve">
+    <value>Xaritada</value>
+  </data>
+  <data name="Pnl_Tr_Limit" xml:space="preserve">
+    <value>Limit</value>
+  </data>
+  <data name="Pnl_Tr_MainDocs" xml:space="preserve">
+    <value>Asosiy hujjatlar</value>
+  </data>
+  <data name="Pnl_Tr_ModuleActionsDaily" xml:space="preserve">
+    <value>Modullar bo'yicha amallar (kunlik)</value>
+  </data>
+  <data name="Pnl_Tr_MrrSom" xml:space="preserve">
+    <value>MRR (so'm)</value>
+  </data>
+  <data name="Pnl_Tr_NoTenants" xml:space="preserve">
+    <value>Tenant yo'q.</value>
+  </data>
+  <data name="Pnl_Tr_NotInEditionMap" xml:space="preserve">
+    <value>EditionModules xaritasida yo'q</value>
+  </data>
+  <data name="Pnl_Tr_NotInMap" xml:space="preserve">
+    <value>xaritada yo'q</value>
+  </data>
+  <data name="Pnl_Tr_OfWhichAddOns" xml:space="preserve">
+    <value>Shundan qo'shimcha xizmatlar</value>
+  </data>
+  <data name="Pnl_Tr_Overview" xml:space="preserve">
+    <value>Umumiy</value>
+  </data>
+  <data name="Pnl_Tr_PageController" xml:space="preserve">
+    <value>Sahifa (controller)</value>
+  </data>
+  <data name="Pnl_Tr_PeriodHint" xml:space="preserve">
+    <value>{0} kun; trend — oldingi shuncha kun bilan</value>
+  </data>
+  <data name="Pnl_Tr_PeriodRevenue" xml:space="preserve">
+    <value>Davr tushumi</value>
+  </data>
+  <data name="Pnl_Tr_Prev" xml:space="preserve">
+    <value>Oldingi</value>
+  </data>
+  <data name="Pnl_Tr_PrevPeriod" xml:space="preserve">
+    <value>Oldingi davr</value>
+  </data>
+  <data name="Pnl_Tr_Risk" xml:space="preserve">
+    <value>Xavf</value>
+  </data>
+  <data name="Pnl_Tr_Score" xml:space="preserve">
+    <value>Ball</value>
+  </data>
+  <data name="Pnl_Tr_Tenant" xml:space="preserve">
+    <value>Tenant</value>
+  </data>
+  <data name="Pnl_Tr_TenantsN" xml:space="preserve">
+    <value>{0} tenant</value>
+  </data>
+  <data name="Pnl_Tr_TopActions" xml:space="preserve">
+    <value>Eng ko'p amallar</value>
+  </data>
+  <data name="Pnl_Tr_TrialToPaid" xml:space="preserve">
+    <value>Sinov → pullik</value>
+  </data>
+  <data name="Pnl_Tr_Unused" xml:space="preserve">
+    <value>Ishlatilmagan:</value>
+  </data>
+  <data name="Pnl_Tr_UnusedHint" xml:space="preserve">
+    <value>«Paketda bor, ishlatilmagan» — faol (sinov/faol/imtiyozli) tenantlardan nechtasining paketida modul bor, lekin davrda bitta ham amal yo'q: o'qitish, UX yoki modulning o'zi ustida ishlash kerak bo'lgan joy. Qo'shimcha xizmat (Sayt-katalog) moduli faqat uni sotib olgan tenantlarda hisoblanadi; paket filtri «SITE» — shu xizmat faol tenantlar.</value>
+  </data>
+  <data name="Pnl_Tr_UnusedInPackage" xml:space="preserve">
+    <value>Paketda bor, ishlatilmagan</value>
+  </data>
+  <data name="Pnl_Tr_UnusedInPackageCsv" xml:space="preserve">
+    <value>Paketda bor, ishlatilmagan (tenant)</value>
+  </data>
+  <data name="Pnl_Tr_UnusedModules" xml:space="preserve">
+    <value>Ishlatilmagan modullar</value>
+  </data>
+  <data name="Pnl_Tr_UsersLimit" xml:space="preserve">
+    <value>Foyd. / limit</value>
+  </data>
+  <data name="Pnl_Url" xml:space="preserve">
+    <value>Manzil</value>
+  </data>
+  <data name="Pnl_UserLower" xml:space="preserve">
+    <value>foydalanuvchi</value>
+  </data>
+  <data name="Pnl_Users" xml:space="preserve">
+    <value>Foydalanuvchi</value>
+  </data>
+  <data name="Pnl_UsersAbbr" xml:space="preserve">
+    <value>foyd.</value>
+  </data>
+  <data name="Pnl_UsersPlural" xml:space="preserve">
+    <value>Foydalanuvchilar</value>
+  </data>
+  <data name="Pnl_UsersShort" xml:space="preserve">
+    <value>Foyd.</value>
+  </data>
+  <data name="Pnl_Val_AppCodeRequired" xml:space="preserve">
+    <value>Ilovadagi 6 xonali kodni kiriting</value>
+  </data>
+  <data name="Pnl_Val_CodeRequired" xml:space="preserve">
+    <value>Kodni kiriting</value>
+  </data>
+  <data name="Pnl_Val_CurrentPassword" xml:space="preserve">
+    <value>Joriy parol</value>
+  </data>
+  <data name="Pnl_Val_EmailInvalid" xml:space="preserve">
+    <value>Email noto'g'ri</value>
+  </data>
+  <data name="Pnl_Val_EmailMandatory" xml:space="preserve">
+    <value>Email majburiy</value>
+  </data>
+  <data name="Pnl_Val_EmailRequired" xml:space="preserve">
+    <value>Email kiriting</value>
+  </data>
+  <data name="Pnl_Val_FullNameRequired" xml:space="preserve">
+    <value>Ism majburiy</value>
+  </data>
+  <data name="Pnl_Val_HostRequired" xml:space="preserve">
+    <value>Host majburiy</value>
+  </data>
+  <data name="Pnl_Val_LegalNameRequired" xml:space="preserve">
+    <value>Yuridik nom majburiy</value>
+  </data>
+  <data name="Pnl_Val_NameRequired" xml:space="preserve">
+    <value>Nomi majburiy</value>
+  </data>
+  <data name="Pnl_Val_NewPassword" xml:space="preserve">
+    <value>Yangi parol</value>
+  </data>
+  <data name="Pnl_Val_PasswordRequired" xml:space="preserve">
+    <value>Parol kiriting</value>
+  </data>
+  <data name="Pnl_Val_PositiveNumber" xml:space="preserve">
+    <value>Musbat son</value>
+  </data>
+  <data name="Pnl_Val_Repeat" xml:space="preserve">
+    <value>Takror</value>
+  </data>
+  <data name="Pnl_Val_SlugRequired" xml:space="preserve">
+    <value>Slug majburiy</value>
+  </data>
+  <data name="Pnl_Val_SqlInstanceRequired" xml:space="preserve">
+    <value>SQL instance majburiy</value>
+  </data>
+  <data name="Pnl_Val_TempPassword" xml:space="preserve">
+    <value>Vaqtinchalik parol</value>
+  </data>
+  <data name="Pnl_Vat" xml:space="preserve">
+    <value>QQS</value>
+  </data>
+  <data name="Pnl_VatPercent" xml:space="preserve">
+    <value>QQS %</value>
+  </data>
+  <data name="Pnl_Version" xml:space="preserve">
+    <value>Versiya</value>
+  </data>
+  <data name="Pnl_YesLower" xml:space="preserve">
+    <value>ha</value>
+  </data>
+  <data name="Ptl_ResetTitle" xml:space="preserve">
+    <value>Parolni tiklash</value>
+  </data>
+  <data name="Ptl_HudReset" xml:space="preserve">
+    <value>PAROLNI TIKLASH</value>
+  </data>
+  <data name="Ptl_ToLoginPage" xml:space="preserve">
+    <value>Kirish sahifasiga</value>
+  </data>
+  <data name="Ptl_EmailOrPhone" xml:space="preserve">
+    <value>Email yoki telefon</value>
+  </data>
+  <data name="Ptl_SendLink" xml:space="preserve">
+    <value>Havola yuborish</value>
+  </data>
+  <data name="Ptl_ResetHint" xml:space="preserve">
+    <value>Havola shaxsiy kanalingizga (Telegram, SMS yoki email — profilda tanlangan) keladi va bir marta ishlaydi. Kanal bog'lanmagan bo'lsa — xodimimizdan yangi havola so'rang.</value>
+  </data>
+  <data name="Ptl_HudClientId" xml:space="preserve">
+    <value>MIJOZ IDENTIFIKATSIYASI</value>
+  </data>
+  <data name="Ptl_LoginHeading" xml:space="preserve">
+    <value>Mijoz kabinetiga kirish</value>
+  </data>
+  <data name="Ptl_LoginSub" xml:space="preserve">
+    <value>Hisob-fakturalar, to'lovlar va litsenziya — bir joyda.</value>
+  </data>
+  <data name="Ptl_LoginPlaceholder" xml:space="preserve">
+    <value>email yoki +998…</value>
+  </data>
+  <data name="Ptl_Continue" xml:space="preserve">
+    <value>Davom etish</value>
+  </data>
+  <data name="Ptl_LoginHint" xml:space="preserve">
+    <value>Keyingi qadam — bir martalik kod (Telegram, yoki profilda tanlangan SMS / email).</value>
+  </data>
+  <data name="Ptl_SessionEncrypted" xml:space="preserve">
+    <value>SEANS: SHIFRLANGAN</value>
+  </data>
+  <data name="Ptl_ForgotLink" xml:space="preserve">
+    <value>Parolni unutdingizmi?</value>
+  </data>
+  <data name="Ptl_OtpTitle" xml:space="preserve">
+    <value>Tasdiqlash kodi</value>
+  </data>
+  <data name="Ptl_HudSecondFactor" xml:space="preserve">
+    <value>IKKINCHI OMIL</value>
+  </data>
+  <data name="Ptl_CodeSentTo" xml:space="preserve">
+    <value>Kod yuborildi:</value>
+  </data>
+  <data name="Ptl_SixDigitCode" xml:space="preserve">
+    <value>6 xonali kod</value>
+  </data>
+  <data name="Ptl_ResendCode" xml:space="preserve">
+    <value>Kodni qayta yuborish</value>
+  </data>
+  <data name="Ptl_HudOneTimeCode" xml:space="preserve">
+    <value>BIR MARTALIK KOD</value>
+  </data>
+  <data name="Ptl_OtherAccount" xml:space="preserve">
+    <value>Boshqa hisob</value>
+  </data>
+  <data name="Ptl_SetPasswordTitle" xml:space="preserve">
+    <value>Parol o'rnatish</value>
+  </data>
+  <data name="Ptl_HudInvite" xml:space="preserve">
+    <value>TAKLIFNOMA</value>
+  </data>
+  <data name="Ptl_PasswordSet" xml:space="preserve">
+    <value>Parol o'rnatildi</value>
+  </data>
+  <data name="Ptl_LinkTelegram" xml:space="preserve">
+    <value>Telegram'ni bog'lang</value>
+  </data>
+  <data name="Ptl_CodesComeHere" xml:space="preserve">
+    <value>kirish kodlari shu yerga keladi</value>
+  </data>
+  <data name="Ptl_ElseTenantChat" xml:space="preserve">
+    <value>(bog'lamasangiz — tashkilot chatiga)</value>
+  </data>
+  <data name="Ptl_OpenTelegramBot" xml:space="preserve">
+    <value>Telegram botni ochish</value>
+  </data>
+  <data name="Ptl_BotStartHint" xml:space="preserve">
+    <value>Botda «Start» tugmasini bosing. Havola 24 soat amal qiladi va bir marta ishlaydi.</value>
+  </data>
+  <data name="Ptl_SendCommandToBot" xml:space="preserve">
+    <value>Telegram botga quyidagi buyruqni yuboring:</value>
+  </data>
+  <data name="Ptl_LinkInvalid" xml:space="preserve">
+    <value>Havola yaroqsiz</value>
+  </data>
+  <data name="Ptl_Welcome" xml:space="preserve">
+    <value>Xush kelibsiz</value>
+  </data>
+  <data name="Ptl_NewPassword" xml:space="preserve">
+    <value>Yangi parol</value>
+  </data>
+  <data name="Ptl_RepeatPassword" xml:space="preserve">
+    <value>Parolni takrorlang</value>
+  </data>
+  <data name="Ptl_PasswordPolicyHint" xml:space="preserve">
+    <value>Kamida 12 belgi, harf va raqam bo'lsin.</value>
+  </data>
+  <data name="Ptl_SavePassword" xml:space="preserve">
+    <value>Parolni saqlash</value>
+  </data>
+  <data name="Ptl_Val_LoginRequired" xml:space="preserve">
+    <value>Email yoki telefon raqamini kiriting</value>
+  </data>
+  <data name="Ptl_Val_PasswordRequired" xml:space="preserve">
+    <value>Parolni kiriting</value>
+  </data>
+  <data name="Ptl_EnterCode" xml:space="preserve">
+    <value>Kodni kiriting</value>
+  </data>
+  <data name="Ptl_CodeInvalid" xml:space="preserve">
+    <value>Kod noto'g'ri yoki muddati o'tgan.</value>
+  </data>
+  <data name="Ptl_NewCodeSent" xml:space="preserve">
+    <value>Yangi kod yuborildi.</value>
+  </data>
+  <data name="Ptl_SubscriptionStatus" xml:space="preserve">
+    <value>Obuna holati</value>
+  </data>
+  <data name="Ptl_SuspendedTitle" xml:space="preserve">
+    <value>Tizimga kirish to'xtatilgan.</value>
+  </data>
+  <data name="Ptl_SuspendedText" xml:space="preserve">
+    <value>Ma'lumotlaringiz saqlanadi — to'lov qabul qilingach kirish tiklanadi.</value>
+  </data>
+  <data name="Ptl_GraceTitle" xml:space="preserve">
+    <value>Obuna muddati tugagan.</value>
+  </data>
+  <data name="Ptl_GraceText" xml:space="preserve">
+    <value>{0} kunlik imtiyozli davr — keyin kirish to'xtatiladi. Uzluksiz ishlash uchun to'lovni amalga oshiring.</value>
+  </data>
+  <data name="Ptl_ExpiresIn" xml:space="preserve">
+    <value>Obuna tugashiga &lt;strong&gt;{0} kun&lt;/strong&gt; qoldi ({1}).</value>
+  </data>
+  <data name="Ptl_RenewRequest" xml:space="preserve">
+    <value>Uzaytirish so'rovi</value>
+  </data>
+  <data name="Ptl_InvoiceWord" xml:space="preserve">
+    <value>Hisob-faktura</value>
+  </data>
+  <data name="Ptl_OverdueTail" xml:space="preserve">
+    <value>to'lov muddati o'tgan ({0}), qoldiq {1}.</value>
+  </data>
+  <data name="Ptl_HowToPay" xml:space="preserve">
+    <value>Qanday to'lash</value>
+  </data>
+  <data name="Ptl_Plan" xml:space="preserve">
+    <value>Paket</value>
+  </data>
+  <data name="Ptl_Valid" xml:space="preserve">
+    <value>Amal qiladi</value>
+  </data>
+  <data name="Ptl_DaysLeft" xml:space="preserve">
+    <value>Qolgan kunlar</value>
+  </data>
+  <data name="Ptl_UserLimit" xml:space="preserve">
+    <value>Foydalanuvchilar limiti</value>
+  </data>
+  <data name="Ptl_Organization" xml:space="preserve">
+    <value>Tashkilot</value>
+  </data>
+  <data name="Ptl_Inn" xml:space="preserve">
+    <value>STIR</value>
+  </data>
+  <data name="Ptl_Deployment" xml:space="preserve">
+    <value>Joylashuv</value>
+  </data>
+  <data name="Ptl_CurrentPeriod" xml:space="preserve">
+    <value>Joriy davr</value>
+  </data>
+  <data name="Ptl_Modules" xml:space="preserve">
+    <value>Modullar</value>
+  </data>
+  <data name="Ptl_NextPeriod" xml:space="preserve">
+    <value>Keyingi davr</value>
+  </data>
+  <data name="Ptl_PaidLower" xml:space="preserve">
+    <value>to'langan</value>
+  </data>
+  <data name="Ptl_AwaitingPayment" xml:space="preserve">
+    <value>To'lov kutilmoqda</value>
+  </data>
+  <data name="Ptl_Users" xml:space="preserve">
+    <value>Foydalanuvchilar</value>
+  </data>
+  <data name="Ptl_UsersMaxText" xml:space="preserve">
+    <value>Paket bo'yicha ko'pi bilan {0} ta. Ko'proq kerak bo'lsa — yuqoriroq paket.</value>
+  </data>
+  <data name="Ptl_AddOns" xml:space="preserve">
+    <value>Qo'shimcha xizmatlar</value>
+  </data>
+  <data name="Ptl_AddOnsHint" xml:space="preserve">
+    <value>Paketga kirmaydi, alohida obuna va to'lov. Faol xizmat litsenziya kalitiga qo'shiladi va ERP'da o'z bo'limi ochiladi.</value>
+  </data>
+  <data name="Ptl_Service" xml:space="preserve">
+    <value>Xizmat</value>
+  </data>
+  <data name="Ptl_AddOnActivatesOnPay" xml:space="preserve">
+    <value>hisob-faktura to'langach faollashadi</value>
+  </data>
+  <data name="Ptl_ContactManagerToConnect" xml:space="preserve">
+    <value>Ulash uchun menejeringiz bilan bog'laning</value>
+  </data>
+  <data name="Ptl_AddOnExpiresIn" xml:space="preserve">
+    <value>xizmati tugashiga &lt;strong&gt;{0} kun&lt;/strong&gt; qoldi ({1}). Uzaytirish uchun menejeringiz bilan bog'laning.</value>
+  </data>
+  <data name="Ptl_OpenRequest" xml:space="preserve">
+    <value>Ko'rib chiqilayotgan so'rov #{0}</value>
+  </data>
+  <data name="Ptl_DetailsLower" xml:space="preserve">
+    <value>batafsil</value>
+  </data>
+  <data name="Ptl_UnpaidInvoices" xml:space="preserve">
+    <value>To'lanmagan hisob-fakturalar</value>
+  </data>
+  <data name="Ptl_AllPaid" xml:space="preserve">
+    <value>Hammasi to'langan.</value>
+  </data>
+  <data name="Ptl_Due" xml:space="preserve">
+    <value>Muddat</value>
+  </data>
+  <data name="Ptl_BalanceSom" xml:space="preserve">
+    <value>Qoldiq, so'm</value>
+  </data>
+  <data name="Ptl_InvPayByBank" xml:space="preserve">
+    <value>To'lov bank orqali</value>
+  </data>
+  <data name="Ptl_InvDetailsLink" xml:space="preserve">
+    <value>rekvizitlar va ko'rsatma</value>
+  </data>
+  <data name="Ptl_InvStatusHint" xml:space="preserve">
+    <value>To'lov kelib tushgach xodim belgilaydi va holat yangilanadi.</value>
+  </data>
+  <data name="Ptl_NoInvoices" xml:space="preserve">
+    <value>Hozircha hisob-faktura yo'q.</value>
+  </data>
+  <data name="Ptl_DueDate" xml:space="preserve">
+    <value>To'lov muddati</value>
+  </data>
+  <data name="Ptl_TotalSom" xml:space="preserve">
+    <value>Jami, so'm</value>
+  </data>
+  <data name="Ptl_Paid" xml:space="preserve">
+    <value>To'langan</value>
+  </data>
+  <data name="Ptl_Pay" xml:space="preserve">
+    <value>To'lash</value>
+  </data>
+  <data name="Ptl_InvPartiallyPaid" xml:space="preserve">
+    <value>Qisman to'langan</value>
+  </data>
+  <data name="Ptl_InvUnpaid" xml:space="preserve">
+    <value>To'lanmagan</value>
+  </data>
+  <data name="Ptl_Cancelled" xml:space="preserve">
+    <value>Bekor qilingan</value>
+  </data>
+  <data name="Ptl_Preparing" xml:space="preserve">
+    <value>Tayyorlanmoqda</value>
+  </data>
+  <data name="Ptl_VendorNotReady" xml:space="preserve">
+    <value>Rekvizitlar hali kiritilmagan. Iltimos, xodimimiz bilan bog'laning.</value>
+  </data>
+  <data name="Ptl_Recipient" xml:space="preserve">
+    <value>Qabul qiluvchi</value>
+  </data>
+  <data name="Ptl_VatCode" xml:space="preserve">
+    <value>QQS to'lovchi kodi</value>
+  </data>
+  <data name="Ptl_Bank" xml:space="preserve">
+    <value>Bank</value>
+  </data>
+  <data name="Ptl_Account" xml:space="preserve">
+    <value>Hisob raqami</value>
+  </data>
+  <data name="Ptl_CopyLower" xml:space="preserve">
+    <value>nusxa olish</value>
+  </data>
+  <data name="Ptl_Copy" xml:space="preserve">
+    <value>Nusxa olish</value>
+  </data>
+  <data name="Ptl_Copied" xml:space="preserve">
+    <value>Nusxa olindi</value>
+  </data>
+  <data name="Ptl_Mfo" xml:space="preserve">
+    <value>MFO</value>
+  </data>
+  <data name="Ptl_PayStep1" xml:space="preserve">
+    <value>Bank orqali (to'lov topshiriqnomasi) yuqoridagi hisob raqamiga o'tkazing.</value>
+  </data>
+  <data name="Ptl_PayStep2" xml:space="preserve">
+    <value>To'lov maqsadida albatta hisob-faktura raqamini yozing</value>
+  </data>
+  <data name="Ptl_ForExample" xml:space="preserve">
+    <value>masalan</value>
+  </data>
+  <data name="Ptl_PayStep2Tail" xml:space="preserve">
+    <value>aks holda to'lov kechikib aniqlanadi.</value>
+  </data>
+  <data name="Ptl_PayStep3" xml:space="preserve">
+    <value>Summani hisob-fakturadagidek (QQS bilan) to'lang. Qisman to'lov ham qabul qilinadi.</value>
+  </data>
+  <data name="Ptl_PayStep4" xml:space="preserve">
+    <value>To'lov kelib tushgach xodimimiz uni belgilaydi va obuna avtomatik uzaytiriladi. Onlayn (karta) to'lov hozircha yo'q.</value>
+  </data>
+  <data name="Ptl_BalanceLower" xml:space="preserve">
+    <value>qoldiq</value>
+  </data>
+  <data name="Ptl_DueLower" xml:space="preserve">
+    <value>muddat</value>
+  </data>
+  <data name="Ptl_PaymentPurposeLabel" xml:space="preserve">
+    <value>To'lov maqsadi:</value>
+  </data>
+  <data name="Ptl_PaymentPurposeText" xml:space="preserve">
+    <value>{0} hisob-faktura bo'yicha tahsinERP dasturiy ta'minot xizmati uchun to'lov, QQS bilan</value>
+  </data>
+  <data name="Ptl_LicenseHeading" xml:space="preserve">
+    <value>Litsenziya kaliti (o'z serveringiz)</value>
+  </data>
+  <data name="Ptl_LicenseHint" xml:space="preserve">
+    <value>Kalitni ERP'dagi «Litsenziya» sahifasiga kiriting. Kalit faqat o'z o'rnatmangizda (InstallationId) ishlaydi. Internet bo'lsa ERP kalitni o'zi yangilaydi.</value>
+  </data>
+  <data name="Ptl_NoLicense" xml:space="preserve">
+    <value>Amaldagi kalit yo'q. To'lovdan keyin kalit chiqariladi; savol bo'lsa xodimimizga murojaat qiling.</value>
+  </data>
+  <data name="Ptl_Installation" xml:space="preserve">
+    <value>O'rnatma (InstallationId)</value>
+  </data>
+  <data name="Ptl_UsersCount" xml:space="preserve">
+    <value>{0} foydalanuvchi</value>
+  </data>
+  <data name="Ptl_ExpiredLower" xml:space="preserve">
+    <value>muddati o'tgan</value>
+  </data>
+  <data name="Ptl_DownloadAsFile" xml:space="preserve">
+    <value>Fayl sifatida yuklab olish</value>
+  </data>
+  <data name="Ptl_ShowKey" xml:space="preserve">
+    <value>Kalitni ko'rsatish</value>
+  </data>
+  <data name="Ptl_KeyOwnerOnly" xml:space="preserve">
+    <value>Kalitni faqat tashkilot mas'uli (Owner) ko'ra oladi.</value>
+  </data>
+  <data name="Ptl_FullName" xml:space="preserve">
+    <value>Ism</value>
+  </data>
+  <data name="Ptl_Role" xml:space="preserve">
+    <value>Rol</value>
+  </data>
+  <data name="Ptl_RoleOwner" xml:space="preserve">
+    <value>Mas'ul (so'rov yuborish, kalit)</value>
+  </data>
+  <data name="Ptl_RoleViewer" xml:space="preserve">
+    <value>Ko'ruvchi</value>
+  </data>
+  <data name="Ptl_TgNotLinked" xml:space="preserve">
+    <value>bog'lanmagan (kodlar tashkilot chatiga keladi)</value>
+  </data>
+  <data name="Ptl_TgLinked" xml:space="preserve">
+    <value>bog'langan</value>
+  </data>
+  <data name="Ptl_CodeChannel" xml:space="preserve">
+    <value>Kirish kodi kanali</value>
+  </data>
+  <data name="Ptl_TelegramDefault" xml:space="preserve">
+    <value>Telegram (standart)</value>
+  </data>
+  <data name="Ptl_NoSmsEmail" xml:space="preserve">
+    <value>SMS / email kanallari hozircha mavjud emas (sozlanmagan yoki telefon/email kiritilmagan).</value>
+  </data>
+  <data name="Ptl_CodesNowGoTo" xml:space="preserve">
+    <value>Hozir kodlar keladi:</value>
+  </data>
+  <data name="Ptl_NoChannel" xml:space="preserve">
+    <value>kanal yo'q</value>
+  </data>
+  <data name="Ptl_ChannelFallbackHint" xml:space="preserve">
+    <value>Tanlangan kanal ishlamasa — Telegram'ga. Parolni tiklash havolasi ham shu kanalga keladi (tashkilot guruh chatiga — yo'q).</value>
+  </data>
+  <data name="Ptl_SendToBot" xml:space="preserve">
+    <value>Telegram botga yuboring:</value>
+  </data>
+  <data name="Ptl_LinkValidHint" xml:space="preserve">
+    <value>Havola 24 soat amal qiladi va bir marta ishlaydi. Bog'langach kirish kodlari shu chatga keladi.</value>
+  </data>
+  <data name="Ptl_LinkTelegramBtn" xml:space="preserve">
+    <value>Telegram'ni bog'lash</value>
+  </data>
+  <data name="Ptl_RelinkTelegram" xml:space="preserve">
+    <value>Boshqa Telegram hisobiga o'tkazish</value>
+  </data>
+  <data name="Ptl_CurrentPassword" xml:space="preserve">
+    <value>Joriy parol</value>
+  </data>
+  <data name="Ptl_Repeat" xml:space="preserve">
+    <value>Takrorlang</value>
+  </data>
+  <data name="Ptl_ChannelSaved" xml:space="preserve">
+    <value>Kod kanali saqlandi.</value>
+  </data>
+  <data name="Ptl_PasswordChanged" xml:space="preserve">
+    <value>Parol almashtirildi. Boshqa qurilmalardagi sessiyalar yopildi.</value>
+  </data>
+  <data name="Ptl_RequestsHeading" xml:space="preserve">
+    <value>Tarifni oshirish / uzaytirish</value>
+  </data>
+  <data name="Ptl_CurrentPlan" xml:space="preserve">
+    <value>Joriy paket:</value>
+  </data>
+  <data name="Ptl_None" xml:space="preserve">
+    <value>yo'q</value>
+  </data>
+  <data name="Ptl_UntilDate" xml:space="preserve">
+    <value>{0} gacha</value>
+  </data>
+  <data name="Ptl_RequestsHint" xml:space="preserve">
+    <value>So'rovni xodim ko'rib chiqadi va hisob-faktura chiqaradi. Paketni pasaytirish faqat joriy davr oxiridan kuchga kiradi.</value>
+  </data>
+  <data name="Ptl_UpToUsers" xml:space="preserve">
+    <value>{0} foydalanuvchigacha</value>
+  </data>
+  <data name="Ptl_PerMonth" xml:space="preserve">
+    <value>Oyiga:</value>
+  </data>
+  <data name="Ptl_PerYear" xml:space="preserve">
+    <value>Yiliga:</value>
+  </data>
+  <data name="Ptl_Negotiable" xml:space="preserve">
+    <value>kelishiladi</value>
+  </data>
+  <data name="Ptl_Monthly" xml:space="preserve">
+    <value>Oylik</value>
+  </data>
+  <data name="Ptl_Yearly" xml:space="preserve">
+    <value>Yillik</value>
+  </data>
+  <data name="Ptl_PeriodCount" xml:space="preserve">
+    <value>Necha davr</value>
+  </data>
+  <data name="Ptl_SendRequest" xml:space="preserve">
+    <value>So'rov yuborish</value>
+  </data>
+  <data name="Ptl_RequestOwnerOnly" xml:space="preserve">
+    <value>So'rov yuborish faqat tashkilot mas'uli (Owner) uchun.</value>
+  </data>
+  <data name="Ptl_RequestHistory" xml:space="preserve">
+    <value>So'rovlar tarixi</value>
+  </data>
+  <data name="Ptl_NoRequests" xml:space="preserve">
+    <value>So'rovlar yo'q.</value>
+  </data>
+  <data name="Ptl_Request" xml:space="preserve">
+    <value>So'rov</value>
+  </data>
+  <data name="Ptl_CommentResult" xml:space="preserve">
+    <value>Izoh / natija</value>
+  </data>
+  <data name="Ptl_FromDate" xml:space="preserve">
+    <value>{0} dan</value>
+  </data>
+  <data name="Ptl_InvoicePreparing" xml:space="preserve">
+    <value>hisob-faktura tayyorlanmoqda</value>
+  </data>
+  <data name="Ptl_CancelLower" xml:space="preserve">
+    <value>bekor qilish</value>
+  </data>
+  <data name="Ptl_ExplainRenew" xml:space="preserve">
+    <value>Uzaytirish: joriy obuna {0} dan davom etadi.</value>
+  </data>
+  <data name="Ptl_ExplainUpgrade" xml:space="preserve">
+    <value>Tarifni oshirish: to'lovdan keyin darhol yangi paket (joriy davr qoldig'i xodim bilan kelishiladi).</value>
+  </data>
+  <data name="Ptl_ExplainChange" xml:space="preserve">
+    <value>Paket/davr o'zgarishi faqat joriy davr oxirida: {0} dan.</value>
+  </data>
+  <data name="Ptl_ExplainNew" xml:space="preserve">
+    <value>Yangi obuna: to'lovdan keyin darhol.</value>
+  </data>
+  <data name="Ptl_RequestSent" xml:space="preserve">
+    <value>So'rov yuborildi. Xodim ko'rib chiqqach Telegram orqali xabar olasiz.</value>
+  </data>
+  <data name="Ptl_RequestCancelled" xml:space="preserve">
+    <value>So'rov bekor qilindi.</value>
+  </data>
+  <data name="Ptl_ReqPending" xml:space="preserve">
+    <value>Ko'rib chiqilmoqda</value>
+  </data>
+  <data name="Ptl_ReqApproved" xml:space="preserve">
+    <value>Tasdiqlangan</value>
+  </data>
+  <data name="Ptl_ReqRejected" xml:space="preserve">
+    <value>Rad etilgan</value>
+  </data>
+  <data name="Ptl_Kind_Renew" xml:space="preserve">
+    <value>uzaytirish</value>
+  </data>
+  <data name="Ptl_Kind_Upgrade" xml:space="preserve">
+    <value>tarifni oshirish</value>
+  </data>
+  <data name="Ptl_Kind_ChangeAtPeriodEnd" xml:space="preserve">
+    <value>davr oxirida o'zgartirish</value>
+  </data>
+  <data name="Ptl_Kind_New" xml:space="preserve">
+    <value>yangi obuna</value>
+  </data>
+  <data name="Ptl_UnitYear" xml:space="preserve">
+    <value>yil</value>
+  </data>
+  <data name="Ptl_UnitMonth" xml:space="preserve">
+    <value>oy</value>
+  </data>
+  <data name="Ptl_AddOnUpcoming" xml:space="preserve">
+    <value>To'langan, hali boshlanmagan</value>
+  </data>
+  <data name="Ptl_AddOnExpired" xml:space="preserve">
+    <value>Muddati tugagan</value>
+  </data>
+  <data name="Ptl_AddOnNotConnected" xml:space="preserve">
+    <value>Ulanmagan</value>
+  </data>
+  <data name="Ptl_OwnerOnlyAction" xml:space="preserve">
+    <value>Bu amal faqat tashkilot mas'uli (Owner roli) uchun.</value>
+  </data>
+  <data name="Ptl_ConcurrencyConflict" xml:space="preserve">
+    <value>Ma'lumot shu orada o'zgardi — sahifani yangilab, qayta urinib ko'ring.</value>
+  </data>
+  <data name="Ptl_OrgArchived" xml:space="preserve">
+    <value>Tashkilot arxivda.</value>
+  </data>
+  <data name="Ptl_PlanNotFound" xml:space="preserve">
+    <value>Paket topilmadi.</value>
+  </data>
+  <data name="Ptl_PeriodInvalid" xml:space="preserve">
+    <value>Davr noto'g'ri.</value>
+  </data>
+  <data name="Ptl_PeriodCountRange" xml:space="preserve">
+    <value>Davrlar soni 1–{0}.</value>
+  </data>
+  <data name="Ptl_HasPendingRequest" xml:space="preserve">
+    <value>Sizda ko'rib chiqilayotgan so'rov bor. Avval uni bekor qiling yoki javobni kuting.</value>
+  </data>
+  <data name="Ptl_NextPeriodPaid" xml:space="preserve">
+    <value>Keyingi davr ({0} dan) allaqachon to'langan. Yangi so'rovni o'sha davr boshlangach yuboring.</value>
+  </data>
+  <data name="Ptl_RequestNotFound" xml:space="preserve">
+    <value>So'rov topilmadi.</value>
+  </data>
+  <data name="Ptl_RequestAlreadyDecided" xml:space="preserve">
+    <value>So'rov allaqachon ko'rib chiqilgan.</value>
+  </data>
+  <data name="Ptl_TenantHasPendingSub" xml:space="preserve">
+    <value>Tenantda to'lanmagan obuna #{0} bor — avval uni bekor qiling (Obunalar).</value>
+  </data>
+  <data name="Ptl_RejectReasonRequired" xml:space="preserve">
+    <value>Rad etish sababi majburiy (mijozga yuboriladi).</value>
+  </data>
+  <data name="Ptl_MsgStaffNewRequest" xml:space="preserve">
+    <value>tahsinERP portal: {0} ({1}) — yangi so'rov #{2}: {3}, «{4}», {5} {6}. Panel → So'rovlar.</value>
+  </data>
+  <data name="Ptl_MsgRequestApproved" xml:space="preserve">
+    <value>tahsinERP: so'rovingiz #{0} tasdiqlandi ({1}, «{2}», {3} {4}). Hisob-faktura tayyorlanmoqda — chiqarilgach portalda (Hisob-fakturalar) ko'rinadi.</value>
+  </data>
+  <data name="Ptl_MsgRequestRejected" xml:space="preserve">
+    <value>tahsinERP: so'rovingiz #{0} rad etildi. Sabab: {1}</value>
+  </data>
+  <data name="Ptl_LoginError" xml:space="preserve">
+    <value>Login yoki parol noto'g'ri.</value>
+  </data>
+  <data name="Ptl_LockedError" xml:space="preserve">
+    <value>Hisob vaqtincha bloklangan (ko'p xato urinish). 15 daqiqadan keyin urinib ko'ring.</value>
+  </data>
+  <data name="Ptl_TenantNotFound" xml:space="preserve">
+    <value>Tenant topilmadi.</value>
+  </data>
+  <data name="Ptl_ArchivedTenantNoUser" xml:space="preserve">
+    <value>Arxivdagi tenantga portal foydalanuvchisi qo'shilmaydi.</value>
+  </data>
+  <data name="Ptl_PhoneInvalid" xml:space="preserve">
+    <value>Telefon raqami noto'g'ri (masalan +998901234567).</value>
+  </data>
+  <data name="Ptl_EmailOrPhoneRequired" xml:space="preserve">
+    <value>Email yoki telefon kiriting (kirish uchun login).</value>
+  </data>
+  <data name="Ptl_EmailInvalid" xml:space="preserve">
+    <value>Email noto'g'ri.</value>
+  </data>
+  <data name="Ptl_NameRequired" xml:space="preserve">
+    <value>Ism kiriting.</value>
+  </data>
+  <data name="Ptl_EmailExists" xml:space="preserve">
+    <value>Bu email bilan portal foydalanuvchisi bor.</value>
+  </data>
+  <data name="Ptl_PhoneExists" xml:space="preserve">
+    <value>Bu telefon bilan portal foydalanuvchisi bor.</value>
+  </data>
+  <data name="Ptl_UserInactive" xml:space="preserve">
+    <value>Foydalanuvchi o'chirilgan — avval faollashtiring.</value>
+  </data>
+  <data name="Ptl_TenantArchived" xml:space="preserve">
+    <value>Tenant arxivda.</value>
+  </data>
+  <data name="Ptl_InviteLinkInvalid" xml:space="preserve">
+    <value>Havola yaroqsiz yoki muddati o'tgan. Yangi taklif so'rang.</value>
+  </data>
+  <data name="Ptl_PasswordsMismatch" xml:space="preserve">
+    <value>Parollar mos emas.</value>
+  </data>
+  <data name="Ptl_NoTelegramForCode" xml:space="preserve">
+    <value>Kod yuborish uchun Telegram bog'lanmagan. Xodimdan yangi taklif havolasini so'rang.</value>
+  </data>
+  <data name="Ptl_CodeRecentlySent" xml:space="preserve">
+    <value>Kod yaqinda yuborildi — {0} soniyadan keyin qayta so'rang.</value>
+  </data>
+  <data name="Ptl_TooManyCodes" xml:space="preserve">
+    <value>Juda ko'p kod so'raldi. 15 daqiqadan keyin urinib ko'ring.</value>
+  </data>
+  <data name="Ptl_ChannelInvalid" xml:space="preserve">
+    <value>Kanal noto'g'ri.</value>
+  </data>
+  <data name="Ptl_SmsUnavailable" xml:space="preserve">
+    <value>SMS kanali mavjud emas (telefon kiritilmagan yoki SMS sozlanmagan).</value>
+  </data>
+  <data name="Ptl_EmailUnavailable" xml:space="preserve">
+    <value>Email kanali mavjud emas (email kiritilmagan yoki pochta sozlanmagan).</value>
+  </data>
+  <data name="Ptl_ResetRequested" xml:space="preserve">
+    <value>Agar shu login bilan faol hisob bo'lsa, parolni tiklash havolasi uning shaxsiy kanaliga (Telegram, SMS yoki email) yuborildi. Havola bir marta ishlaydi. Xabar kelmasa — xodimimizdan yangi havola so'rang.</value>
+  </data>
+  <data name="Ptl_CurrentPasswordWrong" xml:space="preserve">
+    <value>Joriy parol noto'g'ri.</value>
+  </data>
+  <data name="Ptl_MsgInvite" xml:space="preserve">
+    <value>tahsinERP portal: {0} havolasi ({1} soat amal qiladi, bir marta ishlaydi): {2}</value>
+  </data>
+  <data name="Ptl_InviteKindReset" xml:space="preserve">
+    <value>parolni tiklash</value>
+  </data>
+  <data name="Ptl_InviteKindInvite" xml:space="preserve">
+    <value>taklif</value>
+  </data>
+  <data name="Ptl_TgPersonalChat" xml:space="preserve">
+    <value>Telegram (shaxsiy chat {0})</value>
+  </data>
+  <data name="Ptl_TgTenantChat" xml:space="preserve">
+    <value>Telegram (tashkilot chati {0})</value>
+  </data>
+  <data name="Ptl_ServerLogLocal" xml:space="preserve">
+    <value>server log'i (lokal rejim)</value>
+  </data>
+  <data name="Ptl_SmsTarget" xml:space="preserve">
+    <value>SMS ({0})</value>
+  </data>
+  <data name="Ptl_EmailTarget" xml:space="preserve">
+    <value>email ({0})</value>
+  </data>
+  <data name="Ptl_MsgOtp" xml:space="preserve">
+    <value>tahsinERP portal: kirish kodi {0}. {1} daqiqa amal qiladi. Kodni hech kimga bermang.</value>
+  </data>
+  <data name="Ptl_MsgResetLink" xml:space="preserve">
+    <value>tahsinERP portal: parolni tiklash havolasi ({0} daqiqa, bir marta ishlaydi): {1} — siz so'ramagan bo'lsangiz, e'tibor bermang.</value>
+  </data>
+  <data name="Ptl_MsgResetLinkSms" xml:space="preserve">
+    <value>tahsinERP portal: parolni tiklash havolasi ({0} daqiqa): {1}</value>
+  </data>
+  <data name="Ptl_TgSendFailed" xml:space="preserve">
+    <value>Telegram orqali yuborib bo'lmadi.</value>
+  </data>
+  <data name="Ptl_TgOtpFailed" xml:space="preserve">
+    <value>Kodni Telegram orqali yuborib bo'lmadi. Birozdan keyin qayta urinib ko'ring.</value>
+  </data>
+  <data name="Ptl_SmsOtpFailed" xml:space="preserve">
+    <value>Kodni SMS orqali yuborib bo'lmadi. Birozdan keyin qayta urinib ko'ring.</value>
+  </data>
+  <data name="Ptl_SmsFailed" xml:space="preserve">
+    <value>SMS yuborib bo'lmadi.</value>
+  </data>
+  <data name="Ptl_EmailOtpFailed" xml:space="preserve">
+    <value>Kodni email orqali yuborib bo'lmadi. Birozdan keyin qayta urinib ko'ring.</value>
+  </data>
+  <data name="Ptl_EmailFailed" xml:space="preserve">
+    <value>Email yuborib bo'lmadi.</value>
+  </data>
+  <data name="Ptl_EmailOtpSubject" xml:space="preserve">
+    <value>tahsinERP portal: kirish kodi</value>
+  </data>
+  <data name="Ptl_EmailOtpBody" xml:space="preserve">
+    <value>Assalomu alaykum, {0}!
+
+tahsinERP portal: kirish kodi {1}. {2} daqiqa amal qiladi.
+Kodni hech kimga bermang. Siz so'ramagan bo'lsangiz — parolingizni almashtiring.</value>
+  </data>
+  <data name="Ptl_EmailResetSubject" xml:space="preserve">
+    <value>tahsinERP portal: parolni tiklash</value>
+  </data>
+  <data name="Ptl_EmailResetBody" xml:space="preserve">
+    <value>Assalomu alaykum, {0}!
+
+Parolni tiklash havolasi ({1} daqiqa amal qiladi, bir marta ishlaydi):
+{2}
+
+Siz so'ramagan bo'lsangiz — bu xatga e'tibor bermang, parolingiz o'zgarmaydi.</value>
+  </data>
+  <data name="Ptl_BotLinkInvalid" xml:space="preserve">
+    <value>Kod yaroqsiz yoki muddati o'tgan. Portal → Profil sahifasidan yangi havola oling yoki xodimdan yangi taklif so'rang.</value>
+  </data>
+  <data name="Ptl_BotLinked" xml:space="preserve">
+    <value>Tayyor: {0}, bu chat tahsinERP portaliga bog'landi. Kirish kodlari shu yerga keladi.</value>
+  </data>
+  <data name="Ptl_BotInfo" xml:space="preserve">
+    <value>tahsinERP bot. Bu chat ID: {0}. Portalga bog'lash uchun portaldagi havoladan foydalaning.</value>
+  </data>
 </root>

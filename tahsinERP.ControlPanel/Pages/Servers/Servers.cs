@@ -5,6 +5,7 @@ using tahsinERP.ControlPanel.Data;
 using System.Security.Cryptography;
 using tahsinERP.ControlPanel.Security;
 using tahsinERP.ControlPanel.Services;
+using tahsinERP.ControlPanel.I18n;
 
 namespace tahsinERP.ControlPanel.Pages.Servers;
 
@@ -29,10 +30,10 @@ public class EditModel(ControlDbContext db, AuditLogger audit, Clock clock, ISec
     public string? NewAgentSecret { get; private set; }
     public Server? Existing { get; private set; }
 
-    [BindProperty, Required(ErrorMessage = "Nomi majburiy"), StringLength(100)] public string Name { get; set; } = "";
-    [BindProperty, Required(ErrorMessage = "Host majburiy"), StringLength(253)] public string Host { get; set; } = "";
+    [BindProperty, Required(ErrorMessageResourceType = typeof(PnlVal), ErrorMessageResourceName = nameof(PnlVal.NameRequired)), StringLength(100)] public string Name { get; set; } = "";
+    [BindProperty, Required(ErrorMessageResourceType = typeof(PnlVal), ErrorMessageResourceName = nameof(PnlVal.HostRequired)), StringLength(253)] public string Host { get; set; } = "";
     [BindProperty, StringLength(50)] public string? Region { get; set; }
-    [BindProperty, Required(ErrorMessage = "SQL instance majburiy"), StringLength(200)] public string SqlInstance { get; set; } = "";
+    [BindProperty, Required(ErrorMessageResourceType = typeof(PnlVal), ErrorMessageResourceName = nameof(PnlVal.SqlInstanceRequired)), StringLength(200)] public string SqlInstance { get; set; } = "";
     [BindProperty, Range(1, 1000)] public int MaxTenants { get; set; } = 15;
     [BindProperty] public bool IsActive { get; set; } = true;
     [BindProperty, StringLength(1000)] public string? Notes { get; set; }
@@ -53,9 +54,9 @@ public class EditModel(ControlDbContext db, AuditLogger audit, Clock clock, ISec
     {
         IsNew = id is null;
         if (SqlInstance.Contains("password", StringComparison.OrdinalIgnoreCase) || SqlInstance.Contains("pwd=", StringComparison.OrdinalIgnoreCase))
-            ModelState.AddModelError(nameof(SqlInstance), "Faqat instance nomi — login/parol bu yerda saqlanmaydi.");
+            ModelState.AddModelError(nameof(SqlInstance), L.T("Pnl_Srv_InstanceOnly"));
         if (await db.Servers.AnyAsync(s => s.Name == Name.Trim() && s.Id != (id ?? 0)))
-            ModelState.AddModelError(nameof(Name), "Bu nom band.");
+            ModelState.AddModelError(nameof(Name), L.T("Pnl_NameTaken"));
         if (!ModelState.IsValid) return Page();
         Server s;
         object? before = null;
@@ -66,7 +67,7 @@ public class EditModel(ControlDbContext db, AuditLogger audit, Clock clock, ISec
         }
         else
         {
-            s = await db.Servers.FindAsync(id) ?? throw new DomainException("Server topilmadi.");
+            s = await db.Servers.FindAsync(id) ?? throw new DomainException(L.T("Pnl_Srv_NotFound"));
             before = new { s.Name, s.Host, s.Region, s.SqlInstance, s.MaxTenants, s.IsActive };
         }
         s.Name = Name.Trim(); s.Host = Host.Trim(); s.Region = Region?.Trim(); s.SqlInstance = SqlInstance.Trim();
@@ -74,7 +75,7 @@ public class EditModel(ControlDbContext db, AuditLogger audit, Clock clock, ISec
         await db.SaveChangesAsync();
         audit.Add(id is null ? "server.create" : "server.update", "Server", s.Id, before, new { s.Name, s.Host, s.Region, s.SqlInstance, s.MaxTenants, s.IsActive });
         await db.SaveChangesAsync();
-        FlashOk = $"Server «{s.Name}» saqlandi.";
+        FlashOk = L.T("Pnl_Srv_Saved", s.Name);
         return RedirectToPage("Index");
     }
 

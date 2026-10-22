@@ -1,23 +1,23 @@
 @page
 @model OtpModel
-@{ ViewData["Title"] = "Tasdiqlash kodi"; }
+@{ ViewData["Title"] = L.T("Ptl_OtpTitle"); }
 <div class="card login">
-    <div class="hud-head"><span>// IKKINCHI OMIL</span><span>AUTH-02</span></div>
-    <h1>Tasdiqlash kodi</h1>
-    <p class="hud-sub">Kod yuborildi: <strong>@Model.Destination</strong></p>
-    <ol class="steps"><li class="done">Parol</li><li class="on">Kod</li><li>Kabinet</li></ol>
+    <div class="hud-head"><span>// @L.T("Ptl_HudSecondFactor")</span><span>AUTH-02</span></div>
+    <h1>@L.T("Ptl_OtpTitle")</h1>
+    <p class="hud-sub">@L.T("Ptl_CodeSentTo") <strong>@Model.Destination</strong></p>
+    <ol class="steps"><li class="done">@L.T("Password")</li><li class="on">@L.T("Code")</li><li>@L.T("Ptl_Crumb")</li></ol>
     <form method="post" action="@Url.Page(null)" asp-antiforgery="true" class="stack">
         <div asp-validation-summary="All"></div>
         <div>
-            <label asp-for="Code">6 xonali kod</label>
+            <label asp-for="Code">@L.T("Ptl_SixDigitCode")</label>
             <input asp-for="Code" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="7" placeholder="000000" autofocus />
         </div>
         <input type="hidden" asp-for="ReturnUrl" />
-        <button type="submit">Kirish <svg class="i"><use href="#i-arrow" /></svg></button>
+        <button type="submit">@L.T("Login") <svg class="i"><use href="#i-arrow" /></svg></button>
     </form>
     <form method="post" asp-page-handler="Resend" class="stack spaced">
         <input type="hidden" asp-for="ReturnUrl" />
-        <button type="submit" class="secondary">Kodni qayta yuborish</button>
+        <button type="submit" class="secondary">@L.T("Ptl_ResendCode")</button>
     </form>
-    <div class="auth-meta"><span>BIR MARTALIK KOD</span><span><a href="/Login">← Boshqa hisob</a></span></div>
+    <div class="auth-meta"><span>@L.T("Ptl_HudOneTimeCode")</span><span><a href="/Login">← @L.T("Ptl_OtherAccount")</a></span></div>
 </div>

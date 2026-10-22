@@ -1,23 +1,23 @@
 @page
 @model InvoicesModel
-@{ ViewData["Title"] = "Hisob-fakturalar"; }
-<h1>Hisob-fakturalar</h1>
-<p class="hint">To'lov bank orqali — <a href="/Payment">rekvizitlar va ko'rsatma</a>. To'lov kelib tushgach xodim belgilaydi va holat yangilanadi.</p>
+@{ ViewData["Title"] = L.T("Ptl_NavInvoices"); }
+<h1>@L.T("Ptl_NavInvoices")</h1>
+<p class="hint">@L.T("Ptl_InvPayByBank") — <a href="/Payment">@L.T("Ptl_InvDetailsLink")</a>. @L.T("Ptl_InvStatusHint")</p>
 @if (Model.Rows.Count == 0)
 {
-    <p class="empty">Hozircha hisob-faktura yo'q.</p>
+    <p class="empty">@L.T("Ptl_NoInvoices")</p>
 }
 else
 {
     <div class="scroll"><table>
-        <tr><th>Raqam</th><th>Sana</th><th>To'lov muddati</th><th class="num">Jami, so'm</th><th class="num">To'langan</th><th>Holat</th><th></th></tr>
+        <tr><th>@L.T("Number")</th><th>@L.T("Date")</th><th>@L.T("Ptl_DueDate")</th><th class="num">@L.T("Ptl_TotalSom")</th><th class="num">@L.T("Ptl_Paid")</th><th>@L.T("Status")</th><th></th></tr>
         @foreach (var i in Model.Rows)
         {
             <tr>
                 <td>@i.Number</td><td>@i.IssueDate.ToString("dd.MM.yyyy")</td><td>@i.DueDate.ToString("dd.MM.yyyy")</td>
                 <td class="num">@Money.Format(i.TotalTiyin)</td><td class="num">@Money.Format(i.PaidTiyin)</td>
                 <td><span class="badge @PortalPageModel.InvoiceBadge(i, Model.Today)">@PortalPageModel.InvoiceState(i)</span></td>
-                <td><a href="/Invoices?handler=Pdf&amp;id=@i.Id">PDF</a>@if (i.Status is InvoiceStatus.Issued or InvoiceStatus.PartiallyPaid) { <text> · </text><a href="/Payment?invoice=@i.Id">To'lash</a> }</td>
+                <td><a href="/Invoices?handler=Pdf&amp;id=@i.Id">PDF</a>@if (i.Status is InvoiceStatus.Issued or InvoiceStatus.PartiallyPaid) { <text> · </text><a href="/Payment?invoice=@i.Id">@L.T("Ptl_Pay")</a> }</td>
             </tr>
         }
     </table></div>

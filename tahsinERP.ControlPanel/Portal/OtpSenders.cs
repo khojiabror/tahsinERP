@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Options;
 using tahsinERP.ControlPanel.Data;
+using tahsinERP.ControlPanel.I18n;
 using tahsinERP.ControlPanel.Services;
 
 namespace tahsinERP.ControlPanel.Portal;
@@ -39,9 +40,9 @@ public sealed class TelegramOtpSender(ITelegramSender telegram, IOptions<PortalO
     public OtpTarget? ResolveReset(PortalUser user)
     {
         if (telegram.IsConfigured && !string.IsNullOrWhiteSpace(user.TelegramChatId))
-            return new OtpTarget("telegram", "Telegram (shaxsiy chat " + PortalIdentity.Mask(user.TelegramChatId) + ")", user.TelegramChatId);
+            return new OtpTarget("telegram", L.T("Ptl_TgPersonalChat", PortalIdentity.Mask(user.TelegramChatId)), user.TelegramChatId);
         if (options.Value.OtpLogFallback)
-            return new OtpTarget("log", "server log'i (lokal rejim)", null);
+            return new OtpTarget("log", L.T("Ptl_ServerLogLocal"), null);
         return null;
     }
 
@@ -54,11 +55,11 @@ public sealed class TelegramOtpSender(ITelegramSender telegram, IOptions<PortalO
         }
         try
         {
-            await telegram.SendAsync(target.Address!, $"tahsinERP portal: parolni tiklash havolasi ({minutes} daqiqa, bir marta ishlaydi): {url} — siz so'ramagan bo'lsangiz, e'tibor bermang.", ct);
+            await telegram.SendAsync(target.Address!, L.T("Ptl_MsgResetLink", minutes, url), ct);
         }
         catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
         {
-            throw new OtpDeliveryException("Telegram orqali yuborib bo'lmadi.", ex);
+            throw new OtpDeliveryException(L.T("Ptl_TgSendFailed"), ex);
         }
     }
 
@@ -67,9 +68,9 @@ public sealed class TelegramOtpSender(ITelegramSender telegram, IOptions<PortalO
         string? chat = !string.IsNullOrWhiteSpace(user.TelegramChatId) ? user.TelegramChatId
             : !string.IsNullOrWhiteSpace(tenant.TelegramChatId) ? tenant.TelegramChatId : null;
         if (telegram.IsConfigured && chat is not null)
-            return new OtpTarget("telegram", "Telegram " + (chat == user.TelegramChatId ? "(shaxsiy chat " : "(tashkilot chati ") + PortalIdentity.Mask(chat) + ")", chat);
+            return new OtpTarget("telegram", L.T(chat == user.TelegramChatId ? "Ptl_TgPersonalChat" : "Ptl_TgTenantChat", PortalIdentity.Mask(chat)), chat);
         if (options.Value.OtpLogFallback)
-            return new OtpTarget("log", "server log'i (lokal rejim)", null);
+            return new OtpTarget("log", L.T("Ptl_ServerLogLocal"), null);
         return null;
     }
 
@@ -82,11 +83,11 @@ public sealed class TelegramOtpSender(ITelegramSender telegram, IOptions<PortalO
         }
         try
         {
-            await telegram.SendAsync(target.Address!, $"tahsinERP portal: kirish kodi {code}. {options.Value.OtpMinutes} daqiqa amal qiladi. Kodni hech kimga bermang.", ct);
+            await telegram.SendAsync(target.Address!, L.T("Ptl_MsgOtp", code, options.Value.OtpMinutes), ct);
         }
         catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
         {
-            throw new OtpDeliveryException("Kodni Telegram orqali yuborib bo'lmadi. Birozdan keyin qayta urinib ko'ring.", ex);
+            throw new OtpDeliveryException(L.T("Ptl_TgOtpFailed"), ex);
         }
     }
 }

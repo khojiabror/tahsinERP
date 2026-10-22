@@ -5,6 +5,7 @@ using tahsinERP.ControlPanel.Data;
 using tahsinERP.ControlPanel.Licensing;
 using tahsinERP.ControlPanel.Security;
 using tahsinERP.ControlPanel.Services;
+using tahsinERP.ControlPanel.I18n;
 
 namespace tahsinERP.ControlPanel.Pages.Licenses;
 
@@ -69,9 +70,9 @@ public class IssueModel(ControlDbContext db, LicenseIssuer issuer, Clock clock) 
     public async Task<IActionResult> OnPostAsync()
     {
         if (!await LoadAsync()) return NotFound();
-        if (string.IsNullOrWhiteSpace(Reason)) ModelState.AddModelError(nameof(Reason), "Sabab majburiy (audit uchun).");
-        if (!Packages.Any(p => p.Code == Edition)) ModelState.AddModelError(nameof(Edition), "Noma'lum paket.");
-        if (AddOnCodes.Any(c => !AddOnPlans.Any(p => p.Code == c))) ModelState.AddModelError(nameof(AddOnCodes), "Noma'lum qo'shimcha xizmat.");
+        if (string.IsNullOrWhiteSpace(Reason)) ModelState.AddModelError(nameof(Reason), L.T("Pnl_Lic_ReasonRequired"));
+        if (!Packages.Any(p => p.Code == Edition)) ModelState.AddModelError(nameof(Edition), L.T("Pnl_Lic_UnknownPackage"));
+        if (AddOnCodes.Any(c => !AddOnPlans.Any(p => p.Code == c))) ModelState.AddModelError(nameof(AddOnCodes), L.T("Pnl_Lic_UnknownAddOn"));
         if (!ModelState.IsValid) return Page();
         string edition;
         try { edition = LicenseIssuer.ComposeEdition(Edition, AddOnCodes); }
@@ -85,10 +86,10 @@ public class IssueModel(ControlDbContext db, LicenseIssuer issuer, Clock clock) 
         }
         catch (Exception ex) when (ex is System.Security.Cryptography.CryptographicException or InvalidOperationException or NotSupportedException)
         {
-            ModelState.AddModelError("", "Imzolab bo'lmadi: " + ex.Message);
+            ModelState.AddModelError("", L.T("Pnl_Lic_SignFailed", ex.Message));
             return Page();
         }
-        FlashOk = $"Kalit chiqarildi (#{issued!.Id}).";
+        FlashOk = L.T("Pnl_Lic_Issued", issued!.Id);
         return RedirectToPage("Details", new { id = issued.Id });
     }
 }
@@ -130,12 +131,12 @@ public class DetailsModel(ControlDbContext db, LicenseIssuer issuer) : PanelPage
         }
         catch (Exception ex) when (ex is System.Security.Cryptography.CryptographicException or InvalidOperationException or NotSupportedException)
         {
-            FlashError = "Kalit bekor qilindi, lekin o'rniga yangisi chiqmadi: " + ex.Message;
+            FlashError = L.T("Pnl_Lic_RevokedNoReplacement", ex.Message);
             return RedirectToPage(new { id });
         }
         FlashOk = replacement is null
-            ? "Kalit bekor qilindi. ERP keyingi pull'da 410 revoked oladi; kalit muddati o'zi tugaydi."
-            : $"Kalit bekor qilindi, o'rniga {replacement.ExpiryDate:dd.MM.yyyy} gacha qisqa kalit chiqdi (#{replacement.Id}).";
+            ? L.T("Pnl_Lic_Revoked")
+            : L.T("Pnl_Lic_RevokedWithReplacement", replacement.ExpiryDate.ToString("dd.MM.yyyy"), replacement.Id);
         return RedirectToPage(new { id = replacement?.Id ?? id });
     }
 }

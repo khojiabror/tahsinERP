@@ -1,41 +1,41 @@
 @page "{id:int?}"
 @model tahsinERP.ControlPanel.Pages.Servers.EditModel
-@{ ViewData["Title"] = Model.IsNew ? "Yangi server" : "Server"; }
+@{ ViewData["Title"] = Model.IsNew ? L.T("Pnl_Srv_New") : L.T("Pnl_Server"); }
 <h1>@ViewData["Title"]</h1>
 <form method="post" action="@Url.Page(null)" asp-antiforgery="true" class="stack card">
     <div asp-validation-summary="ModelOnly"></div>
     <div class="row">
-        <div><label asp-for="Name">Nomi</label><input asp-for="Name" /><span asp-validation-for="Name"></span></div>
-        <div><label asp-for="Region">Hudud</label><input asp-for="Region" placeholder="ap-south-1" /></div>
+        <div><label asp-for="Name">@L.T("Name")</label><input asp-for="Name" /><span asp-validation-for="Name"></span></div>
+        <div><label asp-for="Region">@L.T("Pnl_Region")</label><input asp-for="Region" placeholder="ap-south-1" /></div>
     </div>
     <div class="row">
-        <div><label asp-for="Host">ERP host (DNS/IP)</label><input asp-for="Host" /><span asp-validation-for="Host"></span></div>
+        <div><label asp-for="Host">@L.T("Pnl_Srv_Host")</label><input asp-for="Host" /><span asp-validation-for="Host"></span></div>
         <div><label asp-for="SqlInstance">SQL instance</label><input asp-for="SqlInstance" placeholder="localhost\SQLEXPRESS" /><span asp-validation-for="SqlInstance"></span></div>
     </div>
-    <div><label asp-for="MaxTenants">Ko'pi bilan tenant</label><input asp-for="MaxTenants" type="number" /></div>
-    <div><label asp-for="Notes">Izoh</label><textarea asp-for="Notes"></textarea></div>
-    <label class="check"><input asp-for="IsActive" /> Faol (yangi tenantlar joylashtirilishi mumkin)</label>
-    <div class="actions"><button type="submit">Saqlash</button><a class="btn secondary" href="/Servers">Bekor</a></div>
+    <div><label asp-for="MaxTenants">@L.T("Pnl_Srv_MaxTenants")</label><input asp-for="MaxTenants" type="number" /></div>
+    <div><label asp-for="Notes">@L.T("Comment")</label><textarea asp-for="Notes"></textarea></div>
+    <label class="check"><input asp-for="IsActive" /> @L.T("Pnl_Srv_ActiveHint")</label>
+    <div class="actions"><button type="submit">@L.T("Save")</button><a class="btn secondary" href="/Servers">@L.T("Pnl_CancelShort")</a></div>
 </form>
 @if (!Model.IsNew && Model.Existing is not null)
 {
-    <h2>Provisioning agenti</h2>
+    <h2>@L.T("Pnl_Srv_Agent")</h2>
     <div class="card stack">
         <dl class="props">
-            <dt>Server ID</dt><dd><code>@Model.Existing.Id</code> (agent sozlamasi <code>Panel:ServerId</code>)</dd>
-            <dt>Kalit</dt><dd>@(Model.Existing.AgentSecretProtected is null ? "chiqarilmagan" : "bor")</dd>
-            <dt>Oxirgi aloqa (UTC)</dt><dd>@Model.Existing.AgentLastSeenUtc?.ToString("dd.MM.yyyy HH:mm:ss") @Model.Existing.AgentVersion</dd>
+            <dt>Server ID</dt><dd><code>@Model.Existing.Id</code> (@L.T("Pnl_Srv_AgentSetting") <code>Panel:ServerId</code>)</dd>
+            <dt>@L.T("Pnl_Key")</dt><dd>@(Model.Existing.AgentSecretProtected is null ? L.T("Pnl_Srv_NotIssued") : L.T("Pnl_Srv_Exists"))</dd>
+            <dt>@L.T("Pnl_LastSeenUtc")</dt><dd>@Model.Existing.AgentLastSeenUtc?.ToString("dd.MM.yyyy HH:mm:ss") @Model.Existing.AgentVersion</dd>
         </dl>
         @if (Model.NewAgentSecret is not null)
         {
             <div class="secret">
-                <strong>Agent siri (faqat hozir ko'rinadi):</strong>
+                <strong>@L.T("Pnl_Srv_SecretOnce")</strong>
                 <div class="mono">@Model.NewAgentSecret</div>
-                <div class="hint">ERP serverida: <code>setx /M TAHSIN_AGENT_Panel__Secret "&lt;siri&gt;"</code> yoki xizmat env'i, so'ng agentni qayta ishga tushiring (05_PROVISIONING.md).</div>
+                <div class="hint">@L.T("Pnl_Srv_OnErpServer") <code>setx /M TAHSIN_AGENT_Panel__Secret "&lt;siri&gt;"</code> @L.T("Pnl_Srv_SecretHint")</div>
             </div>
         }
         <form method="post" asp-page-handler="AgentSecret" asp-route-id="@Model.Existing.Id" class="inline">
-            <button type="submit" class="secondary">@(Model.Existing.AgentSecretProtected is null ? "Agent kalitini chiqarish" : "Agent kalitini almashtirish (eskisi bekor bo'ladi)")</button>
+            <button type="submit" class="secondary">@(Model.Existing.AgentSecretProtected is null ? L.T("Pnl_Srv_IssueAgentKey") : L.T("Pnl_Srv_RotateAgentKey"))</button>
         </form>
     </div>
 }

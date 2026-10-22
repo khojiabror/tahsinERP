@@ -1,41 +1,41 @@
 @page
 @model tahsinERP.ControlPanel.Pages.Tenants.TrialModel
-@{ ViewData["Title"] = "Sinov ochish"; }
-<h1>Sinov ochish (14 kun)</h1>
+@{ ViewData["Title"] = L.T("Pnl_Ten_OpenTrial"); }
+<h1>@L.T("Pnl_Ten_OpenTrial14")</h1>
 @if (Model.Created is not null)
 {
     <div class="secret">
-        <strong>«@Model.Created.LegalName» uchun sinov ochildi — baza yaratish navbatga qo'yildi (job <a href="/Provisioning/Job/@Model.Job!.Id">#@Model.Job.Id</a>).</strong>
-        <div class="mono">Manzil: @(Model.TenantUrl ?? Model.Created.Slug + ".<domen>")<br />Login: admin<br />Vaqtinchalik parol: @Model.TempPassword</div>
-        <div class="hint">Parol faqat hozir ko'rinadi — mijozga yetkazing. Baza tayyor bo'lgach (odatda 1 daqiqa) kirish mumkin; birinchi kirishda parol almashtiriladi.
-            @if (!string.IsNullOrEmpty(Model.Created.TelegramChatId)) { <text>Tayyor bo'lganda shu ma'lumot tenant Telegram chatiga ham yuboriladi.</text> }</div>
+        <strong>@L.T("Pnl_Ten_TrialOpened", Model.Created.LegalName) (job <a href="/Provisioning/Job/@Model.Job!.Id">#@Model.Job.Id</a>).</strong>
+        <div class="mono">@L.T("Pnl_Url"): @(Model.TenantUrl ?? Model.Created.Slug + ".<domen>")<br />@L.T("Username"): admin<br />@L.T("Pnl_Val_TempPassword"): @Model.TempPassword</div>
+        <div class="hint">@L.T("Pnl_Ten_TrialPasswordHint")
+            @if (!string.IsNullOrEmpty(Model.Created.TelegramChatId)) { <text>@L.T("Pnl_Ten_TrialTgHint")</text> }</div>
     </div>
-    <div class="actions"><a class="btn" href="/Tenants/Details/@Model.Created.Id">Tashkilot sahifasi</a><a class="btn secondary" href="/Tenants/Trial">Yana bitta</a></div>
+    <div class="actions"><a class="btn" href="/Tenants/Details/@Model.Created.Id">@L.T("Pnl_Ten_OrgPage")</a><a class="btn secondary" href="/Tenants/Trial">@L.T("Pnl_Ten_OneMore")</a></div>
 }
 else
 {
     <form method="post" class="stack card">
         <div asp-validation-summary="All"></div>
         <div class="row">
-            <div><label asp-for="Input.Slug">Slug (subdomen)</label><input asp-for="Input.Slug" type="text" placeholder="firma1" /><div class="hint">a-z, 0-9, '-'. Manzil: &lt;slug&gt;.&lt;domen&gt;.</div></div>
-            <div><label asp-for="Input.LegalName">Yuridik nom</label><input asp-for="Input.LegalName" type="text" /></div>
+            <div><label asp-for="Input.Slug">@L.T("Pnl_Ten_SlugLabel")</label><input asp-for="Input.Slug" type="text" placeholder="firma1" /><div class="hint">a-z, 0-9, '-'. @L.T("Pnl_Url"): &lt;slug&gt;.&lt;domen&gt;.</div></div>
+            <div><label asp-for="Input.LegalName">@L.T("Pnl_LegalName")</label><input asp-for="Input.LegalName" type="text" /></div>
         </div>
         <div class="row">
-            <div><label asp-for="Input.Inn">STIR / JShShIR</label><input asp-for="Input.Inn" type="text" maxlength="14" /></div>
-            <div><label asp-for="Input.ContactName">Mas'ul shaxs</label><input asp-for="Input.ContactName" type="text" /></div>
+            <div><label asp-for="Input.Inn">@L.T("Pnl_InnPinfl")</label><input asp-for="Input.Inn" type="text" maxlength="14" /></div>
+            <div><label asp-for="Input.ContactName">@L.T("Pnl_ContactPerson")</label><input asp-for="Input.ContactName" type="text" /></div>
         </div>
         <div class="row">
-            <div><label asp-for="Input.Phone">Telefon</label><input asp-for="Input.Phone" type="text" /></div>
+            <div><label asp-for="Input.Phone">@L.T("Phone")</label><input asp-for="Input.Phone" type="text" /></div>
             <div><label asp-for="Input.Email">Email</label><input asp-for="Input.Email" type="email" /></div>
         </div>
         <div class="row">
-            <div><label asp-for="Input.TelegramChatId">Telegram chat ID</label><input asp-for="Input.TelegramChatId" type="text" /><div class="hint">Bo'lsa, kirish ma'lumotlari shu chatga yuboriladi.</div></div>
-            <div><label asp-for="Input.ServerId">Server</label>
-                <select asp-for="Input.ServerId">@foreach (var s in Model.Servers) { <option value="@s.Value">@(s.Value == "" ? "— avtomatik (bo'sh joyi ko'p) —" : s.Text)</option> }</select></div>
+            <div><label asp-for="Input.TelegramChatId">Telegram chat ID</label><input asp-for="Input.TelegramChatId" type="text" /><div class="hint">@L.T("Pnl_Ten_TrialChatHint")</div></div>
+            <div><label asp-for="Input.ServerId">@L.T("Pnl_Server")</label>
+                <select asp-for="Input.ServerId">@foreach (var s in Model.Servers) { <option value="@s.Value">@(s.Value == "" ? "— " + L.T("Pnl_Ten_AutoServer") + " —" : s.Text)</option> }</select></div>
         </div>
-        <label class="check"><input asp-for="Input.SampleData" /> Namuna ma'lumotlar bilan (mahsulotlar, kontragentlar, ~3 oylik xarid/ishlab chiqarish/sotuv, xodimlar)</label>
-        <div class="hint">Belgilanmasa — bo'sh baza (faqat spravochniklar). Namuna bazada demo foydalanuvchi o'chirib qo'yiladi, kirish faqat admin orqali.</div>
-        <div class="hint">TRIAL: Korporativ modullari, 5 foydalanuvchi, 14 kun. Tugagach tenant to'xtatiladi (tenants.json enabled=false).</div>
-        <div class="actions"><button type="submit">Sinov ochish</button><a class="btn secondary" href="/Tenants">Bekor</a></div>
+        <label class="check"><input asp-for="Input.SampleData" /> @L.T("Pnl_Ten_SampleData")</label>
+        <div class="hint">@L.T("Pnl_Ten_SampleHint")</div>
+        <div class="hint">@L.T("Pnl_Ten_TrialInfo")</div>
+        <div class="actions"><button type="submit">@L.T("Pnl_Ten_OpenTrial")</button><a class="btn secondary" href="/Tenants">@L.T("Pnl_CancelShort")</a></div>
     </form>
 }

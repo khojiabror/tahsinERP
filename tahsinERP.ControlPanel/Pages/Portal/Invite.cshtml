@@ -1,44 +1,44 @@
 @page
 @model InviteModel
-@{ ViewData["Title"] = "Parol o'rnatish"; }
+@{ ViewData["Title"] = L.T("Ptl_SetPasswordTitle"); }
 <div class="card login">
-    <div class="hud-head"><span>// TAKLIFNOMA</span><span>AUTH-I</span></div>
+    <div class="hud-head"><span>// @L.T("Ptl_HudInvite")</span><span>AUTH-I</span></div>
     @if (Model.Done)
     {
-        <h1>Parol o'rnatildi</h1>
+        <h1>@L.T("Ptl_PasswordSet")</h1>
         @if (Model.LinkToken is not null)
         {
-            <p><strong>Telegram'ni bog'lang</strong> — kirish kodlari shu yerga keladi@(Model.Info?.Tenant.TelegramChatId is not null ? " (bog'lamasangiz — tashkilot chatiga)" : "").</p>
+            <p><strong>@L.T("Ptl_LinkTelegram")</strong> — @L.T("Ptl_CodesComeHere")@(Model.Info?.Tenant.TelegramChatId is not null ? " " + L.T("Ptl_ElseTenantChat") : "").</p>
             @if (Model.LinkUrl.Length > 0)
             {
-                <p><a class="btn" href="@Model.LinkUrl" target="_blank" rel="noopener">Telegram botni ochish</a></p>
-                <p class="hint">Botda «Start» tugmasini bosing. Havola 24 soat amal qiladi va bir marta ishlaydi.</p>
+                <p><a class="btn" href="@Model.LinkUrl" target="_blank" rel="noopener">@L.T("Ptl_OpenTelegramBot")</a></p>
+                <p class="hint">@L.T("Ptl_BotStartHint")</p>
             }
             else
             {
-                <p>Telegram botga quyidagi buyruqni yuboring:</p>
+                <p>@L.T("Ptl_SendCommandToBot")</p>
                 <p class="secret mono" id="link-cmd">/start @Model.LinkToken</p>
             }
         }
-        <p><a class="btn secondary" href="/Login">Kirish sahifasiga</a></p>
+        <p><a class="btn secondary" href="/Login">@L.T("Ptl_ToLoginPage")</a></p>
     }
     else if (Model.Info is null)
     {
-        <h1>Havola yaroqsiz</h1>
+        <h1>@L.T("Ptl_LinkInvalid")</h1>
         <p>@Model.Error</p>
     }
     else
     {
-        <h1>@(Model.Info.User.PasswordHash is null ? "Xush kelibsiz" : "Yangi parol")</h1>
+        <h1>@(Model.Info.User.PasswordHash is null ? L.T("Ptl_Welcome") : L.T("Ptl_NewPassword"))</h1>
         <p>@Model.Info.User.FullName — <strong>@Model.Info.Tenant.LegalName</strong></p>
-        <p class="hint">Login: @(Model.Info.User.Email ?? Model.Info.User.Phone)</p>
+        <p class="hint">@L.T("Username"): @(Model.Info.User.Email ?? Model.Info.User.Phone)</p>
         <form method="post" class="stack">
             <div asp-validation-summary="All"></div>
             <input type="hidden" asp-for="Token" />
-            <div><label asp-for="Password">Yangi parol</label><input asp-for="Password" autocomplete="new-password" autofocus /></div>
-            <div><label asp-for="Confirm">Parolni takrorlang</label><input asp-for="Confirm" autocomplete="new-password" /></div>
-            <p class="hint">Kamida 12 belgi, harf va raqam bo'lsin.</p>
-            <button type="submit">Parolni saqlash</button>
+            <div><label asp-for="Password">@L.T("Ptl_NewPassword")</label><input asp-for="Password" autocomplete="new-password" autofocus /></div>
+            <div><label asp-for="Confirm">@L.T("Ptl_RepeatPassword")</label><input asp-for="Confirm" autocomplete="new-password" /></div>
+            <p class="hint">@L.T("Ptl_PasswordPolicyHint")</p>
+            <button type="submit">@L.T("Ptl_SavePassword")</button>
         </form>
     }
 </div>

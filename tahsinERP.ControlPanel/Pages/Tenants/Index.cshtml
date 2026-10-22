@@ -1,24 +1,24 @@
 @page
 @model tahsinERP.ControlPanel.Pages.Tenants.IndexModel
-@{ ViewData["Title"] = "Tashkilotlar"; }
-<h1>Tashkilotlar</h1>
+@{ ViewData["Title"] = L.T("Pnl_NavTenants"); }
+<h1>@L.T("Pnl_NavTenants")</h1>
 <form method="get" class="toolbar">
-    <div><label for="Q">Qidiruv</label><input id="Q" name="Q" value="@Model.Q" type="text" placeholder="nom, slug, STIR, telefon" /></div>
+    <div><label for="Q">@L.T("Pnl_SearchLabel")</label><input id="Q" name="Q" value="@Model.Q" type="text" placeholder="@L.T("Pnl_Ten_SearchPlaceholder")" /></div>
     <div>
-        <label for="Status">Holat</label>
+        <label for="Status">@L.T("Status")</label>
         <select id="Status" name="Status">
-            <option value="">Arxivdan tashqari hammasi</option>
+            <option value="">@L.T("Pnl_Ten_AllExceptArchive")</option>
             @foreach (var s in Enum.GetValues<TenantStatus>())
             {
                 <option value="@s" selected="@(Model.Status == s)">@Labels.Of(s)</option>
             }
         </select>
     </div>
-    <button type="submit" class="secondary">Ko'rsatish</button>
-    @if (Model.CanSell) { <a class="btn" href="/Tenants/Trial">+ Sinov ochish</a><a class="btn secondary" href="/Tenants/Create">+ Yangi tashkilot</a> }
+    <button type="submit" class="secondary">@L.T("Pnl_Show")</button>
+    @if (Model.CanSell) { <a class="btn" href="/Tenants/Trial">+ @L.T("Pnl_Ten_OpenTrial")</a><a class="btn secondary" href="/Tenants/Create">+ @L.T("Pnl_Ten_New")</a> }
 </form>
 <table>
-    <tr><th>Tashkilot</th><th>Slug</th><th>Joylashuv</th><th>Holat</th><th>Paket</th><th>Tugaydi</th><th class="num">Qarz, so'm</th><th>ERP</th></tr>
+    <tr><th>@L.T("Pnl_Organization")</th><th>Slug</th><th>@L.T("Pnl_Deployment")</th><th>@L.T("Status")</th><th>@L.T("Pnl_Package")</th><th>@L.T("Pnl_Dash_Ends")</th><th class="num">@L.T("Pnl_Dash_DebtSom")</th><th>ERP</th></tr>
     @foreach (var r in Model.Rows)
     {
         var t = r.Tenant;
@@ -30,11 +30,11 @@
             <td>@r.Plan</td>
             <td>@r.EndDate?.ToString("dd.MM.yyyy")</td>
             <td class="num">@(r.DebtTiyin > 0 ? Money.Format(r.DebtTiyin) : "")</td>
-            <td>@(t.InstallationId is null ? "bog'lanmagan" : "bog'langan")</td>
+            <td>@(t.InstallationId is null ? L.T("Pnl_NotBound") : L.T("Pnl_Bound"))</td>
         </tr>
     }
 </table>
 @if (Model.Rows.Count == 0)
 {
-    <div class="empty">Topilmadi.</div>
+    <div class="empty">@L.T("Pnl_NotFoundDot")</div>
 }

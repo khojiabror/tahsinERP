@@ -1,23 +1,22 @@
 @page
 @model ForgotModel
-@{ ViewData["Title"] = "Parolni tiklash"; }
+@{ ViewData["Title"] = L.T("Ptl_ResetTitle"); }
 <div class="card login">
-    <div class="hud-head"><span>// PAROLNI TIKLASH</span><span>AUTH-R</span></div>
-    <h1>Parolni tiklash</h1>
+    <div class="hud-head"><span>// @L.T("Ptl_HudReset")</span><span>AUTH-R</span></div>
+    <h1>@L.T("Ptl_ResetTitle")</h1>
     @if (Model.Sent)
     {
         <p>@PortalAuthService.ResetRequestedMessage</p>
-        <p><a class="btn secondary" href="/Login">Kirish sahifasiga</a></p>
+        <p><a class="btn secondary" href="/Login">@L.T("Ptl_ToLoginPage")</a></p>
     }
     else
     {
         <form method="post" class="stack">
             <div asp-validation-summary="All"></div>
-            <div><label asp-for="Login">Email yoki telefon</label><input asp-for="Login" type="text" autocomplete="username" autofocus /></div>
-            <button type="submit">Havola yuborish</button>
-            <p class="hint">Havola shaxsiy kanalingizga (Telegram, SMS yoki email — profilda tanlangan) keladi va bir marta ishlaydi.
-                Kanal bog'lanmagan bo'lsa — xodimimizdan yangi havola so'rang.</p>
+            <div><label asp-for="Login">@L.T("Ptl_EmailOrPhone")</label><input asp-for="Login" type="text" autocomplete="username" autofocus /></div>
+            <button type="submit">@L.T("Ptl_SendLink")</button>
+            <p class="hint">@L.T("Ptl_ResetHint")</p>
         </form>
     }
-    <p class="hint"><a href="/Login">← Kirish</a></p>
+    <p class="hint"><a href="/Login">← @L.T("Login")</a></p>
 </div>

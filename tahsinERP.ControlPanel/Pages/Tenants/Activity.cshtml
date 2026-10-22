@@ -2,60 +2,60 @@
 @model tahsinERP.ControlPanel.Pages.Tenants.ActivityModel
 @{
     var t = Model.Tenant;
-    ViewData["Title"] = "Faollik: " + t.Slug;
+    ViewData["Title"] = L.T("Pnl_Act_Title", t.Slug);
     int max = Math.Max(1, Model.DayRows.Count == 0 ? 1 : Model.DayRows.Max(d => d.Logins + d.Actions));
     int n = Math.Max(1, Model.DayRows.Count);
     double bw = 700.0 / n;
 }
-<h1>Faollik: @t.LegalName <code>@t.Slug</code> <span class="badge @Labels.Badge(t.Status)">@Labels.Of(t.Status)</span></h1>
-<div class="actions"><a class="btn secondary" href="/Tenants/Details/@t.Id">← Tashkilot</a></div>
-<p class="hint">Agent ERP bazasidagi USER_ENTRIES / USERLOGS dan yig'adi (sinov va demo — 15 daqiqada, qolganlar — soatda). Panelda 90 kun saqlanadi. IP, MAC, F.I.Sh., email va parollar panelga yuborilmaydi; amal matnida email/telefon/uzun raqamlar yashirilgan.</p>
+<h1>@L.T("Pnl_Act_Title", t.LegalName) <code>@t.Slug</code> <span class="badge @Labels.Badge(t.Status)">@Labels.Of(t.Status)</span></h1>
+<div class="actions"><a class="btn secondary" href="/Tenants/Details/@t.Id">← @L.T("Pnl_Organization")</a></div>
+<p class="hint">@L.T("Pnl_Act_Hint")</p>
 <div class="card">
     <dl class="props">
-        <dt>Oxirgi kirish</dt><dd>@(Model.State?.LastLoginUtc?.ToString("dd.MM.yyyy HH:mm") ?? "—") UTC</dd>
-        <dt>Oxirgi amal</dt><dd>@(Model.State?.LastActionUtc?.ToString("dd.MM.yyyy HH:mm") ?? "—") UTC</dd>
-        <dt>Yig'ilgan</dt><dd>@(Model.State?.SyncedAtUtc?.ToString("dd.MM.yyyy HH:mm") ?? "hali yo'q") @if (Model.State?.Error != null) { <span class="badge bad">@Model.State.Error</span> }</dd>
-        <dt>@Model.Days kunda</dt><dd>@Model.DayRows.Sum(d => d.Logins) kirish, @Model.DayRows.Sum(d => d.Actions) amal, faol foydalanuvchilar: @Model.Users.Count(u => (u.LastLoginUtc ?? u.LastActionUtc) >= DateTime.UtcNow.AddDays(-Model.Days))</dd>
+        <dt>@L.T("Pnl_LastLogin")</dt><dd>@(Model.State?.LastLoginUtc?.ToString("dd.MM.yyyy HH:mm") ?? "—") UTC</dd>
+        <dt>@L.T("Pnl_LastAction")</dt><dd>@(Model.State?.LastActionUtc?.ToString("dd.MM.yyyy HH:mm") ?? "—") UTC</dd>
+        <dt>@L.T("Pnl_Collected")</dt><dd>@(Model.State?.SyncedAtUtc?.ToString("dd.MM.yyyy HH:mm") ?? L.T("Pnl_NotYet")) @if (Model.State?.Error != null) { <span class="badge bad">@Model.State.Error</span> }</dd>
+        <dt>@L.T("Pnl_Act_InDays", Model.Days)</dt><dd>@L.T("Pnl_Act_Summary", Model.DayRows.Sum(d => d.Logins), Model.DayRows.Sum(d => d.Actions), Model.Users.Count(u => (u.LastLoginUtc ?? u.LastActionUtc) >= DateTime.UtcNow.AddDays(-Model.Days)))</dd>
     </dl>
 </div>
 <form method="get" class="actions">
     @foreach (var d in new[] { 7, 30, 90 })
     {
-        <a class="btn @(Model.Days == d ? "" : "secondary")" href="?Days=@d">@d kun</a>
+        <a class="btn @(Model.Days == d ? "" : "secondary")" href="?Days=@d">@L.T("Pnl_DaysCount", d)</a>
     }
 </form>
-<h2>Kunlik faollik</h2>
-<svg class="chart" viewBox="0 0 720 180" role="img" aria-label="Kunlik kirish va amallar">
+<h2>@L.T("Pnl_Act_Daily")</h2>
+<svg class="chart" viewBox="0 0 720 180" role="img" aria-label="@L.T("Pnl_Act_DailyAria")">
     <line x1="10" y1="150" x2="710" y2="150" stroke="#ccc" />
     @for (int i = 0; i < Model.DayRows.Count; i++)
     {
         var d = Model.DayRows[i];
         double x = 10 + i * bw;
         double ha = 130.0 * d.Actions / max, hl = 130.0 * d.Logins / max;
-        <rect x="@x.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture)" y="@((150 - ha - hl).ToString("0.#", System.Globalization.CultureInfo.InvariantCulture))" width="@((bw * 0.8).ToString("0.#", System.Globalization.CultureInfo.InvariantCulture))" height="@ha.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture)" fill="#7aa7e0"><title>@d.Date.ToString("dd.MM") — @d.Actions amal</title></rect>
-        <rect x="@x.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture)" y="@((150 - hl).ToString("0.#", System.Globalization.CultureInfo.InvariantCulture))" width="@((bw * 0.8).ToString("0.#", System.Globalization.CultureInfo.InvariantCulture))" height="@hl.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture)" fill="#2e7d4f"><title>@d.Date.ToString("dd.MM") — @d.Logins kirish, @d.ActiveUsers foydalanuvchi</title></rect>
+        <rect x="@x.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture)" y="@((150 - ha - hl).ToString("0.#", System.Globalization.CultureInfo.InvariantCulture))" width="@((bw * 0.8).ToString("0.#", System.Globalization.CultureInfo.InvariantCulture))" height="@ha.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture)" fill="#7aa7e0"><title>@d.Date.ToString("dd.MM") — @L.T("Pnl_Act_ActionsN", d.Actions)</title></rect>
+        <rect x="@x.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture)" y="@((150 - hl).ToString("0.#", System.Globalization.CultureInfo.InvariantCulture))" width="@((bw * 0.8).ToString("0.#", System.Globalization.CultureInfo.InvariantCulture))" height="@hl.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture)" fill="#2e7d4f"><title>@d.Date.ToString("dd.MM") — @L.T("Pnl_Act_LoginsUsersN", d.Logins, d.ActiveUsers)</title></rect>
         @if (n <= 31 && (i % Math.Max(1, n / 10) == 0 || i == n - 1))
         {
 <g><text x="@x.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture)" y="168" font-size="10" fill="#666">@d.Date.ToString("dd.MM")</text></g>
         }
     }
-    <text x="10" y="12" font-size="11" fill="#2e7d4f">■ kirish</text><text x="70" y="12" font-size="11" fill="#7aa7e0">■ amal</text><text x="650" y="12" font-size="10" fill="#666">max @max</text>
+    <text x="10" y="12" font-size="11" fill="#2e7d4f">■ @L.T("Pnl_Act_LoginLower")</text><text x="70" y="12" font-size="11" fill="#7aa7e0">■ @L.T("Pnl_Act_ActionLower")</text><text x="650" y="12" font-size="10" fill="#666">max @max</text>
 </svg>
 <div class="cols">
     <div>
-        <h2>Foydalanuvchilar</h2>
+        <h2>@L.T("Pnl_UsersPlural")</h2>
         <table>
-            <tr><th>Login</th><th>Holat</th><th>Oxirgi kirish (UTC)</th><th>Oxirgi amal</th></tr>
+            <tr><th>@L.T("Username")</th><th>@L.T("Status")</th><th>@L.T("Pnl_LastLoginUtc")</th><th>@L.T("Pnl_LastAction")</th></tr>
             @foreach (var u in Model.Users)
             {
-                <tr><td><a href="?Days=@Model.Days&UserId=@u.UserId">@u.Login</a></td><td>@(u.IsActive ? "faol" : "o'chirilgan")</td><td>@u.LastLoginUtc?.ToString("dd.MM.yyyy HH:mm")</td><td>@u.LastActionUtc?.ToString("dd.MM.yyyy HH:mm")</td></tr>
+                <tr><td><a href="?Days=@Model.Days&UserId=@u.UserId">@u.Login</a></td><td>@(u.IsActive ? L.T("Pnl_ActiveLower") : L.T("Pnl_DisabledLower"))</td><td>@u.LastLoginUtc?.ToString("dd.MM.yyyy HH:mm")</td><td>@u.LastActionUtc?.ToString("dd.MM.yyyy HH:mm")</td></tr>
             }
         </table>
     </div>
     <div>
-        <h2>Modullar (@Model.Days kun)</h2>
+        <h2>@L.T("Pnl_Act_ModulesDays", Model.Days)</h2>
         <table>
-            <tr><th>Modul</th><th class="num">Amallar</th></tr>
+            <tr><th>@L.T("Pnl_Module")</th><th class="num">@L.T("Actions")</th></tr>
             @foreach (var m in Model.Modules)
             {
                 <tr><td><a href="?Days=@Model.Days&Module=@Uri.EscapeDataString(m.Module)">@m.Module</a></td><td class="num">@m.Actions</td></tr>
@@ -63,20 +63,20 @@
         </table>
     </div>
 </div>
-<h2>So'nggi kirish va amallar</h2>
+<h2>@L.T("Pnl_Act_Recent")</h2>
 <form method="get" class="actions">
     <input type="hidden" name="Days" value="@Model.Days" />
-    <select name="UserId"><option value="">— foydalanuvchi —</option>@foreach (var u in Model.Users) { <option value="@u.UserId" selected="@(Model.UserId == u.UserId)">@u.Login</option> }</select>
-    <select name="Module"><option value="">— modul —</option>@foreach (var m in Model.Modules) { <option value="@m.Module" selected="@(Model.Module == m.Module)">@m.Module</option> }</select>
-    <select name="Kind"><option value="">— tur —</option><option value="Login" selected="@(Model.Kind == UsageEventKind.Login)">Kirish</option><option value="Action" selected="@(Model.Kind == UsageEventKind.Action)">Amal</option></select>
-    <input type="text" name="Q" value="@Model.Q" placeholder="matn bo'yicha" />
-    <button type="submit" class="secondary">Filtr</button>
+    <select name="UserId"><option value="">— @L.T("Pnl_UserLower") —</option>@foreach (var u in Model.Users) { <option value="@u.UserId" selected="@(Model.UserId == u.UserId)">@u.Login</option> }</select>
+    <select name="Module"><option value="">— @L.T("Pnl_ModuleLower") —</option>@foreach (var m in Model.Modules) { <option value="@m.Module" selected="@(Model.Module == m.Module)">@m.Module</option> }</select>
+    <select name="Kind"><option value="">— @L.T("Pnl_KindLower") —</option><option value="Login" selected="@(Model.Kind == UsageEventKind.Login)">@L.T("Login")</option><option value="Action" selected="@(Model.Kind == UsageEventKind.Action)">@L.T("Pnl_Audit_Action")</option></select>
+    <input type="text" name="Q" value="@Model.Q" placeholder="@L.T("Pnl_ByText")" />
+    <button type="submit" class="secondary">@L.T("Filter")</button>
 </form>
 <table>
-    <tr><th>Vaqt (Toshkent)</th><th>Foydalanuvchi</th><th>Tur</th><th>Modul</th><th>Amal</th></tr>
+    <tr><th>@L.T("Pnl_TimeTashkent")</th><th>@L.T("Pnl_Users")</th><th>@L.T("Type")</th><th>@L.T("Pnl_Module")</th><th>@L.T("Pnl_Audit_Action")</th></tr>
     @foreach (var e in Model.Events)
     {
-        <tr><td>@Model.Local(e.AtUtc).ToString("dd.MM.yyyy HH:mm:ss")</td><td>@Model.LoginOf(e.UserId)</td><td>@(e.Kind == UsageEventKind.Login ? "kirish" : "amal")</td><td>@e.Module</td><td>@e.Action</td></tr>
+        <tr><td>@Model.Local(e.AtUtc).ToString("dd.MM.yyyy HH:mm:ss")</td><td>@Model.LoginOf(e.UserId)</td><td>@(e.Kind == UsageEventKind.Login ? L.T("Pnl_Act_LoginLower") : L.T("Pnl_Act_ActionLower"))</td><td>@e.Module</td><td>@e.Action</td></tr>
     }
 </table>
-@if (Model.Events.Count == 0) { <div class="empty">Yozuv yo'q.</div> }
+@if (Model.Events.Count == 0) { <div class="empty">@L.T("Pnl_NoRecords")</div> }

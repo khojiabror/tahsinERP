@@ -1,40 +1,40 @@
 @page
 @model LicensesModel
-@{ ViewData["Title"] = "Litsenziya kaliti"; }
-<h1>Litsenziya kaliti (o'z serveringiz)</h1>
-<p class="hint">Kalitni ERP'dagi «Litsenziya» sahifasiga kiriting. Kalit faqat o'z o'rnatmangizda (InstallationId) ishlaydi. Internet bo'lsa ERP kalitni o'zi yangilaydi.</p>
+@{ ViewData["Title"] = L.T("Ptl_NavLicense"); }
+<h1>@L.T("Ptl_LicenseHeading")</h1>
+<p class="hint">@L.T("Ptl_LicenseHint")</p>
 @if (Model.Current.Count == 0)
 {
-    <p class="empty">Amaldagi kalit yo'q. To'lovdan keyin kalit chiqariladi; savol bo'lsa xodimimizga murojaat qiling.</p>
+    <p class="empty">@L.T("Ptl_NoLicense")</p>
 }
 @foreach (var l in Model.Current)
 {
     <div class="card">
         <dl class="props">
-            <dt>O'rnatma (InstallationId)</dt><dd><code>@l.InstallationId</code></dd>
-            <dt>Paket</dt><dd>@tahsinERP.Services.Editions.EditionModules.EditionDisplayName(l.Edition) <code>@l.Edition</code>, @l.MaxUsers foydalanuvchi</dd>
-            <dt>Amal qiladi</dt><dd>@l.StartDate.ToString("dd.MM.yyyy") – @l.ExpiryDate.ToString("dd.MM.yyyy") @if (l.ExpiryDate < Model.Today) { <span class="badge bad">muddati o'tgan</span> }</dd>
+            <dt>@L.T("Ptl_Installation")</dt><dd><code>@l.InstallationId</code></dd>
+            <dt>@L.T("Ptl_Plan")</dt><dd>@tahsinERP.Services.Editions.EditionModules.EditionDisplayName(l.Edition) <code>@l.Edition</code>, @L.T("Ptl_UsersCount", l.MaxUsers)</dd>
+            <dt>@L.T("Ptl_Valid")</dt><dd>@l.StartDate.ToString("dd.MM.yyyy") – @l.ExpiryDate.ToString("dd.MM.yyyy") @if (l.ExpiryDate < Model.Today) { <span class="badge bad">@L.T("Ptl_ExpiredLower")</span> }</dd>
         </dl>
         @if (Model.IsPortalOwner)
         {
             @if (Model.Revealed?.Id == l.Id)
             {
                 <textarea id="key-@l.Id" class="key" readonly>@l.LicenseKey</textarea>
-                <div class="actions spaced"><button type="button" data-copy="key-@l.Id">Nusxa olish</button>
-                    <a class="btn secondary" href="/Licenses?handler=Download&amp;id=@l.Id">Fayl sifatida yuklab olish</a></div>
+                <div class="actions spaced"><button type="button" data-copy="key-@l.Id" data-copied="@(L.T("Ptl_Copied") + " ✓")">@L.T("Ptl_Copy")</button>
+                    <a class="btn secondary" href="/Licenses?handler=Download&amp;id=@l.Id">@L.T("Ptl_DownloadAsFile")</a></div>
             }
             else
             {
                 <form method="post" asp-page-handler="Reveal" class="actions spaced">
                     <input type="hidden" name="LicenseId" value="@l.Id" />
-                    <button type="submit">Kalitni ko'rsatish</button>
-                    <a class="btn secondary" href="/Licenses?handler=Download&amp;id=@l.Id">Yuklab olish (.txt)</a>
+                    <button type="submit">@L.T("Ptl_ShowKey")</button>
+                    <a class="btn secondary" href="/Licenses?handler=Download&amp;id=@l.Id">@L.T("Download") (.txt)</a>
                 </form>
             }
         }
         else
         {
-            <p class="hint">Kalitni faqat tashkilot mas'uli (Owner) ko'ra oladi.</p>
+            <p class="hint">@L.T("Ptl_KeyOwnerOnly")</p>
         }
     </div>
 }

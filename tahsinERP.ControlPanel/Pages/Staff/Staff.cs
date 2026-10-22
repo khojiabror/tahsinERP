@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using tahsinERP.ControlPanel.Data;
 using tahsinERP.ControlPanel.Security;
 using tahsinERP.ControlPanel.Services;
+using tahsinERP.ControlPanel.I18n;
 
 namespace tahsinERP.ControlPanel.Pages.Staff;
 
@@ -17,10 +18,10 @@ public class IndexModel(ControlDbContext db) : PanelPageModel
 
 public class CreateModel(StaffAuthService auth) : PanelPageModel
 {
-    [BindProperty, Required(ErrorMessage = "Email majburiy"), EmailAddress] public string Email { get; set; } = "";
-    [BindProperty, Required(ErrorMessage = "Ism majburiy")] public string FullName { get; set; } = "";
+    [BindProperty, Required(ErrorMessageResourceType = typeof(PnlVal), ErrorMessageResourceName = nameof(PnlVal.EmailMandatory)), EmailAddress] public string Email { get; set; } = "";
+    [BindProperty, Required(ErrorMessageResourceType = typeof(PnlVal), ErrorMessageResourceName = nameof(PnlVal.FullNameRequired))] public string FullName { get; set; } = "";
     [BindProperty] public StaffRole Role { get; set; } = StaffRole.Sales;
-    [BindProperty, Required(ErrorMessage = "Vaqtinchalik parol"), DataType(DataType.Password)] public string Password { get; set; } = "";
+    [BindProperty, Required(ErrorMessageResourceType = typeof(PnlVal), ErrorMessageResourceName = nameof(PnlVal.TempPassword)), DataType(DataType.Password)] public string Password { get; set; } = "";
 
     public void OnGet() { }
 
@@ -28,7 +29,7 @@ public class CreateModel(StaffAuthService auth) : PanelPageModel
     {
         if (!ModelState.IsValid) return Page();
         if (!await TryAsync(() => auth.CreateStaffAsync(Email, FullName, Role, Password, StaffId))) return Page();
-        FlashOk = $"Xodim qo'shildi: {Email}. Parolni xavfsiz kanal orqali bering; birinchi kirishda 2FA ulanadi.";
+        FlashOk = L.T("Pnl_Staff_Added", Email);
         return RedirectToPage("Index");
     }
 }
@@ -59,7 +60,7 @@ public class EditModel(ControlDbContext db, AuditLogger audit) : PanelPageModel
     {
         if (!removingOwner || Staff.Role != StaffRole.Owner) return true;
         bool other = await db.StaffUsers.AnyAsync(u => u.Id != Staff.Id && u.Role == StaffRole.Owner && u.IsActive);
-        if (!other) ModelState.AddModelError("", "Oxirgi faol Owner'ni o'chirib/pasaytirib bo'lmaydi.");
+        if (!other) ModelState.AddModelError("", L.T("Pnl_Staff_LastOwner"));
         return other;
     }
 
@@ -75,7 +76,7 @@ public class EditModel(ControlDbContext db, AuditLogger audit) : PanelPageModel
             audit.Add("staff.update", "StaffUser", Staff.Id, before, new { Staff.Role, Staff.IsActive });
             await db.SaveChangesAsync();
         }
-        FlashOk = "Saqlandi.";
+        FlashOk = L.T("Pnl_SavedDot");
         return RedirectToPage("Index");
     }
 
@@ -87,7 +88,7 @@ public class EditModel(ControlDbContext db, AuditLogger audit) : PanelPageModel
         Staff.SecurityStamp = Guid.NewGuid().ToString("N");
         audit.Add("staff.totp-reset", "StaffUser", Staff.Id);
         await db.SaveChangesAsync();
-        FlashOk = "2FA tiklandi — xodim keyingi kirishda yangi QR kodni skanerlaydi.";
+        FlashOk = L.T("Pnl_Staff_TotpReset");
         return RedirectToPage(new { id });
     }
 
@@ -100,7 +101,7 @@ public class EditModel(ControlDbContext db, AuditLogger audit) : PanelPageModel
         Staff.FailedLogins = 0; Staff.LockedUntilUtc = null;
         audit.Add("staff.password-reset", "StaffUser", Staff.Id);
         await db.SaveChangesAsync();
-        FlashOk = "Parol almashtirildi, blok olib tashlandi.";
+        FlashOk = L.T("Pnl_Staff_PasswordReset");
         return RedirectToPage(new { id });
     }
 }

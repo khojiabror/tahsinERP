@@ -1,4 +1,4 @@
 @page
 @model tahsinERP.ControlPanel.Pages.Account.DeniedModel
-@{ ViewData["Title"] = "Ruxsat yo'q"; }
-<div class="card"><h1>Ruxsat yo'q</h1><p>Bu amal sizning rolingiz uchun yopiq.</p><p><a href="/">Bosh sahifaga</a></p></div>
+@{ ViewData["Title"] = L.T("Error_NotAuthorized"); }
+<div class="card"><h1>@L.T("Error_NotAuthorized")</h1><p>@L.T("Pnl_Acc_DeniedText")</p><p><a href="/">@L.T("Pnl_Acc_ToHome")</a></p></div>

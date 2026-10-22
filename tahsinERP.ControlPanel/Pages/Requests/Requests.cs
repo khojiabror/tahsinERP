@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using tahsinERP.ControlPanel.Data;
 using tahsinERP.ControlPanel.Portal;
+using tahsinERP.ControlPanel.I18n;
 
 namespace tahsinERP.ControlPanel.Pages.Requests;
 
@@ -40,7 +41,7 @@ public class IndexModel(ControlDbContext db, PortalRequestService service) : Pan
             await LoadAsync();
             return Page();
         }
-        FlashOk = $"So'rov #{RequestId} tasdiqlandi, qoralama hisob-faktura yaratildi — tekshirib «Chiqarish» tugmasini bosing.";
+        FlashOk = L.T("Pnl_Req_Approved", RequestId);
         return RedirectToPage("/Invoices/Details", new { id = inv!.Id });
     }
 
@@ -52,7 +53,7 @@ public class IndexModel(ControlDbContext db, PortalRequestService service) : Pan
             await LoadAsync();
             return Page();
         }
-        FlashOk = $"So'rov #{RequestId} rad etildi, mijozga xabar yuborildi.";
+        FlashOk = L.T("Pnl_Req_Rejected", RequestId);
         return RedirectToPage();
     }
 

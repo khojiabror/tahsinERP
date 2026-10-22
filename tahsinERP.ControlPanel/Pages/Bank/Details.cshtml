@@ -1,25 +1,25 @@
 @page "{id:int}"
 @model tahsinERP.ControlPanel.Pages.Bank.DetailsModel
 @using tahsinERP.ControlPanel.Pages.Bank
-@{ var imp = Model.Import; ViewData["Title"] = "Ko'chirma #" + imp.Id; }
-<h1>Ko'chirma #@imp.Id <span class="hint">@imp.FileName</span></h1>
+@{ var imp = Model.Import; ViewData["Title"] = L.T("Pnl_Bank_StatementNo", imp.Id); }
+<h1>@L.T("Pnl_Bank_StatementNo", imp.Id) <span class="hint">@imp.FileName</span></h1>
 <div asp-validation-summary="All"></div>
-<div class="actions"><a href="/Bank">← Barcha ko'chirmalar</a></div>
+<div class="actions"><a href="/Bank">← @L.T("Pnl_Bank_AllStatements")</a></div>
 <div class="card">
     <dl class="props">
-        <dt>Format</dt><dd>@imp.Format</dd>
-        <dt>Hisob</dt><dd>@(imp.Account ?? "—")</dd>
-        <dt>Davr</dt><dd>@imp.DateFrom?.ToString("dd.MM.yyyy") — @imp.DateTo?.ToString("dd.MM.yyyy")</dd>
-        <dt>Kiruvchi / mos</dt><dd>@imp.Lines.Count(l => l.MatchStatus != BankMatchStatus.NotIncoming) / @imp.Lines.Count(l => l.MatchStatus == BankMatchStatus.Matched)</dd>
+        <dt>@L.T("Pnl_Format")</dt><dd>@imp.Format</dd>
+        <dt>@L.T("Pnl_Bank_Account")</dt><dd>@(imp.Account ?? "—")</dd>
+        <dt>@L.T("Period")</dt><dd>@imp.DateFrom?.ToString("dd.MM.yyyy") — @imp.DateTo?.ToString("dd.MM.yyyy")</dd>
+        <dt>@L.T("Pnl_Bank_IncomingMatched")</dt><dd>@imp.Lines.Count(l => l.MatchStatus != BankMatchStatus.NotIncoming) / @imp.Lines.Count(l => l.MatchStatus == BankMatchStatus.Matched)</dd>
     </dl>
 </div>
 <form method="post" asp-page-handler="Apply" id="applyForm" class="toolbar">
-    <button type="submit">Tanlanganlarni qo'llash</button>
-    <span class="hint">Har qator — «To'lov qabul qilindi» bilan bir xil: to'liq yopilsa obuna uzaytiriladi va kalit chiqadi. Belgilangan to'lov faqat storno qilinadi.</span>
+    <button type="submit">@L.T("Pnl_Bank_ApplySelected")</button>
+    <span class="hint">@L.T("Pnl_Bank_ApplyHint")</span>
 </form>
 <div class="scroll">
 <table>
-    <tr><th></th><th>№</th><th>Sana</th><th>Hujjat</th><th class="num">Summa</th><th>To'lovchi</th><th>Maqsad</th><th>Moslash</th><th>Hisob-faktura</th><th>Holat</th><th></th></tr>
+    <tr><th></th><th>№</th><th>@L.T("Date")</th><th>@L.T("Pnl_Document")</th><th class="num">@L.T("Amount")</th><th>@L.T("Pnl_Payer")</th><th>@L.T("Pnl_Purpose")</th><th>@L.T("Pnl_Bank_Matching")</th><th>@L.T("Pnl_Invoice")</th><th>@L.T("Status")</th><th></th></tr>
     @foreach (var l in imp.Lines.OrderBy(l => l.LineNo))
     {
         Model.Invoices.TryGetValue(l.InvoiceId ?? 0, out var inv);
@@ -32,19 +32,19 @@
             <td>@l.PayerName <span class="hint">@l.PayerInn</span></td>
             <td><span class="hint">@l.Purpose</span></td>
             <td><span class="badge @DetailsModel.Badge(l.MatchStatus)">@DetailsModel.Of(l.MatchStatus)</span> <span class="hint">@l.MatchNote</span></td>
-            <td>@if (inv is not null) { <a href="/Invoices/Details/@inv.Id">@inv.Number</a> <span class="hint">@inv.Tenant?.LegalName, qoldiq @Money.Format(inv.RemainingTiyin)</span> }</td>
-            <td>@DetailsModel.Of(l.State) @if (l.PaymentId != null) { <span class="hint">to'lov #@l.PaymentId</span> } @if (l.Error != null) { <span class="hint">@l.Error</span> }</td>
+            <td>@if (inv is not null) { <a href="/Invoices/Details/@inv.Id">@inv.Number</a> <span class="hint">@inv.Tenant?.LegalName, @L.T("Pnl_RemainingLower") @Money.Format(inv.RemainingTiyin)</span> }</td>
+            <td>@DetailsModel.Of(l.State) @if (l.PaymentId != null) { <span class="hint">@L.T("Pnl_PaymentNo", l.PaymentId)</span> } @if (l.Error != null) { <span class="hint">@l.Error</span> }</td>
             <td>
                 @if (DetailsModel.CanEdit(l))
                 {
                     <form method="post" asp-page-handler="Assign" class="toolbar">
                         <input type="hidden" name="LineId" value="@l.Id" />
                         <input type="text" name="InvoiceNumber" placeholder="TE-2026-000001" size="14" />
-                        <button type="submit" class="secondary">Tanlash</button>
+                        <button type="submit" class="secondary">@L.T("Pnl_Choose")</button>
                     </form>
                     <form method="post" asp-page-handler="Skip" class="inline">
                         <input type="hidden" name="LineId" value="@l.Id" />
-                        <button type="submit" class="link">O'tkazish</button>
+                        <button type="submit" class="link">@L.T("Pnl_Bank_Skip")</button>
                     </form>
                 }
             </td>

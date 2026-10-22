@@ -6,91 +6,91 @@
 @if (Model.NewRegToken is not null)
 {
     <div class="secret">
-        <strong>Yangi reg_token (faqat hozir ko'rinadi, 7 kun amal qiladi):</strong>
+        <strong>@L.T("Pnl_Ten_NewRegToken")</strong>
         <div class="mono">@Model.NewRegToken</div>
-        <div class="hint">On-prem: ERP License sahifasidagi «Panelga ulash» maydoniga kiriting. SaaS: provisioning LICENSE_STATE.RegToken ga yozadi.</div>
+        <div class="hint">@L.T("Pnl_Ten_RegTokenHint")</div>
     </div>
 }
 @if (Model.NewTempPassword is not null)
 {
     <div class="secret">
-        <strong>Admin vaqtinchalik paroli (faqat hozir ko'rinadi):</strong>
-        <div class="mono">Login: admin &nbsp; Parol: @Model.NewTempPassword</div>
-        <div class="hint">Baza tayyor bo'lgach (job «Bajarildi») kirish mumkin; birinchi kirishda parol almashtiriladi. Tenant Telegram chati bo'lsa, xabar u yerga ham yuboriladi.</div>
+        <strong>@L.T("Pnl_Ten_AdminTempPassword")</strong>
+        <div class="mono">@L.T("Username"): admin &nbsp; @L.T("Password"): @Model.NewTempPassword</div>
+        <div class="hint">@L.T("Pnl_Ten_TempPasswordHint")</div>
     </div>
 }
 <div class="actions">
-    @if (Model.CanSell) { <a class="btn secondary" href="/Tenants/Edit/@t.Id">Tahrirlash</a> }
-    <form method="post" asp-page-handler="RegToken" class="inline"><button type="submit" class="secondary">reg_token chiqarish</button></form>
-    @if (Model.CanSell) { <form method="post" asp-page-handler="EnsureLicense" class="inline"><button type="submit" class="secondary">Kalitni obunadan yangilash</button></form> }
+    @if (Model.CanSell) { <a class="btn secondary" href="/Tenants/Edit/@t.Id">@L.T("Edit")</a> }
+    <form method="post" asp-page-handler="RegToken" class="inline"><button type="submit" class="secondary">@L.T("Pnl_Ten_IssueRegToken")</button></form>
+    @if (Model.CanSell) { <form method="post" asp-page-handler="EnsureLicense" class="inline"><button type="submit" class="secondary">@L.T("Pnl_Ten_EnsureLicense")</button></form> }
 </div>
 <div class="cols">
     <div class="card">
         <dl class="props">
             <dt>Slug</dt><dd><code>@t.Slug</code></dd>
-            <dt>Joylashuv</dt><dd>@Labels.Of(t.Deployment)</dd>
-            <dt>STIR</dt><dd>@t.Inn</dd>
-            <dt>Mas'ul</dt><dd>@t.ContactName @t.Phone @t.Email</dd>
+            <dt>@L.T("Pnl_Deployment")</dt><dd>@Labels.Of(t.Deployment)</dd>
+            <dt>@L.T("Pnl_Inn")</dt><dd>@t.Inn</dd>
+            <dt>@L.T("Pnl_Contact")</dt><dd>@t.ContactName @t.Phone @t.Email</dd>
             <dt>Telegram</dt><dd>@t.TelegramChatId</dd>
-            <dt>Baza / server</dt><dd>@t.DbName @t.Server?.Name</dd>
+            <dt>@L.T("Pnl_Ten_DbServer")</dt><dd>@t.DbName @t.Server?.Name</dd>
             <dt>CompanyID</dt><dd>@t.CompanyId</dd>
-            <dt>InstallationId</dt><dd><code>@(t.InstallationId ?? "bog'lanmagan")</code></dd>
-            <dt>Oxirgi aloqa</dt><dd>@t.LastSeenUtc @t.LastVersion @t.LastHost</dd>
+            <dt>InstallationId</dt><dd><code>@(t.InstallationId ?? L.T("Pnl_NotBound"))</code></dd>
+            <dt>@L.T("Pnl_LastSeen")</dt><dd>@t.LastSeenUtc @t.LastVersion @t.LastHost</dd>
         </dl>
     </div>
     <div class="card">
         @if (Model.CanSell)
         {
             <form method="post" asp-page-handler="Status" class="stack">
-                <div><label asp-for="NewStatus">Holatni o'zgartirish</label>
+                <div><label asp-for="NewStatus">@L.T("Pnl_Ten_ChangeStatus")</label>
                     <select asp-for="NewStatus">@foreach (var s in Enum.GetValues<TenantStatus>()) { <option value="@s">@Labels.Of(s)</option> }</select></div>
-                <div><label asp-for="Reason">Sabab</label><input asp-for="Reason" type="text" /></div>
-                <div><button type="submit">Saqlash</button></div>
+                <div><label asp-for="Reason">@L.T("Pnl_Reason")</label><input asp-for="Reason" type="text" /></div>
+                <div><button type="submit">@L.T("Save")</button></div>
             </form>
         }
     </div>
 </div>
 @if (t.Deployment == DeploymentKind.SaaS)
 {
-    <h2>Provisioning (baza va ERP reestri)</h2>
+    <h2>@L.T("Pnl_Ten_ProvTitle")</h2>
     <div class="card">
         <dl class="props">
-            <dt>Manzil</dt><dd>@(Model.TenantUrl ?? $"{t.Slug}.<domen> (ControlPanel:Provisioning:BaseDomain sozlanmagan)")</dd>
-            <dt>Baza yaratilgan</dt><dd>@(t.ProvisionedAtUtc?.ToString("dd.MM.yyyy HH:mm") ?? "yo'q")</dd>
-            <dt>tenants.json</dt><dd>@(t.RegistryEnabled switch { true => "enabled: true", false => "enabled: false", _ => "yozuv yo'q" })</dd>
-            @if (t.ArchiveLocation != null) { <dt>Arxiv</dt><dd class="mono">@t.ArchiveLocation</dd> }
-            @if (t.DeletedAtUtc != null) { <dt>O'chirilgan</dt><dd>@t.DeletedAtUtc?.ToString("dd.MM.yyyy HH:mm")</dd> }
+            <dt>@L.T("Pnl_Url")</dt><dd>@(Model.TenantUrl ?? L.T("Pnl_Ten_UrlNotConfigured", t.Slug))</dd>
+            <dt>@L.T("Pnl_Ten_DbCreated")</dt><dd>@(t.ProvisionedAtUtc?.ToString("dd.MM.yyyy HH:mm") ?? L.T("Pnl_NoLower"))</dd>
+            <dt>tenants.json</dt><dd>@(t.RegistryEnabled switch { true => "enabled: true", false => "enabled: false", _ => L.T("Pnl_Ten_NoEntry") })</dd>
+            @if (t.ArchiveLocation != null) { <dt>@L.T("Pnl_TenantStatus_Archived")</dt><dd class="mono">@t.ArchiveLocation</dd> }
+            @if (t.DeletedAtUtc != null) { <dt>@L.T("Pnl_Ten_Deleted")</dt><dd>@t.DeletedAtUtc?.ToString("dd.MM.yyyy HH:mm")</dd> }
         </dl>
         @if (Model.CanSell && t.DeletedAtUtc == null && Model.ActiveJob == null)
         {
             <form method="post" class="stack">
-                <div><label asp-for="ProvisionReason">Sabab / izoh</label><input asp-for="ProvisionReason" type="text" /></div>
+                <div><label asp-for="ProvisionReason">@L.T("Pnl_Ten_ReasonNote")</label><input asp-for="ProvisionReason" type="text" /></div>
                 <div class="actions">
                     @if (t.ProvisionedAtUtc == null && t.Status != TenantStatus.Archived)
                     {
-                        <button type="submit" asp-page-handler="Provision">Bazani yaratish</button>
+                        <button type="submit" asp-page-handler="Provision">@L.T("Pnl_Ten_Provision")</button>
                     }
                     @if (t.ProvisionedAtUtc != null && t.Status != TenantStatus.Archived)
                     {
-                        @if (t.Status != TenantStatus.Suspended) { <button type="submit" class="secondary" asp-page-handler="Suspend">To'xtatish</button> }
-                        else { <button type="submit" class="secondary" asp-page-handler="Resume">Qayta yoqish</button> }
-                        @if (Model.IsDemo) { <button type="submit" class="secondary" asp-page-handler="Reset">Shablondan qayta tiklash</button> }
-                        @if (Model.IsOwner) { <button type="submit" class="danger" asp-page-handler="Archive">Arxivlash (backup + bazani o'chirish)</button> }
+                        @if (t.Status != TenantStatus.Suspended) { <button type="submit" class="secondary" asp-page-handler="Suspend">@L.T("Pnl_JobType_Suspend")</button> }
+                        else { <button type="submit" class="secondary" asp-page-handler="Resume">@L.T("Pnl_JobType_Resume")</button> }
+                        @if (Model.IsDemo) { <button type="submit" class="secondary" asp-page-handler="Reset">@L.T("Pnl_Ten_ResetFromTemplate")</button> }
+                        @if (Model.IsOwner) { <button type="submit" class="danger" asp-page-handler="Archive">@L.T("Pnl_Ten_ArchiveBtn")</button> }
                     }
                     @if (Model.IsOwner && t.Status == TenantStatus.Archived)
                     {
-                        <a class="btn danger" href="/Tenants/Delete/@t.Id">Butunlay o'chirish…</a>
+                        <a class="btn danger" href="/Tenants/Delete/@t.Id">@L.T("Pnl_Ten_DeleteForever")…</a>
                     }
                 </div>
             </form>
         }
         else if (Model.ActiveJob != null)
         {
-            <div class="hint">Bajarilmoqda: <a href="/Provisioning/Job/@Model.ActiveJob.Id">@Labels.Of(Model.ActiveJob.Type) #@Model.ActiveJob.Id</a> — sahifa o'zi yangilanadi.</div>
+            <div class="hint">@L.T("Pnl_Ten_InProgress") <a href="/Provisioning/Job/@Model.ActiveJob.Id">@Labels.Of(Model.ActiveJob.Type) #@Model.ActiveJob.Id</a> — @L.T("Pnl_Ten_AutoRefresh")</div>
         }
     </div>
     <table>
-        <tr><th>#</th><th>Amal</th><th>Holat</th><th class="num">Urinish</th><th>Yaratilgan (UTC)</th><th>Tugagan</th><th>Xato</th></tr>
+        <tr><th>#</th><th>@L.T("Pnl_Audit_Action")</th><th>@L.T("Status")</th><th class="num">@L.T("Pnl_Prov_Attempt")</th><th>@L.T("Pnl_CreatedUtc")</th><th>@L.T("Pnl_Prov_Finished")</th><th>@L.T("Pnl_Err_Title")</th></tr>
         @foreach (var j in Model.Jobs)
         {
             <tr><td><a href="/Provisioning/Job/@j.Id">@j.Id</a></td><td>@Labels.Of(j.Type)</td><td><span class="badge @Labels.Badge(j.Status)">@Labels.Of(j.Status)</span></td>
@@ -100,7 +100,7 @@
 }
 @if (Model.AppsLoaded)
 {
-    <h2>Telegram bot va sayt-katalog</h2>
+    <h2>@L.T("Pnl_Ten_BotAndSite")</h2>
     <div class="cols">
         <div class="card">
             <h3>Telegram bot</h3>
@@ -108,90 +108,90 @@
             else if (Model.Bot is { } b)
             {
                 <dl class="props">
-                    <dt>Holat</dt><dd>@(!b.Exists ? "ulanmagan" : b.Active ? "faol" : "o'chirilgan")</dd>
+                    <dt>@L.T("Status")</dt><dd>@(!b.Exists ? L.T("Pnl_Prov_AgentNotConnected") : b.Active ? L.T("Pnl_ActiveLower") : L.T("Pnl_DisabledLower"))</dd>
                     @if (b.Exists)
                     {
                         <dt>Bot</dt><dd>@if (b.BotUsername != null) { <a href="https://t.me/@b.BotUsername" target="_blank" rel="noopener">@@@b.BotUsername</a> }</dd>
                         <dt>Webhook</dt><dd class="mono">@(b.WebhookUrl ?? "—")</dd>
-                        @if (b.PendingUpdates > 0) { <dt>Navbatda</dt><dd>@b.PendingUpdates</dd> }
-                        @if (b.LastError != null) { <dt>Oxirgi xato</dt><dd class="mono">@b.LastError</dd> }
+                        @if (b.PendingUpdates > 0) { <dt>@L.T("Pnl_JobStatus_Pending")</dt><dd>@b.PendingUpdates</dd> }
+                        @if (b.LastError != null) { <dt>@L.T("Pnl_LastError")</dt><dd class="mono">@b.LastError</dd> }
                     }
                 </dl>
                 @if (b.Active && b.BotUsername != null)
                 {
-                    <p class="hint">ERP → Distributsiya → Sozlamalar: «Telegram bot nomi» = <code>@b.BotUsername</code>, «Bot ochiq manzili» = bot manzili. BotFather'da <code>/setdomain</code> — bot domeni (Mini App uchun).</p>
+                    <p class="hint">@L.T("Pnl_Ten_BotHint1") <code>@b.BotUsername</code>, @L.T("Pnl_Ten_BotHint2") <code>/setdomain</code> — @L.T("Pnl_Ten_BotHint3")</p>
                 }
             }
             @if (Model.CanSell && Model.BotConfigured && Model.BotError == null)
             {
                 <form method="post" class="stack" autocomplete="off">
-                    <div><label for="BotToken">BotFather tokeni @(Model.Bot?.Exists == true ? "(yangi bot yoki token almashsa)" : "")</label>
+                    <div><label for="BotToken">@L.T("Pnl_Ten_BotToken") @(Model.Bot?.Exists == true ? L.T("Pnl_Ten_BotTokenChange") : "")</label>
                         <input id="BotToken" name="BotToken" type="password" autocomplete="new-password" placeholder="123456789:AA..." /></div>
-                    <p class="hint">Token panelda saqlanmaydi — bot ilovasiga uzatiladi va u yerda shifrlanadi. Webhook avtomatik o'rnatiladi.
-                        @(Model.Bot?.Exists == true ? "Tokensiz bosilsa — ERP manzili va webhook yangilanadi." : "")</p>
+                    <p class="hint">@L.T("Pnl_Ten_BotTokenHint")
+                        @(Model.Bot?.Exists == true ? L.T("Pnl_Ten_BotNoTokenHint") : "")</p>
                     <div class="actions">
-                        <button type="submit" asp-page-handler="BotConnect">@(Model.Bot?.Exists == true ? "Yangilash" : "Botni ulash")</button>
-                        @if (Model.Bot?.Active == true) { <button type="submit" class="secondary" asp-page-handler="BotDisable">Botni o'chirish</button> }
+                        <button type="submit" asp-page-handler="BotConnect">@(Model.Bot?.Exists == true ? L.T("Refresh") : L.T("Pnl_Ten_BotConnect"))</button>
+                        @if (Model.Bot?.Active == true) { <button type="submit" class="secondary" asp-page-handler="BotDisable">@L.T("Pnl_Ten_BotDisable")</button> }
                     </div>
                 </form>
             }
         </div>
         <div class="card">
-            <h3>Sayt-katalog</h3>
+            <h3>@L.T("Pnl_Ten_SiteCatalog")</h3>
             @if (Model.SiteError != null) { <p class="hint">@Model.SiteError</p> }
             else if (Model.Site is { } st)
             {
                 <dl class="props">
-                    <dt>Holat</dt><dd>@(!st.Exists ? "yoqilmagan" : st.Active ? "faol" : "o'chirilgan")</dd>
-                    @if (st.Exists && Model.SitePublicUrl != null) { <dt>Manzil</dt><dd><a href="@Model.SitePublicUrl" target="_blank" rel="noopener">@Model.SitePublicUrl</a></dd> }
+                    <dt>@L.T("Status")</dt><dd>@(!st.Exists ? L.T("Pnl_Ten_NotEnabled") : st.Active ? L.T("Pnl_ActiveLower") : L.T("Pnl_DisabledLower"))</dd>
+                    @if (st.Exists && Model.SitePublicUrl != null) { <dt>@L.T("Pnl_Url")</dt><dd><a href="@Model.SitePublicUrl" target="_blank" rel="noopener">@Model.SitePublicUrl</a></dd> }
                     @if (st.Exists)
                     {
-                        <dt>Katalog nusxasi</dt><dd>@(st.SnapshotAt?.ToString("dd.MM.yyyy HH:mm") ?? "hali olinmagan") @(st.Products is int n ? $"· {n} tovar" : "")</dd>
+                        <dt>@L.T("Pnl_Ten_CatalogSnapshot")</dt><dd>@(st.SnapshotAt?.ToString("dd.MM.yyyy HH:mm") ?? L.T("Pnl_Ten_NotTakenYet")) @(st.Products is int n ? "· " + L.T("Pnl_Ten_ProductsN", n) : "")</dd>
                     }
                 </dl>
             }
             @if (Model.CanSell && Model.SiteConfigured && Model.SiteError == null)
             {
                 <form method="post" class="actions">
-                    @if (Model.Site?.Active != true) { <button type="submit" asp-page-handler="SiteEnable">Saytni yoqish</button> }
-                    else { <button type="submit" class="secondary" asp-page-handler="SiteDisable">Saytni o'chirish</button> }
+                    @if (Model.Site?.Active != true) { <button type="submit" asp-page-handler="SiteEnable">@L.T("Pnl_Ten_SiteEnable")</button> }
+                    else { <button type="submit" class="secondary" asp-page-handler="SiteDisable">@L.T("Pnl_Ten_SiteDisable")</button> }
                 </form>
-                <p class="hint">Katalog ERP'dagi «Sayt» sozlamalaridan olinadi (tovarlar, kategoriyalar, aloqa).</p>
+                <p class="hint">@L.T("Pnl_Ten_SiteHint")</p>
             }
         </div>
     </div>
 }
 <partial name="_TrialActivity" model="Model" />
-<h2>Mijoz portali (my.&lt;domen&gt;)</h2>
+<h2>@L.T("Pnl_Ten_Portal") (my.&lt;domen&gt;)</h2>
 @if (Model.NewInviteUrl is not null)
 {
     <div class="secret">
-        <strong>@Model.InviteFor uchun taklif havolasi (faqat hozir ko'rinadi, bir martalik):</strong>
+        <strong>@L.T("Pnl_Ten_InviteFor", Model.InviteFor)</strong>
         <div class="mono">@Model.NewInviteUrl</div>
-        <div class="hint">Mijozga shaxsan yuboring (Telegram/email). Havola orqali parol o'rnatiladi; eski parol va sessiyalar bekor bo'ladi.
-            @(Model.InviteSentToTelegram ? "Foydalanuvchining bog'langan Telegram chatiga ham yuborildi." : "")</div>
+        <div class="hint">@L.T("Pnl_Ten_InviteHint")
+            @(Model.InviteSentToTelegram ? L.T("Pnl_Ten_InviteSentTg") : "")</div>
     </div>
 }
 <div class="card">
     @if (Model.PortalUsers.Count > 0)
     {
         <table>
-            <tr><th>Ism</th><th>Login</th><th>Rol</th><th>Holat</th><th>Telegram</th><th>Oxirgi kirish (UTC)</th><th></th></tr>
+            <tr><th>@L.T("Pnl_FirstName")</th><th>@L.T("Username")</th><th>@L.T("Pnl_Role")</th><th>@L.T("Status")</th><th>Telegram</th><th>@L.T("Pnl_LastLoginUtc")</th><th></th></tr>
             @foreach (var u in Model.PortalUsers)
             {
                 <tr>
                     <td>@u.FullName</td><td>@u.Email @u.Phone</td><td>@u.Role</td>
-                    <td>@(!u.IsActive ? "o'chirilgan" : u.PasswordHash is null ? "taklif kutilmoqda" : u.LockedUntilUtc > DateTime.UtcNow ? "bloklangan" : "faol")</td>
-                    <td>@(u.TelegramChatId is null ? "—" : "bog'langan")</td>
+                    <td>@(!u.IsActive ? L.T("Pnl_DisabledLower") : u.PasswordHash is null ? L.T("Pnl_Ten_InvitePending") : u.LockedUntilUtc > DateTime.UtcNow ? L.T("Pnl_Locked") : L.T("Pnl_ActiveLower"))</td>
+                    <td>@(u.TelegramChatId is null ? "—" : L.T("Pnl_Bound"))</td>
                     <td>@u.LastLoginUtc?.ToString("dd.MM.yyyy HH:mm")</td>
                     <td>
                         @if (Model.CanSell)
                         {
                             <form method="post" class="inline"><input type="hidden" name="PortalUserId" value="@u.Id" />
-                                <button type="submit" class="link" asp-page-handler="PortalInvite">@(u.PasswordHash is null ? "taklif havolasi" : "parolni tiklash")</button> ·
-                                <button type="submit" class="link" asp-page-handler="PortalToggle" asp-route-what="role">rol → @(u.Role == PortalRole.Owner ? "Viewer" : "Owner")</button> ·
-                                <button type="submit" class="link" asp-page-handler="PortalToggle" asp-route-what="active">@(u.IsActive ? "o'chirish" : "yoqish")</button>
-                                @if (u.TelegramChatId is not null) { <text> · </text><button type="submit" class="link" asp-page-handler="PortalToggle" asp-route-what="telegram">Telegram'ni uzish</button> }
+                                <button type="submit" class="link" asp-page-handler="PortalInvite">@(u.PasswordHash is null ? L.T("Pnl_Ten_InviteLink") : L.T("Pnl_Ten_ResetPassword"))</button> ·
+                                <button type="submit" class="link" asp-page-handler="PortalToggle" asp-route-what="role">@L.T("Pnl_Ten_RoleArrow") → @(u.Role == PortalRole.Owner ? "Viewer" : "Owner")</button> ·
+                                <button type="submit" class="link" asp-page-handler="PortalToggle" asp-route-what="active">@(u.IsActive ? L.T("Pnl_Ten_DisableLower") : L.T("Pnl_Ten_EnableLower"))</button>
+                                @if (u.TelegramChatId is not null) { <text> · </text><button type="submit" class="link" asp-page-handler="PortalToggle" asp-route-what="telegram">@L.T("Pnl_Ten_UnlinkTelegram")</button> }
                             </form>
                         }
                     </td>
@@ -201,56 +201,56 @@
     }
     else
     {
-        <p class="empty">Portal foydalanuvchisi yo'q.</p>
+        <p class="empty">@L.T("Pnl_Ten_NoPortalUsers")</p>
     }
     @if (Model.CanSell && t.Status != TenantStatus.Archived)
     {
         <form method="post" asp-page-handler="PortalUser" class="stack spaced">
             <div class="row">
-                <div><label asp-for="PuName">Ism</label><input asp-for="PuName" type="text" /></div>
-                <div><label asp-for="PuRole">Rol</label><select asp-for="PuRole"><option value="Owner">Owner (so'rov, kalit)</option><option value="Viewer">Viewer (faqat ko'rish)</option></select></div>
+                <div><label asp-for="PuName">@L.T("Pnl_FirstName")</label><input asp-for="PuName" type="text" /></div>
+                <div><label asp-for="PuRole">@L.T("Pnl_Role")</label><select asp-for="PuRole"><option value="Owner">@L.T("Pnl_Ten_PuOwner")</option><option value="Viewer">@L.T("Pnl_Ten_PuViewer")</option></select></div>
             </div>
             <div class="row">
                 <div><label asp-for="PuEmail">Email</label><input asp-for="PuEmail" type="email" /></div>
-                <div><label asp-for="PuPhone">Telefon</label><input asp-for="PuPhone" type="text" placeholder="+998901234567" /></div>
+                <div><label asp-for="PuPhone">@L.T("Phone")</label><input asp-for="PuPhone" type="text" placeholder="+998901234567" /></div>
             </div>
-            <p class="hint">Kirish: email yoki telefon + parol + Telegram kodi. Kod foydalanuvchi bog'lagan chatga, bo'lmasa tashkilotning Telegram chatiga yuboriladi.</p>
-            <div><button type="submit">Qo'shish va taklif havolasini olish</button></div>
+            <p class="hint">@L.T("Pnl_Ten_PuLoginHint")</p>
+            <div><button type="submit">@L.T("Pnl_Ten_PuAdd")</button></div>
         </form>
     }
 </div>
-<h2>Obunalar</h2>
-@if (Model.CanSell) { <div class="actions"><a class="btn" href="/Subscriptions/Create?tenantId=@t.Id">+ Pullik obuna / xizmat</a><a class="btn secondary" href="/Invoices/Create?tenantId=@t.Id">+ Hisob-faktura</a></div> }
+<h2>@L.T("Pnl_Subscriptions")</h2>
+@if (Model.CanSell) { <div class="actions"><a class="btn" href="/Subscriptions/Create?tenantId=@t.Id">+ @L.T("Pnl_Ten_PaidSub")</a><a class="btn secondary" href="/Invoices/Create?tenantId=@t.Id">+ @L.T("Pnl_Invoice")</a></div> }
 <table>
-    <tr><th>#</th><th>Paket</th><th>Davr</th><th class="num">Foyd.</th><th>Boshlanish</th><th>Tugash</th><th>Holat</th></tr>
+    <tr><th>#</th><th>@L.T("Pnl_Package")</th><th>@L.T("Period")</th><th class="num">@L.T("Pnl_UsersShort")</th><th>@L.T("Pnl_Start")</th><th>@L.T("Pnl_End")</th><th>@L.T("Status")</th></tr>
     @foreach (var s in Model.Subscriptions)
     {
-        <tr><td>@if (Model.CanSell) { <a href="/Subscriptions/Edit/@s.Id">@s.Id</a> } else { @s.Id }</td><td>@s.Plan?.Name @if (s.Plan?.IsAddOn == true) { <span class="badge info">qo'shimcha xizmat</span> } @if (Model.CanSell && s.Status is SubscriptionStatus.Pending or SubscriptionStatus.Active && s.Period != BillingPeriod.Trial) { <a class="hint" href="/Invoices/Create?tenantId=@t.Id&subscriptionId=@s.Id">hisob-faktura</a> }</td><td>@Labels.Of(s.Period)</td><td class="num">@s.Users</td><td>@s.StartDate.ToString("dd.MM.yyyy")</td><td>@s.EndDate.ToString("dd.MM.yyyy")</td><td>@Labels.Of(s.Status)</td></tr>
+        <tr><td>@if (Model.CanSell) { <a href="/Subscriptions/Edit/@s.Id">@s.Id</a> } else { @s.Id }</td><td>@s.Plan?.Name @if (s.Plan?.IsAddOn == true) { <span class="badge info">@L.T("Pnl_AddOnBadge")</span> } @if (Model.CanSell && s.Status is SubscriptionStatus.Pending or SubscriptionStatus.Active && s.Period != BillingPeriod.Trial) { <a class="hint" href="/Invoices/Create?tenantId=@t.Id&subscriptionId=@s.Id">@L.T("Pnl_InvoiceLower")</a> }</td><td>@Labels.Of(s.Period)</td><td class="num">@s.Users</td><td>@s.StartDate.ToString("dd.MM.yyyy")</td><td>@s.EndDate.ToString("dd.MM.yyyy")</td><td>@Labels.Of(s.Status)</td></tr>
     }
 </table>
-<h2>Hisob-fakturalar</h2>
+<h2>@L.T("Pnl_NavInvoices")</h2>
 <table>
-    <tr><th>Raqam</th><th>Sana</th><th class="num">Jami</th><th class="num">To'langan</th><th>Holat</th></tr>
+    <tr><th>@L.T("Number")</th><th>@L.T("Date")</th><th class="num">@L.T("Total")</th><th class="num">@L.T("Pnl_InvStatus_Paid")</th><th>@L.T("Status")</th></tr>
     @foreach (var i in Model.Invoices)
     {
-        <tr><td><a href="/Invoices/Details/@i.Id">@(i.Number ?? "qoralama")</a></td><td>@i.IssueDate.ToString("dd.MM.yyyy")</td><td class="num">@Money.Format(i.TotalTiyin)</td><td class="num">@Money.Format(i.PaidTiyin)</td><td><span class="badge @Labels.Badge(i.Status)">@Labels.Of(i.Status)</span></td></tr>
+        <tr><td><a href="/Invoices/Details/@i.Id">@(i.Number ?? L.T("Pnl_DraftLower"))</a></td><td>@i.IssueDate.ToString("dd.MM.yyyy")</td><td class="num">@Money.Format(i.TotalTiyin)</td><td class="num">@Money.Format(i.PaidTiyin)</td><td><span class="badge @Labels.Badge(i.Status)">@Labels.Of(i.Status)</span></td></tr>
     }
 </table>
-<h2>Litsenziya kalitlari (tarix)</h2>
-@if (Model.IsOwner) { <div class="actions"><a class="btn secondary" href="/Licenses/Issue?tenantId=@t.Id">Kalitni qo'lda chiqarish</a></div> }
+<h2>@L.T("Pnl_Ten_LicHistory")</h2>
+@if (Model.IsOwner) { <div class="actions"><a class="btn secondary" href="/Licenses/Issue?tenantId=@t.Id">@L.T("Pnl_Lic_ManualIssue")</a></div> }
 <table>
-    <tr><th>#</th><th>Edition</th><th class="num">Foyd.</th><th>Muddat</th><th>Kalit</th><th>Manba</th><th>Holat</th></tr>
+    <tr><th>#</th><th>Edition</th><th class="num">@L.T("Pnl_UsersShort")</th><th>@L.T("Pnl_Due")</th><th>@L.T("Pnl_Key")</th><th>@L.T("Pnl_Source")</th><th>@L.T("Status")</th></tr>
     @foreach (var l in Model.Licenses)
     {
         <tr><td><a href="/Licenses/Details/@l.Id">@l.Id</a></td><td>@l.Edition</td><td class="num">@l.MaxUsers</td><td>@l.StartDate.ToString("dd.MM.yyyy") – @l.ExpiryDate.ToString("dd.MM.yyyy")</td><td>@l.KeyId</td><td>@Labels.Of(l.Source)</td>
-            <td>@(l.RevokedAtUtc != null ? "bekor" : l.SupersededById != null ? "almashtirilgan" : "joriy")</td></tr>
+            <td>@(l.RevokedAtUtc != null ? L.T("Pnl_Lic_RevokedBadge") : l.SupersededById != null ? L.T("Pnl_Lic_Superseded") : L.T("Pnl_Lic_Current"))</td></tr>
     }
 </table>
-<h2>Audit (oxirgi 30)</h2>
+<h2>@L.T("Pnl_Ten_AuditLast30")</h2>
 <table>
-    <tr><th>Vaqt (UTC)</th><th>Xodim</th><th>Amal</th><th>Keyin</th></tr>
+    <tr><th>@L.T("Pnl_TimeUtc")</th><th>@L.T("Pnl_Employee")</th><th>@L.T("Pnl_Audit_Action")</th><th>@L.T("Pnl_Audit_After")</th></tr>
     @foreach (var a in Model.Audit)
     {
-        <tr><td>@a.AtUtc.ToString("dd.MM.yyyy HH:mm")</td><td>@(a.StaffUserId is int sid && Model.StaffNames.TryGetValue(sid, out var n) ? n : "tizim")</td><td>@a.Action</td><td class="mono">@a.After</td></tr>
+        <tr><td>@a.AtUtc.ToString("dd.MM.yyyy HH:mm")</td><td>@(a.StaffUserId is int sid && Model.StaffNames.TryGetValue(sid, out var n) ? n : L.T("Pnl_Audit_System"))</td><td>@a.Action</td><td class="mono">@a.After</td></tr>
     }
 </table>

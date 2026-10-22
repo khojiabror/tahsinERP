@@ -1,19 +1,19 @@
 @page
 @model tahsinERP.ControlPanel.Pages.Account.EnrollTotpModel
-@{ ViewData["Title"] = "2FA ulash"; }
+@{ ViewData["Title"] = L.T("Pnl_Acc_Enroll2fa"); }
 <div class="card login">
-    <div class="hud-head"><span>// 2FA ULASH</span><span>AUTH-02</span></div>
-    <h1>Ikki bosqichli tasdiqlash</h1>
-    <p class="hud-sub">Panelga kirish uchun 2FA majburiy. Autentifikator ilovasi (Google Authenticator, Microsoft Authenticator, Aegis…) bilan QR kodni skanerlang.</p>
-    <ol class="steps"><li class="done">Parol</li><li class="on">2FA ulash</li><li>Kirish</li></ol>
-    <p><img class="qr" src="@Model.QrDataUri" alt="QR kod" /></p>
-    <p class="hint">Skanerlab bo'lmasa, kalitni qo'lda kiriting:</p>
+    <div class="hud-head"><span>// @L.T("Pnl_Acc_Enroll2faHud")</span><span>AUTH-02</span></div>
+    <h1>@L.T("Pnl_Acc_TwoStep")</h1>
+    <p class="hud-sub">@L.T("Pnl_Acc_EnrollIntro")</p>
+    <ol class="steps"><li class="done">@L.T("Password")</li><li class="on">@L.T("Pnl_Acc_Enroll2fa")</li><li>@L.T("Login")</li></ol>
+    <p><img class="qr" src="@Model.QrDataUri" alt="@L.T("Pnl_Acc_QrCode")" /></p>
+    <p class="hint">@L.T("Pnl_Acc_ManualKey")</p>
     <p class="secret mono">@Model.SecretText</p>
     <form method="post" class="stack">
         <div asp-validation-summary="All"></div>
         <input type="hidden" asp-for="ProtectedSecret" />
         <input type="hidden" asp-for="ReturnUrl" />
-        <div><label asp-for="Code">Ilovadagi 6 xonali kod</label><input asp-for="Code" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="7" placeholder="000000" /></div>
-        <button type="submit">Tasdiqlash va kirish <svg class="i"><use href="#i-arrow" /></svg></button>
+        <div><label asp-for="Code">@L.T("Pnl_Acc_AppCode")</label><input asp-for="Code" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="7" placeholder="000000" /></div>
+        <button type="submit">@L.T("Pnl_Acc_ConfirmAndLogin") <svg class="i"><use href="#i-arrow" /></svg></button>
     </form>
 </div>

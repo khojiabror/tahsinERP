@@ -8,10 +8,21 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using tahsinERP.ControlPanel.Data;
 using tahsinERP.ControlPanel.Hosting;
+using tahsinERP.ControlPanel.I18n;
 using tahsinERP.ControlPanel.Portal;
 using tahsinERP.ControlPanel.Services;
 
 namespace tahsinERP.ControlPanel.Pages.Portal;
+
+/// <summary>
+/// [Required], xato matni joriy tilda: atributga L.T() yozib bo'lmaydi, shuning uchun kalit beriladi.
+/// (Panelda DataAnnotations lokalizatori yo'q.)
+/// </summary>
+[AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter)]
+internal sealed class PortalRequiredAttribute(string key) : RequiredAttribute
+{
+    public override string FormatErrorMessage(string name) => L.T(key);
+}
 
 internal static class PortalFlow
 {
@@ -35,8 +46,8 @@ internal static class PortalFlow
 [EnableRateLimiting("login")]
 public class LoginModel(PortalAuthService auth) : PortalPageModel
 {
-    [BindProperty, Required(ErrorMessage = "Email yoki telefon raqamini kiriting")] public string Login { get; set; } = "";
-    [BindProperty, Required(ErrorMessage = "Parolni kiriting"), DataType(DataType.Password)] public string Password { get; set; } = "";
+    [BindProperty, PortalRequired("Ptl_Val_LoginRequired")] public string Login { get; set; } = "";
+    [BindProperty, PortalRequired("Ptl_Val_PasswordRequired"), DataType(DataType.Password)] public string Password { get; set; } = "";
     [BindProperty(SupportsGet = true)] public string? ReturnUrl { get; set; }
 
     public IActionResult OnGet() => SignedIn ? LocalRedirect("/") : Page();
@@ -83,12 +94,12 @@ public class OtpModel(ControlDbContext db, PortalAuthService auth) : PortalPageM
         Describe(user);
         if (string.IsNullOrWhiteSpace(Code))
         {
-            ModelState.AddModelError(nameof(Code), "Kodni kiriting");
+            ModelState.AddModelError(nameof(Code), L.T("Ptl_EnterCode"));
             return Page();
         }
         if (!await auth.VerifyOtpAndCompleteAsync(user, Code))
         {
-            ModelState.AddModelError(string.Empty, auth.IsLocked(user) ? PortalAuthService.LockedError : "Kod noto'g'ri yoki muddati o'tgan.");
+            ModelState.AddModelError(string.Empty, auth.IsLocked(user) ? PortalAuthService.LockedError : L.T("Ptl_CodeInvalid"));
             return Page();
         }
         await HttpContext.SignOutAsync(PortalSchemes.PortalTwoFactor);
@@ -103,7 +114,7 @@ public class OtpModel(ControlDbContext db, PortalAuthService auth) : PortalPageM
         Describe(user);
         ModelState.Clear();
         if (await TryAsync(() => auth.SendOtpAsync(user, HttpContext.Connection.RemoteIpAddress?.ToString())))
-            FlashOk = "Yangi kod yuborildi.";
+            FlashOk = L.T("Ptl_NewCodeSent");
         else
             return Page();
         return RedirectToPage(new { returnUrl = ReturnUrl });
@@ -118,7 +129,7 @@ public class OtpModel(ControlDbContext db, PortalAuthService auth) : PortalPageM
 [EnableRateLimiting("login")]
 public class ForgotModel(PortalAuthService auth, IOptions<PanelHostOptions> hosts) : PortalPageModel
 {
-    [BindProperty, Required(ErrorMessage = "Email yoki telefon raqamini kiriting")] public string Login { get; set; } = "";
+    [BindProperty, PortalRequired("Ptl_Val_LoginRequired")] public string Login { get; set; } = "";
     public bool Sent { get; private set; }
 
     public IActionResult OnGet() => SignedIn ? LocalRedirect("/") : Page();

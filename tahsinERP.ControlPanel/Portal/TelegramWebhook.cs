@@ -1,6 +1,8 @@
 using System.Text.Json;
 using Microsoft.Extensions.Options;
+using tahsinERP.ControlPanel.I18n;
 using tahsinERP.ControlPanel.Services;
+using tahsinERP.Localization;
 
 namespace tahsinERP.ControlPanel.Portal;
 
@@ -26,7 +28,7 @@ public static class TelegramWebhook
             || !PortalTokens.FixedEquals(given.ToString(), secret))
             return Results.NotFound();
 
-        string? text = null, chatId = null;
+        string? text = null, chatId = null, language = null;
         try
         {
             using var doc = await JsonDocument.ParseAsync(ctx.Request.Body, cancellationToken: ct);
@@ -34,6 +36,9 @@ public static class TelegramWebhook
             {
                 if (msg.TryGetProperty("text", out var t)) text = t.GetString();
                 if (msg.TryGetProperty("chat", out var chat) && chat.TryGetProperty("id", out var id)) chatId = id.GetRawText();
+                // Bot javobi foydalanuvchining Telegram tilida (uz/ru), noma'lum bo'lsa — o'zbekcha.
+                if (msg.TryGetProperty("from", out var from) && from.TryGetProperty("language_code", out var lc) && lc.ValueKind == JsonValueKind.String)
+                    language = Languages.TryNormalize(lc.GetString()!);
             }
         }
         catch (JsonException)
@@ -52,13 +57,13 @@ public static class TelegramWebhook
         {
             var user = await auth.LinkTelegramAsync(parts[1], chatId, ct);
             await notifier.SendDirectAsync(chatId, user is null
-                ? "Kod yaroqsiz yoki muddati o'tgan. Portal → Profil sahifasidan yangi havola oling yoki xodimdan yangi taklif so'rang."
-                : $"Tayyor: {user.FullName}, bu chat tahsinERP portaliga bog'landi. Kirish kodlari shu yerga keladi.", ct);
+                ? L.TFor(language ?? Languages.Default, "Ptl_BotLinkInvalid")
+                : L.TFor(language ?? Languages.Default, "Ptl_BotLinked", user.FullName), ct);
             lf.CreateLogger("TelegramWebhook").LogInformation("Telegram /start bog'lash: {Result}", user is null ? "rad" : "#" + user.Id);
         }
         else
         {
-            await notifier.SendDirectAsync(chatId, $"tahsinERP bot. Bu chat ID: {chatId}. Portalga bog'lash uchun portaldagi havoladan foydalaning.", ct);
+            await notifier.SendDirectAsync(chatId, L.TFor(language ?? Languages.Default, "Ptl_BotInfo", chatId), ct);
         }
         return Results.Ok();
     }

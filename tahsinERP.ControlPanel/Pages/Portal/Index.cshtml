@@ -1,61 +1,62 @@
 @page
 @model IndexModel
 @{
-    ViewData["Title"] = "Bosh sahifa";
+    ViewData["Title"] = L.T("Home");
     var ov = Model.Overview;
     var t = ov.Tenant;
     var cur = ov.Current;
 }
-<h1>Obuna holati</h1>
+<h1>@L.T("Ptl_SubscriptionStatus")</h1>
 @if (t.Status == TenantStatus.Suspended)
 {
-    <div class="warnbox bad"><strong>Tizimga kirish to'xtatilgan.</strong> Ma'lumotlaringiz saqlanadi — to'lov qabul qilingach kirish tiklanadi. <a href="/Payment">To'lov rekvizitlari</a></div>
+    <div class="warnbox bad"><strong>@L.T("Ptl_SuspendedTitle")</strong> @L.T("Ptl_SuspendedText") <a href="/Payment">@L.T("Ptl_NavPayment")</a></div>
 }
 else if (t.Status == TenantStatus.Grace)
 {
-    <div class="warnbox bad"><strong>Obuna muddati tugagan.</strong> @Model.GraceDays kunlik imtiyozli davr — keyin kirish to'xtatiladi. Uzluksiz ishlash uchun to'lovni amalga oshiring.</div>
+    <div class="warnbox bad"><strong>@L.T("Ptl_GraceTitle")</strong> @L.T("Ptl_GraceText", Model.GraceDays)</div>
 }
 else if (ov.DaysLeft is int d && d <= 14)
 {
-    <div class="warnbox">Obuna tugashiga <strong>@d kun</strong> qoldi (@cur!.EndDate.ToString("dd.MM.yyyy")). <a href="/Requests">Uzaytirish so'rovi</a></div>
+    @* {0} — son, {1} — sana: foydalanuvchi ma'lumoti emas *@
+    <div class="warnbox">@Html.Raw(L.T("Ptl_ExpiresIn", d, cur!.EndDate.ToString("dd.MM.yyyy"))) <a href="/Requests">@L.T("Ptl_RenewRequest")</a></div>
 }
 @foreach (var i in Model.Unpaid.Where(i => i.DueDate < Model.Today))
 {
-    <div class="warnbox">Hisob-faktura <strong>@i.Number</strong> to'lov muddati o'tgan (@i.DueDate.ToString("dd.MM.yyyy")), qoldiq @Money.FormatSom(i.RemainingTiyin). <a href="/Payment?invoice=@i.Id">Qanday to'lash</a></div>
+    <div class="warnbox">@L.T("Ptl_InvoiceWord") <strong>@i.Number</strong> @L.T("Ptl_OverdueTail", i.DueDate.ToString("dd.MM.yyyy"), Money.FormatSom(i.RemainingTiyin)) <a href="/Payment?invoice=@i.Id">@L.T("Ptl_HowToPay")</a></div>
 }
 <div class="grid">
-    <div class="stat"><div class="l">Paket</div><div class="v">@(cur?.Plan?.Name ?? "—")</div></div>
-    <div class="stat"><div class="l">Holat</div><div class="v"><span class="badge @Labels.Badge(t.Status)">@Labels.Of(t.Status)</span></div></div>
-    <div class="stat"><div class="l">Amal qiladi</div><div class="v">@(cur?.EndDate.ToString("dd.MM.yyyy") ?? "—")</div></div>
-    <div class="stat"><div class="l">Qolgan kunlar</div><div class="v">@(ov.DaysLeft is int dl ? Math.Max(0, dl).ToString() : "—")</div></div>
-    <div class="stat"><div class="l">Foydalanuvchilar limiti</div><div class="v">@(cur?.Users.ToString() ?? "—")</div></div>
+    <div class="stat"><div class="l">@L.T("Ptl_Plan")</div><div class="v">@(cur?.Plan?.Name ?? "—")</div></div>
+    <div class="stat"><div class="l">@L.T("Status")</div><div class="v"><span class="badge @Labels.Badge(t.Status)">@Labels.Of(t.Status)</span></div></div>
+    <div class="stat"><div class="l">@L.T("Ptl_Valid")</div><div class="v">@(cur?.EndDate.ToString("dd.MM.yyyy") ?? "—")</div></div>
+    <div class="stat"><div class="l">@L.T("Ptl_DaysLeft")</div><div class="v">@(ov.DaysLeft is int dl ? Math.Max(0, dl).ToString() : "—")</div></div>
+    <div class="stat"><div class="l">@L.T("Ptl_UserLimit")</div><div class="v">@(cur?.Users.ToString() ?? "—")</div></div>
 </div>
 <div class="card">
     <dl class="props">
-        <dt>Tashkilot</dt><dd>@t.LegalName @if (!string.IsNullOrEmpty(t.Inn)) { <span class="hint">(STIR @t.Inn)</span> }</dd>
-        <dt>Joylashuv</dt><dd>@Labels.Of(t.Deployment)</dd>
+        <dt>@L.T("Ptl_Organization")</dt><dd>@t.LegalName @if (!string.IsNullOrEmpty(t.Inn)) { <span class="hint">(@L.T("Ptl_Inn") @t.Inn)</span> }</dd>
+        <dt>@L.T("Ptl_Deployment")</dt><dd>@Labels.Of(t.Deployment)</dd>
         @if (cur is not null)
         {
-            <dt>Joriy davr</dt><dd>@cur.StartDate.ToString("dd.MM.yyyy") – @cur.EndDate.ToString("dd.MM.yyyy") (@Labels.Of(cur.Period))</dd>
-            <dt>Modullar</dt><dd>@cur.Plan?.Modules.Replace(",", ", ")</dd>
+            <dt>@L.T("Ptl_CurrentPeriod")</dt><dd>@cur.StartDate.ToString("dd.MM.yyyy") – @cur.EndDate.ToString("dd.MM.yyyy") (@Labels.Of(cur.Period))</dd>
+            <dt>@L.T("Ptl_Modules")</dt><dd>@cur.Plan?.Modules.Replace(",", ", ")</dd>
         }
         @if (ov.Upcoming is { } up)
         {
-            <dt>Keyingi davr</dt><dd>«@up.Plan?.Name» @up.StartDate.ToString("dd.MM.yyyy") – @up.EndDate.ToString("dd.MM.yyyy") (to'langan)</dd>
+            <dt>@L.T("Ptl_NextPeriod")</dt><dd>«@up.Plan?.Name» @up.StartDate.ToString("dd.MM.yyyy") – @up.EndDate.ToString("dd.MM.yyyy") (@L.T("Ptl_PaidLower"))</dd>
         }
         @if (ov.Pending is { } pend)
         {
-            <dt>To'lov kutilmoqda</dt><dd>«@pend.Plan?.Name», @Labels.Of(pend.Period)</dd>
+            <dt>@L.T("Ptl_AwaitingPayment")</dt><dd>«@pend.Plan?.Name», @Labels.Of(pend.Period)</dd>
         }
-        <dt>Foydalanuvchilar</dt><dd>Paket bo'yicha ko'pi bilan @(cur?.Users.ToString() ?? "—") ta. Ko'proq kerak bo'lsa — yuqoriroq paket.</dd>
+        <dt>@L.T("Ptl_Users")</dt><dd>@L.T("Ptl_UsersMaxText", cur?.Users.ToString() ?? "—")</dd>
     </dl>
 </div>
 @if (ov.AddOns.Count > 0)
 {
-    <h2>Qo'shimcha xizmatlar</h2>
-    <p class="hint">Paketga kirmaydi, alohida obuna va to'lov. Faol xizmat litsenziya kalitiga qo'shiladi va ERP'da o'z bo'limi ochiladi.</p>
+    <h2>@L.T("Ptl_AddOns")</h2>
+    <p class="hint">@L.T("Ptl_AddOnsHint")</p>
     <div class="scroll"><table>
-        <tr><th>Xizmat</th><th>Holat</th><th>Davr</th><th class="num">Qolgan kunlar</th></tr>
+        <tr><th>@L.T("Ptl_Service")</th><th>@L.T("Status")</th><th>@L.T("Period")</th><th class="num">@L.T("Ptl_DaysLeft")</th></tr>
         @foreach (var a in ov.AddOns)
         {
             var s = a.Subscription;
@@ -63,30 +64,31 @@ else if (ov.DaysLeft is int d && d <= 14)
                 <td>@a.Plan.Name</td>
                 <td><span class="badge @a.Badge">@a.StateText</span></td>
                 <td>@if (s is not null && a.State is AddOnState.Active or AddOnState.Upcoming or AddOnState.Expired) { @(s.StartDate.ToString("dd.MM.yyyy") + " – " + s.EndDate.ToString("dd.MM.yyyy") + " (" + Labels.Of(s.Period) + ")") }
-                    else if (a.State == AddOnState.PendingPayment) { <text>@Labels.Of(s!.Period) — hisob-faktura to'langach faollashadi</text> }
-                    else { <text>Ulash uchun menejeringiz bilan bog'laning</text> }</td>
+                    else if (a.State == AddOnState.PendingPayment) { <text>@Labels.Of(s!.Period) — @L.T("Ptl_AddOnActivatesOnPay")</text> }
+                    else { <text>@L.T("Ptl_ContactManagerToConnect")</text> }</td>
                 <td class="num">@(a.DaysLeft is int ad ? Math.Max(0, ad).ToString() : "—")</td>
             </tr>
         }
     </table></div>
     @foreach (var a in ov.AddOns.Where(a => a.State == AddOnState.Active && a.DaysLeft <= 14))
     {
-        <div class="warnbox">«@a.Plan.Name» xizmati tugashiga <strong>@a.DaysLeft kun</strong> qoldi (@a.Subscription!.EndDate.ToString("dd.MM.yyyy")). Uzaytirish uchun menejeringiz bilan bog'laning.</div>
+        @* Xizmat nomi Raw'dan tashqarida; kalitga faqat son va sana *@
+        <div class="warnbox">«@a.Plan.Name» @Html.Raw(L.T("Ptl_AddOnExpiresIn", a.DaysLeft, a.Subscription!.EndDate.ToString("dd.MM.yyyy")))</div>
     }
 }
 @if (Model.OpenRequest is { } r)
 {
-    <div class="card">Ko'rib chiqilayotgan so'rov #@r.Id: «@r.Plan?.Name», @r.PeriodCount @PortalRequestService.PeriodUnit(r.Period) — <a href="/Requests">batafsil</a></div>
+    <div class="card">@L.T("Ptl_OpenRequest", r.Id): «@r.Plan?.Name», @r.PeriodCount @PortalRequestService.PeriodUnit(r.Period) — <a href="/Requests">@L.T("Ptl_DetailsLower")</a></div>
 }
-<h2>To'lanmagan hisob-fakturalar</h2>
+<h2>@L.T("Ptl_UnpaidInvoices")</h2>
 @if (Model.Unpaid.Count == 0)
 {
-    <p class="empty">Hammasi to'langan.</p>
+    <p class="empty">@L.T("Ptl_AllPaid")</p>
 }
 else
 {
     <div class="scroll"><table>
-        <tr><th>Raqam</th><th>Muddat</th><th class="num">Qoldiq, so'm</th><th>Holat</th></tr>
+        <tr><th>@L.T("Number")</th><th>@L.T("Ptl_Due")</th><th class="num">@L.T("Ptl_BalanceSom")</th><th>@L.T("Status")</th></tr>
         @foreach (var i in Model.Unpaid)
         {
             <tr><td><a href="/Invoices?handler=Pdf&amp;id=@i.Id">@i.Number</a></td><td>@i.DueDate.ToString("dd.MM.yyyy")</td><td class="num">@Money.Format(i.RemainingTiyin)</td>

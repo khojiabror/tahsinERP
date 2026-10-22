@@ -3,6 +3,7 @@ using System.IO.Compression;
 using System.Text;
 using System.Xml.Linq;
 using tahsinERP.ControlPanel.Data;
+using tahsinERP.ControlPanel.I18n;
 
 namespace tahsinERP.ControlPanel.Services.Bank;
 
@@ -35,13 +36,13 @@ public static class BankStatementParser
 
     public static ParsedStatement Parse(string fileName, byte[] content)
     {
-        if (content.Length == 0) throw new DomainException("Fayl bo'sh.");
-        if (content.Length > MaxBytes) throw new DomainException($"Fayl juda katta (ko'pi bilan {MaxBytes / 1024 / 1024} MB).");
+        if (content.Length == 0) throw new DomainException(L.T("Pnl_Parse_FileEmpty"));
+        if (content.Length > MaxBytes) throw new DomainException(L.T("Pnl_Parse_FileTooLarge", MaxBytes / 1024 / 1024));
         string ext = Path.GetExtension(fileName ?? "").ToLowerInvariant();
         if (content.Length > 4 && content[0] == 'P' && content[1] == 'K' && content[2] == 3 && content[3] == 4)
             return ParseXlsx(content);
-        if (ext is ".xlsx") throw new DomainException("XLSX fayl o'qilmadi (ZIP emas). Faylni Excel'da qayta saqlang.");
-        if (ext is ".xls") throw new DomainException("Eski .xls formati qo'llanmaydi — Excel'da .xlsx yoki CSV qilib saqlang.");
+        if (ext is ".xlsx") throw new DomainException(L.T("Pnl_Parse_XlsxNotZip"));
+        if (ext is ".xls") throw new DomainException(L.T("Pnl_Parse_XlsOld"));
         string text = Decode(content);
         if (text.TrimStart('﻿', ' ', '\r', '\n').StartsWith("1CClientBankExchange", StringComparison.Ordinal))
             return Parse1C(text);
@@ -82,7 +83,7 @@ public static class BankStatementParser
                     docNo++;
                     var parsed = From1CDoc(docNo, doc, warnings);
                     if (parsed is not null) lines.Add(parsed);
-                    if (lines.Count > MaxLines) throw new DomainException($"Ko'chirmada {MaxLines} tadan ko'p hujjat — davrni bo'lib yuklang.");
+                    if (lines.Count > MaxLines) throw new DomainException(L.T("Pnl_Parse_TooManyDocs", MaxLines));
                 }
                 doc = null;
                 continue;
@@ -101,8 +102,8 @@ public static class BankStatementParser
                 case "ДатаКонца": to = ParseDate(value); break;
             }
         }
-        if (doc is not null) warnings.Add("Oxirgi hujjat «КонецДокумента» bilan yopilmagan — e'tiborsiz qoldirildi.");
-        if (lines.Count == 0 && warnings.Count == 0) warnings.Add("Faylda to'lov hujjati (СекцияДокумент) topilmadi.");
+        if (doc is not null) warnings.Add(L.T("Pnl_Parse_LastDocUnclosed"));
+        if (lines.Count == 0 && warnings.Count == 0) warnings.Add(L.T("Pnl_Parse_NoDocs"));
         return new ParsedStatement(BankImportFormat.OneC, accounts, from, to, lines, warnings);
     }
 
@@ -116,9 +117,9 @@ public static class BankStatementParser
         }
         string? number = Get("Номер");
         DateOnly? date = ParseDate(Get("ДатаПоступило") ?? Get("Дата") ?? Get("ДатаСписано"));
-        if (date is null) { warnings.Add($"{no}-hujjat ({number}): sana o'qilmadi — o'tkazib yuborildi."); return null; }
+        if (date is null) { warnings.Add(L.T("Pnl_Parse_DocDateUnread", no, number)); return null; }
         if (!TryParseAmount(Get("Сумма"), out long amount) || amount == 0)
-        { warnings.Add($"{no}-hujjat ({number}): summa o'qilmadi — o'tkazib yuborildi."); return null; }
+        { warnings.Add(L.T("Pnl_Parse_DocAmountUnread", no, number)); return null; }
         string? purpose = string.Join(" ", d.Where(kv => kv.Key.StartsWith("НазначениеПлатежа", StringComparison.Ordinal)).OrderBy(kv => kv.Key)
             .Select(kv => kv.Value).Where(v => v.Length > 0));
         bool? incoming = Get("ДатаПоступило") is not null ? true : Get("ДатаСписано") is not null ? false : null;
@@ -176,10 +177,10 @@ public static class BankStatementParser
             if (m.ContainsKey(Col.Date) && m.ContainsKey(Col.Amount)) { headerRow = r; map = m; break; }
         }
         if (headerRow < 0)
-            throw new DomainException("Sarlavha qatori topilmadi: kamida «Sana» va «Summa» ustunlari bo'lsin (ixtiyoriy: STIR, To'lov maqsadi, Hujjat №, To'lovchi, Hisob).");
+            throw new DomainException(L.T("Pnl_Parse_NoHeader"));
         var warnings = new List<string>();
-        if (!map.ContainsKey(Col.Inn)) warnings.Add("«STIR» ustuni yo'q — moslash faqat hisob-faktura raqami bo'yicha.");
-        if (!map.ContainsKey(Col.Purpose)) warnings.Add("«To'lov maqsadi» ustuni yo'q — moslash faqat STIR + summa bo'yicha.");
+        if (!map.ContainsKey(Col.Inn)) warnings.Add(L.T("Pnl_Parse_NoInnCol"));
+        if (!map.ContainsKey(Col.Purpose)) warnings.Add(L.T("Pnl_Parse_NoPurposeCol"));
         var lines = new List<ParsedBankLine>();
         for (int r = headerRow + 1; r < rows.Count; r++)
         {
@@ -191,12 +192,12 @@ public static class BankStatementParser
                 ? DateOnly.FromDateTime(DateTime.FromOADate(oa)) : ParseDate(Cell(Col.Date));
             string amountText = Cell(Col.Amount);
             if (date is null && amountText.Length == 0) continue; // jami / bo'sh qatorlar
-            if (date is null) { warnings.Add($"{lineNo}-qator: sana o'qilmadi — o'tkazib yuborildi."); continue; }
-            if (!TryParseAmount(amountText, out long amount) || amount == 0) { warnings.Add($"{lineNo}-qator: summa o'qilmadi — o'tkazib yuborildi."); continue; }
+            if (date is null) { warnings.Add(L.T("Pnl_Parse_RowDateUnread", lineNo)); continue; }
+            if (!TryParseAmount(amountText, out long amount) || amount == 0) { warnings.Add(L.T("Pnl_Parse_RowAmountUnread", lineNo)); continue; }
             string? Opt(Col c) => Cell(c) is { Length: > 0 } v ? v : null;
             lines.Add(new ParsedBankLine(lineNo, Opt(Col.Number), date.Value, Math.Abs(amount), Opt(Col.Payer), Digits(Opt(Col.Inn)), Digits(Opt(Col.Account)),
                 null, null, Opt(Col.Purpose), amount < 0 ? false : null));
-            if (lines.Count > MaxLines) throw new DomainException($"Faylda {MaxLines} tadan ko'p qator — davrni bo'lib yuklang.");
+            if (lines.Count > MaxLines) throw new DomainException(L.T("Pnl_Parse_TooManyRows", MaxLines));
         }
         return new ParsedStatement(format, [], lines.Count == 0 ? null : lines.Min(l => l.Date), lines.Count == 0 ? null : lines.Max(l => l.Date), lines, warnings);
     }
@@ -246,7 +247,7 @@ public static class BankStatementParser
             var sheetEntry = zip.GetEntry("xl/worksheets/sheet1.xml")
                 ?? zip.Entries.Where(e => e.FullName.StartsWith("xl/worksheets/", StringComparison.Ordinal) && e.FullName.EndsWith(".xml", StringComparison.Ordinal))
                     .OrderBy(e => e.FullName, StringComparer.Ordinal).FirstOrDefault()
-                ?? throw new DomainException("XLSX faylda varaq topilmadi.");
+                ?? throw new DomainException(L.T("Pnl_Parse_NoSheet"));
             using var sheet = sheetEntry.Open();
             var rows = new List<List<string>>();
             var numeric = new Dictionary<(int, int), double>();
@@ -279,7 +280,7 @@ public static class BankStatementParser
         }
         catch (Exception ex) when (ex is InvalidDataException or System.Xml.XmlException)
         {
-            throw new DomainException("XLSX fayl o'qilmadi: " + ex.Message);
+            throw new DomainException(L.T("Pnl_Parse_XlsxFailed", ex.Message));
         }
     }
 

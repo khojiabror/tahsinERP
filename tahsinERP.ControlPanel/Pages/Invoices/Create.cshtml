@@ -1,25 +1,25 @@
 @page
 @model tahsinERP.ControlPanel.Pages.Invoices.CreateModel
-@{ ViewData["Title"] = "Yangi hisob-faktura"; }
-<h1>Yangi hisob-faktura: @Model.Tenant.LegalName</h1>
+@{ ViewData["Title"] = L.T("Pnl_Inv_New"); }
+<h1>@L.T("Pnl_Inv_New"): @Model.Tenant.LegalName</h1>
 <form method="post" action="@Url.Page(null)" asp-antiforgery="true" class="stack card">
     <div asp-validation-summary="All"></div>
     <input type="hidden" asp-for="TenantId" />
     <div class="row">
         <div>
-            <label for="SubscriptionId">Obuna (to'liq to'langanda uzaytiriladi)</label>
+            <label for="SubscriptionId">@L.T("Pnl_Inv_SubscriptionHint")</label>
             <select id="SubscriptionId" name="SubscriptionId">
-                <option value="">— obunasiz (alohida xizmat) —</option>
+                <option value="">— @L.T("Pnl_Inv_NoSubscription") —</option>
                 @foreach (var s in Model.Subs)
                 {
                     <option value="@s.Id" selected="@(Model.SubscriptionId == s.Id)">#@s.Id @s.Plan!.Name, @Labels.Of(s.Period), @Labels.Of(s.Status)</option>
                 }
             </select>
         </div>
-        <div><label asp-for="PeriodCount">Davrlar soni (oy/yil)</label><input asp-for="PeriodCount" type="number" min="1" /></div>
+        <div><label asp-for="PeriodCount">@L.T("Pnl_Inv_PeriodCount")</label><input asp-for="PeriodCount" type="number" min="1" /></div>
     </div>
-    <div><button type="submit" asp-page-handler="Recalc" class="secondary">Standart qatorni qayta hisoblash</button></div>
+    <div><button type="submit" asp-page-handler="Recalc" class="secondary">@L.T("Pnl_Inv_Recalc")</button></div>
     <partial name="_Lines" model="Model.Lines" />
-    <div><label asp-for="Note">Izoh</label><textarea asp-for="Note"></textarea></div>
-    <div class="actions"><button type="submit">Qoralama yaratish</button><a class="btn secondary" href="/Tenants/Details/@Model.TenantId">Bekor</a></div>
+    <div><label asp-for="Note">@L.T("Comment")</label><textarea asp-for="Note"></textarea></div>
+    <div class="actions"><button type="submit">@L.T("Pnl_Inv_CreateDraft")</button><a class="btn secondary" href="/Tenants/Details/@Model.TenantId">@L.T("Pnl_CancelShort")</a></div>
 </form>
