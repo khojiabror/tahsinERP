@@ -108,7 +108,7 @@ public partial class WebUiTests(PanelFactory f) : IClassFixture<PanelFactory>
     public async Task Owner_FullFlow_PagesRender_And_SecondLoginUsesTotp()
     {
         using var c = await LoginAsync("ui-owner@test.uz", StaffRole.Owner);
-        foreach (var url in new[] { "/", "/Tenants", "/Tenants/Create", "/Invoices", "/Licenses", "/Plans", "/Plans/Edit/2", "/Servers", "/Servers/Edit", "/Staff", "/Staff/Create", "/Audit", "/Notifications", "/Account/ChangePassword" })
+        foreach (var url in new[] { "/", "/Tenants", "/Tenants/Create", "/Invoices", "/Licenses", "/Plans", "/Plans/Edit/2", "/Servers", "/Servers/Edit", "/Updates", "/Staff", "/Staff/Create", "/Audit", "/Notifications", "/Account/ChangePassword" })
         {
             var r = await c.GetAsync(url);
             Assert.True(r.StatusCode == HttpStatusCode.OK, $"{url}: {(int)r.StatusCode}");
@@ -145,7 +145,7 @@ public partial class WebUiTests(PanelFactory f) : IClassFixture<PanelFactory>
     {
         using var c = await LoginAsync("ui-sales@test.uz", StaffRole.Sales);
         Assert.Equal(HttpStatusCode.OK, (await c.GetAsync("/Tenants/Create")).StatusCode);
-        foreach (var url in new[] { "/Staff", "/Audit", "/Servers", "/Plans/Edit/1", "/Licenses/Issue?tenantId=1" })
+        foreach (var url in new[] { "/Staff", "/Audit", "/Servers", "/Updates", "/Plans/Edit/1", "/Licenses/Issue?tenantId=1" })
         {
             var r = await c.GetAsync(url);
             Assert.Equal(HttpStatusCode.Redirect, r.StatusCode);

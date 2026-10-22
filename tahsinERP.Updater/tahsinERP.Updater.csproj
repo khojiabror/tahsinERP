@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk.Worker">
+
+  <!--
+    Updater (Docs/Deploy/03_AUTO_UPDATE.md). ERP serverida LocalSystem Windows Service: IIS pool/sayt va fayllarni boshqaradi.
+    Tarmoqqa chiqmaydi va sir saqlamaydi — yagona kirish: agent inbox'ga qo'ygan, CI kaliti bilan IMZOLANGAN reliz.
+    Imzo va SHA-256 bu yerda qayta tekshiriladi (agentga ishonilmaydi).
+  -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>tahsinERP.Updater</RootNamespace>
+    <Version>1.0.0</Version>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\tahsinERP.Provisioning.Contracts\tahsinERP.Provisioning.Contracts.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="6.1.7" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.13" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="10.0.13" />
+    <PackageReference Include="System.ServiceProcess.ServiceController" Version="10.0.13" />
+    <PackageReference Include="System.Security.Cryptography.Pkcs" Version="10.0.13" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="IisOps.ps1" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>

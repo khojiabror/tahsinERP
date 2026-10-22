@@ -38,6 +38,7 @@ services.Configure<DidoxOptions>(config.GetSection("ControlPanel:Didox"));
 services.Configure<EskizOptions>(config.GetSection("ControlPanel:Eskiz"));
 services.Configure<SmtpOptions>(config.GetSection("ControlPanel:Smtp"));
 services.Configure<AppsOptions>(config.GetSection("ControlPanel:Apps"));
+services.Configure<UpdatesOptions>(config.GetSection("ControlPanel:Updates"));
 PanelFontResolver.ExtraFontsDir = config["ControlPanel:Pdf:FontsDir"];
 
 services.AddDbContext<ControlDbContext>(o => o.UseSqlServer(
@@ -88,10 +89,15 @@ services.AddSingleton<InvoicePdfRenderer>();
 services.AddHttpClient<ITelegramSender, TelegramSender>(c => c.Timeout = TimeSpan.FromSeconds(15));
 services.AddHttpClient<IAppsClient, AppsHttpClient>(c => c.Timeout = TimeSpan.FromSeconds(30));
 services.AddScoped<TenantAppsService>();
+// Avto-yangilash: GitHub relizlari (token faqat pool env'da), navbat, agent API (Docs/Deploy/03_AUTO_UPDATE.md)
+services.AddSingleton<ReleaseTrust>();
+services.AddHttpClient<IReleaseSource, GitHubReleaseSource>(c => c.Timeout = TimeSpan.FromMinutes(30));
+services.AddScoped<UpdatesService>();
 if (config.GetValue("ControlPanel:Panel:EnableDailyJob", true))
 {
     services.AddHostedService<DailyJobHostedService>();
     services.AddHostedService<DidoxRefreshHostedService>();
+    services.AddHostedService<ReleaseRefreshHostedService>();
 }
 
 // Cookie/antiforgery kalitlari: serverda doimiy papkada (aks holda IIS qayta ishga tushganda xodimlar qayta kiradi).
@@ -193,6 +199,7 @@ services.AddRazorPages(o =>
     o.Conventions.AuthorizeFolder(ZonePageRouteConvention.PortalFolder, Policies.Portal);
     o.Conventions.AuthorizeFolder("/Staff", Policies.Owner);
     o.Conventions.AuthorizeFolder("/Servers", Policies.Owner);
+    o.Conventions.AuthorizeFolder("/Updates", Policies.Owner);
     o.Conventions.AuthorizeFolder("/Audit", Policies.Owner);
     o.Conventions.AuthorizeFolder("/Bank", Policies.Sales); // to'lov belgilash huquqi (00_PLAN.md 5.2)
 });

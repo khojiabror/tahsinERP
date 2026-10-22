@@ -1,0 +1,68 @@
+# Reliz: main'ga push (yoki qo'lda) → har ilova alohida ZIP + imzolangan manifest → GitHub Release.
+# Panel (Yangilanishlar sahifasi) relizni o'zi aniqlaydi; o'rnatish — panel tugmasi bilan (Docs/Deploy/03_AUTO_UPDATE.md).
+name: release
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - '**.md'
+      - 'tahsinERP/Docs/**'
+      - '.vscode/**'
+  workflow_dispatch:
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    # RELEASE_SIGNING_KEY shu environment'da (Settings → Environments → release, faqat main branch)
+    environment: release
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Versiya va oldingi teg
+        id: ver
+        shell: pwsh
+        run: |
+          $d = (Get-Date).ToUniversalTime()
+          $v = "{0}.{1}.{2}.{3}" -f $d.Year, $d.Month, $d.Day, $env:GITHUB_RUN_NUMBER
+          $prev = git tag --list 'v*' --sort=-creatordate | Select-Object -First 1
+          "version=$v" >> $env:GITHUB_OUTPUT
+          "prev=$prev" >> $env:GITHUB_OUTPUT
+          Write-Host "Versiya $v, oldingi teg '$prev'"
+
+      - name: Yig'ish, test, imzo
+        shell: pwsh
+        env:
+          RELEASE_SIGNING_KEY: ${{ secrets.RELEASE_SIGNING_KEY }}
+        run: |
+          $prev = '${{ steps.ver.outputs.prev }}'
+          $p = @{ Version = '${{ steps.ver.outputs.version }}'; OutDir = "$env:RUNNER_TEMP\release" }
+          if ($prev) { $p.PrevTag = $prev }
+          ./tools/ci/Build-Release.ps1 @p
+          if (-not (Test-Path "$env:RUNNER_TEMP\release\manifest.sig")) { throw 'Imzo yo''q - RELEASE_SIGNING_KEY secret sozlanmagan.' }
+
+      - name: GitHub Release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $dir = "$env:RUNNER_TEMP\release"
+          $changed = Get-Content "$dir\changed.txt" -Raw
+          if (-not $changed.Trim()) { Write-Host "Ilovalar o'zgarmagan - reliz chiqarilmaydi."; exit 0 }
+          $files = @(Get-ChildItem $dir -Filter *.zip | ForEach-Object FullName) + "$dir\manifest.json" + "$dir\manifest.sig"
+          gh release create "v${{ steps.ver.outputs.version }}" @files --title "tahsinERP ${{ steps.ver.outputs.version }}" `
+            --notes-file "$dir\notes.md" --target $env:GITHUB_SHA
