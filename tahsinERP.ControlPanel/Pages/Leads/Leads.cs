@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using tahsinERP.ControlPanel.Data;
+using tahsinERP.ControlPanel.I18n;
 using tahsinERP.ControlPanel.Services;
 
 namespace tahsinERP.ControlPanel.Pages.Leads;
@@ -30,18 +31,19 @@ public class IndexModel(ControlDbContext db, Clock clock) : PanelPageModel
 
     public async Task OnGetAsync() => await LoadAsync();
 
-    public Task<IActionResult> OnPostContactedAsync() => SetStatusAsync(DemoRequestStatus.Contacted, "bog'lanildi deb belgilandi");
+    public Task<IActionResult> OnPostContactedAsync() => SetStatusAsync(DemoRequestStatus.Contacted, "Pnl_Lead_MarkedContacted");
 
-    public Task<IActionResult> OnPostRejectAsync() => SetStatusAsync(DemoRequestStatus.Rejected, "yopildi");
+    public Task<IActionResult> OnPostRejectAsync() => SetStatusAsync(DemoRequestStatus.Rejected, "Pnl_Lead_Closed");
 
-    private async Task<IActionResult> SetStatusAsync(DemoRequestStatus status, string done)
+    /// <param name="doneKey">natija xabari kaliti ({0} = so'rov raqami)</param>
+    private async Task<IActionResult> SetStatusAsync(DemoRequestStatus status, string doneKey)
     {
         if (!CanSell) return Forbidden();
         var r = await db.DemoRequests.FindAsync(RequestId);
         if (r is null) return NotFound();
         if (r.Status == DemoRequestStatus.TrialOpened)
         {
-            FlashError = $"So'rov #{r.Id} uchun sinov allaqachon ochilgan.";
+            FlashError = L.T("Pnl_Lead_AlreadyTrial", r.Id);
             return RedirectToPage(new { All });
         }
         r.Status = status;
@@ -50,16 +52,16 @@ public class IndexModel(ControlDbContext db, Clock clock) : PanelPageModel
         r.HandledByStaffId = StaffId;
         r.HandledAtUtc = clock.UtcNow;
         await db.SaveChangesAsync();
-        FlashOk = $"So'rov #{r.Id} {done}.";
+        FlashOk = L.T(doneKey, r.Id);
         return RedirectToPage(new { All });
     }
 
     public static string Of(DemoRequestStatus s) => s switch
     {
-        DemoRequestStatus.New => "Yangi",
-        DemoRequestStatus.Contacted => "Bog'lanildi",
-        DemoRequestStatus.TrialOpened => "Sinov ochildi",
-        DemoRequestStatus.Rejected => "Yopildi",
+        DemoRequestStatus.New => L.T("Pnl_Lead_St_New"),
+        DemoRequestStatus.Contacted => L.T("Pnl_Lead_St_Contacted"),
+        DemoRequestStatus.TrialOpened => L.T("Pnl_Lead_St_TrialOpened"),
+        DemoRequestStatus.Rejected => L.T("Pnl_Lead_St_Rejected"),
         _ => s.ToString(),
     };
 
@@ -71,5 +73,7 @@ public class IndexModel(ControlDbContext db, Clock clock) : PanelPageModel
         _ => "muted",
     };
 
-    public static string Industry(string? code) => DemoRequestService.IndustryText(code);
+    /// <summary>Faoliyat turi joriy tilda (xodimlarga ketadigan xabar — DemoRequestService.IndustryText, o'zbekcha).</summary>
+    public static string Industry(string? code) =>
+        code is not null && DemoRequestService.Industries.Contains(code) ? L.T("Pnl_Lead_Ind_" + code) : DemoRequestService.IndustryText(code);
 }

@@ -3648,4 +3648,121 @@ Siz so'ramagan bo'lsangiz — bu xatga e'tibor bermang, parolingiz o'zgarmaydi.<
   <data name="Pnl_Auth2_AppUnchanged" xml:space="preserve">
     <value>{0} — bu ilova o'zgarmagan</value>
   </data>
+  <data name="Pnl_Lead_Title" xml:space="preserve">
+    <value>Demo so'rovlar</value>
+  </data>
+  <data name="Pnl_Lead_Heading" xml:space="preserve">
+    <value>Demo so'rovlar (tahsinerp.uz)</value>
+  </data>
+  <data name="Pnl_Lead_Queue" xml:space="preserve">
+    <value>Navbat (yangi va bog'lanilgan)</value>
+  </data>
+  <data name="Pnl_Lead_All" xml:space="preserve">
+    <value>Hammasi</value>
+  </data>
+  <data name="Pnl_Lead_Hint" xml:space="preserve">
+    <value>Mijozga qo'ng'iroq qiling, ehtiyojini aniqlang va «Sinov ochish» — forma so'rovdan to'ldiriladi, 14 kunlik demo baza namuna ma'lumotlar bilan yaratiladi. Kirish ma'lumotlarini mijozga o'zingiz yetkazasiz.</value>
+  </data>
+  <data name="Pnl_Lead_Empty" xml:space="preserve">
+    <value>So'rov yo'q.</value>
+  </data>
+  <data name="Pnl_Lead_ColCompany" xml:space="preserve">
+    <value>Kompaniya</value>
+  </data>
+  <data name="Pnl_Lead_ColContact" xml:space="preserve">
+    <value>Aloqa</value>
+  </data>
+  <data name="Pnl_Lead_ColNeed" xml:space="preserve">
+    <value>Ehtiyoj</value>
+  </data>
+  <data name="Pnl_Lead_ColAction" xml:space="preserve">
+    <value>Amal</value>
+  </data>
+  <data name="Pnl_Lead_Employees" xml:space="preserve">
+    <value>{0} xodim</value>
+  </data>
+  <data name="Pnl_Lead_Note" xml:space="preserve">
+    <value>Izoh: {0}</value>
+  </data>
+  <data name="Pnl_Lead_OpenTrial" xml:space="preserve">
+    <value>Sinov ochish</value>
+  </data>
+  <data name="Pnl_Lead_NotePlaceholder" xml:space="preserve">
+    <value>Izoh (ixtiyoriy)</value>
+  </data>
+  <data name="Pnl_Lead_MarkContacted" xml:space="preserve">
+    <value>Bog'lanildi</value>
+  </data>
+  <data name="Pnl_Lead_Close" xml:space="preserve">
+    <value>Yopish</value>
+  </data>
+  <data name="Pnl_Lead_AlreadyTrial" xml:space="preserve">
+    <value>So'rov #{0} uchun sinov allaqachon ochilgan.</value>
+  </data>
+  <data name="Pnl_Lead_MarkedContacted" xml:space="preserve">
+    <value>So'rov #{0} bog'lanildi deb belgilandi.</value>
+  </data>
+  <data name="Pnl_Lead_Closed" xml:space="preserve">
+    <value>So'rov #{0} yopildi.</value>
+  </data>
+  <data name="Pnl_Lead_St_New" xml:space="preserve">
+    <value>Yangi</value>
+  </data>
+  <data name="Pnl_Lead_St_Contacted" xml:space="preserve">
+    <value>Bog'lanildi</value>
+  </data>
+  <data name="Pnl_Lead_St_TrialOpened" xml:space="preserve">
+    <value>Sinov ochildi</value>
+  </data>
+  <data name="Pnl_Lead_St_Rejected" xml:space="preserve">
+    <value>Yopildi</value>
+  </data>
+  <data name="Pnl_Lead_Ind_production" xml:space="preserve">
+    <value>Ishlab chiqarish</value>
+  </data>
+  <data name="Pnl_Lead_Ind_distribution" xml:space="preserve">
+    <value>Distributsiya / ulgurji</value>
+  </data>
+  <data name="Pnl_Lead_Ind_trade" xml:space="preserve">
+    <value>Savdo</value>
+  </data>
+  <data name="Pnl_Lead_Ind_services" xml:space="preserve">
+    <value>Xizmatlar</value>
+  </data>
+  <data name="Pnl_Lead_Ind_other" xml:space="preserve">
+    <value>Boshqa</value>
+  </data>
+  <data name="Pnl_Lead_TrialPrefilled" xml:space="preserve">
+    <value>Demo so'rovi {0} dan to'ldirildi — slug va nomni tekshiring.</value>
+  </data>
+  <data name="Pnl_Bak_NoData" xml:space="preserve">
+    <value>ma'lumot yo'q</value>
+  </data>
+  <data name="Pnl_Bak_Ok" xml:space="preserve">
+    <value>bajarildi</value>
+  </data>
+  <data name="Pnl_Bak_Stale" xml:space="preserve">
+    <value>eskirgan</value>
+  </data>
+  <data name="Pnl_Bak_Failed" xml:space="preserve">
+    <value>xato</value>
+  </data>
+  <data name="Pnl_Bak_Files" xml:space="preserve">
+    <value>{0} fayl</value>
+  </data>
+  <data name="Pnl_Bak_LocalOnly" xml:space="preserve">
+    <value>faqat serverda</value>
+  </data>
+  <data name="Pnl_Bak_Warning" xml:space="preserve">
+    <value>Zaxira</value>
+  </data>
+  <data name="Pnl_Bak_LastFailed" xml:space="preserve">
+    <value>oxirgi zaxira xato bilan tugadi</value>
+  </data>
+  <data name="Pnl_Bak_NoRecent" xml:space="preserve">
+    <value>26 soatdan beri yangi zaxira yo'q</value>
+  </data>
+  <data name="Pnl_Bak_LastAt" xml:space="preserve">
+    <value>oxirgisi {0} UTC</value>
+  </data>
 </root>

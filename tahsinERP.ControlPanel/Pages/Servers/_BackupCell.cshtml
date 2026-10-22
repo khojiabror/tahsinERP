@@ -2,11 +2,11 @@
 @{ var r = Model?.Report; var h = Model?.Health ?? BackupHealth.Unknown; }
 @if (r is null)
 {
-    <span class="hint">ma'lumot yo'q</span>
+    <span class="hint">@L.T("Pnl_Bak_NoData")</span>
 }
 else
 {
-    <span class="badge @(h == BackupHealth.Ok ? "ok" : h == BackupHealth.Stale ? "warn" : "bad")">@(h == BackupHealth.Ok ? "bajarildi" : h == BackupHealth.Stale ? "eskirgan" : "xato")</span>
-    <div class="hint">@(r.FinishedAtUtc?.ToString("dd.MM.yyyy HH:mm") ?? "—") UTC · @r.Files.Count fayl@(r.TotalBytes is long n ? $" · {n / 1048576.0:0.#} MB" : "") · @(string.IsNullOrEmpty(r.Bucket) ? "faqat serverda" : r.Bucket)</div>
+    <span class="badge @(h == BackupHealth.Ok ? "ok" : h == BackupHealth.Stale ? "warn" : "bad")">@(h == BackupHealth.Ok ? L.T("Pnl_Bak_Ok") : h == BackupHealth.Stale ? L.T("Pnl_Bak_Stale") : L.T("Pnl_Bak_Failed"))</span>
+    <div class="hint">@(r.FinishedAtUtc?.ToString("dd.MM.yyyy HH:mm") ?? "—") UTC · @L.T("Pnl_Bak_Files", r.Files.Count)@(r.TotalBytes is long n ? $" · {n / 1048576.0:0.#} MB" : "") · @(string.IsNullOrEmpty(r.Bucket) ? L.T("Pnl_Bak_LocalOnly") : r.Bucket)</div>
     @foreach (var e in r.Errors.Take(3)) { <div class="hint mono">@e</div> }
 }

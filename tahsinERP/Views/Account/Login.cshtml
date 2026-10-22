@@ -20,7 +20,9 @@
     <link rel="stylesheet" href="@tahsinERP.Helpers.AssetVersion.Url("~/assets/fonts/fonts.css")">
     <link rel="stylesheet" href="@tahsinERP.Helpers.AssetVersion.Url("~/assets/css/login.css")">
     <style>
+        .lg-top { z-index: 5; } /* til menyusi kirish kartasi (lg-wrap) ustida ochilsin */
         .lg-lang { list-style: none; margin: 0 0 0 auto; padding: 0; position: relative; }
+        .lg-lang .bx { display: none; } /* bu sahifada Boxicons yuklanmaydi */
         .lg-lang .nav-link { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; font-size: 13px; font-weight: 600; color: #93c5fd; background: rgba(96, 165, 250, .1); border: 1px solid rgba(96, 165, 250, .25); text-decoration: none; }
         .lg-lang .lg-lang-menu { display: none; position: absolute; right: 0; top: calc(100% + 6px); min-width: 150px; padding: 6px; border-radius: 12px; background: #0b1530; border: 1px solid rgba(96, 165, 250, .25); z-index: 10; }
         .lg-lang .lg-lang-menu.show { display: block; }

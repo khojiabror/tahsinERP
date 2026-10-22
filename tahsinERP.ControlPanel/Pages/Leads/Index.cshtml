@@ -1,33 +1,33 @@
 @page
 @model tahsinERP.ControlPanel.Pages.Leads.IndexModel
 @inject Clock Clock
-@{ ViewData["Title"] = "Demo so'rovlar"; }
-<h1>Demo so'rovlar (tahsinerp.uz)</h1>
+@{ ViewData["Title"] = L.T("Pnl_Lead_Title"); }
+<h1>@L.T("Pnl_Lead_Heading")</h1>
 <div class="toolbar">
-    <a class="btn @(Model.All ? "secondary" : "")" href="/Leads">Navbat (yangi va bog'lanilgan)</a>
-    <a class="btn @(Model.All ? "" : "secondary")" href="/Leads?all=true">Hammasi</a>
+    <a class="btn @(Model.All ? "secondary" : "")" href="/Leads">@L.T("Pnl_Lead_Queue")</a>
+    <a class="btn @(Model.All ? "" : "secondary")" href="/Leads?all=true">@L.T("Pnl_Lead_All")</a>
 </div>
-<p class="hint">Mijozga qo'ng'iroq qiling, ehtiyojini aniqlang va «Sinov ochish» — forma so'rovdan to'ldiriladi, 14 kunlik demo baza namuna ma'lumotlar bilan yaratiladi. Kirish ma'lumotlarini mijozga o'zingiz yetkazasiz.</p>
+<p class="hint">@L.T("Pnl_Lead_Hint")</p>
 @if (Model.Rows.Count == 0)
 {
-    <p class="empty">So'rov yo'q.</p>
+    <p class="empty">@L.T("Pnl_Lead_Empty")</p>
 }
 else
 {
     <table>
-        <tr><th>#</th><th>Sana</th><th>Kompaniya</th><th>Aloqa</th><th>Ehtiyoj</th><th>Holat</th><th>Amal</th></tr>
+        <tr><th>#</th><th>@L.T("Date")</th><th>@L.T("Pnl_Lead_ColCompany")</th><th>@L.T("Pnl_Lead_ColContact")</th><th>@L.T("Pnl_Lead_ColNeed")</th><th>@L.T("Status")</th><th>@L.T("Pnl_Lead_ColAction")</th></tr>
         @foreach (var r in Model.Rows)
         {
             <tr>
                 <td>@r.Id</td>
                 <td>@Clock.ToLocal(r.CreatedAtUtc).ToString("dd.MM.yyyy HH:mm")<div class="hint">@r.Lang.ToUpperInvariant()</div></td>
-                <td><b>@r.Company</b>@if (r.Industry is not null) { <div class="hint">@tahsinERP.ControlPanel.Pages.Leads.IndexModel.Industry(r.Industry)@(r.CompanySize is null ? "" : ", " + r.CompanySize + " xodim")</div> }</td>
+                <td><b>@r.Company</b>@if (r.Industry is not null) { <div class="hint">@tahsinERP.ControlPanel.Pages.Leads.IndexModel.Industry(r.Industry)@(r.CompanySize is null ? "" : ", " + L.T("Pnl_Lead_Employees", r.CompanySize))</div> }</td>
                 <td>@r.FullName<div><a href="tel:@r.Phone">@r.Phone</a></div>@if (r.Email is not null) { <div class="hint">@r.Email</div> }</td>
                 <td>
                     @if (r.Plan is not null) { <span class="badge info">@r.Plan</span> }
                     @if (r.Modules is not null) { <div class="hint">@r.Modules</div> }
                     @if (r.Message is not null) { <div>@r.Message</div> }
-                    @if (r.StaffNote is not null) { <div class="hint">Izoh: @r.StaffNote</div> }
+                    @if (r.StaffNote is not null) { <div class="hint">@L.T("Pnl_Lead_Note", r.StaffNote)</div> }
                 </td>
                 <td><span class="badge @tahsinERP.ControlPanel.Pages.Leads.IndexModel.Badge(r.Status)">@tahsinERP.ControlPanel.Pages.Leads.IndexModel.Of(r.Status)</span>
                     @if (r.HandledByStaffId is int sid) { <div class="hint">@Model.StaffNames.GetValueOrDefault(sid)</div> }</td>
@@ -38,11 +38,11 @@ else
                     }
                     else if (Model.CanSell && r.Status != DemoRequestStatus.Rejected)
                     {
-                        <a class="btn" href="/Tenants/Trial?demo=@r.Id">Sinov ochish</a>
+                        <a class="btn" href="/Tenants/Trial?demo=@r.Id">@L.T("Pnl_Lead_OpenTrial")</a>
                         <form method="post" class="inline"><input type="hidden" name="RequestId" value="@r.Id" />
-                            <input type="text" name="Note" placeholder="Izoh (ixtiyoriy)" />
-                            @if (r.Status == DemoRequestStatus.New) { <button type="submit" class="secondary" asp-page-handler="Contacted">Bog'lanildi</button> }
-                            <button type="submit" class="secondary" asp-page-handler="Reject">Yopish</button></form>
+                            <input type="text" name="Note" placeholder="@L.T("Pnl_Lead_NotePlaceholder")" />
+                            @if (r.Status == DemoRequestStatus.New) { <button type="submit" class="secondary" asp-page-handler="Contacted">@L.T("Pnl_Lead_MarkContacted")</button> }
+                            <button type="submit" class="secondary" asp-page-handler="Reject">@L.T("Pnl_Lead_Close")</button></form>
                     }
                 </td>
             </tr>

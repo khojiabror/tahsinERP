@@ -30,7 +30,7 @@
 }
 @foreach (var b in Model.BackupProblems)
 {
-    <div class="flash bad">Zaxira: <strong>@b.ServerName</strong> — @(b.Health == BackupHealth.Failed ? "oxirgi zaxira xato bilan tugadi" : "26 soatdan beri yangi zaxira yo'q")@(b.Report?.FinishedAtUtc is { } at ? $" (oxirgisi {at:dd.MM.yyyy HH:mm} UTC)" : "") — <a href="/Servers">Serverlar</a>.</div>
+    <div class="flash bad">@L.T("Pnl_Bak_Warning"): <strong>@b.ServerName</strong> — @(b.Health == BackupHealth.Failed ? L.T("Pnl_Bak_LastFailed") : L.T("Pnl_Bak_NoRecent"))@(b.Report?.FinishedAtUtc is { } at ? " (" + L.T("Pnl_Bak_LastAt", at.ToString("dd.MM.yyyy HH:mm")) + ")" : "") — <a href="/Servers">@L.T("Pnl_NavServers")</a>.</div>
 }
 @if (Model.FailedNotifications > 0)
 {
