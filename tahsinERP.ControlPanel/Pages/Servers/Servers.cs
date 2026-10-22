@@ -8,10 +8,10 @@ using tahsinERP.ControlPanel.Services;
 
 namespace tahsinERP.ControlPanel.Pages.Servers;
 
-public record ServerRow(Server Server, int Tenants);
+public record ServerRow(Server Server, int Tenants, BackupMonitor.Row? Backup = null);
 
 /// <summary>ERP serverlari (tenantlarni taqsimlash). Faqat Owner (Program.cs: AuthorizeFolder).</summary>
-public class IndexModel(ControlDbContext db) : PanelPageModel
+public class IndexModel(ControlDbContext db, BackupMonitor backups) : PanelPageModel
 {
     public List<ServerRow> Rows { get; private set; } = [];
 
@@ -19,7 +19,9 @@ public class IndexModel(ControlDbContext db) : PanelPageModel
     {
         var counts = await db.Tenants.Where(t => t.ServerId != null && t.Status != TenantStatus.Archived)
             .GroupBy(t => t.ServerId!.Value).Select(g => new { g.Key, C = g.Count() }).ToDictionaryAsync(x => x.Key, x => x.C);
-        Rows = (await db.Servers.OrderBy(s => s.Name).ToListAsync()).Select(s => new ServerRow(s, counts.GetValueOrDefault(s.Id))).ToList();
+        var bk = (await backups.AllAsync()).ToDictionary(b => b.ServerId);
+        Rows = (await db.Servers.OrderBy(s => s.Name).ToListAsync())
+            .Select(s => new ServerRow(s, counts.GetValueOrDefault(s.Id), bk.GetValueOrDefault(s.Id))).ToList();
     }
 }
 

@@ -3,14 +3,16 @@
 @{ ViewData["Title"] = "Serverlar"; }
 <h1>ERP serverlari</h1>
 <div class="actions"><a class="btn" href="/Servers/Edit">+ Server qo'shish</a></div>
+<p class="hint">Zaxira: har kecha barcha bazalar va sozlamalar (Docs/Deploy/04_BACKUP.md, <code>Install-Backup.ps1</code>); natijani agent yuboradi, 26 soatdan eski bo'lsa ogohlantiriladi.</p>
 <p class="hint">SQL Server Express 1.4 GB bufer chegarasi barcha tenant bazalari uchun umumiy — ~15–20 faol tenantdan keyin ikkinchi server. Login/parollar bu yerda saqlanmaydi.</p>
 <table>
-    <tr><th>Nomi</th><th>Host</th><th>Hudud</th><th>SQL instance</th><th class="num">Tenantlar</th><th>Holat</th><th></th></tr>
+    <tr><th>Nomi</th><th>Host</th><th>Hudud</th><th>SQL instance</th><th class="num">Tenantlar</th><th>Holat</th><th>Oxirgi zaxira</th><th></th></tr>
     @foreach (var r in Model.Rows)
     {
         <tr>
             <td>@r.Server.Name</td><td>@r.Server.Host</td><td>@r.Server.Region</td><td><code>@r.Server.SqlInstance</code></td>
             <td class="num">@r.Tenants / @r.Server.MaxTenants</td><td>@(r.Server.IsActive ? "faol" : "o'chirilgan")</td>
+            <td><partial name="_BackupCell" model="r.Backup" /></td>
             <td><a href="/Servers/Edit/@r.Server.Id">Tahrirlash</a></td>
         </tr>
     }
