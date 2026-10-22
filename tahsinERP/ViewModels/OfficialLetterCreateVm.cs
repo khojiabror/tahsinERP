@@ -7,42 +7,42 @@ namespace tahsinERP.ViewModels
 {
     public class OfficialLetterCreateVm
     {
-        [Display(Name = "Yo'nalish")]
+        [Display(Name = "Doc_Direction")]
         public string DirectionCode { get; set; } = "OUT";
 
-        [Display(Name = "Maktub raqami")]
+        [Display(Name = "Doc_LetterNo")]
         public virtual string LetterNo { get; set; }
 
-        [Display(Name = "Maktub sanasi")]
-        [Required(ErrorMessage = "Sana kiritilishi shart")]
+        [Display(Name = "Doc_LetterDate")]
+        [Required(ErrorMessage = "Doc_DateRequired")]
         public DateTime LetterDate { get; set; } = DateTime.Now;
 
-        [Display(Name = "Tashqi kompaniya nomi")]
+        [Display(Name = "Doc_ExternalCompany")]
         public string ExternalCompanyName { get; set; }
 
-        [Display(Name = "Tashqi kontakt shaxs")]
+        [Display(Name = "Doc_ExternalContact")]
         public string ExternalContactName { get; set; }
 
-        [Display(Name = "Tashqi kompaniya rahbari lavozimi")]
+        [Display(Name = "Doc_ExternalPosition")]
         public string ExternalContactPosition { get; set; }
 
-        [Display(Name = "Bizning havola raqami")]
+        [Display(Name = "Doc_OurRefNo")]
         public string OurRefNo { get; set; }
 
-        [Display(Name = "Ularning havola raqami")]
+        [Display(Name = "Doc_TheirRefNo")]
         public string TheirRefNo { get; set; }
 
-        [Display(Name = "Kanal")]
+        [Display(Name = "Doc_Channel")]
         public string ChannelCode { get; set; } // EMAIL, LETTER, COURIER, etc.
 
-        [Display(Name = "Mavzu")]
-        [Required(ErrorMessage = "Mavzu kiritilishi shart")]
+        [Display(Name = "Doc_Topic")]
+        [Required(ErrorMessage = "Doc_TopicRequired")]
         public string Topic { get; set; }
 
-        [Display(Name = "Salomlashish")]
+        [Display(Name = "Doc_Greeting")]
         public string GreetingLine { get; set; }
 
-        [Display(Name = "Asosiy matn")]
+        [Display(Name = "Doc_MainText")]
         [AllowHtml]
         public string BodyText { get; set; }
 

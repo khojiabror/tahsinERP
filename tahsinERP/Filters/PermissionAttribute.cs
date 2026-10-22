@@ -94,7 +94,7 @@ namespace tahsinERP.Filters
                              (request.AcceptTypes != null && Array.Exists(request.AcceptTypes, t => t != null && t.Contains("application/json")));
             if (wantsJson)
             {
-                filterContext.Result = new HttpStatusCodeResult(HttpStatusCode.Forbidden, "Ruxsat yo'q");
+                filterContext.Result = new HttpStatusCodeResult(HttpStatusCode.Forbidden, "Ruxsat yo'q"); // reason-phrase — faqat ASCII
             }
             else
             {

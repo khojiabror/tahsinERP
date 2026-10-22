@@ -8,6 +8,7 @@ using System.Web.Mvc;
 using tahsinERP.Filters;
 using tahsinERP.Models;
 using tahsinERP.Services.Tasks;
+using tahsinERP.I18n;
 
 namespace tahsinERP.Controllers.TaskSettings
 {
@@ -93,7 +94,7 @@ namespace tahsinERP.Controllers.TaskSettings
                 {
                     if (await Set(db).AnyAsync(x => x.Code == entity.Code))
                     {
-                        ModelState.AddModelError("Code", "Bu kod allaqachon mavjud");
+                        ModelState.AddModelError("Code", L.T("Task_CodeExists"));
                         return View(entity);
                     }
 
@@ -146,7 +147,7 @@ namespace tahsinERP.Controllers.TaskSettings
                 {
                     if (await Set(db).AnyAsync(x => x.Code == entity.Code && x.ID != id))
                     {
-                        ModelState.AddModelError("Code", "Bu kod allaqachon mavjud");
+                        ModelState.AddModelError("Code", L.T("Task_CodeExists"));
                         return View(entity);
                     }
 

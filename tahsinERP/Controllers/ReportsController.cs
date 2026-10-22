@@ -11,6 +11,7 @@ using tahsinERP.ViewModels.Reports;
 using tahsinERP.Services;
 using tahsinERP.Services.Common;
 using tahsinERP.Filters;
+using tahsinERP.I18n;
 
 namespace tahsinERP.Controllers
 {
@@ -292,7 +293,7 @@ namespace tahsinERP.Controllers
                     CategoryId = categoryId,
                     Categories = new[]
                     {
-                        new SelectListItem { Value = "", Text = "Barchasi", Selected = !categoryId.HasValue }
+                        new SelectListItem { Value = "", Text = L.T("All"), Selected = !categoryId.HasValue }
                     }.Concat(categories.Select(c => new SelectListItem
                     {
                         Value = c.ID.ToString(),
@@ -768,7 +769,7 @@ namespace tahsinERP.Controllers
                     CategoryId = categoryId,
                     Categories = new[]
                         {
-                            new SelectListItem { Value = "", Text = "Barchasi", Selected = !categoryId.HasValue }
+                            new SelectListItem { Value = "", Text = L.T("All"), Selected = !categoryId.HasValue }
                         }.Concat(categories.Select(c => new SelectListItem
                         {
                             Value = c.ID.ToString(),

@@ -10,6 +10,7 @@ using tahsinERP.Models;
 using tahsinERP.Services.Common;
 using tahsinERP.Services.Tasks;
 using tahsinERP.ViewModels;
+using tahsinERP.I18n;
 
 namespace tahsinERP.Controllers
 {
@@ -98,18 +99,18 @@ namespace tahsinERP.Controllers
                     .Select(TaskQueries.Projection)
                     .ToListAsync());
 
-                var bytes = ExcelExport.Create("Vazifalar", rows,
-                    ExcelExport.Col<TaskViewModel>("Kod", r => r.KeyCode ?? r.ID.ToString()),
-                    ExcelExport.Col<TaskViewModel>("Sarlavha", r => r.Title),
-                    ExcelExport.Col<TaskViewModel>("Loyiha", r => r.ProjectName),
-                    ExcelExport.Col<TaskViewModel>("Mas'ul", r => r.AssigneeFullName),
-                    ExcelExport.Col<TaskViewModel>("Muallif", r => r.ReporterFullName),
-                    ExcelExport.Col<TaskViewModel>("Prioritet", r => r.PriorityName),
-                    ExcelExport.Col<TaskViewModel>("Status", r => r.StatusName),
-                    ExcelExport.Col<TaskViewModel>("Yaratilgan", r => r.CreatedDT, "dd.MM.yyyy"),
-                    ExcelExport.Col<TaskViewModel>("Muddati", r => r.DueDate, "dd.MM.yyyy"));
+                var bytes = ExcelExport.Create(L.T("Menu_Tasks"), rows,
+                    ExcelExport.Col<TaskViewModel>(L.T("Code"), r => r.KeyCode ?? r.ID.ToString()),
+                    ExcelExport.Col<TaskViewModel>(L.T("Task_Title"), r => r.Title),
+                    ExcelExport.Col<TaskViewModel>(L.T("Task_Project"), r => r.ProjectName),
+                    ExcelExport.Col<TaskViewModel>(L.T("Task_Assignee"), r => r.AssigneeFullName),
+                    ExcelExport.Col<TaskViewModel>(L.T("Task_Reporter"), r => r.ReporterFullName),
+                    ExcelExport.Col<TaskViewModel>(L.T("Task_Priority"), r => r.PriorityName),
+                    ExcelExport.Col<TaskViewModel>(L.T("Status"), r => r.StatusName),
+                    ExcelExport.Col<TaskViewModel>(L.T("CreatedAt"), r => r.CreatedDT, "dd.MM.yyyy"),
+                    ExcelExport.Col<TaskViewModel>(L.T("Task_DueDate"), r => r.DueDate, "dd.MM.yyyy"));
 
-                return File(bytes, ExcelExport.ContentType, $"Vazifalar_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx");
+                return File(bytes, ExcelExport.ContentType, L.T("Task_FileName") + $"_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx");
             }
         }
 
@@ -151,7 +152,7 @@ namespace tahsinERP.Controllers
                 // Oddiy user boshqalarning tasklarini ko'rmasligi kerak
                 if (!TaskRules.CanAccess(viewModel.AssigneeUserID, CurrentUserId, RoleHelper.IsAdminOrDeveloper(CurrentUserName)))
                 {
-                    TempData["Error"] = "Siz faqat o'zingizga tegishli tasklarni ko'rishingiz mumkin";
+                    TempData["Error"] = L.T("Task_OnlyOwnView");
                     return RedirectToAction("Index");
                 }
 
@@ -244,7 +245,7 @@ namespace tahsinERP.Controllers
                     catch (Exception ex)
                     {
                         System.Diagnostics.Trace.TraceError("Tasks Create: {0}", ex);
-                        ModelState.AddModelError("", "Saqlashda xatolik yuz berdi: " + InnermostMessage(ex));
+                        ModelState.AddModelError("", L.T("Task_SaveError", InnermostMessage(ex)));
                     }
                 }
             }
@@ -272,7 +273,7 @@ namespace tahsinERP.Controllers
                 // Oddiy user boshqalarning tasklarini tahrirlamasligi kerak
                 if (!TaskRules.CanAccess(task.AssigneeUserID, CurrentUserId, RoleHelper.IsAdminOrDeveloper(CurrentUserName)))
                 {
-                    TempData["Error"] = "Siz faqat o'zingizga tegishli tasklarni tahrirlashingiz mumkin";
+                    TempData["Error"] = L.T("Task_OnlyOwnEdit");
                     return RedirectToAction("Index");
                 }
 
@@ -316,7 +317,7 @@ namespace tahsinERP.Controllers
                     // Oddiy user boshqalarning tasklarini tahrirlamasligi kerak
                     if (!TaskRules.CanAccess(task.AssigneeUserID, CurrentUserId, isAdminOrDeveloper))
                     {
-                        TempData["Error"] = "Siz faqat o'zingizga tegishli tasklarni tahrirlashingiz mumkin";
+                        TempData["Error"] = L.T("Task_OnlyOwnEdit");
                         return RedirectToAction("Index");
                     }
 
@@ -347,7 +348,7 @@ namespace tahsinERP.Controllers
                     catch (Exception ex)
                     {
                         System.Diagnostics.Trace.TraceError("Tasks Edit {0}: {1}", viewModel.ID, ex);
-                        ModelState.AddModelError("", "Saqlashda xatolik yuz berdi: " + InnermostMessage(ex));
+                        ModelState.AddModelError("", L.T("Task_SaveError", InnermostMessage(ex)));
                     }
                 }
             }
@@ -363,7 +364,7 @@ namespace tahsinERP.Controllers
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var task = await FindOwnTaskAsync(db, id, "bekor qilishingiz");
+                var task = await FindOwnTaskAsync(db, id, "Task_OnlyOwnCancel");
                 if (task == null)
                 {
                     return TempData["Error"] != null ? (ActionResult)RedirectToAction("Index") : HttpNotFound();
@@ -372,7 +373,7 @@ namespace tahsinERP.Controllers
                 var cancelledStatus = TaskLookups.Statuses().FirstOrDefault(s => s.Code == TaskRules.CancelledCode);
                 if (cancelledStatus == null)
                 {
-                    TempData["Error"] = "\"Bekor qilindi\" (CANCELLED) holati sozlanmagan — Task sozlamalarida qo'shing";
+                    TempData["Error"] = L.T("Task_CancelledStatusMissing");
                     return RedirectToAction("Index");
                 }
 
@@ -381,7 +382,7 @@ namespace tahsinERP.Controllers
                 await db.SaveChangesAsync();
 
                 LogHelper.LogToDatabase(CurrentUserName, "TasksController", $"Task {task.KeyCode} - {task.Title} bekor qilindi");
-                TempData["Success"] = "Topshiriq bekor qilindi";
+                TempData["Success"] = L.T("Task_Cancelled");
                 return RedirectToAction("Index");
             }
         }
@@ -394,7 +395,7 @@ namespace tahsinERP.Controllers
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                var task = await FindOwnTaskAsync(db, id, "o'chirishingiz");
+                var task = await FindOwnTaskAsync(db, id, "Task_OnlyOwnDelete");
                 if (task == null)
                 {
                     return TempData["Error"] != null ? (ActionResult)RedirectToAction("Index") : HttpNotFound();
@@ -405,13 +406,13 @@ namespace tahsinERP.Controllers
                 await db.SaveChangesAsync();
 
                 LogHelper.LogToDatabase(CurrentUserName, "TasksController", $"Task {task.KeyCode} - {task.Title} o'chirildi");
-                TempData["Success"] = "Topshiriq o'chirildi";
+                TempData["Success"] = L.T("Task_Deleted");
                 return RedirectToAction("Index");
             }
         }
 
         /// <summary>O'chirilmagan va joriy foydalanuvchi boshqara oladigan topshiriq; ruxsat bo'lmasa TempData["Error"] bilan null.</summary>
-        private async Task<APP_TASKS> FindOwnTaskAsync(DBTHSNEntities db, long id, string verb)
+        private async Task<APP_TASKS> FindOwnTaskAsync(DBTHSNEntities db, long id, string deniedKey)
         {
             var task = await db.APP_TASKS.FindAsync(id);
             if (task == null || task.IsDeleted)
@@ -420,7 +421,7 @@ namespace tahsinERP.Controllers
             }
             if (!TaskRules.CanAccess(task.AssigneeUserID, CurrentUserId, RoleHelper.IsAdminOrDeveloper(CurrentUserName)))
             {
-                TempData["Error"] = $"Siz faqat o'zingizga tegishli tasklarni {verb} mumkin";
+                TempData["Error"] = L.T(deniedKey);
                 return null;
             }
             return task;

@@ -12,7 +12,7 @@
 (function () {
     'use strict';
 
-    var PLACEHOLDER = '<option value="">---Tanlang---</option>';
+    var PLACEHOLDER = '<option value="">---' + (window.erpT ? window.erpT('Js_Select') : 'Tanlang') + '---</option>';
 
     function refreshSelect2($select) {
         if (typeof jQuery.fn.select2 !== 'undefined') {
@@ -59,7 +59,7 @@
             error: function (xhr, status, error) {
                 console.error('Contract loading error:', status, error);
                 if (options.alertOnError) {
-                    var message = (xhr.responseJSON && xhr.responseJSON.message) || 'Shartnomalarni yuklashda xatolik yuz berdi';
+                    var message = (xhr.responseJSON && xhr.responseJSON.message) || (window.erpT ? window.erpT('Js_Doc_ContractsLoadError') : 'Shartnomalarni yuklashda xatolik yuz berdi');
                     alert(message);
                 }
                 $select.prop('disabled', false);

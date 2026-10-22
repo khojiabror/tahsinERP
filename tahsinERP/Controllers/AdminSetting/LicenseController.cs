@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
+using tahsinERP.I18n;
 using tahsinERP.Licensing;
 using tahsinERP.Models;
 using tahsinERP.Services;
@@ -43,9 +44,8 @@ namespace tahsinERP.Controllers
             {
                 // Masalan, LICENSE_STATE jadvalini yaratishga huquq yo'q — sabab logda
                 System.Diagnostics.Trace.TraceError("[License] License sahifasini qurishda xatolik: " + ex);
-                TempData["Error"] = "Litsenziya holatini o'qishda xatolik yuz berdi. Database_Migrations/Create_License_System.sql " +
-                                    "ishga tushirilganini tekshiring yoki tizim logini ko'ring.";
-                return View(new LicenseIndexViewModel { StatusMessage = "Holat aniqlanmadi." });
+                TempData["Error"] = L.T("Core_LicReadStateError");
+                return View(new LicenseIndexViewModel { StatusMessage = L.T("Core_LicStateUnknown") });
             }
         }
 
@@ -54,7 +54,7 @@ namespace tahsinERP.Controllers
         public ActionResult Blocked()
         {
             ViewBag.Message = TempData["LicenseMessage"] as string
-                ?? "Kompaniya litsenziyasi yaroqsiz yoki muddati tugagan.";
+                ?? L.T("Core_LicCompanyInvalid");
             bool canManage = User.Identity.IsAuthenticated && CanManage();
             ViewBag.CanManage = canManage;
             if (canManage)
@@ -100,7 +100,7 @@ namespace tahsinERP.Controllers
             {
                 var result = LicenseService.ActivateCompanyLicense(db, licenseKey, User.Identity.Name);
                 TempData[result.Ok ? "Success" : "Error"] = result.Ok
-                    ? "Litsenziya muvaffaqiyatli faollashtirildi."
+                    ? L.T("Core_LicActivated")
                     : result.Message;
             }
 
@@ -158,7 +158,7 @@ namespace tahsinERP.Controllers
             using (var db = new DBTHSNEntities())
             {
                 var result = LicenseService.AssignSeat(db, userId, expiryDate, User.Identity.Name);
-                TempData[result.Ok ? "Success" : "Error"] = result.Ok ? "Seat berildi." : result.Message;
+                TempData[result.Ok ? "Success" : "Error"] = result.Ok ? L.T("Core_LicSeatAssigned") : result.Message;
             }
             return RedirectToAction("Index");
         }
@@ -174,7 +174,7 @@ namespace tahsinERP.Controllers
             using (var db = new DBTHSNEntities())
             {
                 var result = LicenseService.ExtendSeat(db, userLicenseId, newExpiry, User.Identity.Name);
-                TempData[result.Ok ? "Success" : "Error"] = result.Ok ? "Muddat uzaytirildi." : result.Message;
+                TempData[result.Ok ? "Success" : "Error"] = result.Ok ? L.T("Core_LicSeatExtended") : result.Message;
             }
             return RedirectToAction("Index");
         }
@@ -190,7 +190,7 @@ namespace tahsinERP.Controllers
             using (var db = new DBTHSNEntities())
             {
                 var result = LicenseService.RevokeSeat(db, userLicenseId);
-                TempData[result.Ok ? "Success" : "Error"] = result.Ok ? "Seat olib qo'yildi." : result.Message;
+                TempData[result.Ok ? "Success" : "Error"] = result.Ok ? L.T("Core_LicSeatRevoked") : result.Message;
             }
             return RedirectToAction("Index");
         }
@@ -229,7 +229,7 @@ namespace tahsinERP.Controllers
             if (lic == null)
             {
                 vm.HasLicense = false;
-                vm.StatusMessage = "Kompaniya litsenziyasi topilmadi. Kalitni kiriting.";
+                vm.StatusMessage = L.T("Core_LicNotFoundEnterKey");
             }
             else
             {
@@ -255,7 +255,7 @@ namespace tahsinERP.Controllers
                 }
                 else
                 {
-                    vm.StatusMessage = "Litsenziya imzosi yaroqsiz (soxta yoki buzilgan).";
+                    vm.StatusMessage = L.T("Core_LicSignatureInvalid");
                 }
 
                 vm.UsedSeats = db.USER_LICENSES.Count(u => u.CompanyLicenseID == lic.ID && u.IsActive);

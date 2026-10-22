@@ -6,6 +6,7 @@ using System.Web.Mvc;
 using tahsinERP.Models;
 using tahsinERP.Services.Tasks;
 using tahsinERP.ViewModels;
+using tahsinERP.I18n;
 
 namespace tahsinERP.Controllers
 {
@@ -45,7 +46,7 @@ namespace tahsinERP.Controllers
                 // Oddiy user boshqalarning tasklarini ko'rmasligi kerak
                 if (!TaskRules.CanAccess(task.AssigneeUserID, CurrentUserId, RoleHelper.IsAdminOrDeveloper(CurrentUserName)))
                 {
-                    TempData["Error"] = "Siz faqat o'zingizga tegishli tasklarni ko'rishingiz mumkin";
+                    TempData["Error"] = L.T("Task_OnlyOwnView");
                     return RedirectToAction("Index", "Tasks");
                 }
 
@@ -76,7 +77,7 @@ namespace tahsinERP.Controllers
 
             if (!TaskLookups.Statuses().Any(s => s.ID == viewModel.StatusID))
             {
-                ModelState.AddModelError("StatusID", "Noto'g'ri status");
+                ModelState.AddModelError("StatusID", L.T("Task_InvalidStatus"));
             }
 
             if (ModelState.IsValid)
@@ -92,7 +93,7 @@ namespace tahsinERP.Controllers
                     // Oddiy user boshqalarning tasklarini o'zgartirmasligi kerak
                     if (!TaskRules.CanAccess(task.AssigneeUserID, CurrentUserId, RoleHelper.IsAdminOrDeveloper(CurrentUserName)))
                     {
-                        TempData["Error"] = "Siz faqat o'zingizga tegishli tasklarni o'zgartirishingiz mumkin";
+                        TempData["Error"] = L.T("Task_OnlyOwnChange");
                         return RedirectToAction("Index", "Tasks");
                     }
 
@@ -117,13 +118,13 @@ namespace tahsinERP.Controllers
                         LogHelper.LogToDatabase(CurrentUserName, "TaskChangeStatusController",
                             $"Task {task.KeyCode} status o'zgartirildi: {statusName}");
 
-                        TempData["Success"] = "Status muvaffaqiyatli o'zgartirildi";
+                        TempData["Success"] = L.T("Task_StatusChanged");
                         return RedirectToAction("Details", "Tasks", new { id = task.ID });
                     }
                     catch (Exception ex)
                     {
                         System.Diagnostics.Trace.TraceError("TaskChangeStatus {0}: {1}", viewModel.TaskID, ex);
-                        ModelState.AddModelError("", "Saqlashda xatolik yuz berdi: " + InnermostMessage(ex));
+                        ModelState.AddModelError("", L.T("Task_SaveError", InnermostMessage(ex)));
                     }
                 }
             }

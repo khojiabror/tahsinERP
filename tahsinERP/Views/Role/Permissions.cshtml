@@ -1,6 +1,6 @@
 @model tahsinERP.ViewModels.RolePermissionsViewModel
 @{
-    ViewBag.Title = "Huquqlarni boshqarish";
+    ViewBag.Title = L.T("Core_ManagePermissions");
     Layout = "~/Views/Shared/_AdminPanelLayout.cshtml";
 }
 
@@ -16,8 +16,8 @@
                             <div class="breadcrumb-wrapper col-12">
                                 <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                     <li class="breadcrumb-item"><a href="~/AdminPanel"><i class="bx bx-home-alt"></i></a></li>
-                                    <li class="breadcrumb-item"><a href="~/Role">Rollar</a></li>
-                                    <li class="breadcrumb-item active">@Model.RoleName - Huquqlar</li>
+                                    <li class="breadcrumb-item"><a href="~/Role">@L.T("Adm_Roles")</a></li>
+                                    <li class="breadcrumb-item active">@Model.RoleName - @L.T("Adm_Permissions")</li>
                                 </ol>
                             </div>
                         </div>
@@ -48,7 +48,7 @@
                             <div class="card-header border-bottom">
                                 <h4 class="card-title mb-0">
                                     <i class="bx bx-shield mr-1"></i>
-                                    <strong>@Model.RoleName</strong> roli uchun huquqlar
+                                    @Html.Raw(L.T("Core_RolePermissionsFor", "<strong>" + Html.Encode(Model.RoleName) + "</strong>"))
                                 </h4>
                                 @if (!string.IsNullOrEmpty(Model.Description))
                                 {
@@ -68,27 +68,27 @@
                                             <div class="col-md-6">
                                                 <div class="btn-group" role="group">
                                                     <button type="button" class="btn btn-sm btn-outline-primary" id="btnSelectAllView">
-                                                        <i class="bx bx-check-square"></i> Barcha View
+                                                        <i class="bx bx-check-square"></i> @L.T("Core_AllView")
                                                     </button>
                                                     <button type="button" class="btn btn-sm btn-outline-success" id="btnSelectAllChange">
-                                                        <i class="bx bx-check-square"></i> Barcha Change
+                                                        <i class="bx bx-check-square"></i> @L.T("Core_AllChange")
                                                     </button>
                                                     <button type="button" class="btn btn-sm btn-outline-danger" id="btnSelectAllDelete">
-                                                        <i class="bx bx-check-square"></i> Barcha Delete
+                                                        <i class="bx bx-check-square"></i> @L.T("Core_AllDelete")
                                                     </button>
                                                     <button type="button" class="btn btn-sm btn-outline-warning" id="btnDeselectAll">
-                                                        <i class="bx bx-square"></i> Barchasini bekor qilish
+                                                        <i class="bx bx-square"></i> @L.T("Core_UncheckAll")
                                                     </button>
                                                 </div>
                                             </div>
                                             <div class="col-md-6 text-right">
-                                                <input type="text" id="searchBox" class="form-control form-control-sm d-inline-block" placeholder="Qidirish..." style="width: 250px;">
+                                                <input type="text" id="searchBox" class="form-control form-control-sm d-inline-block" placeholder="@L.T("SearchPlaceholder")" style="width: 250px;">
                                                 <select id="pageSize" class="form-control form-control-sm d-inline-block ml-2" style="width: 100px;">
                                                     <option value="10">10</option>
                                                     <option value="25" selected>25</option>
                                                     <option value="50">50</option>
                                                     <option value="100">100</option>
-                                                    <option value="-1">Barchasi</option>
+                                                    <option value="-1">@L.T("All")</option>
                                                 </select>
                                             </div>
                                         </div>
@@ -98,7 +98,7 @@
                                             <table class="table table-hover table-sm table-bordered" id="permissionsTable">
                                                 <thead class="thead-light sticky-top">
                                                     <tr>
-                                                    <th>Modul</th>
+                                                    <th>@L.T("Core_Module")</th>
                                                     <th>Controller</th>
                                                     <th>Action</th>
                                                     <th class="text-center" style="width: 100px;">View</th>
@@ -181,10 +181,10 @@
                                         <div class="row mt-3">
                                             <div class="col-12">
                                                 <button type="submit" class="btn btn-primary" id="btnSave">
-                                                    <i class="bx bx-save"></i> Saqlash
+                                                    <i class="bx bx-save"></i> @L.T("Save")
                                             </button>
                                                 <a href="@Url.Action("Index", "Role")" class="btn btn-outline-secondary">
-                                                    <i class="bx bx-x"></i> Bekor qilish
+                                                    <i class="bx bx-x"></i> @L.T("Cancel")
                                                 </a>
                                             </div>
                                         </div>
@@ -355,7 +355,7 @@
                 var prevLink = document.createElement('a');
                 prevLink.className = 'page-link';
                 prevLink.href = '#';
-                prevLink.textContent = 'Oldingi';
+                prevLink.textContent = erpT('Dt_Previous');
                 prevLink.addEventListener('click', function(e) {
                     e.preventDefault();
                     e.stopPropagation();
@@ -406,7 +406,7 @@
                 var nextLink = document.createElement('a');
                 nextLink.className = 'page-link';
                 nextLink.href = '#';
-                nextLink.textContent = 'Keyingi';
+                nextLink.textContent = erpT('Dt_Next');
                 nextLink.addEventListener('click', function(e) {
                     e.preventDefault();
                     e.stopPropagation();
@@ -423,9 +423,9 @@
             function updateInfo(total, start, end) {
                 var info = document.getElementById('paginationInfo');
                 if (total === 0) {
-                    info.textContent = 'Yozuvlar yo\'q';
+                    info.textContent = erpT('Dt_InfoEmpty');
                 } else {
-                    info.textContent = total + ' ta yozuvdan ' + (start + 1) + ' dan ' + Math.min(end, total) + ' gacha';
+                    info.textContent = erpT('Dt_Info').replace('_TOTAL_', total).replace('_START_', start + 1).replace('_END_', Math.min(end, total));
                 }
             }
 

@@ -4,6 +4,7 @@ using System.Net;
 using System.Reflection;
 using System.Threading.Tasks;
 using System.Web.Mvc;
+using tahsinERP.I18n;
 using tahsinERP.Models;
 
 namespace tahsinERP.Controllers
@@ -40,7 +41,7 @@ namespace tahsinERP.Controllers
         protected ActionResult NotAuthorized()
         {
             if (Request.IsAjaxRequest())
-                return new HttpStatusCodeResult(HttpStatusCode.Forbidden, "Ruxsat yo'q");
+                return new HttpStatusCodeResult(HttpStatusCode.Forbidden, "Ruxsat yo'q"); // HTTP reason-phrase — faqat ASCII (kirillcha IIS'da buziladi)
             return RedirectToAction("Index", "ViewNotAuthorized", new { area = "" });
         }
 
@@ -60,7 +61,9 @@ namespace tahsinERP.Controllers
             return Json(new
             {
                 success = false,
-                message = (userMessage ?? "Xatolik yuz berdi.") + " (kod: " + errorId + ")"
+                message = userMessage == null
+                    ? L.T("Error_WithCode", errorId)
+                    : L.T("Core_MessageWithCode", userMessage, errorId)
             }, JsonRequestBehavior.AllowGet);
         }
 
@@ -94,13 +97,13 @@ namespace tahsinERP.Controllers
             object id,
             Func<DBTHSNEntities, T, Task> afterDelete,
             Func<T, string> logText,
-            string notFoundMessage = "Yozuv topilmadi.") where T : class
+            string notFoundMessage = null) where T : class
         {
             var prop = IsDeletedProperty(typeof(T));
             var entity = id == null ? null : await db.Set<T>().FindAsync(id);
             if (entity == null || Equals(prop.GetValue(entity), true))
             {
-                ModelState.AddModelError("", notFoundMessage);
+                ModelState.AddModelError("", notFoundMessage ?? L.T("Core_RecordNotFound"));
                 return false;
             }
 
@@ -119,7 +122,7 @@ namespace tahsinERP.Controllers
             {
                 System.Diagnostics.Trace.TraceError("[SoftDelete] {0} {1}: {2}", typeof(T).Name, id, ex);
                 LogHelper.LogToDatabase(CurrentUserName, controllerName, "Delete", "Xatolik: " + InnermostMessage(ex));
-                ModelState.AddModelError("", "Ma'lumotni o'chirishda xatolik yuz berdi. Qayta urinib ko'ring va muammo davom etsa, tizim administratoriga murojaat qiling.");
+                ModelState.AddModelError("", L.T("Core_DeleteErrorContactAdmin"));
                 return false;
             }
         }

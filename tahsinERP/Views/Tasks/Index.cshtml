@@ -1,5 +1,5 @@
 @{
-    ViewBag.Title = "Tasks";
+    ViewBag.Title = L.T("Menu_Tasks");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -23,7 +23,7 @@
                                         <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                     </li>
                                     <li class="breadcrumb-item active">
-                                        Tasks / Vazifalar
+                                        @L.T("Task_TasksSlash")
                                     </li>
                                 </ol>
                             </div>
@@ -37,7 +37,7 @@
                     {
                         <div class="invoice-create-btn mb-1">
                             <a href="@Url.Action("Create", "Tasks")" class="btn btn-success bg-light invoice-create" role="button" aria-pressed="true">
-                                <i class="bx bx-plus"></i> Yangi Task qo'shish
+                                <i class="bx bx-plus"></i> @L.T("Task_AddNewTask")
                             </a>
                         </div>
                     }
@@ -53,35 +53,35 @@
                                                 @if (isAdminOrDeveloper)
                                                 {
                                                     <div class="col-12 col-sm-6 col-lg-3">
-                                                        <label>Assignee</label>
-                                                        @Html.DropDownList("assigneeUserID", (SelectList)ViewBag.AssigneeUserID, "All", new { @class = "form-control" })
+                                                        <label>@L.T("Task_Assignee")</label>
+                                                        @Html.DropDownList("assigneeUserID", (SelectList)ViewBag.AssigneeUserID, L.T("All"), new { @class = "form-control" })
                                                     </div>
                                                 }
                                                 <div class="col-12 col-sm-6 col-lg-2">
                                                     <label>Status</label>
-                                                    @Html.DropDownList("statusID", (SelectList)ViewBag.StatusID, "Barchasi", new { @class = "form-control" })
+                                                    @Html.DropDownList("statusID", (SelectList)ViewBag.StatusID, L.T("All"), new { @class = "form-control" })
                                                 </div>
                                                 <div class="col-12 col-sm-6 col-lg-2">
-                                                    <label>Prioritet</label>
-                                                    @Html.DropDownList("priorityID", (SelectList)ViewBag.PriorityID, "Barchasi", new { @class = "form-control" })
+                                                    <label>@L.T("Task_Priority")</label>
+                                                    @Html.DropDownList("priorityID", (SelectList)ViewBag.PriorityID, L.T("All"), new { @class = "form-control" })
                                                 </div>
                                                 <div class="col-12 col-sm-6 col-lg-2">
-                                                    <label>Muddati (dan)</label>
+                                                    <label>@L.T("Task_DueFrom")</label>
                                                     <input type="date" name="dueDateFrom" class="form-control" value="@(ViewBag.DueDateFrom != null ? ((DateTime)ViewBag.DueDateFrom).ToString("yyyy-MM-dd") : "")" />
                                                 </div>
                                                 <div class="col-12 col-sm-6 col-lg-2">
-                                                    <label>Muddati (gacha)</label>
+                                                    <label>@L.T("Task_DueTo")</label>
                                                     <input type="date" name="dueDateTo" class="form-control" value="@(ViewBag.DueDateTo != null ? ((DateTime)ViewBag.DueDateTo).ToString("yyyy-MM-dd") : "")" />
                                                 </div>
                                                 <div class="col-12 mt-2">
                                                     <button type="submit" class="btn btn-primary">
-                                                        <i class="bx bx-filter"></i> Filtrlash
+                                                        <i class="bx bx-filter"></i> @L.T("Task_Filter")
                                                     </button>
                                                     <button type="button" id="btnOverdue" class="btn @(ViewBag.ShowOverdue ? "btn-danger" : "btn-outline-danger")">
-                                                        <i class="bx bx-calendar-x"></i> Muddatidan o'tgan
+                                                        <i class="bx bx-calendar-x"></i> @L.T("Task_Overdue")
                                                     </button>
                                                     <button type="button" id="btnClear" class="btn btn-secondary">
-                                                        <i class="bx bx-x"></i> Tozalash
+                                                        <i class="bx bx-x"></i> @L.T("Reset")
                                                     </button>
                                                 </div>
                                             </div>
@@ -93,14 +93,14 @@
                                         <table id="tasksDataTable" class="table table-striped table-bordered" style="width:100%">
                                             <thead>
                                                 <tr>
-                                                    <th>Kod</th>
-                                                    <th>Sarlavha</th>
-                                                    <th>Mas'ul</th>
-                                                    <th>Prioritet</th>
+                                                    <th>@L.T("Code")</th>
+                                                    <th>@L.T("Task_Title")</th>
+                                                    <th>@L.T("Task_Assignee")</th>
+                                                    <th>@L.T("Task_Priority")</th>
                                                     <th>Status</th>
-                                                    <th>Yaratilgan</th>
-                                                    <th>Muddati</th>
-                                                    <th class="text-center">Amallar</th>
+                                                    <th>@L.T("CreatedAt")</th>
+                                                    <th>@L.T("Task_DueDate")</th>
+                                                    <th class="text-center">@L.T("Actions")</th>
                                                 </tr>
                                             </thead>
                                             <tbody></tbody>
@@ -133,7 +133,7 @@ else
             var detailsUrl = '@Url.Action("Details", "Tasks")/';
             var statusUrl = '@Url.Action("ChangeStatus", "TaskChangeStatus")/';
             var editUrl = '@Url.Action("Edit", "Tasks")/';
-            // TSK-B06 (foydalanuvchi qarori): "Bekor qilish" — CANCELLED holati, "O'chirish" — ro'yxatdan butunlay olib tashlash
+            // TSK-B06 (foydalanuvchi qarori): 'Bekor qilish' — CANCELLED holati, 'O'chirish' — ro'yxatdan butunlay olib tashlash
             var cancelUrl = '@Url.Action("Cancel", "Tasks")/';
             var deleteUrl = '@Url.Action("Delete", "Tasks")/';
             var changePermit = @(changePermit ? "true" : "false");
@@ -159,12 +159,12 @@ else
                     { data: 'due', render: function (v, t, r) { return v ? '<span class="' + (r.overdue ? 'text-danger' : '') + '">' + v + '</span>' : '<span>-</span>'; } },
                     {
                         data: null, orderable: false, className: 'text-center', render: function (v, t, r) {
-                            var html = '<a href="' + detailsUrl + r.id + '" class="btn btn-sm btn-outline-primary" title="Ko&#39;rish"><i class="bx bx-show"></i></a> '
-                                + '<a href="' + statusUrl + r.id + '" class="btn btn-sm btn-outline-info" title="Status o&#39;zgartirish"><i class="bx bx-sync"></i></a> ';
+                            var html = '<a href="' + detailsUrl + r.id + '" class="btn btn-sm btn-outline-primary" title="@L.T("View")"><i class="bx bx-show"></i></a> '
+                                + '<a href="' + statusUrl + r.id + '" class="btn btn-sm btn-outline-info" title="@L.T("Task_ChangeStatus")"><i class="bx bx-sync"></i></a> ';
                             if (changePermit) {
-                                html += '<a href="' + editUrl + r.id + '" class="btn btn-sm btn-outline-warning" title="Tahrirlash"><i class="bx bx-edit"></i></a> '
-                                    + (r.closed ? '' : '<a href="#" data-post-url="' + cancelUrl + r.id + '" data-confirm="Topshiriqni bekor qilasizmi? U &quot;Bekor qilindi&quot; holatiga o&#39;tadi." class="btn btn-sm btn-outline-secondary" title="Bekor qilish"><i class="bx bx-x-circle"></i></a> ')
-                                    + '<a href="#" data-post-url="' + deleteUrl + r.id + '" data-confirm="Topshiriqni o&#39;chirasizmi? U ro&#39;yxat, Kanban va hisobotlardan olib tashlanadi." class="btn btn-sm btn-outline-danger" title="O&#39;chirish"><i class="bx bx-trash"></i></a>';
+                                html += '<a href="' + editUrl + r.id + '" class="btn btn-sm btn-outline-warning" title="@L.T("Edit")"><i class="bx bx-edit"></i></a> '
+                                    + (r.closed ? '' : '<a href="#" data-post-url="' + cancelUrl + r.id + '" data-confirm="@L.T("Task_ConfirmCancel")" class="btn btn-sm btn-outline-secondary" title="@L.T("Cancel")"><i class="bx bx-x-circle"></i></a> ')
+                                    + '<a href="#" data-post-url="' + deleteUrl + r.id + '" data-confirm="@L.T("Task_ConfirmDelete")" class="btn btn-sm btn-outline-danger" title="@L.T("Delete")"><i class="bx bx-trash"></i></a>';
                             }
                             return html;
                         }

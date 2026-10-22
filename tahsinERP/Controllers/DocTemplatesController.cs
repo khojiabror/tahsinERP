@@ -11,6 +11,7 @@ using tahsinERP.Models;
 using tahsinERP.Services;
 using tahsinERP.Services.Common;
 using tahsinERP.Services.Documents;
+using tahsinERP.I18n;
 
 namespace tahsinERP.Controllers
 {
@@ -71,11 +72,11 @@ namespace tahsinERP.Controllers
                 return NotAuthorized();
 
             if (file == null || file.ContentLength == 0)
-                return Back(docType, error: "Fayl tanlanmagan.");
+                return Back(docType, error: L.T("Doc_NoFileSelected"));
             if (!string.Equals(Path.GetExtension(file.FileName), ".docx", StringComparison.OrdinalIgnoreCase))
-                return Back(docType, error: "Faqat Word (.docx) fayl yuklash mumkin. Eski .doc faylni Word'da .docx qilib saqlang.");
+                return Back(docType, error: L.T("Doc_OnlyDocx"));
             if (file.ContentLength > MaxTemplateBytes)
-                return Back(docType, error: "Fayl hajmi 10 MB dan oshmasligi kerak.");
+                return Back(docType, error: L.T("Doc_FileMax10Mb"));
 
             byte[] content;
             using (var ms = new MemoryStream())
@@ -119,15 +120,15 @@ namespace tahsinERP.Controllers
                 LogHelper.LogToDatabase(CurrentUserName, "DocTemplates", "Upload", $"Shablon yuklandi: {template.TemplateCode} ({docType})");
             }
 
-            string message = $"Shablon \"{displayName}\" yuklandi.";
+            string message = L.T("Doc_TemplateUploaded", displayName);
             if (DocPlaceholders.For(docType).Count > 0)
             {
                 message += scan.Recognized.Count > 0
-                    ? " Tanilgan maydonlar: " + string.Join(", ", scan.Recognized) + "."
-                    : " Diqqat: shablonda birorta ham maydon ({{...}}) topilmadi — hujjat o'zgarishsiz chiqadi.";
+                    ? " " + L.T("Doc_RecognizedFields", string.Join(", ", scan.Recognized))
+                    : " " + L.T("Doc_NoFieldsFound");
             }
             string warning = scan.Unknown.Count > 0
-                ? "Tanilmagan maydonlar (hujjatda o'zgarishsiz qoladi): " + string.Join(", ", scan.Unknown.Select(u => "{{" + u + "}}")) + ". Pastdagi ro'yxatdan to'g'ri nomni tanlang."
+                ? L.T("Doc_UnknownFields", string.Join(", ", scan.Unknown.Select(u => "{{" + u + "}}")))
                 : null;
             return Back(docType, success: message, warning: warning);
         }
@@ -179,7 +180,7 @@ namespace tahsinERP.Controllers
                 DocumentTemplateService.InvalidateTemplate(id);
 
                 LogHelper.LogToDatabase(CurrentUserName, "DocTemplates", "ToggleActive", $"Shablon {t.TemplateCode}: {(t.IsActive ? "faollashtirildi" : "arxivlandi")}");
-                return Back(docType, success: t.IsActive ? "Shablon faollashtirildi." : "Shablon arxivlandi — hujjat yaratishda tanlanmaydi.");
+                return Back(docType, success: t.IsActive ? L.T("Doc_TemplateActivated") : L.T("Doc_TemplateArchived"));
             }
         }
 
@@ -198,7 +199,7 @@ namespace tahsinERP.Controllers
                     return NotAuthorized();
 
                 if (await db.DOC_DOCUMENTS.AnyAsync(d => d.TemplateID == id))
-                    return Back(docType, error: "Bu shablon bilan hujjatlar yaratilgan — o'chirib bo'lmaydi, arxivlang.");
+                    return Back(docType, error: L.T("Doc_TemplateInUse"));
 
                 string code = t.TemplateCode;
                 db.DOC_TEMPLATES.Remove(t);
@@ -206,7 +207,7 @@ namespace tahsinERP.Controllers
                 DocumentTemplateService.InvalidateTemplate(id);
 
                 LogHelper.LogToDatabase(CurrentUserName, "DocTemplates", "Delete", $"Shablon o'chirildi: {code}");
-                return Back(docType, success: "Shablon o'chirildi.");
+                return Back(docType, success: L.T("Doc_TemplateDeleted"));
             }
         }
 
@@ -221,7 +222,7 @@ namespace tahsinERP.Controllers
 
             string path = Server.MapPath(LegacyStandardTemplatePath);
             if (!System.IO.File.Exists(path))
-                return Back(docType, error: "Papkada eski shablon fayli topilmadi.");
+                return Back(docType, error: L.T("Doc_LegacyTemplateMissing"));
 
             using (var db = new DBTHSNEntities())
             using (var tx = db.Database.BeginTransaction())
@@ -245,7 +246,7 @@ namespace tahsinERP.Controllers
             }
 
             LogHelper.LogToDatabase(CurrentUserName, "DocTemplates", "ImportLegacy", "Standart shabloni papkadan bazaga ko'chirildi");
-            return Back(docType, success: "Shablon bazaga ko'chirildi.");
+            return Back(docType, success: L.T("Doc_TemplateMigrated"));
         }
 
         private ActionResult Back(string docType, string success = null, string error = null, string warning = null)

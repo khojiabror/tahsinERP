@@ -11391,4 +11391,2722 @@
   <data name="Hr_EmployeeNotFound" xml:space="preserve">
     <value>Сотрудник не найден</value>
   </data>
+  <data name="Core_LoginPageTitle" xml:space="preserve">
+    <value>Страница входа</value>
+  </data>
+  <data name="Core_LoginSystemTitle" xml:space="preserve">
+    <value>Система tahsinERP</value>
+  </data>
+  <data name="Core_LoginWelcome" xml:space="preserve">
+    <value>Добро пожаловать!</value>
+  </data>
+  <data name="Core_UserNameUpper" xml:space="preserve">
+    <value>ИМЯ ПОЛЬЗОВАТЕЛЯ</value>
+  </data>
+  <data name="Core_UserName" xml:space="preserve">
+    <value>Имя пользователя</value>
+  </data>
+  <data name="Core_PasswordUpper" xml:space="preserve">
+    <value>ПАРОЛЬ</value>
+  </data>
+  <data name="Core_PasswordPlaceholder" xml:space="preserve">
+    <value>Пароль</value>
+  </data>
+  <data name="Core_KeepMeSigned" xml:space="preserve">
+    <value>Оставаться в системе (1 час)</value>
+  </data>
+  <data name="Core_AccountSettings" xml:space="preserve">
+    <value>Настройки учётной записи</value>
+  </data>
+  <data name="Core_Pages" xml:space="preserve">
+    <value>Страницы</value>
+  </data>
+  <data name="Core_ProfileImage" xml:space="preserve">
+    <value>Фото профиля</value>
+  </data>
+  <data name="Core_UploadNewPhoto" xml:space="preserve">
+    <value>Загрузить новое фото</value>
+  </data>
+  <data name="Core_UserFullName" xml:space="preserve">
+    <value>Ф.И.О. пользователя</value>
+  </data>
+  <data name="Core_FullNameShort" xml:space="preserve">
+    <value>ФИО</value>
+  </data>
+  <data name="Core_CurrentPassword" xml:space="preserve">
+    <value>Текущий пароль</value>
+  </data>
+  <data name="Core_NewPassword" xml:space="preserve">
+    <value>Новый пароль</value>
+  </data>
+  <data name="Core_LeaveEmptyToKeep" xml:space="preserve">
+    <value>Оставьте пустым, чтобы не менять</value>
+  </data>
+  <data name="Core_ConfirmNewPassword" xml:space="preserve">
+    <value>Повторите новый пароль</value>
+  </data>
+  <data name="Core_EnterUserName" xml:space="preserve">
+    <value>Введите имя пользователя</value>
+  </data>
+  <data name="Core_EnterPassword" xml:space="preserve">
+    <value>Введите пароль</value>
+  </data>
+  <data name="Core_TooManyAttempts" xml:space="preserve">
+    <value>Слишком много неудачных попыток. Повторите через {0} мин.</value>
+  </data>
+  <data name="Core_UserNotExists" xml:space="preserve">
+    <value>Такой пользователь не существует!</value>
+  </data>
+  <data name="Core_UserInactive" xml:space="preserve">
+    <value>Пользователь неактивен. Обратитесь к администратору.</value>
+  </data>
+  <data name="Core_WrongPasswordLocked" xml:space="preserve">
+    <value>Неверный пароль! Ошибок: {0} — вход заблокирован на {1} мин.</value>
+  </data>
+  <data name="Core_WrongPassword" xml:space="preserve">
+    <value>Неверный пароль!</value>
+  </data>
+  <data name="Core_LicenseCheckError" xml:space="preserve">
+    <value>Ошибка при проверке лицензии. Обратитесь к администратору.</value>
+  </data>
+  <data name="Core_TempPasswordLogin" xml:space="preserve">
+    <value>Вы вошли с временным паролем. Чтобы продолжить, задайте новый пароль.</value>
+  </data>
+  <data name="Core_CurrentPasswordWrong" xml:space="preserve">
+    <value>Текущий пароль неверен.</value>
+  </data>
+  <data name="Core_ChangeTempPassword" xml:space="preserve">
+    <value>Смените временный пароль: введите новый (другой) пароль.</value>
+  </data>
+  <data name="Core_PasswordMismatch" xml:space="preserve">
+    <value>Новый пароль и его повтор не совпадают.</value>
+  </data>
+  <data name="Core_PhotoTooLarge" xml:space="preserve">
+    <value>Не удалось загрузить фото: размер превышает 2 МБ.</value>
+  </data>
+  <data name="Core_SaveRetryFailed" xml:space="preserve">
+    <value>Не удалось сохранить изменения. Повторите попытку.</value>
+  </data>
+  <data name="Core_ErrorWithMessage" xml:space="preserve">
+    <value>Произошла ошибка: {0}</value>
+  </data>
+  <data name="Core_ActiveCount" xml:space="preserve">
+    <value>активных: {0}</value>
+  </data>
+  <data name="Core_InactiveCount" xml:space="preserve">
+    <value>неактивных: {0}</value>
+  </data>
+  <data name="Core_ModulesCount" xml:space="preserve">
+    <value>модулей: {0}</value>
+  </data>
+  <data name="Core_TodayEntries" xml:space="preserve">
+    <value>Входы за сегодня</value>
+  </data>
+  <data name="Core_TotalWithValue" xml:space="preserve">
+    <value>Всего: {0}</value>
+  </data>
+  <data name="Core_TodayLogs" xml:space="preserve">
+    <value>Журнал за сегодня</value>
+  </data>
+  <data name="Core_WeeklyWithValue" xml:space="preserve">
+    <value>За неделю: {0}</value>
+  </data>
+  <data name="Core_RecentEntries" xml:space="preserve">
+    <value>Последние входы в систему</value>
+  </data>
+  <data name="Core_User" xml:space="preserve">
+    <value>Пользователь</value>
+  </data>
+  <data name="Core_Unknown" xml:space="preserve">
+    <value>Неизвестно</value>
+  </data>
+  <data name="Core_RecentActions" xml:space="preserve">
+    <value>Последние действия</value>
+  </data>
+  <data name="Core_Action" xml:space="preserve">
+    <value>Действие</value>
+  </data>
+  <data name="Core_FullName" xml:space="preserve">
+    <value>Ф.И.О.</value>
+  </data>
+  <data name="Core_Role" xml:space="preserve">
+    <value>Роль</value>
+  </data>
+  <data name="Core_RolesAndPermissions" xml:space="preserve">
+    <value>Роли и права</value>
+  </data>
+  <data name="Core_Manage" xml:space="preserve">
+    <value>Управлять</value>
+  </data>
+  <data name="Core_RoleName" xml:space="preserve">
+    <value>Название роли</value>
+  </data>
+  <data name="Core_PermissionsCount" xml:space="preserve">
+    <value>Количество прав</value>
+  </data>
+  <data name="Core_PermissionsCountValue" xml:space="preserve">
+    <value>прав: {0}</value>
+  </data>
+  <data name="Core_QuickActions" xml:space="preserve">
+    <value>Быстрые действия</value>
+  </data>
+  <data name="Core_Logs" xml:space="preserve">
+    <value>Журналы</value>
+  </data>
+  <data name="Core_ModuleNotFound" xml:space="preserve">
+    <value>Модуль не найден.</value>
+  </data>
+  <data name="Core_DelNotRecoverable" xml:space="preserve">
+    <value>Документ этого типа нельзя восстановить: он влияет на складские остатки или финансовые записи. Введите документ заново.</value>
+  </data>
+  <data name="Core_DelRecovered" xml:space="preserve">
+    <value>Запись успешно восстановлена.</value>
+  </data>
+  <data name="Core_DelRecoverError" xml:space="preserve">
+    <value>Ошибка при восстановлении.</value>
+  </data>
+  <data name="Core_ErrorShort" xml:space="preserve">
+    <value>Ошибка: {0}</value>
+  </data>
+  <data name="Core_ErrorPrefix" xml:space="preserve">
+    <value>Ошибка:</value>
+  </data>
+  <data name="Core_DelRestoreTitle" xml:space="preserve">
+    <value>Восстановление удалённых данных</value>
+  </data>
+  <data name="Core_SelectModule" xml:space="preserve">
+    <value>Выберите модуль</value>
+  </data>
+  <data name="Core_SearchOrSelectModule" xml:space="preserve">
+    <value>Найдите или выберите модуль</value>
+  </data>
+  <data name="Core_Searching" xml:space="preserve">
+    <value>Поиск...</value>
+  </data>
+  <data name="Core_Load" xml:space="preserve">
+    <value>Загрузить</value>
+  </data>
+  <data name="Core_DelEmptyHint" xml:space="preserve">
+    <value>Выберите модуль и нажмите «Загрузить»</value>
+  </data>
+  <data name="Core_DelConfirmRestore" xml:space="preserve">
+    <value>Подтвердить восстановление?</value>
+  </data>
+  <data name="Core_Restore" xml:space="preserve">
+    <value>Восстановить</value>
+  </data>
+  <data name="Core_DelNoRecords" xml:space="preserve">
+    <value>Удалённые записи не найдены</value>
+  </data>
+  <data name="Core_DelCol_Main" xml:space="preserve">
+    <value>Основное</value>
+  </data>
+  <data name="Core_DelCol_RequisitionNo" xml:space="preserve">
+    <value>№ заявки</value>
+  </data>
+  <data name="Core_DelCol_DecreeNo" xml:space="preserve">
+    <value>№ приказа</value>
+  </data>
+  <data name="Core_DelCol_OrderNo" xml:space="preserve">
+    <value>№ заказа</value>
+  </data>
+  <data name="Core_DelCol_DocNo" xml:space="preserve">
+    <value>№ документа</value>
+  </data>
+  <data name="Core_DelCol_InvoiceNo" xml:space="preserve">
+    <value>№ инвойса</value>
+  </data>
+  <data name="Core_DelCol_PersonName" xml:space="preserve">
+    <value>Имя</value>
+  </data>
+  <data name="Core_DelCol_Company" xml:space="preserve">
+    <value>Компания</value>
+  </data>
+  <data name="Core_DelCol_ProductCode" xml:space="preserve">
+    <value>Код продукта</value>
+  </data>
+  <data name="Core_DelCol_Purpose" xml:space="preserve">
+    <value>Назначение</value>
+  </data>
+  <data name="Core_DelCol_Topic" xml:space="preserve">
+    <value>Тема</value>
+  </data>
+  <data name="Core_DelCol_Product" xml:space="preserve">
+    <value>Продукт</value>
+  </data>
+  <data name="Core_DelCol_DefectType" xml:space="preserve">
+    <value>Вид дефекта</value>
+  </data>
+  <data name="Core_DelCol_From" xml:space="preserve">
+    <value>Откуда</value>
+  </data>
+  <data name="Core_DelCol_To" xml:space="preserve">
+    <value>Куда</value>
+  </data>
+  <data name="Core_DelCol_Short" xml:space="preserve">
+    <value>Краткое</value>
+  </data>
+  <data name="Core_DelCol_ShortName" xml:space="preserve">
+    <value>Сокращение</value>
+  </data>
+  <data name="Core_DelCol_Title" xml:space="preserve">
+    <value>Заголовок</value>
+  </data>
+  <data name="Core_DelCol_ContractNo" xml:space="preserve">
+    <value>№ договора</value>
+  </data>
+  <data name="Core_DelCol_TabNo" xml:space="preserve">
+    <value>Табельный №</value>
+  </data>
+  <data name="Core_DelCol_Full" xml:space="preserve">
+    <value>Полное</value>
+  </data>
+  <data name="Core_DelCol_TransportType" xml:space="preserve">
+    <value>Вид транспорта</value>
+  </data>
+  <data name="Core_DelCol_Waybill" xml:space="preserve">
+    <value>Путевой лист</value>
+  </data>
+  <data name="Core_DelMod_FWaybills" xml:space="preserve">
+    <value>Путевые листы</value>
+  </data>
+  <data name="Core_DelMod_FWaybillPayments" xml:space="preserve">
+    <value>Оплаты путевых листов</value>
+  </data>
+  <data name="Core_DelMod_FContracts" xml:space="preserve">
+    <value>Договоры логистики</value>
+  </data>
+  <data name="Core_DelMod_Forwarder" xml:space="preserve">
+    <value>Перевозчики</value>
+  </data>
+  <data name="Core_DelMod_Customer" xml:space="preserve">
+    <value>Покупатели</value>
+  </data>
+  <data name="Core_DelMod_CustomerBase" xml:space="preserve">
+    <value>Справочник покупателей</value>
+  </data>
+  <data name="Core_DelMod_SOrders" xml:space="preserve">
+    <value>Заказы на продажу</value>
+  </data>
+  <data name="Core_DelMod_SContracts" xml:space="preserve">
+    <value>Договоры продажи</value>
+  </data>
+  <data name="Core_DelMod_Supplier" xml:space="preserve">
+    <value>Поставщики</value>
+  </data>
+  <data name="Core_DelMod_SupplierBase" xml:space="preserve">
+    <value>Справочник поставщиков</value>
+  </data>
+  <data name="Core_DelMod_POrders" xml:space="preserve">
+    <value>Заказы на закупку</value>
+  </data>
+  <data name="Core_DelMod_PContracts" xml:space="preserve">
+    <value>Договоры закупки</value>
+  </data>
+  <data name="Core_DelMod_PInvoices" xml:space="preserve">
+    <value>Инвойсы закупки</value>
+  </data>
+  <data name="Core_DelMod_PRequisitions" xml:space="preserve">
+    <value>Заявки на закупку</value>
+  </data>
+  <data name="Core_DelMod_Product" xml:space="preserve">
+    <value>Продукты</value>
+  </data>
+  <data name="Core_DelMod_Productplan" xml:space="preserve">
+    <value>Планы производства</value>
+  </data>
+  <data name="Core_DelMod_Productionprocess" xml:space="preserve">
+    <value>Производственные процессы</value>
+  </data>
+  <data name="Core_DelMod_DamagedProducts" xml:space="preserve">
+    <value>Бракованная продукция</value>
+  </data>
+  <data name="Core_DelMod_DefectTypes" xml:space="preserve">
+    <value>Виды дефектов</value>
+  </data>
+  <data name="Core_DelMod_Shop" xml:space="preserve">
+    <value>Цеха</value>
+  </data>
+  <data name="Core_DelMod_Tannarx" xml:space="preserve">
+    <value>Себестоимость</value>
+  </data>
+  <data name="Core_DelMod_FinTransactions" xml:space="preserve">
+    <value>Транзакции</value>
+  </data>
+  <data name="Core_DelMod_FinAccounts" xml:space="preserve">
+    <value>Финансовые счета</value>
+  </data>
+  <data name="Core_DelMod_FinCategories" xml:space="preserve">
+    <value>Финансовые категории</value>
+  </data>
+  <data name="Core_DelMod_FinBalanceCategories" xml:space="preserve">
+    <value>Категории баланса</value>
+  </data>
+  <data name="Core_DelMod_FinPlPlans" xml:space="preserve">
+    <value>Планы P&amp;L</value>
+  </data>
+  <data name="Core_DelMod_FinPlItems" xml:space="preserve">
+    <value>Статьи P&amp;L</value>
+  </data>
+  <data name="Core_DelMod_Shareholder" xml:space="preserve">
+    <value>Акционеры</value>
+  </data>
+  <data name="Core_DelMod_Unit" xml:space="preserve">
+    <value>Единицы измерения</value>
+  </data>
+  <data name="Core_DelMod_Currency" xml:space="preserve">
+    <value>Валюты</value>
+  </data>
+  <data name="Core_DelMod_Warehouse" xml:space="preserve">
+    <value>Склады</value>
+  </data>
+  <data name="Core_DelMod_ProductCategories" xml:space="preserve">
+    <value>Категории продуктов</value>
+  </data>
+  <data name="Core_DelMod_User" xml:space="preserve">
+    <value>Пользователи</value>
+  </data>
+  <data name="Core_DelMod_Role" xml:space="preserve">
+    <value>Роли</value>
+  </data>
+  <data name="Core_DelMod_AppTasks" xml:space="preserve">
+    <value>Задачи</value>
+  </data>
+  <data name="Core_DelMod_AppTaskProjects" xml:space="preserve">
+    <value>Проекты задач</value>
+  </data>
+  <data name="Core_DelMod_AppTaskStatusRef" xml:space="preserve">
+    <value>Статусы задач</value>
+  </data>
+  <data name="Core_DelMod_AppTaskPriorityRef" xml:space="preserve">
+    <value>Приоритеты задач</value>
+  </data>
+  <data name="Core_DelMod_StdCompanyStandards" xml:space="preserve">
+    <value>Стандарты предприятия</value>
+  </data>
+  <data name="Core_DelMod_JobDesc" xml:space="preserve">
+    <value>Должностные инструкции</value>
+  </data>
+  <data name="Core_DelMod_AdmCompanyOrders" xml:space="preserve">
+    <value>Приказы компании</value>
+  </data>
+  <data name="Core_DelMod_ComOfficialLetters" xml:space="preserve">
+    <value>Официальные письма</value>
+  </data>
+  <data name="Core_DelMod_Normversion" xml:space="preserve">
+    <value>Версии норм</value>
+  </data>
+  <data name="Core_DelMod_Waste" xml:space="preserve">
+    <value>Отходы</value>
+  </data>
+  <data name="Core_DelMod_HrEmployees" xml:space="preserve">
+    <value>Сотрудники</value>
+  </data>
+  <data name="Core_DelMod_HrPositions" xml:space="preserve">
+    <value>Должности</value>
+  </data>
+  <data name="Core_DelMod_HrOrgUnits" xml:space="preserve">
+    <value>Организационные единицы</value>
+  </data>
+  <data name="Core_DelMod_HrSalaryGrades" xml:space="preserve">
+    <value>Тарифы заработной платы</value>
+  </data>
+  <data name="Core_DelMod_HrStaffingPlan" xml:space="preserve">
+    <value>Штатное расписание</value>
+  </data>
+  <data name="Core_DelMod_HrPieceRateTariffs" xml:space="preserve">
+    <value>Сдельные тарифы</value>
+  </data>
+  <data name="Core_DelMod_FTransportTypes" xml:space="preserve">
+    <value>Виды транспорта</value>
+  </data>
+  <data name="Core_DelMod_Expenses" xml:space="preserve">
+    <value>Расходы склада</value>
+  </data>
+  <data name="Core_DelMod_Incomes" xml:space="preserve">
+    <value>Приходы склада</value>
+  </data>
+  <data name="Core_DelMod_ProductProduction" xml:space="preserve">
+    <value>Производство</value>
+  </data>
+  <data name="Core_BackToHome" xml:space="preserve">
+    <value>Вернуться на главную</value>
+  </data>
+  <data name="Core_UnexpectedError" xml:space="preserve">
+    <value>Произошла непредвиденная ошибка</value>
+  </data>
+  <data name="Core_ServerErrorText" xml:space="preserve">
+    <value>При обработке запроса произошла ошибка сервера. Повторите попытку позже или обратитесь к системному администратору.</value>
+  </data>
+  <data name="Core_ErrorDetails" xml:space="preserve">
+    <value>Текст ошибки:</value>
+  </data>
+  <data name="Core_PageNotFound" xml:space="preserve">
+    <value>Страница не найдена</value>
+  </data>
+  <data name="Core_NotFoundText" xml:space="preserve">
+    <value>Запрошенная страница не существует или была перемещена. Проверьте URL-адрес или продолжите с главной страницы.</value>
+  </data>
+  <data name="Core_NotAuthorizedTitle" xml:space="preserve">
+    <value>У вас нет доступа!</value>
+  </data>
+  <data name="Core_NotAuthorizedText" xml:space="preserve">
+    <value>У вас нет прав на просмотр этого раздела или страницы. Чтобы выяснить причину или решить проблему, обратитесь к системному администратору.</value>
+  </data>
+  <data name="Core_ContactAdmin" xml:space="preserve">
+    <value>Связаться с администратором</value>
+  </data>
+  <data name="Core_ComingSoon" xml:space="preserve">
+    <value>Скоро запуск</value>
+  </data>
+  <data name="Core_InsightLowConversion" xml:space="preserve">
+    <value>Низкая конверсия продаж. Необходимо усилить процесс «договор -&gt; заказ».</value>
+  </data>
+  <data name="Core_InsightSlowFulfillment" xml:space="preserve">
+    <value>Заказы выполняются медленно. Узкое место в выставлении счетов и логистике.</value>
+  </data>
+  <data name="Core_InsightLowProduction" xml:space="preserve">
+    <value>Выполнение плана производства ниже нормы.</value>
+  </data>
+  <data name="Core_InsightDohLow" xml:space="preserve">
+    <value>DOH очень низкий. Есть риск дефицита запасов.</value>
+  </data>
+  <data name="Core_InsightDohHigh" xml:space="preserve">
+    <value>DOH высокий. Оборачиваемость запасов низкая.</value>
+  </data>
+  <data name="Core_InsightOverdueTasks" xml:space="preserve">
+    <value>Есть просроченные задачи, усильте контроль исполнения.</value>
+  </data>
+  <data name="Core_InsightAllGood" xml:space="preserve">
+    <value>Основные KPI под контролем. Текущий тренд стабилен.</value>
+  </data>
+  <data name="Core_DashboardLoadError" xml:space="preserve">
+    <value>Ошибка при получении данных дашборда.</value>
+  </data>
+  <data name="Core_HomeTitle" xml:space="preserve">
+    <value>Главная - Дашборд</value>
+  </data>
+  <data name="Core_ExecPanelTitle" xml:space="preserve">
+    <value>Панель контроля руководства</value>
+  </data>
+  <data name="Core_ExecPanelSubtitle" xml:space="preserve">
+    <value>Конверсия, исполнение, риски запасов и выполнение задач на одном экране</value>
+  </data>
+  <data name="Core_AllWarehousesRaw" xml:space="preserve">
+    <value>Все склады (сырьё)</value>
+  </data>
+  <data name="Core_KpiMonthlyConversion" xml:space="preserve">
+    <value>Месячная конверсия продаж</value>
+  </data>
+  <data name="Core_KpiContractToOrder" xml:space="preserve">
+    <value>Договор -&gt; Заказ</value>
+  </data>
+  <data name="Core_KpiSalesFulfillment" xml:space="preserve">
+    <value>Выполнение заказов на продажу</value>
+  </data>
+  <data name="Core_KpiOrderToInvoice" xml:space="preserve">
+    <value>Заказ -&gt; Счёт-фактура</value>
+  </data>
+  <data name="Core_KpiProductionExec" xml:space="preserve">
+    <value>Выполнение производства</value>
+  </data>
+  <data name="Core_KpiPlanToActual" xml:space="preserve">
+    <value>План -&gt; Факт</value>
+  </data>
+  <data name="Core_KpiTasksExec" xml:space="preserve">
+    <value>Выполнение задач</value>
+  </data>
+  <data name="Core_KpiDone" xml:space="preserve">
+    <value>выполнено</value>
+  </data>
+  <data name="Core_KpiDoh" xml:space="preserve">
+    <value>DOH (дни запаса)</value>
+  </data>
+  <data name="Core_DaysValue" xml:space="preserve">
+    <value>{0} дн.</value>
+  </data>
+  <data name="Core_KpiCoverageDays" xml:space="preserve">
+    <value>Покрытие (дни)</value>
+  </data>
+  <data name="Core_KpiSalesOrders" xml:space="preserve">
+    <value>Заказы на продажу</value>
+  </data>
+  <data name="Core_KpiInvoiceVolume" xml:space="preserve">
+    <value>Объём счетов-фактур</value>
+  </data>
+  <data name="Core_ChartSalesTrend" xml:space="preserve">
+    <value>Тренд конверсии продаж</value>
+  </data>
+  <data name="Core_ChartProductionTrend" xml:space="preserve">
+    <value>Производство: тренд плана и факта</value>
+  </data>
+  <data name="Core_ChartCoverageRisk" xml:space="preserve">
+    <value>Риск DOH / покрытия (по SKU)</value>
+  </data>
+  <data name="Core_ChartExecutionKpi" xml:space="preserve">
+    <value>KPI выполнения заказов и производства</value>
+  </data>
+  <data name="Core_SignalPanel" xml:space="preserve">
+    <value>Панель управленческих сигналов</value>
+  </data>
+  <data name="Core_NoSignal" xml:space="preserve">
+    <value>Сигналов нет</value>
+  </data>
+  <data name="Core_SeriesOrder" xml:space="preserve">
+    <value>Заказ</value>
+  </data>
+  <data name="Core_SeriesInvoice" xml:space="preserve">
+    <value>Счёт-фактура</value>
+  </data>
+  <data name="Core_SeriesPlanQty" xml:space="preserve">
+    <value>Плановое количество</value>
+  </data>
+  <data name="Core_SeriesActualQty" xml:space="preserve">
+    <value>Фактическое количество</value>
+  </data>
+  <data name="Core_StockLabel" xml:space="preserve">
+    <value>Запас</value>
+  </data>
+  <data name="Core_DailyDemand" xml:space="preserve">
+    <value>Суточный спрос</value>
+  </data>
+  <data name="Core_OrderExec" xml:space="preserve">
+    <value>Выполнение заказов</value>
+  </data>
+  <data name="Core_TaskExec" xml:space="preserve">
+    <value>Выполнение задач</value>
+  </data>
+  <data name="Core_AvgControl" xml:space="preserve">
+    <value>Средний показатель</value>
+  </data>
+  <data name="Core_WarehouseN" xml:space="preserve">
+    <value>Склад №{0}</value>
+  </data>
+  <data name="Core_DataNotLoaded" xml:space="preserve">
+    <value>Данные не загружены</value>
+  </data>
+  <data name="Core_ExecPanelNotLoaded" xml:space="preserve">
+    <value>Панель руководства не загружена</value>
+  </data>
+  <data name="Core_LicCompanyStatus" xml:space="preserve">
+    <value>Статус лицензии компании</value>
+  </data>
+  <data name="Core_LicInvalidKey" xml:space="preserve">
+    <value>Недействительный ключ.</value>
+  </data>
+  <data name="Core_LicOtherInstallation" xml:space="preserve">
+    <value>Другая установка</value>
+  </data>
+  <data name="Core_LicBlockedClock" xml:space="preserve">
+    <value>Заблокировано (часы)</value>
+  </data>
+  <data name="Core_LicReadOnly" xml:space="preserve">
+    <value>Только чтение</value>
+  </data>
+  <data name="Core_LicExpired" xml:space="preserve">
+    <value>Срок истёк</value>
+  </data>
+  <data name="Core_LicNotStarted" xml:space="preserve">
+    <value>Не начался</value>
+  </data>
+  <data name="Core_LicPlan" xml:space="preserve">
+    <value>Тариф</value>
+  </data>
+  <data name="Core_LicDaysLeft" xml:space="preserve">
+    <value>Осталось дней</value>
+  </data>
+  <data name="Core_LicStart" xml:space="preserve">
+    <value>Начало</value>
+  </data>
+  <data name="Core_LicEnd" xml:space="preserve">
+    <value>Окончание</value>
+  </data>
+  <data name="Core_LicSeatsUsedTotal" xml:space="preserve">
+    <value>Места (занято / всего)</value>
+  </data>
+  <data name="Core_LicReadOnlyMode" xml:space="preserve">
+    <value>Режим только чтения</value>
+  </data>
+  <data name="Core_LicUntilDate" xml:space="preserve">
+    <value>до {0}</value>
+  </data>
+  <data name="Core_LicKeyFormat" xml:space="preserve">
+    <value>Формат ключа</value>
+  </data>
+  <data name="Core_LicBoundToInstallation" xml:space="preserve">
+    <value>(привязан к установке)</value>
+  </data>
+  <data name="Core_LicOldFormat" xml:space="preserve">
+    <value>(старый — рекомендуется обновить)</value>
+  </data>
+  <data name="Core_LicClockControl" xml:space="preserve">
+    <value>Контроль времени:</value>
+  </data>
+  <data name="Core_LicInstallationIdHint" xml:space="preserve">
+    <value>ID установки (отправьте поставщику для получения нового ключа)</value>
+  </data>
+  <data name="Core_Copied" xml:space="preserve">
+    <value>Скопировано</value>
+  </data>
+  <data name="Core_Copy" xml:space="preserve">
+    <value>Копировать</value>
+  </data>
+  <data name="Core_LicActivateKey" xml:space="preserve">
+    <value>Активация ключа</value>
+  </data>
+  <data name="Core_LicPasteKey" xml:space="preserve">
+    <value>Вставьте лицензионный ключ сюда</value>
+  </data>
+  <data name="Core_LicActivate" xml:space="preserve">
+    <value>Активировать</value>
+  </data>
+  <data name="Core_LicCentralPanel" xml:space="preserve">
+    <value>Центральная панель</value>
+  </data>
+  <data name="Core_LicConnected" xml:space="preserve">
+    <value>Подключено</value>
+  </data>
+  <data name="Core_LicAutoRenew" xml:space="preserve">
+    <value>Ключ автоматически обновляется каждые 6 часов.</value>
+  </data>
+  <data name="Core_LicNotConnected" xml:space="preserve">
+    <value>Не подключено</value>
+  </data>
+  <data name="Core_LicTokenSaved" xml:space="preserve">
+    <value>Токен сохранён — можно ввести новый</value>
+  </data>
+  <data name="Core_LicRegToken" xml:space="preserve">
+    <value>Токен регистрации (reg_token)</value>
+  </data>
+  <data name="Core_LicConnectPanel" xml:space="preserve">
+    <value>Подключить к панели</value>
+  </data>
+  <data name="Core_LicCheckNow" xml:space="preserve">
+    <value>Проверить сейчас</value>
+  </data>
+  <data name="Core_LicLastCheck" xml:space="preserve">
+    <value>Последняя проверка:</value>
+  </data>
+  <data name="Core_LicOnlineCheck" xml:space="preserve">
+    <value>Онлайн-проверка:</value>
+  </data>
+  <data name="Core_LicOnlineRequired" xml:space="preserve">
+    <value>обязательна — ключ краткосрочный ({0} дн.), панель обновляет его автоматически</value>
+  </data>
+  <data name="Core_LicOnlineOptional" xml:space="preserve">
+    <value>необязательна — ключ действует до конца договора (не более 1 года) и работает без интернета</value>
+  </data>
+  <data name="Core_LicSeatManagement" xml:space="preserve">
+    <value>Управление местами сотрудников</value>
+  </data>
+  <data name="Core_LicBusy" xml:space="preserve">
+    <value>занято</value>
+  </data>
+  <data name="Core_Employee" xml:space="preserve">
+    <value>Сотрудник</value>
+  </data>
+  <data name="Core_LicSeat" xml:space="preserve">
+    <value>Место</value>
+  </data>
+  <data name="Core_LicTerm" xml:space="preserve">
+    <value>Срок</value>
+  </data>
+  <data name="Core_LicSeatEnded" xml:space="preserve">
+    <value>Истекло</value>
+  </data>
+  <data name="Core_LicAssignSeat" xml:space="preserve">
+    <value>Выдать место</value>
+  </data>
+  <data name="Core_LicExtend" xml:space="preserve">
+    <value>Продлить</value>
+  </data>
+  <data name="Core_LicConfirmRevoke" xml:space="preserve">
+    <value>Отозвать место?</value>
+  </data>
+  <data name="Core_LicRevoke" xml:space="preserve">
+    <value>Отозвать</value>
+  </data>
+  <data name="Core_LicHistory" xml:space="preserve">
+    <value>История лицензий</value>
+  </data>
+  <data name="Core_Who" xml:space="preserve">
+    <value>Кто</value>
+  </data>
+  <data name="Core_LicRestriction" xml:space="preserve">
+    <value>Ограничение лицензии</value>
+  </data>
+  <data name="Core_LicSystemBlocked" xml:space="preserve">
+    <value>Система временно заблокирована</value>
+  </data>
+  <data name="Core_LicInstallationIdSend" xml:space="preserve">
+    <value>ID установки (отправьте поставщику):</value>
+  </data>
+  <data name="Core_LicEnterNewKey" xml:space="preserve">
+    <value>Введите новый лицензионный ключ:</value>
+  </data>
+  <data name="Core_LicKey" xml:space="preserve">
+    <value>Лицензионный ключ</value>
+  </data>
+  <data name="Core_LicPage" xml:space="preserve">
+    <value>Страница лицензии</value>
+  </data>
+  <data name="Core_LicContactVendor" xml:space="preserve">
+    <value>Пожалуйста, обратитесь к администратору или поставщику.</value>
+  </data>
+  <data name="Core_LicNotInPlanTitle" xml:space="preserve">
+    <value>Нет в вашем пакете</value>
+  </data>
+  <data name="Core_LicNotInPlanHeader" xml:space="preserve">
+    <value>Нет в вашем пакете — повысьте тариф</value>
+  </data>
+  <data name="Core_LicModuleNotInEdition" xml:space="preserve">
+    <value>Модуль {0} не входит в текущий пакет {1}.</value>
+  </data>
+  <data name="Core_LicAddOnModule" xml:space="preserve">
+    <value>Этот модуль не входит в пакеты — подключается как отдельная услуга.</value>
+  </data>
+  <data name="Core_LicModuleInEdition" xml:space="preserve">
+    <value>Этот модуль доступен в пакете {0}.</value>
+  </data>
+  <data name="Core_LicLicenseAndPlan" xml:space="preserve">
+    <value>Лицензия и тариф</value>
+  </data>
+  <data name="Core_LicAskAdminUpgrade" xml:space="preserve">
+    <value>Для повышения тарифа обратитесь к администратору.</value>
+  </data>
+  <data name="Core_LicReadStateError" xml:space="preserve">
+    <value>Ошибка при чтении статуса лицензии. Проверьте, что выполнен Database_Migrations/Create_License_System.sql, или посмотрите системный журнал.</value>
+  </data>
+  <data name="Core_LicStateUnknown" xml:space="preserve">
+    <value>Статус не определён.</value>
+  </data>
+  <data name="Core_LicCompanyInvalid" xml:space="preserve">
+    <value>Лицензия компании недействительна или срок её действия истёк.</value>
+  </data>
+  <data name="Core_LicActivated" xml:space="preserve">
+    <value>Лицензия успешно активирована.</value>
+  </data>
+  <data name="Core_LicSeatAssigned" xml:space="preserve">
+    <value>Место выдано.</value>
+  </data>
+  <data name="Core_LicSeatExtended" xml:space="preserve">
+    <value>Срок продлён.</value>
+  </data>
+  <data name="Core_LicSeatRevoked" xml:space="preserve">
+    <value>Место отозвано.</value>
+  </data>
+  <data name="Core_LicNotFoundEnterKey" xml:space="preserve">
+    <value>Лицензия компании не найдена. Введите ключ.</value>
+  </data>
+  <data name="Core_LicSignatureInvalid" xml:space="preserve">
+    <value>Подпись лицензии недействительна (поддельная или повреждённая).</value>
+  </data>
+  <data name="Core_LicOnlineWarnRequired" xml:space="preserve">
+    <value>Нет связи с панелью лицензий уже {0} дн. Онлайн-проверка обязательна: без интернета ключ действует не более {1} дн., панель обновляет его автоматически — проверьте интернет на сервере.</value>
+  </data>
+  <data name="Core_LicOnlineWarnOptional" xml:space="preserve">
+    <value>Нет связи с панелью лицензий уже {0} дн. Ключ работает до окончания срока, но обновления (оплата, смена тарифа) не поступают — проверьте интернет или введите ключ вручную.</value>
+  </data>
+  <data name="Core_LicStampMissing" xml:space="preserve">
+    <value>Отметка времени лицензии не найдена (удалена из базы). Получите новый ключ у поставщика.</value>
+  </data>
+  <data name="Core_LicStampTampered" xml:space="preserve">
+    <value>Отметка времени лицензии повреждена (изменена вручную). Получите новый ключ у поставщика.</value>
+  </data>
+  <data name="Core_LicClockRolledBack" xml:space="preserve">
+    <value>Часы сервера переведены назад: текущее время {0}, последнее зафиксированное время {1}. Исправьте дату/время сервера.</value>
+  </data>
+  <data name="Core_LicNotFoundContactVendor" xml:space="preserve">
+    <value>Лицензия компании не найдена. Обратитесь к поставщику.</value>
+  </data>
+  <data name="Core_LicCompanySignatureInvalid" xml:space="preserve">
+    <value>Лицензия компании недействительна (подпись не совпадает). Обратитесь к поставщику.</value>
+  </data>
+  <data name="Core_LicOtherCompany" xml:space="preserve">
+    <value>Лицензия принадлежит другой компании.</value>
+  </data>
+  <data name="Core_LicOtherInstallationSendId" xml:space="preserve">
+    <value>Лицензия выпущена для другой установки. Отправьте поставщику ID этой установки: {0}</value>
+  </data>
+  <data name="Core_LicNotYetValid" xml:space="preserve">
+    <value>Лицензия ещё не вступила в силу (дата начала: {0}).</value>
+  </data>
+  <data name="Core_LicCompanyExpired" xml:space="preserve">
+    <value>Срок лицензии компании истёк ({0}). Обратитесь к поставщику.</value>
+  </data>
+  <data name="Core_LicGrace" xml:space="preserve">
+    <value>Срок лицензии истёк {0}. До {1} система работает в режиме только чтения — активируйте новый ключ.</value>
+  </data>
+  <data name="Core_LicExpiringSoon" xml:space="preserve">
+    <value>До окончания срока лицензии осталось дней: {0} ({1}).</value>
+  </data>
+  <data name="Core_LicActive" xml:space="preserve">
+    <value>Лицензия активна.</value>
+  </data>
+  <data name="Core_LicEnterKey" xml:space="preserve">
+    <value>Введите ключ.</value>
+  </data>
+  <data name="Core_LicKeyInvalid" xml:space="preserve">
+    <value>Ключ недействителен или поддельный (подпись не совпадает).</value>
+  </data>
+  <data name="Core_LicKeyOtherCompany" xml:space="preserve">
+    <value>Этот ключ принадлежит другой компании (CompanyID={0}).</value>
+  </data>
+  <data name="Core_LicV1NotAccepted" xml:space="preserve">
+    <value>Ключи старого формата (v1) больше не принимаются. Получите у поставщика новый ключ по ID установки: {0}</value>
+  </data>
+  <data name="Core_LicKeyOtherInstallation" xml:space="preserve">
+    <value>Этот ключ выпущен для другой установки. ID этой установки: {0}</value>
+  </data>
+  <data name="Core_LicStampBroken" xml:space="preserve">
+    <value>Отметка времени лицензии повреждена. Получите новый ключ у поставщика.</value>
+  </data>
+  <data name="Core_LicClockRolledBackActivate" xml:space="preserve">
+    <value>Часы сервера переведены назад (последнее зафиксированное время: {0}). Сначала исправьте дату/время.</value>
+  </data>
+  <data name="Core_LicKeyAlreadyExpired" xml:space="preserve">
+    <value>Срок действия этого ключа уже истёк ({0}).</value>
+  </data>
+  <data name="Core_LicCompanyNotFound" xml:space="preserve">
+    <value>Лицензия компании не найдена.</value>
+  </data>
+  <data name="Core_LicNoSeat" xml:space="preserve">
+    <value>Вам не выдана лицензия (место). Обратитесь к администратору.</value>
+  </data>
+  <data name="Core_LicSeatExpired" xml:space="preserve">
+    <value>Срок вашей лицензии истёк ({0}). Обратитесь к администратору.</value>
+  </data>
+  <data name="Core_LicActivateFirst" xml:space="preserve">
+    <value>Сначала активируйте действующую лицензию компании.</value>
+  </data>
+  <data name="Core_LicSeatAlreadyActive" xml:space="preserve">
+    <value>У этого сотрудника уже есть активное место.</value>
+  </data>
+  <data name="Core_LicAllSeatsBusy" xml:space="preserve">
+    <value>Все места заняты (всего: {0}). Получите дополнительные у поставщика.</value>
+  </data>
+  <data name="Core_LicNoValidCompany" xml:space="preserve">
+    <value>Нет действующей лицензии компании.</value>
+  </data>
+  <data name="Core_LicSeatNotFound" xml:space="preserve">
+    <value>Место не найдено.</value>
+  </data>
+  <data name="Core_LicSeatBeyondCompany" xml:space="preserve">
+    <value>Срок не должен превышать срок лицензии компании ({0}).</value>
+  </data>
+  <data name="Core_LicWriteBlocked" xml:space="preserve">
+    <value>Изменение данных временно недоступно.</value>
+  </data>
+  <data name="Core_EditionAddOnMessage" xml:space="preserve">
+    <value>«{0}» — отдельная услуга; для подключения обратитесь к поставщику.</value>
+  </data>
+  <data name="Core_EditionNotInPlanMessage" xml:space="preserve">
+    <value>Модуля «{0}» нет в вашем пакете — перейдите на пакет {1}.</value>
+  </data>
+  <data name="Core_SyncRegTokenInvalid" xml:space="preserve">
+    <value>Токен регистрации недействителен.</value>
+  </data>
+  <data name="Core_SyncDisabled" xml:space="preserve">
+    <value>Синхронизация с панелью отключена (LicensePanelUrl не задан).</value>
+  </data>
+  <data name="Core_SyncErrorPrefix" xml:space="preserve">
+    <value>ОШИБКА:</value>
+  </data>
+  <data name="Core_SyncNotConnected" xml:space="preserve">
+    <value>Нет подключения к панели: введите токен регистрации (reg_token).</value>
+  </data>
+  <data name="Core_SyncRegisterFailed" xml:space="preserve">
+    <value>Регистрация не выполнена: {0}</value>
+  </data>
+  <data name="Core_SyncKeyUnchanged" xml:space="preserve">
+    <value>Ключ не изменился.</value>
+  </data>
+  <data name="Core_SyncUnauthorized" xml:space="preserve">
+    <value>Панель отклонила запрос (подпись/часы): {0}</value>
+  </data>
+  <data name="Core_SyncNotFound" xml:space="preserve">
+    <value>Панель не распознаёт эту установку.</value>
+  </data>
+  <data name="Core_SyncRevoked" xml:space="preserve">
+    <value>Подписка в панели отменена.</value>
+  </data>
+  <data name="Core_SyncUnknownError" xml:space="preserve">
+    <value>Неизвестная ошибка.</value>
+  </data>
+  <data name="Core_SyncKeyActivated" xml:space="preserve">
+    <value>Новый ключ получен из панели и активирован.</value>
+  </data>
+  <data name="Core_SyncKeyRejected" xml:space="preserve">
+    <value>Ключ из панели отклонён: {0}</value>
+  </data>
+  <data name="Core_SyncTokenNotFound" xml:space="preserve">
+    <value>токен не найден или истёк.</value>
+  </data>
+  <data name="Core_SyncTokenUsed" xml:space="preserve">
+    <value>токен уже использован другой установкой.</value>
+  </data>
+  <data name="Core_LicBannerExpired" xml:space="preserve">
+    <value>Срок лицензии истёк</value>
+  </data>
+  <data name="Core_LicBannerExpiring" xml:space="preserve">
+    <value>Срок лицензии истекает</value>
+  </data>
+  <data name="Core_LicUpdateKey" xml:space="preserve">
+    <value>Обновить ключ</value>
+  </data>
+  <data name="Core_LicPanelNoConnection" xml:space="preserve">
+    <value>Нет связи с панелью лицензий</value>
+  </data>
+  <data name="Core_MessageWithCode" xml:space="preserve">
+    <value>{0} (код: {1})</value>
+  </data>
+  <data name="Core_RecordNotFound" xml:space="preserve">
+    <value>Запись не найдена.</value>
+  </data>
+  <data name="Core_DeleteErrorContactAdmin" xml:space="preserve">
+    <value>Ошибка при удалении данных. Повторите попытку; если проблема сохранится, обратитесь к системному администратору.</value>
+  </data>
+  <data name="Core_IpAddress" xml:space="preserve">
+    <value>IP-адрес</value>
+  </data>
+  <data name="Core_MacAddress" xml:space="preserve">
+    <value>MAC-адрес</value>
+  </data>
+  <data name="Core_FileSystemLogs" xml:space="preserve">
+    <value>Системный_журнал</value>
+  </data>
+  <data name="Core_Entries" xml:space="preserve">
+    <value>Входы</value>
+  </data>
+  <data name="Core_FileUserEntries" xml:space="preserve">
+    <value>Входы_пользователей</value>
+  </data>
+  <data name="Core_Filters" xml:space="preserve">
+    <value>Фильтры</value>
+  </data>
+  <data name="Core_AllUsers" xml:space="preserve">
+    <value>Все пользователи</value>
+  </data>
+  <data name="Core_From" xml:space="preserve">
+    <value>С</value>
+  </data>
+  <data name="Core_To" xml:space="preserve">
+    <value>По</value>
+  </data>
+  <data name="Core_AllFilteredRecords" xml:space="preserve">
+    <value>Все записи по фильтру</value>
+  </data>
+  <data name="Core_Time" xml:space="preserve">
+    <value>Время</value>
+  </data>
+  <data name="Core_Module" xml:space="preserve">
+    <value>Модуль</value>
+  </data>
+  <data name="Core_AllModules" xml:space="preserve">
+    <value>Все модули</value>
+  </data>
+  <data name="Core_UserEntriesTitle" xml:space="preserve">
+    <value>Входы пользователей</value>
+  </data>
+  <data name="Core_PmDefaultCreated" xml:space="preserve">
+    <value>Для {0} созданы 4 стандартных модуля прав</value>
+  </data>
+  <data name="Core_EmptyParen" xml:space="preserve">
+    <value>(пусто)</value>
+  </data>
+  <data name="Core_PmComboExistsDetails" xml:space="preserve">
+    <value>Такая комбинация модуля, контроллера и действия уже существует. Существующая: Module='{0}', Controller='{1}', Action='{2}'</value>
+  </data>
+  <data name="Core_PmControllerNotFound" xml:space="preserve">
+    <value>Имя контроллера не найдено.</value>
+  </data>
+  <data name="Core_PmControllerModulesExist" xml:space="preserve">
+    <value>Для этого контроллера модули прав уже существуют.</value>
+  </data>
+  <data name="Core_PmModuleNameRequired" xml:space="preserve">
+    <value>Необходимо ввести название модуля</value>
+  </data>
+  <data name="Core_PmControllerRequired" xml:space="preserve">
+    <value>Необходимо выбрать контроллер</value>
+  </data>
+  <data name="Core_PmComboExists" xml:space="preserve">
+    <value>Такая комбинация модуля, контроллера и действия уже существует</value>
+  </data>
+  <data name="Core_PmCreated" xml:space="preserve">
+    <value>Модуль прав успешно создан</value>
+  </data>
+  <data name="Core_PmUpdated" xml:space="preserve">
+    <value>Модуль прав успешно обновлён</value>
+  </data>
+  <data name="Core_PmDeleted" xml:space="preserve">
+    <value>Модуль прав успешно удалён</value>
+  </data>
+  <data name="Core_ConcurrencyError" xml:space="preserve">
+    <value>Данные были изменены или удалены другим пользователем. Повторите попытку.</value>
+  </data>
+  <data name="Core_SaveFailedContactAdmin" xml:space="preserve">
+    <value>Не удалось сохранить изменения. Повторите попытку; если проблема сохранится, обратитесь к системному администратору.</value>
+  </data>
+  <data name="Core_RoleNameRequired" xml:space="preserve">
+    <value>Необходимо ввести название роли</value>
+  </data>
+  <data name="Core_RoleNameExists" xml:space="preserve">
+    <value>Роль с таким названием уже существует</value>
+  </data>
+  <data name="Core_RoleUpdated" xml:space="preserve">
+    <value>Роль успешно обновлена</value>
+  </data>
+  <data name="Core_RoleDeleted" xml:space="preserve">
+    <value>Роль успешно удалена</value>
+  </data>
+  <data name="Core_DataNotFound" xml:space="preserve">
+    <value>Данные не найдены</value>
+  </data>
+  <data name="Core_RoleNotFound" xml:space="preserve">
+    <value>Роль не найдена</value>
+  </data>
+  <data name="Core_RoleCreated" xml:space="preserve">
+    <value>Роль «{0}» успешно создана</value>
+  </data>
+  <data name="Core_PermissionsSaved" xml:space="preserve">
+    <value>Права успешно сохранены (новых: {0}, обновлённых: {1})</value>
+  </data>
+  <data name="Core_DbError" xml:space="preserve">
+    <value>Ошибка базы данных: {0}</value>
+  </data>
+  <data name="Core_NoRole" xml:space="preserve">
+    <value>Нет роли</value>
+  </data>
+  <data name="Core_UserNameExists" xml:space="preserve">
+    <value>Такое имя пользователя уже существует.</value>
+  </data>
+  <data name="Core_DeveloperRoleFirstTime" xml:space="preserve">
+    <value>Роль «Developer» нельзя назначить при первом создании.</value>
+  </data>
+  <data name="Core_PhotoTooLargeContactAdmin" xml:space="preserve">
+    <value>Не удалось загрузить фото: размер превышает 2 МБ. Повторите попытку; если проблема сохранится, обратитесь к системному администратору.</value>
+  </data>
+  <data name="Core_UserAdded" xml:space="preserve">
+    <value>Пользователь успешно добавлен.</value>
+  </data>
+  <data name="Core_SaveFailedAdmin" xml:space="preserve">
+    <value>Не удалось сохранить изменения. Повторите попытку; если проблема сохранится, обратитесь к системному администратору.</value>
+  </data>
+  <data name="Core_UserUpdated" xml:space="preserve">
+    <value>Данные пользователя успешно обновлены.</value>
+  </data>
+  <data name="Core_UserDeleted" xml:space="preserve">
+    <value>Пользователь успешно удалён.</value>
+  </data>
+  <data name="Core_SectionNotFound" xml:space="preserve">
+    <value>Раздел не найден</value>
+  </data>
+  <data name="Core_RoleAddNew" xml:space="preserve">
+    <value>Добавление новой роли</value>
+  </data>
+  <data name="Core_RoleNew" xml:space="preserve">
+    <value>Новая роль</value>
+  </data>
+  <data name="Core_RoleNewData" xml:space="preserve">
+    <value>Данные новой роли</value>
+  </data>
+  <data name="Core_RoleNamePlaceholder" xml:space="preserve">
+    <value>Например: Manager, Admin, User</value>
+  </data>
+  <data name="Core_RoleNameUnique" xml:space="preserve">
+    <value>Название роли не должно повторяться</value>
+  </data>
+  <data name="Core_RoleDescPlaceholder" xml:space="preserve">
+    <value>Опишите, чем занимается сотрудник с этой ролью...</value>
+  </data>
+  <data name="Core_NoteLabel" xml:space="preserve">
+    <value>Примечание:</value>
+  </data>
+  <data name="Core_RoleCreateNote" xml:space="preserve">
+    <value>При создании роли для всех модулей автоматически создаются права по умолчанию (ViewPermit = true, ChangePermit = false). Позже их можно изменить на странице редактирования прав.</value>
+  </data>
+  <data name="Core_RoleDelete" xml:space="preserve">
+    <value>Удаление роли</value>
+  </data>
+  <data name="Core_Attention" xml:space="preserve">
+    <value>Внимание!</value>
+  </data>
+  <data name="Core_RoleDeleteConfirm" xml:space="preserve">
+    <value>Вы действительно хотите удалить эту роль?</value>
+  </data>
+  <data name="Core_RoleNameColon" xml:space="preserve">
+    <value>Название роли:</value>
+  </data>
+  <data name="Core_DescriptionColon" xml:space="preserve">
+    <value>Описание:</value>
+  </data>
+  <data name="Core_RoleUsersLeftWithout" xml:space="preserve">
+    <value>После удаления роли эти пользователи останутся без роли.</value>
+  </data>
+  <data name="Core_YesDelete" xml:space="preserve">
+    <value>Да, удалить</value>
+  </data>
+  <data name="Core_RoleEdit" xml:space="preserve">
+    <value>Редактирование роли</value>
+  </data>
+  <data name="Core_RoleData" xml:space="preserve">
+    <value>Данные роли</value>
+  </data>
+  <data name="Core_RoleDescPlaceholderShort" xml:space="preserve">
+    <value>Описание роли...</value>
+  </data>
+  <data name="Core_ManagePermissions" xml:space="preserve">
+    <value>Управление правами</value>
+  </data>
+  <data name="Core_RoleUsersCount" xml:space="preserve">
+    <value>Пользователей с этой ролью: {0}.</value>
+  </data>
+  <data name="Core_RolesList" xml:space="preserve">
+    <value>Список ролей</value>
+  </data>
+  <data name="Core_PermissionsCountColon" xml:space="preserve">
+    <value>Количество прав:</value>
+  </data>
+  <data name="Core_PermissionsList" xml:space="preserve">
+    <value>Список прав</value>
+  </data>
+  <data name="Core_CountTa" xml:space="preserve">
+    <value>{0} шт.</value>
+  </data>
+  <data name="Core_AllView" xml:space="preserve">
+    <value>Все View</value>
+  </data>
+  <data name="Core_AllChange" xml:space="preserve">
+    <value>Все Change</value>
+  </data>
+  <data name="Core_AllDelete" xml:space="preserve">
+    <value>Все Delete</value>
+  </data>
+  <data name="Core_UncheckAll" xml:space="preserve">
+    <value>Снять все</value>
+  </data>
+  <data name="Core_RolePermissionsFor" xml:space="preserve">
+    <value>Права для роли {0}</value>
+  </data>
+  <data name="Core_UserAddNew" xml:space="preserve">
+    <value>Добавление нового пользователя</value>
+  </data>
+  <data name="Core_UserNew" xml:space="preserve">
+    <value>Новый пользователь</value>
+  </data>
+  <data name="Core_FullNameLabel" xml:space="preserve">
+    <value>Полное Ф.И.О.</value>
+  </data>
+  <data name="Core_FullNamePlaceholder" xml:space="preserve">
+    <value>Имя, фамилия и отчество</value>
+  </data>
+  <data name="Core_UserPhotoLabel" xml:space="preserve">
+    <value>Фото пользователя</value>
+  </data>
+  <data name="Core_MaxSize2Mb" xml:space="preserve">
+    <value>Максимальный размер: 2 МБ</value>
+  </data>
+  <data name="Core_RoleLabel" xml:space="preserve">
+    <value>Роль</value>
+  </data>
+  <data name="Core_SelectRole" xml:space="preserve">
+    <value>Выберите роль</value>
+  </data>
+  <data name="Core_Activity" xml:space="preserve">
+    <value>Активность</value>
+  </data>
+  <data name="Core_UserDeleteTitle" xml:space="preserve">
+    <value>Удаление данных пользователя</value>
+  </data>
+  <data name="Core_UserDeleteWarning" xml:space="preserve">
+    <value>Вы собираетесь удалить пользователя. Это действие нельзя отменить.</value>
+  </data>
+  <data name="Core_UserData" xml:space="preserve">
+    <value>Данные пользователя</value>
+  </data>
+  <data name="Core_UserNameColon" xml:space="preserve">
+    <value>Имя пользователя:</value>
+  </data>
+  <data name="Core_EmailColon" xml:space="preserve">
+    <value>E-mail:</value>
+  </data>
+  <data name="Core_FullNameColon" xml:space="preserve">
+    <value>Ф.И.О.:</value>
+  </data>
+  <data name="Core_RoleColon" xml:space="preserve">
+    <value>Роль:</value>
+  </data>
+  <data name="Core_ActivityColon" xml:space="preserve">
+    <value>Активность:</value>
+  </data>
+  <data name="Core_UserPhoto" xml:space="preserve">
+    <value>Фото пользователя</value>
+  </data>
+  <data name="Core_NoPhoto" xml:space="preserve">
+    <value>Фото не загружено</value>
+  </data>
+  <data name="Core_Info" xml:space="preserve">
+    <value>Сведения</value>
+  </data>
+  <data name="Core_ActionsInfo" xml:space="preserve">
+    <value>Сведения о действиях</value>
+  </data>
+  <data name="Core_UserActivityTitle" xml:space="preserve">
+    <value>Время подключений пользователя к системе и сведения</value>
+  </data>
+  <data name="Core_ActionCol" xml:space="preserve">
+    <value>Действие</value>
+  </data>
+  <data name="Core_DateCol" xml:space="preserve">
+    <value>Дата</value>
+  </data>
+  <data name="Core_TimeCol" xml:space="preserve">
+    <value>Время</value>
+  </data>
+  <data name="Core_NoDataPlural" xml:space="preserve">
+    <value>Нет данных</value>
+  </data>
+  <data name="Core_UserEditTitle" xml:space="preserve">
+    <value>Редактирование данных пользователя</value>
+  </data>
+  <data name="Core_FullNameEnterPlaceholder" xml:space="preserve">
+    <value>Введите полное Ф.И.О.</value>
+  </data>
+  <data name="Core_MaxSize2MbChange" xml:space="preserve">
+    <value>Максимальный размер: 2 МБ (чтобы заменить, загрузите новое фото)</value>
+  </data>
+  <data name="Core_PasswordOnlyChange" xml:space="preserve">
+    <value>Пароль (только для смены)</value>
+  </data>
+  <data name="Core_PasswordChangeHint" xml:space="preserve">
+    <value>Чтобы сменить пароль, введите новый. Если оставить пустым, сохранится старый пароль.</value>
+  </data>
+  <data name="Core_FilterByRole" xml:space="preserve">
+    <value>Фильтр по роли</value>
+  </data>
+  <data name="Core_AllRoles" xml:space="preserve">
+    <value>Все роли</value>
+  </data>
+  <data name="Core_InactiveUsers" xml:space="preserve">
+    <value>Неактивные пользователи</value>
+  </data>
+  <data name="Core_UsersList" xml:space="preserve">
+    <value>Список пользователей</value>
+  </data>
+  <data name="Core_UserDeleteConfirm" xml:space="preserve">
+    <value>Вы действительно хотите удалить этого пользователя?</value>
+  </data>
+  <data name="Core_PmAddNew" xml:space="preserve">
+    <value>Добавление нового модуля</value>
+  </data>
+  <data name="Core_PmModules" xml:space="preserve">
+    <value>Модули доступа</value>
+  </data>
+  <data name="Core_PmNew" xml:space="preserve">
+    <value>Новый модуль</value>
+  </data>
+  <data name="Core_PmNewData" xml:space="preserve">
+    <value>Данные нового модуля</value>
+  </data>
+  <data name="Core_PmModuleName" xml:space="preserve">
+    <value>Название модуля</value>
+  </data>
+  <data name="Core_PmModulePlaceholder" xml:space="preserve">
+    <value>Например: Продукты, Сырьё</value>
+  </data>
+  <data name="Core_PmActionPlaceholder" xml:space="preserve">
+    <value>Например: Index, Create, Edit</value>
+  </data>
+  <data name="Core_PmActionsAutoload" xml:space="preserve">
+    <value>При выборе контроллера действия загружаются автоматически</value>
+  </data>
+  <data name="Core_PmParameter" xml:space="preserve">
+    <value>Параметр</value>
+  </data>
+  <data name="Core_PmParamPlaceholder" xml:space="preserve">
+    <value>Например: id, productId, period</value>
+  </data>
+  <data name="Core_PmParamHint" xml:space="preserve">
+    <value>Необязательное имя параметра (например: id, productId)</value>
+  </data>
+  <data name="Core_PmDelete" xml:space="preserve">
+    <value>Удаление модуля</value>
+  </data>
+  <data name="Core_PmDeleteConfirm" xml:space="preserve">
+    <value>Вы действительно хотите удалить этот модуль?</value>
+  </data>
+  <data name="Core_PmModuleNameColon" xml:space="preserve">
+    <value>Название модуля:</value>
+  </data>
+  <data name="Core_PmParameterColon" xml:space="preserve">
+    <value>Параметр:</value>
+  </data>
+  <data name="Core_RolesColon" xml:space="preserve">
+    <value>Роли:</value>
+  </data>
+  <data name="Core_NoRoles" xml:space="preserve">
+    <value>Нет ролей</value>
+  </data>
+  <data name="Core_PmDeleteAllPerms" xml:space="preserve">
+    <value>При удалении модуля удаляются и все связанные права.</value>
+  </data>
+  <data name="Core_PmData" xml:space="preserve">
+    <value>Данные модуля</value>
+  </data>
+  <data name="Core_PmEdit" xml:space="preserve">
+    <value>Редактирование модуля</value>
+  </data>
+  <data name="Core_PmAssignRoles" xml:space="preserve">
+    <value>Привязка к ролям</value>
+  </data>
+  <data name="Core_PmMultiRoles" xml:space="preserve">
+    <value>Можно выбрать несколько ролей</value>
+  </data>
+  <data name="Core_PmMissingControllers" xml:space="preserve">
+    <value>Контроллеры без прав доступа</value>
+  </data>
+  <data name="Core_PmDefaultsTitle" xml:space="preserve">
+    <value>Стандартные модули по контроллерам</value>
+  </data>
+  <data name="Core_PmDefaults" xml:space="preserve">
+    <value>Стандартные модули</value>
+  </data>
+  <data name="Core_PmCreateDefaults" xml:space="preserve">
+    <value>Создать стандартные модули</value>
+  </data>
+  <data name="Core_PmPermsCount" xml:space="preserve">
+    <value>К этому модулю привязано прав: {0}.</value>
+  </data>
+  <data name="Core_SystemRecordDeleteForbidden" xml:space="preserve">
+    <value>Это системная запись (с ней связаны отчёты) — её нельзя удалить. Можно изменить название.</value>
+  </data>
+  <data name="Core_UserManual" xml:space="preserve">
+    <value>Руководство пользователя</value>
+  </data>
+  <data name="Core_Sections" xml:space="preserve">
+    <value>Разделы</value>
+  </data>
+  <data name="Core_SearchSections" xml:space="preserve">
+    <value>Поиск по разделам...</value>
+  </data>
+  <data name="Core_EmailInvalid" xml:space="preserve">
+    <value>Неверный формат email</value>
+  </data>
+  <data name="Core_KeepMeSignedShort" xml:space="preserve">
+    <value>Оставаться в системе</value>
+  </data>
+  <data name="Core_ValidationErrorNoDetails" xml:space="preserve">
+    <value>{0}: ошибка валидации (без подробностей).</value>
+  </data>
+  <data name="Core_FieldParen" xml:space="preserve">
+    <value>(поле)</value>
+  </data>
+  <data name="Core_DbWriteError" xml:space="preserve">
+    <value>Ошибка записи в базу данных: {0}</value>
+  </data>
+  <data name="Core_InnerError" xml:space="preserve">
+    <value>Внутренняя: {0}</value>
+  </data>
+  <data name="Core_InnerErrorFull" xml:space="preserve">
+    <value>Внутренняя ошибка: {0}</value>
+  </data>
+  <data name="Task_OnlyOwnView" xml:space="preserve">
+    <value>Вы можете просматривать только свои задачи</value>
+  </data>
+  <data name="Task_InvalidStatus" xml:space="preserve">
+    <value>Неверный статус</value>
+  </data>
+  <data name="Task_OnlyOwnChange" xml:space="preserve">
+    <value>Вы можете изменять только свои задачи</value>
+  </data>
+  <data name="Task_StatusChanged" xml:space="preserve">
+    <value>Статус успешно изменён</value>
+  </data>
+  <data name="Task_NoProject" xml:space="preserve">
+    <value>Без проекта</value>
+  </data>
+  <data name="Task_NotFound" xml:space="preserve">
+    <value>Задача не найдена</value>
+  </data>
+  <data name="Task_StatusChangeFailed" xml:space="preserve">
+    <value>Не удалось изменить статус.</value>
+  </data>
+  <data name="Task_OnlyOwnEdit" xml:space="preserve">
+    <value>Вы можете редактировать только свои задачи</value>
+  </data>
+  <data name="Task_Cancelled" xml:space="preserve">
+    <value>Задача отменена</value>
+  </data>
+  <data name="Task_Deleted" xml:space="preserve">
+    <value>Задача удалена</value>
+  </data>
+  <data name="Task_SaveError" xml:space="preserve">
+    <value>Ошибка при сохранении: {0}</value>
+  </data>
+  <data name="Task_CancelledStatusMissing" xml:space="preserve">
+    <value>Статус «Отменена» (CANCELLED) не настроен — добавьте его в настройках задач</value>
+  </data>
+  <data name="Task_OnlyOwnCancel" xml:space="preserve">
+    <value>Вы можете отменять только свои задачи</value>
+  </data>
+  <data name="Task_OnlyOwnDelete" xml:space="preserve">
+    <value>Вы можете удалять только свои задачи</value>
+  </data>
+  <data name="Core_FinGroup_Material" xml:space="preserve">
+    <value>Материалы</value>
+  </data>
+  <data name="Core_FinGroup_Payroll" xml:space="preserve">
+    <value>Заработная плата</value>
+  </data>
+  <data name="Core_FinGroup_Purchase" xml:space="preserve">
+    <value>Закупка (поставщик)</value>
+  </data>
+  <data name="Core_FinGroup_Logistics" xml:space="preserve">
+    <value>Транспорт / логистика</value>
+  </data>
+  <data name="Core_FinGroup_Tax" xml:space="preserve">
+    <value>Налог</value>
+  </data>
+  <data name="Core_FinGroup_Vat" xml:space="preserve">
+    <value>НДС</value>
+  </data>
+  <data name="Core_FinGroup_Bank" xml:space="preserve">
+    <value>Банковские услуги</value>
+  </data>
+  <data name="Core_FinGroup_Interest" xml:space="preserve">
+    <value>Проценты по кредиту</value>
+  </data>
+  <data name="Core_FinGroup_Depreciation" xml:space="preserve">
+    <value>Амортизация</value>
+  </data>
+  <data name="Core_FinGroup_Capex" xml:space="preserve">
+    <value>Капитальные затраты (основные средства, строительство)</value>
+  </data>
+  <data name="Core_FinGroup_Dividend" xml:space="preserve">
+    <value>Дивиденды / акционеры</value>
+  </data>
+  <data name="Core_FinGroup_Financing" xml:space="preserve">
+    <value>Финансовые операции (кредит, перевод, наличные, долг)</value>
+  </data>
+  <data name="Core_FinGroup_Other" xml:space="preserve">
+    <value>Прочее</value>
+  </data>
+  <data name="Task_Title" xml:space="preserve">
+    <value>Заголовок</value>
+  </data>
+  <data name="Task_Project" xml:space="preserve">
+    <value>Проект</value>
+  </data>
+  <data name="Task_Assignee" xml:space="preserve">
+    <value>Ответственный</value>
+  </data>
+  <data name="Task_Reporter" xml:space="preserve">
+    <value>Автор</value>
+  </data>
+  <data name="Task_Priority" xml:space="preserve">
+    <value>Приоритет</value>
+  </data>
+  <data name="Task_DueDate" xml:space="preserve">
+    <value>Срок</value>
+  </data>
+  <data name="Task_FileName" xml:space="preserve">
+    <value>Задачи</value>
+  </data>
+  <data name="Task_UpdatedAt" xml:space="preserve">
+    <value>Обновлено</value>
+  </data>
+  <data name="Task_TitleRequired" xml:space="preserve">
+    <value>Необходимо ввести заголовок</value>
+  </data>
+  <data name="Task_StatusRequired" xml:space="preserve">
+    <value>Необходимо выбрать статус</value>
+  </data>
+  <data name="Task_PriorityRequired" xml:space="preserve">
+    <value>Необходимо выбрать приоритет</value>
+  </data>
+  <data name="Task_CurrentStatus" xml:space="preserve">
+    <value>Текущий статус</value>
+  </data>
+  <data name="Task_StatusSelectRequired" xml:space="preserve">
+    <value>Выбор статуса обязателен</value>
+  </data>
+  <data name="Task_NewStatusStar" xml:space="preserve">
+    <value>Новый статус *</value>
+  </data>
+  <data name="Task_PriorityInUse" xml:space="preserve">
+    <value>Этот приоритет используется в задачах. Удаление невозможно.</value>
+  </data>
+  <data name="Task_ProjectInUse" xml:space="preserve">
+    <value>Этот проект используется в задачах. Удаление невозможно.</value>
+  </data>
+  <data name="Task_StatusInUse" xml:space="preserve">
+    <value>Этот статус используется в задачах. Удаление невозможно.</value>
+  </data>
+  <data name="Task_CodeExists" xml:space="preserve">
+    <value>Такой код уже существует</value>
+  </data>
+  <data name="Task_PriorityAdd" xml:space="preserve">
+    <value>Добавить приоритет</value>
+  </data>
+  <data name="Task_CodeStar" xml:space="preserve">
+    <value>Код *</value>
+  </data>
+  <data name="Task_NameStar" xml:space="preserve">
+    <value>Наименование *</value>
+  </data>
+  <data name="Task_PriorityCodePh" xml:space="preserve">
+    <value>Например: CRITICAL, HIGH, NORMAL</value>
+  </data>
+  <data name="Task_PriorityNamePh" xml:space="preserve">
+    <value>Например: Очень важно (0)</value>
+  </data>
+  <data name="Task_SortOrderStar" xml:space="preserve">
+    <value>Порядок *</value>
+  </data>
+  <data name="Task_SortOrder" xml:space="preserve">
+    <value>Порядок</value>
+  </data>
+  <data name="Task_SortOrderColon" xml:space="preserve">
+    <value>Порядок:</value>
+  </data>
+  <data name="Task_PrioritySortHint" xml:space="preserve">
+    <value>Меньшее число = более высокий приоритет (0 = наивысший)</value>
+  </data>
+  <data name="Task_Color" xml:space="preserve">
+    <value>Цвет</value>
+  </data>
+  <data name="Task_ColorHint" xml:space="preserve">
+    <value>Цвет в бейджах и графиках</value>
+  </data>
+  <data name="Task_PriorityInfo" xml:space="preserve">
+    <value>Сведения о приоритете</value>
+  </data>
+  <data name="Task_PriorityInfoHeader" xml:space="preserve">
+    <value>Сведения о приоритете</value>
+  </data>
+  <data name="Task_CodeColon" xml:space="preserve">
+    <value>Код:</value>
+  </data>
+  <data name="Task_NameColon" xml:space="preserve">
+    <value>Наименование:</value>
+  </data>
+  <data name="Task_PriorityEdit" xml:space="preserve">
+    <value>Редактирование приоритета</value>
+  </data>
+  <data name="Task_TaskPriorities" xml:space="preserve">
+    <value>Приоритеты задач</value>
+  </data>
+  <data name="Task_StatusAdd" xml:space="preserve">
+    <value>Добавить статус</value>
+  </data>
+  <data name="Task_StatusCodePh" xml:space="preserve">
+    <value>Например: TODO, IN_PROGRESS, DONE</value>
+  </data>
+  <data name="Task_StatusNamePh" xml:space="preserve">
+    <value>Например: Запланировано (to-do)</value>
+  </data>
+  <data name="Task_SortAutoHint" xml:space="preserve">
+    <value>Если 0 — рассчитывается автоматически</value>
+  </data>
+  <data name="Task_ClosedState" xml:space="preserve">
+    <value>Закрывающий статус</value>
+  </data>
+  <data name="Task_ClosedStateHint" xml:space="preserve">
+    <value>Закрыта (выполнена или отменена) — не считается просроченной</value>
+  </data>
+  <data name="Task_ActiveColon" xml:space="preserve">
+    <value>Активен:</value>
+  </data>
+  <data name="Task_StatusInfo" xml:space="preserve">
+    <value>Сведения о статусе</value>
+  </data>
+  <data name="Task_StatusInfoHeader" xml:space="preserve">
+    <value>Сведения о статусе</value>
+  </data>
+  <data name="Task_StatusEdit" xml:space="preserve">
+    <value>Редактирование статуса</value>
+  </data>
+  <data name="Task_TaskStatuses" xml:space="preserve">
+    <value>Статусы задач</value>
+  </data>
+  <data name="Task_ProjectAdd" xml:space="preserve">
+    <value>Добавить проект</value>
+  </data>
+  <data name="Task_ProjectCodePh" xml:space="preserve">
+    <value>Например: PROJ1, ERP, CRM</value>
+  </data>
+  <data name="Task_ProjectNamePh" xml:space="preserve">
+    <value>Например: Система ERP</value>
+  </data>
+  <data name="Task_ProjectInfo" xml:space="preserve">
+    <value>Сведения о проекте</value>
+  </data>
+  <data name="Task_ProjectInfoHeader" xml:space="preserve">
+    <value>Сведения о проекте</value>
+  </data>
+  <data name="Task_CreatedDateColon" xml:space="preserve">
+    <value>Дата создания:</value>
+  </data>
+  <data name="Task_CreatedDate" xml:space="preserve">
+    <value>Дата создания</value>
+  </data>
+  <data name="Task_ProjectTasks" xml:space="preserve">
+    <value>Задачи проекта</value>
+  </data>
+  <data name="Task_TasksNotFound" xml:space="preserve">
+    <value>Задачи не найдены</value>
+  </data>
+  <data name="Task_AddNew" xml:space="preserve">
+    <value>Добавить новую задачу</value>
+  </data>
+  <data name="Task_ProjectEdit" xml:space="preserve">
+    <value>Редактирование проекта</value>
+  </data>
+  <data name="Task_TaskProjects" xml:space="preserve">
+    <value>Проекты задач</value>
+  </data>
+  <data name="Task_CreateTitle" xml:space="preserve">
+    <value>Новая задача</value>
+  </data>
+  <data name="Task_AddNewTask" xml:space="preserve">
+    <value>Добавить новую задачу</value>
+  </data>
+  <data name="Task_TitleStar" xml:space="preserve">
+    <value>Заголовок *</value>
+  </data>
+  <data name="Task_TitlePh" xml:space="preserve">
+    <value>Заголовок задачи</value>
+  </data>
+  <data name="Task_DescriptionPh" xml:space="preserve">
+    <value>Описание задачи</value>
+  </data>
+  <data name="Task_StatusStar" xml:space="preserve">
+    <value>Статус *</value>
+  </data>
+  <data name="Task_SelectStatus" xml:space="preserve">
+    <value>Выберите статус</value>
+  </data>
+  <data name="Task_PriorityStar" xml:space="preserve">
+    <value>Приоритет *</value>
+  </data>
+  <data name="Task_SelectPriority" xml:space="preserve">
+    <value>Выберите приоритет</value>
+  </data>
+  <data name="Task_Unassigned" xml:space="preserve">
+    <value>Не назначен</value>
+  </data>
+  <data name="Task_EditTitle" xml:space="preserve">
+    <value>Редактирование задачи</value>
+  </data>
+  <data name="Task_EditTask" xml:space="preserve">
+    <value>Редактирование задачи</value>
+  </data>
+  <data name="Task_Info" xml:space="preserve">
+    <value>Сведения о задаче</value>
+  </data>
+  <data name="Task_InfoHeader" xml:space="preserve">
+    <value>Сведения о задаче</value>
+  </data>
+  <data name="Task_TitleColon" xml:space="preserve">
+    <value>Заголовок:</value>
+  </data>
+  <data name="Task_StatusColon" xml:space="preserve">
+    <value>Статус:</value>
+  </data>
+  <data name="Task_PriorityColon" xml:space="preserve">
+    <value>Приоритет:</value>
+  </data>
+  <data name="Task_AssigneeColon" xml:space="preserve">
+    <value>Ответственный:</value>
+  </data>
+  <data name="Task_NotAssigned" xml:space="preserve">
+    <value>Не назначен</value>
+  </data>
+  <data name="Task_ReporterColon" xml:space="preserve">
+    <value>Автор:</value>
+  </data>
+  <data name="Task_ProjectColon" xml:space="preserve">
+    <value>Проект:</value>
+  </data>
+  <data name="Task_CreatedColon" xml:space="preserve">
+    <value>Создано:</value>
+  </data>
+  <data name="Task_UpdatedColon" xml:space="preserve">
+    <value>Обновлено:</value>
+  </data>
+  <data name="Task_DueDateColon" xml:space="preserve">
+    <value>Срок:</value>
+  </data>
+  <data name="Task_AssigneeComment" xml:space="preserve">
+    <value>Комментарий исполнителя:</value>
+  </data>
+  <data name="Task_NoComment" xml:space="preserve">
+    <value>Нет комментария</value>
+  </data>
+  <data name="Task_ChangeStatus" xml:space="preserve">
+    <value>Изменить статус</value>
+  </data>
+  <data name="Task_DueFrom" xml:space="preserve">
+    <value>Срок (с)</value>
+  </data>
+  <data name="Task_DueTo" xml:space="preserve">
+    <value>Срок (по)</value>
+  </data>
+  <data name="Task_Filter" xml:space="preserve">
+    <value>Фильтровать</value>
+  </data>
+  <data name="Task_Overdue" xml:space="preserve">
+    <value>Просроченные</value>
+  </data>
+  <data name="Task_ConfirmCancel" xml:space="preserve">
+    <value>Отменить задачу? Она перейдёт в статус «Отменена».</value>
+  </data>
+  <data name="Task_ConfirmDelete" xml:space="preserve">
+    <value>Удалить задачу? Она будет убрана из списка, канбана и отчётов.</value>
+  </data>
+  <data name="Task_TaskChangeStatus" xml:space="preserve">
+    <value>Изменение статуса задачи</value>
+  </data>
+  <data name="Task_CurrentStatusColon" xml:space="preserve">
+    <value>Текущий статус:</value>
+  </data>
+  <data name="Task_SelectStatusUz" xml:space="preserve">
+    <value>Выберите статус</value>
+  </data>
+  <data name="Task_StatusCommentPh" xml:space="preserve">
+    <value>Напишите комментарий к изменению статуса...</value>
+  </data>
+  <data name="Task_Kanban" xml:space="preserve">
+    <value>Канбан задач</value>
+  </data>
+  <data name="Task_ByProject" xml:space="preserve">
+    <value>По проектам</value>
+  </data>
+  <data name="Task_ByStatus" xml:space="preserve">
+    <value>По статусам</value>
+  </data>
+  <data name="Task_Last30Days" xml:space="preserve">
+    <value>Только последние 30 дней</value>
+  </data>
+  <data name="Task_AllClosed" xml:space="preserve">
+    <value>Все закрытые</value>
+  </data>
+  <data name="Task_NoTasks" xml:space="preserve">
+    <value>Нет задач</value>
+  </data>
+  <data name="Js_Task_ErrorPrefix" xml:space="preserve">
+    <value>Ошибка:</value>
+  </data>
+  <data name="Js_Task_NoData" xml:space="preserve">
+    <value>Нет данных</value>
+  </data>
+  <data name="Js_Task_Total" xml:space="preserve">
+    <value>Всего</value>
+  </data>
+  <data name="Js_Task_Done" xml:space="preserve">
+    <value>Выполнено</value>
+  </data>
+  <data name="Js_Task_TaskCount" xml:space="preserve">
+    <value>Количество задач</value>
+  </data>
+  <data name="Js_Task_Todo" xml:space="preserve">
+    <value>Запланировано</value>
+  </data>
+  <data name="Js_Task_InProgress" xml:space="preserve">
+    <value>В работе</value>
+  </data>
+  <data name="Js_Task_NoOverdue" xml:space="preserve">
+    <value>Просроченных задач нет</value>
+  </data>
+  <data name="Js_Task_OverdueTasks" xml:space="preserve">
+    <value>Просроченные задачи</value>
+  </data>
+  <data name="Js_Task_NoRating" xml:space="preserve">
+    <value>Нет данных для рейтинга сотрудников</value>
+  </data>
+  <data name="Js_Task_OnTimeN" xml:space="preserve">
+    <value>в срок: {0}</value>
+  </data>
+  <data name="Js_Task_OverdueN" xml:space="preserve">
+    <value>просрочено: {0}</value>
+  </data>
+  <data name="Js_Task_OnTime" xml:space="preserve">
+    <value>Выполнено в срок</value>
+  </data>
+  <data name="Js_Task_Overdue" xml:space="preserve">
+    <value>Просрочено</value>
+  </data>
+  <data name="Js_Task_OnTimeCount" xml:space="preserve">
+    <value>Количество задач, выполненных в срок</value>
+  </data>
+  <data name="Js_Task_OverdueCount" xml:space="preserve">
+    <value>Количество просроченных задач</value>
+  </data>
+  <data name="Js_Task_Employees" xml:space="preserve">
+    <value>Сотрудники</value>
+  </data>
+  <data name="Js_Task_OnTimeTip" xml:space="preserve">
+    <value>Выполнено в срок: {0}</value>
+  </data>
+  <data name="Js_Task_OverdueTip" xml:space="preserve">
+    <value>Просрочено: {0}</value>
+  </data>
+  <data name="Js_Task_ApexMissing" xml:space="preserve">
+    <value>Библиотека ApexCharts не загружена!</value>
+  </data>
+  <data name="Task_AllTasks" xml:space="preserve">
+    <value>Все задачи</value>
+  </data>
+  <data name="Task_Last7Days" xml:space="preserve">
+    <value>Последние 7 дней</value>
+  </data>
+  <data name="Task_ByStatusDist" xml:space="preserve">
+    <value>Распределение по статусам</value>
+  </data>
+  <data name="Task_ByPriorityDist" xml:space="preserve">
+    <value>Распределение по приоритетам</value>
+  </data>
+  <data name="Task_ByPriorityStats" xml:space="preserve">
+    <value>Подробная статистика по приоритетам</value>
+  </data>
+  <data name="Task_OverdueByProject" xml:space="preserve">
+    <value>Просроченные задачи (по проектам)</value>
+  </data>
+  <data name="Task_EmployeeRating" xml:space="preserve">
+    <value>Рейтинг сотрудников</value>
+  </data>
+  <data name="Task_TotalTasksFor" xml:space="preserve">
+    <value>Всего задач ({0})</value>
+  </data>
+  <data name="Doc_TypeOrStatusMissingSeed" xml:space="preserve">
+    <value>Тип или статус документа не найден. Запустите seed-скрипты.</value>
+  </data>
+  <data name="Doc_TypeOrStatusMissing" xml:space="preserve">
+    <value>Тип или статус документа не найден</value>
+  </data>
+  <data name="Doc_SaveErrorDetails" xml:space="preserve">
+    <value>Ошибка при сохранении: {0}</value>
+  </data>
+  <data name="Doc_SaveError" xml:space="preserve">
+    <value>Ошибка при сохранении.</value>
+  </data>
+  <data name="Doc_TemplateNotFoundOrArchived" xml:space="preserve">
+    <value>Выбранный шаблон не найден или находится в архиве.</value>
+  </data>
+  <data name="Doc_NoActiveTemplate" xml:space="preserve">
+    <value>Нет активного шаблона. Загрузите шаблон Word на странице «Шаблоны».</value>
+  </data>
+  <data name="Doc_GenerateFailed" xml:space="preserve">
+    <value>Не удалось сформировать документ: {0}</value>
+  </data>
+  <data name="Doc_CheckTemplateFile" xml:space="preserve">
+    <value>проверьте файл шаблона (он должен открываться в Word).</value>
+  </data>
+  <data name="Doc_GeneratedDownloading" xml:space="preserve">
+    <value>Документ сформирован (версия {0}) и загружается.</value>
+  </data>
+  <data name="Doc_UnknownPlaceholdersLeft" xml:space="preserve">
+    <value>Нераспознанные поля в шаблоне оставлены без изменений: {0}. Правильные названия — на странице «Шаблоны».</value>
+  </data>
+  <data name="Doc_StatusChangedTo" xml:space="preserve">
+    <value>Статус изменён на «{0}»</value>
+  </data>
+  <data name="Doc_SuggestFailed" xml:space="preserve">
+    <value>Не удалось предложить текст.</value>
+  </data>
+  <data name="Doc_OrderCreated" xml:space="preserve">
+    <value>Приказ успешно создан</value>
+  </data>
+  <data name="Doc_OrderCreatedRenumbered" xml:space="preserve">
+    <value>Приказ создан. Номер {0} занят, поэтому присвоен номер {1}</value>
+  </data>
+  <data name="Doc_OrderUpdated" xml:space="preserve">
+    <value>Приказ успешно обновлён</value>
+  </data>
+  <data name="Doc_OrderDeleted" xml:space="preserve">
+    <value>Приказ успешно удалён</value>
+  </data>
+  <data name="Doc_DirectionOut" xml:space="preserve">
+    <value>Исходящее</value>
+  </data>
+  <data name="Doc_DirectionIn" xml:space="preserve">
+    <value>Входящее</value>
+  </data>
+  <data name="Doc_LetterCreated" xml:space="preserve">
+    <value>Письмо успешно создано</value>
+  </data>
+  <data name="Doc_LetterCreatedRenumbered" xml:space="preserve">
+    <value>Письмо создано. Номер {0} занят, поэтому присвоен номер {1}</value>
+  </data>
+  <data name="Doc_LetterNoRequired" xml:space="preserve">
+    <value>Необходимо ввести номер письма</value>
+  </data>
+  <data name="Doc_LetterUpdated" xml:space="preserve">
+    <value>Письмо успешно обновлено</value>
+  </data>
+  <data name="Doc_LetterDeleted" xml:space="preserve">
+    <value>Письмо успешно удалено</value>
+  </data>
+  <data name="Doc_OnlyPdf" xml:space="preserve">
+    <value>Можно загружать только PDF-файлы</value>
+  </data>
+  <data name="Doc_FileMax10Mb" xml:space="preserve">
+    <value>Размер файла не должен превышать 10 МБ</value>
+  </data>
+  <data name="Doc_IncomingRegistered" xml:space="preserve">
+    <value>Входящее письмо успешно зарегистрировано</value>
+  </data>
+  <data name="Doc_NoFileSelected" xml:space="preserve">
+    <value>Файл не выбран.</value>
+  </data>
+  <data name="Doc_OnlyDocx" xml:space="preserve">
+    <value>Можно загружать только файлы Word (.docx). Сохраните старый файл .doc в Word как .docx.</value>
+  </data>
+  <data name="Doc_TemplateUploaded" xml:space="preserve">
+    <value>Шаблон «{0}» загружен.</value>
+  </data>
+  <data name="Doc_RecognizedFields" xml:space="preserve">
+    <value>Распознанные поля: {0}.</value>
+  </data>
+  <data name="Doc_NoFieldsFound" xml:space="preserve">
+    <value>Внимание: в шаблоне не найдено ни одного поля ({{...}}) — документ будет сформирован без изменений.</value>
+  </data>
+  <data name="Doc_UnknownFields" xml:space="preserve">
+    <value>Нераспознанные поля (останутся в документе без изменений): {0}. Выберите правильное название из списка ниже.</value>
+  </data>
+  <data name="Doc_TemplateActivated" xml:space="preserve">
+    <value>Шаблон активирован.</value>
+  </data>
+  <data name="Doc_TemplateArchived" xml:space="preserve">
+    <value>Шаблон перенесён в архив — при формировании документов не выбирается.</value>
+  </data>
+  <data name="Doc_TemplateInUse" xml:space="preserve">
+    <value>По этому шаблону созданы документы — удалить нельзя, перенесите в архив.</value>
+  </data>
+  <data name="Doc_TemplateDeleted" xml:space="preserve">
+    <value>Шаблон удалён.</value>
+  </data>
+  <data name="Doc_LegacyTemplateMissing" xml:space="preserve">
+    <value>Старый файл шаблона в папке не найден.</value>
+  </data>
+  <data name="Doc_TemplateMigrated" xml:space="preserve">
+    <value>Шаблон перенесён в базу данных.</value>
+  </data>
+  <data name="Doc_StdCodeRequired" xml:space="preserve">
+    <value>Необходимо ввести код стандарта</value>
+  </data>
+  <data name="Doc_ContentEmpty" xml:space="preserve">
+    <value>Содержимое документа не может быть пустым</value>
+  </data>
+  <data name="Doc_ContentInvalid" xml:space="preserve">
+    <value>Неверный формат содержимого документа</value>
+  </data>
+  <data name="Doc_StdCreated" xml:space="preserve">
+    <value>Стандарт успешно создан</value>
+  </data>
+  <data name="Doc_StdUpdated" xml:space="preserve">
+    <value>Стандарт успешно обновлён</value>
+  </data>
+  <data name="Doc_StdDeleted" xml:space="preserve">
+    <value>Стандарт успешно удалён</value>
+  </data>
+  <data name="Doc_NotAnImage" xml:space="preserve">
+    <value>Этот файл не является изображением</value>
+  </data>
+  <data name="Doc_PhDirectorName" xml:space="preserve">
+    <value>Ф.И.О. директора (настройка компании)</value>
+  </data>
+  <data name="Doc_PhToday" xml:space="preserve">
+    <value>Сегодняшняя дата (dd.MM.yyyy)</value>
+  </data>
+  <data name="Doc_PhLetterNo" xml:space="preserve">
+    <value>Номер письма</value>
+  </data>
+  <data name="Doc_PhLetterDate" xml:space="preserve">
+    <value>Дата письма (dd.MM.yyyy)</value>
+  </data>
+  <data name="Doc_PhCompanyName" xml:space="preserve">
+    <value>Компания-получатель</value>
+  </data>
+  <data name="Doc_PhContactName" xml:space="preserve">
+    <value>Контактное лицо получателя</value>
+  </data>
+  <data name="Doc_PhContactPosition" xml:space="preserve">
+    <value>Должность получателя</value>
+  </data>
+  <data name="Doc_PhRecipientBlock" xml:space="preserve">
+    <value>Компания, должность и лицо — каждое с новой строки</value>
+  </data>
+  <data name="Doc_PhGreetingLine" xml:space="preserve">
+    <value>Обращение (например: Уважаемый ...!)</value>
+  </data>
+  <data name="Doc_PhTopic" xml:space="preserve">
+    <value>Тема</value>
+  </data>
+  <data name="Doc_PhLetterBody" xml:space="preserve">
+    <value>Текст письма (с форматированием)</value>
+  </data>
+  <data name="Doc_PhItemsTable" xml:space="preserve">
+    <value>Таблица продуктов и цен</value>
+  </data>
+  <data name="Doc_PhItemsBlock" xml:space="preserve">
+    <value>Список продуктов (простой текст)</value>
+  </data>
+  <data name="Doc_PhOurRefNo" xml:space="preserve">
+    <value>Наш исходящий номер</value>
+  </data>
+  <data name="Doc_PhTheirRefNo" xml:space="preserve">
+    <value>Их исходящий номер</value>
+  </data>
+  <data name="Doc_PhChannel" xml:space="preserve">
+    <value>Способ отправки</value>
+  </data>
+  <data name="Doc_PhItemName1" xml:space="preserve">
+    <value>Наименование 1-го продукта (есть также 2, 3, ...)</value>
+  </data>
+  <data name="Doc_PhItemDim1" xml:space="preserve">
+    <value>Размер 1-го продукта</value>
+  </data>
+  <data name="Doc_PhItemPriceExw1" xml:space="preserve">
+    <value>Цена EXW 1-го продукта</value>
+  </data>
+  <data name="Doc_PhItemPriceVatExw1" xml:space="preserve">
+    <value>Цена EXW 1-го продукта с НДС</value>
+  </data>
+  <data name="Doc_PhItemPriceCip1" xml:space="preserve">
+    <value>Цена CIP 1-го продукта</value>
+  </data>
+  <data name="Doc_PhItemPriceVatCip1" xml:space="preserve">
+    <value>Цена CIP 1-го продукта с НДС</value>
+  </data>
+  <data name="Doc_PhOrderNo" xml:space="preserve">
+    <value>Номер приказа</value>
+  </data>
+  <data name="Doc_PhOrderDate" xml:space="preserve">
+    <value>Дата приказа (dd.MM.yyyy)</value>
+  </data>
+  <data name="Doc_PhOrderTopic" xml:space="preserve">
+    <value>Тема приказа (заголовок)</value>
+  </data>
+  <data name="Doc_PhOrderType" xml:space="preserve">
+    <value>Вид приказа</value>
+  </data>
+  <data name="Doc_PhOrgUnitName" xml:space="preserve">
+    <value>Подразделение</value>
+  </data>
+  <data name="Doc_PhOrderBody" xml:space="preserve">
+    <value>Текст приказа (с форматированием)</value>
+  </data>
+  <data name="Doc_PhOrderDecree1Content1" xml:space="preserve">
+    <value>1-й пункт текста (есть также 2, 3, ...; без номера)</value>
+  </data>
+  <data name="Doc_TypeLetter" xml:space="preserve">
+    <value>Официальное письмо</value>
+  </data>
+  <data name="Doc_TypeOrder" xml:space="preserve">
+    <value>Приказ по предприятию</value>
+  </data>
+  <data name="Doc_TypeStandard" xml:space="preserve">
+    <value>Стандарт предприятия</value>
+  </data>
+  <data name="Doc_TransitionNotAllowed" xml:space="preserve">
+    <value>Из этого статуса нельзя перейти в выбранный</value>
+  </data>
+  <data name="Doc_InvalidStatusCode" xml:space="preserve">
+    <value>Неверный код статуса</value>
+  </data>
+  <data name="Doc_OrderNo" xml:space="preserve">
+    <value>Номер приказа</value>
+  </data>
+  <data name="Doc_OrderDate" xml:space="preserve">
+    <value>Дата приказа</value>
+  </data>
+  <data name="Doc_DateRequired" xml:space="preserve">
+    <value>Необходимо ввести дату</value>
+  </data>
+  <data name="Doc_OrderType" xml:space="preserve">
+    <value>Вид приказа</value>
+  </data>
+  <data name="Doc_OrgUnit" xml:space="preserve">
+    <value>Подразделение организации</value>
+  </data>
+  <data name="Doc_Title" xml:space="preserve">
+    <value>Заголовок</value>
+  </data>
+  <data name="Doc_TitleRequired" xml:space="preserve">
+    <value>Необходимо ввести заголовок</value>
+  </data>
+  <data name="Doc_Text" xml:space="preserve">
+    <value>Текст</value>
+  </data>
+  <data name="Doc_ResponsibleEmployees" xml:space="preserve">
+    <value>Ответственные сотрудники</value>
+  </data>
+  <data name="Doc_Direction" xml:space="preserve">
+    <value>Направление</value>
+  </data>
+  <data name="Doc_LetterNo" xml:space="preserve">
+    <value>Номер письма</value>
+  </data>
+  <data name="Doc_LetterDate" xml:space="preserve">
+    <value>Дата письма</value>
+  </data>
+  <data name="Doc_ExternalCompany" xml:space="preserve">
+    <value>Наименование внешней компании</value>
+  </data>
+  <data name="Doc_ExternalContact" xml:space="preserve">
+    <value>Контактное лицо внешней компании</value>
+  </data>
+  <data name="Doc_ExternalPosition" xml:space="preserve">
+    <value>Должность руководителя внешней компании</value>
+  </data>
+  <data name="Doc_OurRefNo" xml:space="preserve">
+    <value>Наш исходящий номер</value>
+  </data>
+  <data name="Doc_TheirRefNo" xml:space="preserve">
+    <value>Их исходящий номер</value>
+  </data>
+  <data name="Doc_Channel" xml:space="preserve">
+    <value>Канал</value>
+  </data>
+  <data name="Doc_Topic" xml:space="preserve">
+    <value>Тема</value>
+  </data>
+  <data name="Doc_TopicRequired" xml:space="preserve">
+    <value>Необходимо ввести тему</value>
+  </data>
+  <data name="Doc_Greeting" xml:space="preserve">
+    <value>Приветствие</value>
+  </data>
+  <data name="Doc_MainText" xml:space="preserve">
+    <value>Основной текст</value>
+  </data>
+  <data name="Doc_ProductName" xml:space="preserve">
+    <value>Наименование продукта</value>
+  </data>
+  <data name="Doc_Dimension" xml:space="preserve">
+    <value>Размер</value>
+  </data>
+  <data name="Doc_PriceExw" xml:space="preserve">
+    <value>Цена EXW</value>
+  </data>
+  <data name="Doc_PriceVatExw" xml:space="preserve">
+    <value>Цена EXW с НДС</value>
+  </data>
+  <data name="Doc_PriceCip" xml:space="preserve">
+    <value>Цена CIP</value>
+  </data>
+  <data name="Doc_PriceVatCip" xml:space="preserve">
+    <value>Цена CIP с НДС</value>
+  </data>
+  <data name="Doc_CompanyOrPersonRequired" xml:space="preserve">
+    <value>Необходимо ввести наименование компании/лица</value>
+  </data>
+  <data name="Doc_CompanyOrPerson" xml:space="preserve">
+    <value>Компания/лицо</value>
+  </data>
+  <data name="Doc_IncomingNoRequired" xml:space="preserve">
+    <value>Необходимо ввести номер письма</value>
+  </data>
+  <data name="Doc_IncomingNo" xml:space="preserve">
+    <value>Номер письма</value>
+  </data>
+  <data name="Doc_IncomingDate" xml:space="preserve">
+    <value>Дата письма</value>
+  </data>
+  <data name="Doc_IncomingAttachment" xml:space="preserve">
+    <value>Вложение письма (PDF)</value>
+  </data>
+  <data name="Doc_NewOrder" xml:space="preserve">
+    <value>Новый приказ</value>
+  </data>
+  <data name="Doc_OrderDetails" xml:space="preserve">
+    <value>Сведения о приказе</value>
+  </data>
+  <data name="Doc_DetailsCrumb" xml:space="preserve">
+    <value>Подробности</value>
+  </data>
+  <data name="Doc_Template" xml:space="preserve">
+    <value>Шаблон</value>
+  </data>
+  <data name="Doc_CreateWordDoc" xml:space="preserve">
+    <value>Сформировать документ Word</value>
+  </data>
+  <data name="Doc_UploadTemplateFirst" xml:space="preserve">
+    <value>Сначала загрузите шаблон</value>
+  </data>
+  <data name="Doc_Templates" xml:space="preserve">
+    <value>Шаблоны</value>
+  </data>
+  <data name="Doc_Department" xml:space="preserve">
+    <value>Подразделение</value>
+  </data>
+  <data name="Doc_SendForApproval" xml:space="preserve">
+    <value>Отправить на утверждение</value>
+  </data>
+  <data name="Doc_GeneratedDocs" xml:space="preserve">
+    <value>Сформированные документы</value>
+  </data>
+  <data name="Doc_Version" xml:space="preserve">
+    <value>Версия</value>
+  </data>
+  <data name="Doc_FileName" xml:space="preserve">
+    <value>Имя файла</value>
+  </data>
+  <data name="Doc_NoFile" xml:space="preserve">
+    <value>Нет файла</value>
+  </data>
+  <data name="Doc_EditOrder" xml:space="preserve">
+    <value>Редактирование приказа</value>
+  </data>
+  <data name="Doc_WordTemplates" xml:space="preserve">
+    <value>Шаблоны Word</value>
+  </data>
+  <data name="Doc_Year" xml:space="preserve">
+    <value>Год</value>
+  </data>
+  <data name="Doc_SearchOrderPh" xml:space="preserve">
+    <value>Номер, заголовок...</value>
+  </data>
+  <data name="Doc_ConfirmGenerate" xml:space="preserve">
+    <value>Сформировать документ?</value>
+  </data>
+  <data name="Doc_GenerateDoc" xml:space="preserve">
+    <value>Сформировать документ</value>
+  </data>
+  <data name="Doc_OrdersFile" xml:space="preserve">
+    <value>Приказы</value>
+  </data>
+  <data name="Doc_OrdersList" xml:space="preserve">
+    <value>Список приказов</value>
+  </data>
+  <data name="Doc_SuggestText" xml:space="preserve">
+    <value>Предложить текст</value>
+  </data>
+  <data name="Doc_OrderTextPh" xml:space="preserve">
+    <value>Введите текст приказа...</value>
+  </data>
+  <data name="Doc_Waiting" xml:space="preserve">
+    <value>Ожидание...</value>
+  </data>
+  <data name="Doc_ConfirmSendApproval" xml:space="preserve">
+    <value>Отправить на утверждение?</value>
+  </data>
+  <data name="Doc_ConfirmApprove" xml:space="preserve">
+    <value>Утвердить?</value>
+  </data>
+  <data name="Doc_ConfirmReject" xml:space="preserve">
+    <value>Отклонить?</value>
+  </data>
+  <data name="Doc_Company" xml:space="preserve">
+    <value>Компания</value>
+  </data>
+  <data name="Doc_ContactPerson" xml:space="preserve">
+    <value>Контактное лицо</value>
+  </data>
+  <data name="Doc_HeadPosition" xml:space="preserve">
+    <value>Должность руководителя</value>
+  </data>
+  <data name="Doc_OurRef" xml:space="preserve">
+    <value>Наш номер</value>
+  </data>
+  <data name="Doc_TheirRef" xml:space="preserve">
+    <value>Их номер</value>
+  </data>
+  <data name="Doc_ProductsAndPrices" xml:space="preserve">
+    <value>Продукты и цены</value>
+  </data>
+  <data name="Doc_ProductAndPrice" xml:space="preserve">
+    <value>Продукт и цена</value>
+  </data>
+  <data name="Doc_EditLetter" xml:space="preserve">
+    <value>Редактирование письма</value>
+  </data>
+  <data name="Doc_Contact" xml:space="preserve">
+    <value>Контакт</value>
+  </data>
+  <data name="Doc_LettersList" xml:space="preserve">
+    <value>Список писем</value>
+  </data>
+  <data name="Doc_RegisterIncoming" xml:space="preserve">
+    <value>Регистрация входящего письма</value>
+  </data>
+  <data name="Doc_CompanyOrPersonPh" xml:space="preserve">
+    <value>Наименование компании или лица</value>
+  </data>
+  <data name="Doc_SelectPdf" xml:space="preserve">
+    <value>Выберите PDF-файл</value>
+  </data>
+  <data name="Doc_PdfOnlyHint" xml:space="preserve">
+    <value>Только PDF-файлы, максимальный размер: 10 МБ</value>
+  </data>
+  <data name="Doc_LetterTextPh" xml:space="preserve">
+    <value>Введите текст письма...</value>
+  </data>
+  <data name="Doc_StdAdd" xml:space="preserve">
+    <value>Добавление нового стандарта</value>
+  </data>
+  <data name="Doc_StdDelete" xml:space="preserve">
+    <value>Удаление стандарта</value>
+  </data>
+  <data name="Doc_StdWillBeDeleted" xml:space="preserve">
+    <value>Будет удалён следующий стандарт:</value>
+  </data>
+  <data name="Doc_StdCodeColon" xml:space="preserve">
+    <value>Код стандарта:</value>
+  </data>
+  <data name="Doc_FieldColon" xml:space="preserve">
+    <value>Область:</value>
+  </data>
+  <data name="Doc_VersionColon" xml:space="preserve">
+    <value>Версия:</value>
+  </data>
+  <data name="Doc_StdInfo" xml:space="preserve">
+    <value>Сведения о стандарте</value>
+  </data>
+  <data name="Doc_UpdatedDateColon" xml:space="preserve">
+    <value>Дата обновления:</value>
+  </data>
+  <data name="Doc_VersionHistory" xml:space="preserve">
+    <value>История версий</value>
+  </data>
+  <data name="Doc_DocImages" xml:space="preserve">
+    <value>Изображения документа</value>
+  </data>
+  <data name="Doc_NoImages" xml:space="preserve">
+    <value>В документе нет изображений</value>
+  </data>
+  <data name="Doc_Image" xml:space="preserve">
+    <value>Изображение</value>
+  </data>
+  <data name="Doc_StdEdit" xml:space="preserve">
+    <value>Редактирование стандарта</value>
+  </data>
+  <data name="Doc_StdCode" xml:space="preserve">
+    <value>Код стандарта</value>
+  </data>
+  <data name="Doc_Field" xml:space="preserve">
+    <value>Область</value>
+  </data>
+  <data name="Doc_StdList" xml:space="preserve">
+    <value>Список стандартов предприятия</value>
+  </data>
+  <data name="Doc_StdEditData" xml:space="preserve">
+    <value>Редактирование данных стандарта</value>
+  </data>
+  <data name="Doc_StdNewData" xml:space="preserve">
+    <value>Данные нового стандарта</value>
+  </data>
+  <data name="Doc_StdCodeUnique" xml:space="preserve">
+    <value>Код стандарта не должен повторяться</value>
+  </data>
+  <data name="Doc_CurrentVersion" xml:space="preserve">
+    <value>Текущая версия</value>
+  </data>
+  <data name="Doc_NewVersion" xml:space="preserve">
+    <value>Новая версия</value>
+  </data>
+  <data name="Doc_DocContent" xml:space="preserve">
+    <value>Содержимое документа</value>
+  </data>
+  <data name="Doc_LoadCurrentVersion" xml:space="preserve">
+    <value>Загрузить текущую версию</value>
+  </data>
+  <data name="Doc_LoadTemplateToEditor" xml:space="preserve">
+    <value>Загрузить шаблон в редактор</value>
+  </data>
+  <data name="Doc_UploadWord" xml:space="preserve">
+    <value>Загрузить файл Word</value>
+  </data>
+  <data name="Doc_SaveNewVersion" xml:space="preserve">
+    <value>Сохранить (создать новую версию)</value>
+  </data>
+  <data name="Doc_TemplateNotFoundEmpty" xml:space="preserve">
+    <value>Шаблон не найден. Продолжите с пустым документом.</value>
+  </data>
+  <data name="Doc_DocTemplates" xml:space="preserve">
+    <value>Шаблоны документов</value>
+  </data>
+  <data name="Doc_ConfirmMigrateTemplate" xml:space="preserve">
+    <value>Перенести старый шаблон из папки в базу данных?</value>
+  </data>
+  <data name="Doc_File" xml:space="preserve">
+    <value>Файл</value>
+  </data>
+  <data name="Doc_Uploaded" xml:space="preserve">
+    <value>Загружен</value>
+  </data>
+  <data name="Doc_TemplatesActiveHint" xml:space="preserve">
+    <value>При формировании документа выбирается один из активных шаблонов. Старый шаблон не удаляйте, а перенесите в архив — история созданных по нему документов сохранится.</value>
+  </data>
+  <data name="Doc_TemplateFields" xml:space="preserve">
+    <value>Поля шаблона</value>
+  </data>
+  <data name="Doc_FieldCol" xml:space="preserve">
+    <value>Поле</value>
+  </data>
+  <data name="Doc_MeaningCol" xml:space="preserve">
+    <value>Значение</value>
+  </data>
+  <data name="Doc_UploadNewTemplate" xml:space="preserve">
+    <value>Загрузить новый шаблон</value>
+  </data>
+  <data name="Doc_WordFileDocx" xml:space="preserve">
+    <value>Файл Word (.docx)</value>
+  </data>
+  <data name="Doc_ArchiveOtherActive" xml:space="preserve">
+    <value>Перенести в архив другие активные шаблоны</value>
+  </data>
+  <data name="Doc_UploadCheckHint" xml:space="preserve">
+    <value>Файл проверяется при загрузке: показываются формат Word и распознанные/нераспознанные поля.</value>
+  </data>
+  <data name="Doc_RichText" xml:space="preserve">
+    <value>Форматированный текст</value>
+  </data>
+  <data name="Doc_Table" xml:space="preserve">
+    <value>Таблица</value>
+  </data>
+  <data name="Doc_ConfirmApproveDirect" xml:space="preserve">
+    <value>Утвердить напрямую?</value>
+  </data>
+  <data name="Doc_UnknownError" xml:space="preserve">
+    <value>Неизвестная ошибка</value>
+  </data>
+  <data name="Doc_OrderNoDocument" xml:space="preserve">
+    <value>Для этого приказа документ не сформирован.</value>
+  </data>
+  <data name="Doc_LetterNoDocument" xml:space="preserve">
+    <value>Для этого письма документ не сформирован.</value>
+  </data>
+  <data name="Doc_NewLetter" xml:space="preserve">
+    <value>Новое письмо</value>
+  </data>
+  <data name="Doc_AddProduct" xml:space="preserve">
+    <value>Добавить продукт</value>
+  </data>
+  <data name="Doc_LettersFile" xml:space="preserve">
+    <value>Письма</value>
+  </data>
+  <data name="Doc_StdDeleteWarning" xml:space="preserve">
+    <value>Вы собираетесь удалить стандарт. Это действие нельзя отменить.</value>
+  </data>
+  <data name="Doc_ConfirmDeleteIrreversible" xml:space="preserve">
+    <value>Вы действительно хотите удалить? Это действие нельзя отменить.</value>
+  </data>
+  <data name="Doc_DownloadWordDocx" xml:space="preserve">
+    <value>Скачать документ Word (.docx)</value>
+  </data>
+  <data name="Doc_ImagesCount" xml:space="preserve">
+    <value>Изображений: {0}</value>
+  </data>
+  <data name="Doc_NewStd" xml:space="preserve">
+    <value>Новый стандарт</value>
+  </data>
+  <data name="Doc_AdditionalInfoPh" xml:space="preserve">
+    <value>Дополнительные сведения...</value>
+  </data>
+  <data name="Doc_EditorHint" xml:space="preserve">
+    <value>Ниже можно редактировать документ Word. В текст можно вставлять изображения.</value>
+  </data>
+  <data name="Doc_CurrentVersionMissing" xml:space="preserve">
+    <value>Файл текущей версии не найден</value>
+  </data>
+  <data name="Doc_StdFile" xml:space="preserve">
+    <value>Стандарты_предприятия</value>
+  </data>
+  <data name="Doc_TypeTemplates" xml:space="preserve">
+    <value>Шаблоны: {0}</value>
+  </data>
+  <data name="Doc_NoTemplateYet1" xml:space="preserve">
+    <value>Шаблонов пока нет. Сначала скачайте</value>
+  </data>
+  <data name="Doc_NoTemplateYetLink" xml:space="preserve">
+    <value>образец шаблона</value>
+  </data>
+  <data name="Doc_NoTemplateYet2" xml:space="preserve">
+    <value>, оформите его в Word на бланке предприятия и загрузите через форму справа.</value>
+  </data>
+  <data name="Doc_MigrateLegacyTemplate" xml:space="preserve">
+    <value>Перенести старый шаблон из папки в базу данных</value>
+  </data>
+  <data name="Doc_ConfirmDeleteTemplate" xml:space="preserve">
+    <value>Удалить шаблон?</value>
+  </data>
+  <data name="Doc_FieldsHelp1" xml:space="preserve">
+    <value>В шаблоне Word впишите в нужное место название поля в &lt;b&gt;двойных фигурных скобках&lt;/b&gt;, например</value>
+  </data>
+  <data name="Doc_FieldsHelp2" xml:space="preserve">
+    <value>Значение выводится тем же шрифтом и форматом, что и поле.</value>
+  </data>
+  <data name="Doc_FieldsHelp3" xml:space="preserve">
+    <value>Поля &lt;b&gt;текста&lt;/b&gt; и &lt;b&gt;таблицы&lt;/b&gt; пишите отдельной строкой (абзацем) — тогда будет вставлен форматированный текст/таблица.</value>
+  </data>
+  <data name="Doc_DownloadSample" xml:space="preserve">
+    <value>Скачать образец шаблона</value>
+  </data>
+  <data name="Doc_SampleHint" xml:space="preserve">
+    <value>Готовая структура со всеми полями — адаптируйте под свой бланк в Word.</value>
+  </data>
+  <data name="Js_Doc_ContentPh" xml:space="preserve">
+    <value>Введите содержимое документа...</value>
+  </data>
+  <data name="Js_Doc_Loaded" xml:space="preserve">
+    <value>Документ успешно загружен!</value>
+  </data>
+  <data name="Js_Doc_FileLoadError" xml:space="preserve">
+    <value>Ошибка при загрузке файла</value>
+  </data>
+  <data name="Js_Doc_FileNotFound" xml:space="preserve">
+    <value>Файл не найден</value>
+  </data>
+  <data name="Js_Doc_WordLoadError" xml:space="preserve">
+    <value>Ошибка при загрузке файла Word</value>
+  </data>
+  <data name="Js_Doc_ContractsLoadError" xml:space="preserve">
+    <value>Ошибка при загрузке договоров</value>
+  </data>
+  <data name="Doc_RepAbcXyz" xml:space="preserve">
+    <value>Сегментация ABC / XYZ</value>
+  </data>
+  <data name="Doc_RepSrmReports" xml:space="preserve">
+    <value>Отчёты SRM</value>
+  </data>
+  <data name="Doc_RepCoverageReport" xml:space="preserve">
+    <value>Отчёт о покрытии</value>
+  </data>
+  <data name="Doc_RepSafetyStockTitle" xml:space="preserve">
+    <value>Страховой запас и точка перезаказа</value>
+  </data>
+  <data name="Doc_RepWarehouseColon" xml:space="preserve">
+    <value>Склад:</value>
+  </data>
+  <data name="Doc_RepFromColon" xml:space="preserve">
+    <value>С:</value>
+  </data>
+  <data name="Doc_RepToColon" xml:space="preserve">
+    <value>По:</value>
+  </data>
+  <data name="Doc_RepCalculate" xml:space="preserve">
+    <value>Рассчитать</value>
+  </data>
+  <data name="Doc_RepDemandTotal" xml:space="preserve">
+    <value>Спрос (всего)</value>
+  </data>
+  <data name="Doc_RepSharePct" xml:space="preserve">
+    <value>Доля, %</value>
+  </data>
+  <data name="Doc_RepCumulativePct" xml:space="preserve">
+    <value>Накопительно, %</value>
+  </data>
+  <data name="Doc_RepAbcXyzNote" xml:space="preserve">
+    <value>Пояснение к сегментации ABC / XYZ</value>
+  </data>
+  <data name="Doc_RepAbcHeader" xml:space="preserve">
+    <value>Классификация ABC (по стоимости, простыми словами):</value>
+  </data>
+  <data name="Doc_RepAClass" xml:space="preserve">
+    <value>Класс A (примерно 80% стоимости):</value>
+  </data>
+  <data name="Doc_RepAText" xml:space="preserve">
+    <value>самые важные позиции, через которые проходит основной оборот денег. Их немного, но сумма очень большая. Их нужно контролировать особенно тщательно.</value>
+  </data>
+  <data name="Doc_RepBClass" xml:space="preserve">
+    <value>Класс B (следующие примерно 15% стоимости):</value>
+  </data>
+  <data name="Doc_RepBText" xml:space="preserve">
+    <value>позиции средней важности. Управление ими тоже важно, но не так строго, как классом A.</value>
+  </data>
+  <data name="Doc_RepCClass" xml:space="preserve">
+    <value>Класс C (оставшаяся небольшая часть стоимости):</value>
+  </data>
+  <data name="Doc_RepCText" xml:space="preserve">
+    <value>множество простых позиций с небольшой долей в общей стоимости. Для них достаточно упрощённого управления.</value>
+  </data>
+  <data name="Doc_RepXyzHeader" xml:space="preserve">
+    <value>Классификация XYZ (по стабильности спроса):</value>
+  </data>
+  <data name="Doc_RepXClass" xml:space="preserve">
+    <value>Класс X:</value>
+  </data>
+  <data name="Doc_RepXText" xml:space="preserve">
+    <value>спрос почти постоянный, колебания очень малы. Такие позиции легче всего прогнозировать и планировать.</value>
+  </data>
+  <data name="Doc_RepYClass" xml:space="preserve">
+    <value>Класс Y:</value>
+  </data>
+  <data name="Doc_RepYText" xml:space="preserve">
+    <value>спрос меняется умеренно, есть сезонность или тренд. Прогноз средней точности.</value>
+  </data>
+  <data name="Doc_RepZClass" xml:space="preserve">
+    <value>Класс Z:</value>
+  </data>
+  <data name="Doc_RepZText" xml:space="preserve">
+    <value>спрос очень неравномерный: то есть, то нет (спорадический). Прогнозировать сложно, поэтому политика страхового запаса должна быть осторожной и консервативной.</value>
+  </data>
+  <data name="Doc_RepCategoryColon" xml:space="preserve">
+    <value>Категория:</value>
+  </data>
+  <data name="Doc_RepProductTypeColon" xml:space="preserve">
+    <value>Тип продукта:</value>
+  </data>
+  <data name="Doc_RepViewColon" xml:space="preserve">
+    <value>Вид:</value>
+  </data>
+  <data name="Doc_RepDaily" xml:space="preserve">
+    <value>По дням</value>
+  </data>
+  <data name="Doc_RepWeekly" xml:space="preserve">
+    <value>По неделям</value>
+  </data>
+  <data name="Doc_RepMonthly" xml:space="preserve">
+    <value>По месяцам</value>
+  </data>
+  <data name="Doc_RepStock" xml:space="preserve">
+    <value>Остаток</value>
+  </data>
+  <data name="Doc_RepPlanTotal" xml:space="preserve">
+    <value>План (всего)</value>
+  </data>
+  <data name="Doc_RepFactTotal" xml:space="preserve">
+    <value>Факт (всего)</value>
+  </data>
+  <data name="Doc_RepServiceLevel" xml:space="preserve">
+    <value>Уровень сервиса, %</value>
+  </data>
+  <data name="Doc_RepLeadTime" xml:space="preserve">
+    <value>Срок поставки, дн.</value>
+  </data>
+  <data name="Doc_RepProduct" xml:space="preserve">
+    <value>Продукт</value>
+  </data>
+  <data name="Doc_RepAvgDailyDemand" xml:space="preserve">
+    <value>Средний суточный спрос</value>
+  </data>
+  <data name="Doc_RepStdDev" xml:space="preserve">
+    <value>Отклонение (суточное)</value>
+  </data>
+  <data name="Doc_RepSafetyStock" xml:space="preserve">
+    <value>Страховой запас</value>
+  </data>
+  <data name="Doc_RepStockDays" xml:space="preserve">
+    <value>Запас (дни)</value>
+  </data>
+  <data name="Doc_RepReorderPoint" xml:space="preserve">
+    <value>Точка перезаказа</value>
+  </data>
+  <data name="Core_PmParametersPh" xml:space="preserve">
+    <value>Параметры</value>
+  </data>
+  <data name="Task_PriorityNewAdd" xml:space="preserve">
+    <value>Добавление нового приоритета</value>
+  </data>
+  <data name="Task_ProjectNewAdd" xml:space="preserve">
+    <value>Добавление нового проекта</value>
+  </data>
+  <data name="Task_StatusNewAdd" xml:space="preserve">
+    <value>Добавление нового статуса</value>
+  </data>
+  <data name="Task_TasksSlash" xml:space="preserve">
+    <value>Задачи</value>
+  </data>
 </root>

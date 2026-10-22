@@ -1,5 +1,5 @@
 @{
-    ViewBag.Title = "Ro'yxat";
+    ViewBag.Title = L.T("Core_ComingSoon");
     Layout = null;
 }
     
@@ -33,12 +33,12 @@
                 <section>
                     <div class="row flexbox-container">
                         <div class="col-md-6 col-12 text-center p-3">
-                            <img class="img-fluid cs-effect cs-effect-bounce" src="~/app-assets/images/pages/comingsoon.png" alt="coming soon" width="350">
+                            <img class="img-fluid cs-effect cs-effect-bounce" src="~/app-assets/images/pages/comingsoon.png" alt="@L.T("Core_ComingSoon")" width="350">
                             <br />
                             <br />
-                            <h1 class="error-title mb-2">Yaqinda ishga tushiramiz</h1>
+                            <h1 class="error-title mb-2">@L.T("Core_ComingSoon")</h1>
                             <br />
-                            <a href="~/Home" class="btn btn-primary round glow mt-2">Asosiy sahifa</a>
+                            <a href="~/Home" class="btn btn-primary round glow mt-2">@L.T("Home")</a>
                         </div>
                     </div>
                 </section>

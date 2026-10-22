@@ -1,6 +1,6 @@
 ﻿@model tahsinERP.ViewModels.UserViewModel
 @{
-    ViewBag.Title = "AccountSettings";
+    ViewBag.Title = L.T("Core_AccountSettings");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 <div class="app-content content">
@@ -16,10 +16,10 @@
                                     <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                 </li>
                                 <li class="breadcrumb-item">
-                                    <a href="#">Sahifalar</a>
+                                    <a href="#">@L.T("Core_Pages")</a>
                                 </li>
                                 <li class="breadcrumb-item active">
-                                    Akkaunt sozlamalari
+                                    @L.T("Core_AccountSettings")
                                 </li>
                             </ol>
                         </div>
@@ -41,10 +41,10 @@
                                             <div class="card-body">
 
                                                 <div class="media">
-                                                    <img src="@ViewBag.Base64String" class="rounded mr-75" alt="profile image" height="64" width="64" />
+                                                    <img src="@ViewBag.Base64String" class="rounded mr-75" alt="@L.T("Core_ProfileImage")" height="64" width="64" />
                                                     <div class="media-body mt-25">
                                                         <div class="col-12 px-0 d-flex flex-sm-row flex-column justify-content-start">
-                                                            <span>Yangi rasm yuklash</span>
+                                                            <span>@L.T("Core_UploadNewPhoto")</span>
                                                             <input type="file" class="btn btn-sm btn-light-primary ml-50 mb-50 mb-sm-0" id="userPhotoUpload" name="userPhotoUpload" />
                                                             @Html.ValidationMessageFor(model => model.File, "", new { @class = "text-danger" })
 
@@ -63,8 +63,8 @@
                                                     <div class="col-12">
                                                         <div class="form-group">
                                                             <div class="controls">
-                                                                <label>Foydalanuvchi nomi</label>
-                                                                @Html.TextBoxFor(model => model.UName, new { @class = "form-control", @type = "text", @placeholder = "Username", @readonly = "readonly" })
+                                                                <label>@L.T("Core_UserName")</label>
+                                                                @Html.TextBoxFor(model => model.UName, new { @class = "form-control", @type = "text", @placeholder = L.T("Core_UserName"), @readonly = "readonly" })
                                                                 @Html.ValidationMessageFor(model => model.UName, "", new { @class = "text-danger" })
                                                             </div>
                                                         </div>
@@ -72,8 +72,8 @@
                                                     <div class="col-12">
                                                         <div class="form-group">
                                                             <div class="controls">
-                                                                <label>Foydalanuvchi F.I.Sh</label>
-                                                                @Html.TextBoxFor(model => model.FullName, new { @class = "form-control", @type = "text", @placeholder = "FISh" })
+                                                                <label>@L.T("Core_UserFullName")</label>
+                                                                @Html.TextBoxFor(model => model.FullName, new { @class = "form-control", @type = "text", @placeholder = L.T("Core_FullNameShort") })
                                                                 @Html.ValidationMessageFor(model => model.FullName, "", new { @class = "text-danger" })
                                                             </div>
                                                         </div>
@@ -92,16 +92,16 @@
                                                     <div class="col-12">
                                                         <div class="form-group">
                                                             <div class="controls">
-                                                                <label>Amaldagi kalit so'zi</label>
-                                                                @Html.PasswordFor(model => model.CurrentPassword, new { @class = "form-control", @placeholder = "Kalit so'zi", @required = "required", autocomplete = "current-password" })
+                                                                <label>@L.T("Core_CurrentPassword")</label>
+                                                                @Html.PasswordFor(model => model.CurrentPassword, new { @class = "form-control", @placeholder = L.T("Core_PasswordPlaceholder"), @required = "required", autocomplete = "current-password" })
                                                             </div>
                                                         </div>
                                                     </div>
                                                     <div class="col-12">
                                                         <div class="form-group">
                                                             <div class="controls">
-                                                                <label>Yangi kalit so'zi</label>
-                                                                @Html.PasswordFor(model => model.Password, new { @class = "form-control", @placeholder = "O'zgartirmaslik uchun bo'sh qoldiring", autocomplete = "new-password" })
+                                                                <label>@L.T("Core_NewPassword")</label>
+                                                                @Html.PasswordFor(model => model.Password, new { @class = "form-control", @placeholder = L.T("Core_LeaveEmptyToKeep"), autocomplete = "new-password" })
                                                                 @Html.ValidationMessageFor(model => model.Password, "", new { @class = "text-danger" })
                                                             </div>
                                                         </div>
@@ -109,16 +109,16 @@
                                                     <div class="col-12">
                                                         <div class="form-group">
                                                             <div class="controls">
-                                                                <label>Yangi kalit so'zini qayta kiriting</label>
-                                                                @Html.PasswordFor(model => model.ConfirmPassword, new { @class = "form-control", @placeholder = "Kalit so'zi", autocomplete = "new-password" })
+                                                                <label>@L.T("Core_ConfirmNewPassword")</label>
+                                                                @Html.PasswordFor(model => model.ConfirmPassword, new { @class = "form-control", @placeholder = L.T("Core_PasswordPlaceholder"), autocomplete = "new-password" })
                                                             </div>
                                                         </div>
                                                     </div>
                                                     <div class="col-12 d-flex flex-sm-row flex-column justify-content-end">
                                                         <button type="submit" class="btn btn-primary glow mr-sm-1 mb-1">
-                                                            Saqlash
+                                                            @L.T("Save")
                                                         </button>
-                                                        <button type="reset" class="btn btn-light mb-1" onclick="location.href='/Home'">Cancel</button>
+                                                        <button type="reset" class="btn btn-light mb-1" onclick="location.href='/Home'">@L.T("Cancel")</button>
                                                     </div>
                                                 </div>
                                             </div>

@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Web.Mvc;
 using tahsinERP.Models;
 using tahsinERP.Services.Tasks;
+using tahsinERP.I18n;
 
 namespace tahsinERP.Controllers.TaskSettings
 {
@@ -25,7 +26,7 @@ namespace tahsinERP.Controllers.TaskSettings
 
         protected override string LogLabel => "Project";
 
-        protected override string InUseMessage => "Bu loyiha vazifalarda ishlatilmoqda. O'chirish mumkin emas.";
+        protected override string InUseMessage => L.T("Task_ProjectInUse");
 
         protected override Task OnCreatingAsync(DBTHSNEntities db, APP_TASK_PROJECTS entity)
         {

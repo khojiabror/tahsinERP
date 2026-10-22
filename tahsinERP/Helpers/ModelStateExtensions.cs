@@ -29,13 +29,13 @@ namespace tahsinERP.Helpers
 
                     if (eve.ValidationErrors == null || !eve.ValidationErrors.Any())
                     {
-                        modelState.AddModelError("", entityLabel + ": validatsiya xatosi (batafsil yo'q).");
+                        modelState.AddModelError("", tahsinERP.I18n.L.T("Core_ValidationErrorNoDetails", entityLabel));
                         continue;
                     }
 
                     foreach (var ve in eve.ValidationErrors)
                     {
-                        var prop = string.IsNullOrEmpty(ve.PropertyName) ? "(maydon)" : ve.PropertyName;
+                        var prop = string.IsNullOrEmpty(ve.PropertyName) ? tahsinERP.I18n.L.T("Core_FieldParen") : ve.PropertyName;
                         modelState.AddModelError("", $"{entityLabel} — {prop}: {ve.ErrorMessage}");
                     }
                 }
@@ -45,9 +45,9 @@ namespace tahsinERP.Helpers
             var dbUp = Find<DbUpdateException>(ex);
             if (dbUp != null)
             {
-                modelState.AddModelError("", "Ma'lumotlar bazasiga yozishda xatolik: " + dbUp.Message);
+                modelState.AddModelError("", tahsinERP.I18n.L.T("Core_DbWriteError", dbUp.Message));
                 for (var inner = dbUp.InnerException; inner != null; inner = inner.InnerException)
-                    modelState.AddModelError("", "Ichki: " + inner.Message);
+                    modelState.AddModelError("", tahsinERP.I18n.L.T("Core_InnerError", inner.Message));
                 return;
             }
 
@@ -57,9 +57,9 @@ namespace tahsinERP.Helpers
         /// <summary>"Xatolik: ... | Ichki xatolik: ..." — butun InnerException zanjiri bitta qatorda.</summary>
         public static string ErrorChain(Exception ex)
         {
-            var msg = "Xatolik: " + ex.Message;
+            var msg = tahsinERP.I18n.L.T("Core_ErrorShort", ex.Message);
             for (var inner = ex.InnerException; inner != null; inner = inner.InnerException)
-                msg += " | Ichki xatolik: " + inner.Message;
+                msg += " | " + tahsinERP.I18n.L.T("Core_InnerErrorFull", inner.Message);
             return msg;
         }
 

@@ -10,6 +10,7 @@ using tahsinERP.Helpers;
 using tahsinERP.Models;
 using tahsinERP.Services;
 using tahsinERP.ViewModels;
+using tahsinERP.I18n;
 
 namespace tahsinERP.Controllers
 {
@@ -74,7 +75,7 @@ namespace tahsinERP.Controllers
                 FullName = u.FullName,
                 Email = u.Email,
                 IsActive = u.IsActive,
-                Role = u.ROLES.FirstOrDefault()?.RName ?? "Rol yo'q"
+                Role = u.ROLES.FirstOrDefault()?.RName ?? L.T("Core_NoRole")
             }).ToList();
 
             // Rol filtri ro'yxatidan ham Developer'ni yashiramiz
@@ -118,12 +119,12 @@ namespace tahsinERP.Controllers
             if (existingUser != null)
             {
                 invalid = true;
-                ModelState.AddModelError("UName", "Bu foydalanuvchi nomi allaqachon mavjud.");
+                ModelState.AddModelError("UName", L.T("Core_UserNameExists"));
             }
             if (string.IsNullOrWhiteSpace(userVM.Password))
             {
                 invalid = true;
-                ModelState.AddModelError("Password", "Kalit so'zni kiriting");
+                ModelState.AddModelError("Password", L.T("Core_EnterPassword"));
             }
 
             ROLE selectedRole = null;
@@ -133,7 +134,7 @@ namespace tahsinERP.Controllers
                 if (selectedRole == null || IsDeveloperRole(selectedRole))
                 {
                     invalid = true;
-                    ModelState.AddModelError("", "Birinchi martada 'Developer' role biriktirish mumkin emas.");
+                    ModelState.AddModelError("", L.T("Core_DeveloperRoleFirstTime"));
                 }
             }
 
@@ -148,7 +149,7 @@ namespace tahsinERP.Controllers
                 else
                 {
                     invalid = true;
-                    ModelState.AddModelError("", "Suratni yuklab bo'lmadi, u 2 MB dan ortiq. Qayta urinib ko'ring va muammo davom etsa, tizim administratoriga murojaat qiling.");
+                    ModelState.AddModelError("", L.T("Core_PhotoTooLargeContactAdmin"));
                 }
             }
 
@@ -193,14 +194,14 @@ namespace tahsinERP.Controllers
                     tx.Commit();
 
                     LogHelper.LogToDatabase(User.Identity.Name, "Foydalanuvchilar", $"{user.Uname} - Foydalanuvchini tizimga qo'shdi");
-                    TempData["Success"] = "Foydalanuvchi muvaffaqiyatli qo'shildi.";
+                    TempData["Success"] = L.T("Core_UserAdded");
                     return RedirectToAction("Index");
                 }
                 catch (Exception ex)
                 {
                     tx.Rollback();
                     System.Diagnostics.Trace.TraceError("[User.Create] " + ex);
-                    ModelState.AddModelError("", "O'zgarishlarni saqlab bo'lmadi. Qayta urinib ko'ring va muammo davom etsa, tizim administratoriga murojaat qiling.");
+                    ModelState.AddModelError("", L.T("Core_SaveFailedAdmin"));
                 }
             }
 
@@ -274,7 +275,7 @@ namespace tahsinERP.Controllers
             var existingUser = await db.USERS.FirstOrDefaultAsync(u => u.Uname == uvm.UName && u.ID != ID && u.IsDeleted != true);
             if (existingUser != null)
             {
-                ModelState.AddModelError("UName", "Bu foydalanuvchi nomi allaqachon mavjud.");
+                ModelState.AddModelError("UName", L.T("Core_UserNameExists"));
                 ViewBag.RoleID = await RolesSelectListAsync(db, uvm.RoleID);
                 USERIMAGE userimage = await db.USERIMAGES.FirstOrDefaultAsync(ui => ui.UserID == ID);
                 if (userimage != null)
@@ -363,7 +364,7 @@ namespace tahsinERP.Controllers
                     }
                     else
                     {
-                        ModelState.AddModelError("", "Suratni yuklab bo'lmadi, u 2 MB dan ortiq. Qayta urinib ko'ring va muammo davom etsa, tizim administratoriga murojaat qiling.");
+                        ModelState.AddModelError("", L.T("Core_PhotoTooLargeContactAdmin"));
                         ViewBag.RoleID = await RolesSelectListAsync(db, uvm.RoleID);
                         USERIMAGE userimage = await db.USERIMAGES.FirstOrDefaultAsync(ui => ui.UserID == ID);
                         if (userimage != null)
@@ -382,16 +383,16 @@ namespace tahsinERP.Controllers
 
                 LogHelper.LogToDatabase(User.Identity.Name, "Foydalanuvchilar", $"{userToUpdate.Uname} - Foydalanuvchini ma'lumotlarini tahrirladi");
 
-                TempData["Success"] = "Foydalanuvchi ma'lumotlari muvaffaqiyatli yangilandi.";
+                TempData["Success"] = L.T("Core_UserUpdated");
                 return RedirectToAction("Index");
             }
             catch (RetryLimitExceededException)
             {
-                ModelState.AddModelError("", "O'zgarishlarni saqlab bo'lmadi. Qayta urinib ko'ring va muammo davom etsa, tizim administratoriga murojaat qiling.");
+                ModelState.AddModelError("", L.T("Core_SaveFailedAdmin"));
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError("", "Xatolik yuz berdi: " + ex.Message);
+                ModelState.AddModelError("", L.T("Core_ErrorWithMessage", ex.Message));
             }
 
             ViewBag.RoleID = await RolesSelectListAsync(db, uvm.RoleID);
@@ -438,7 +439,7 @@ namespace tahsinERP.Controllers
                 Email = user.Email,
                 FullName = user.FullName,
                 IsActive = user.IsActive,
-                Role = user.ROLES.FirstOrDefault()?.RName ?? "Rol yo'q",
+                Role = user.ROLES.FirstOrDefault()?.RName ?? L.T("Core_NoRole"),
                 logs = recentLogs
             };
 
@@ -479,7 +480,7 @@ namespace tahsinERP.Controllers
                 Email = user.Email,
                 FullName = user.FullName,
                 IsActive = user.IsActive,
-                Role = user.ROLES.FirstOrDefault()?.RName ?? "Rol yo'q"
+                Role = user.ROLES.FirstOrDefault()?.RName ?? L.T("Core_NoRole")
             };
 
             USERIMAGE userimage = await db.USERIMAGES.FirstOrDefaultAsync(ui => ui.UserID == user.ID);
@@ -520,16 +521,16 @@ namespace tahsinERP.Controllers
 
                 LogHelper.LogToDatabase(User.Identity.Name, "Foydalanuvchilar", $"{user.Uname} - Foydalanuvchini tizimdan o'chirdi");
 
-                TempData["Success"] = "Foydalanuvchi muvaffaqiyatli o'chirildi.";
+                TempData["Success"] = L.T("Core_UserDeleted");
                 return RedirectToAction("Index");
             }
             catch (RetryLimitExceededException)
             {
-                ModelState.AddModelError("", "O'zgarishlarni saqlab bo'lmadi. Qayta urinib ko'ring va muammo davom etsa, tizim administratoriga murojaat qiling.");
+                ModelState.AddModelError("", L.T("Core_SaveFailedAdmin"));
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError("", "Xatolik yuz berdi: " + ex.Message);
+                ModelState.AddModelError("", L.T("Core_ErrorWithMessage", ex.Message));
             }
 
             return View();

@@ -6,23 +6,23 @@ namespace tahsinERP.ViewModels
     {
         public long TaskID { get; set; }
         
-        [Display(Name = "Kod")]
+        [Display(Name = "Code")]
         public string KeyCode { get; set; }
         
-        [Display(Name = "Sarlavha")]
+        [Display(Name = "Task_Title")]
         public string Title { get; set; }
         
-        [Display(Name = "Joriy Status")]
+        [Display(Name = "Task_CurrentStatus")]
         public int CurrentStatusID { get; set; }
         
-        [Display(Name = "Joriy Status")]
+        [Display(Name = "Task_CurrentStatus")]
         public string CurrentStatusName { get; set; }
         
-        [Required(ErrorMessage = "Status tanlash majburiy")]
-        [Display(Name = "Yangi Status *")]
+        [Required(ErrorMessage = "Task_StatusSelectRequired")]
+        [Display(Name = "Task_NewStatusStar")]
         public int StatusID { get; set; }
         
-        [Display(Name = "Izoh")]
+        [Display(Name = "Comment")]
         [DataType(DataType.MultilineText)]
         public string UserComment { get; set; }
     }

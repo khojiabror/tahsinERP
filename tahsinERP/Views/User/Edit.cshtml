@@ -1,6 +1,6 @@
 @model tahsinERP.ViewModels.UserViewModel
 @{
-    ViewBag.Title = "Foydalanuvchi ma'lumotlarini tahrirlash";
+    ViewBag.Title = L.T("Core_UserEditTitle");
     Layout = "~/Views/Shared/_AdminPanelLayout.cshtml";
 }
 
@@ -21,8 +21,8 @@
                                 <div class="breadcrumb-wrapper col-12">
                                     <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                         <li class="breadcrumb-item"><a href="~/AdminPanel"><i class="bx bx-home-alt"></i></a></li>
-                                        <li class="breadcrumb-item"><a href="~/User/Index">Foydalanuvchilar</a></li>
-                                        <li class="breadcrumb-item active">Tahrirlash</li>
+                                        <li class="breadcrumb-item"><a href="~/User/Index">@L.T("Adm_Users")</a></li>
+                                        <li class="breadcrumb-item active">@L.T("Edit")</li>
                                     </ol>
                                 </div>
                             </div>
@@ -49,55 +49,55 @@
 
                                             <div class="row my-2 py-50">
                                                 <div class="col-sm-6 col-12">
-                                                    <h6 class="invoice-to">Foydalanuvchi nomi <span class="text-danger">*</span></h6>
+                                                    <h6 class="invoice-to">@L.T("Core_UserName") <span class="text-danger">*</span></h6>
                                                     <fieldset class="form-group">
-                                                        @Html.TextBoxFor(model => model.UName, new { @class = "form-control", @placeholder = "Foydalanuvchi nomi", @required = "required" })
+                                                        @Html.TextBoxFor(model => model.UName, new { @class = "form-control", @placeholder = L.T("Core_UserName"), @required = "required" })
                                                         @Html.ValidationMessageFor(model => model.UName, "", new { @class = "text-danger" })
                                                     </fieldset>
 
-                                                    <h6 class="invoice-to">E-mail</h6>
+                                                    <h6 class="invoice-to">@L.T("Email")</h6>
                                                     <fieldset class="form-group">
-                                                        @Html.TextBoxFor(model => model.Email, new { @class = "form-control", @placeholder = "E-mail", type = "email" })
+                                                        @Html.TextBoxFor(model => model.Email, new { @class = "form-control", @placeholder = L.T("Email"), type = "email" })
                                                         @Html.ValidationMessageFor(model => model.Email, "", new { @class = "text-danger" })
                                                     </fieldset>
 
-                                                    <h6 class="invoice-to">To'liq F.I.Sh</h6>
+                                                    <h6 class="invoice-to">@L.T("Core_FullNameLabel")</h6>
                                                     <fieldset class="form-group">
-                                                        @Html.TextBoxFor(model => model.FullName, new { @class = "form-control", @placeholder = "Ismi sharifini to'liq kiriting" })
+                                                        @Html.TextBoxFor(model => model.FullName, new { @class = "form-control", @placeholder = L.T("Core_FullNameEnterPlaceholder") })
                                                         @Html.ValidationMessageFor(model => model.FullName, "", new { @class = "text-danger" })
                                                     </fieldset>
 
-                                                    <h6 class="invoice-to">Roli <span class="text-danger">*</span></h6>
+                                                    <h6 class="invoice-to">@L.T("Core_RoleLabel") <span class="text-danger">*</span></h6>
                                                     <fieldset class="form-group">
-                                                        @Html.DropDownList("RoleID", null, "Rolni tanlang", htmlAttributes: new { @class = "form-control", @required = "required" })
+                                                        @Html.DropDownList("RoleID", null, L.T("Core_SelectRole"), htmlAttributes: new { @class = "form-control", @required = "required" })
                                                         @Html.ValidationMessageFor(model => model.RoleID, "", new { @class = "text-danger" })
                                                     </fieldset>
                                                 </div>
 
                                                 <div class="col-sm-6 col-12">
-                                                    <h6 class="invoice-to">Foydalanuvchi rasmi</h6>
+                                                    <h6 class="invoice-to">@L.T("Core_UserPhoto")</h6>
                                                     <fieldset class="form-group">
                                                         @if (ViewBag.Base64String != null)
                                                         {
                                                             <img alt="" src="@ViewBag.Base64String" style="height:150px;width:150px;border-radius:8px;margin-bottom:10px;" class="d-block" />
                                                         }
                                                         <input type="file" id="userPhotoUpload" name="userPhotoUpload" accept="image/*" class="form-control" />
-                                                        <small class="text-muted">Maksimal hajmi: 2 MB (o'zgartirish uchun yangi rasm yuklang)</small>
+                                                        <small class="text-muted">@L.T("Core_MaxSize2MbChange")</small>
                                                         @Html.ValidationMessageFor(model => model.File, "", new { @class = "text-danger" })
                                                     </fieldset>
 
-                                                    <h6 class="invoice-to">Kalit so'zi</h6>
+                                                    <h6 class="invoice-to">@L.T("Core_PasswordPlaceholder")</h6>
                                                     <fieldset class="form-group">
-                                                        @Html.PasswordFor(model => model.Password, new { @class = "form-control", @placeholder = "Kalit so'zi (faqat o'zgartirish uchun)", @value = "" })
-                                                        <small class="text-muted">Kalit so'zni o'zgartirish uchun yangi kalit so'z kiriting. Bo'sh qoldirilsa, eski kalit so'z saqlanadi.</small>
+                                                        @Html.PasswordFor(model => model.Password, new { @class = "form-control", @placeholder = L.T("Core_PasswordOnlyChange"), @value = "" })
+                                                        <small class="text-muted">@L.T("Core_PasswordChangeHint")</small>
                                                         @Html.ValidationMessageFor(model => model.Password, "", new { @class = "text-danger" })
                                                     </fieldset>
 
-                                                    <h6 class="invoice-to">Faolligi</h6>
+                                                    <h6 class="invoice-to">@L.T("Core_Activity")</h6>
                                                     <fieldset class="form-group">
                                                         <div class="checkbox checkbox-secondary checkbox-glow">
                                                             @Html.CheckBoxFor(Model => Model.IsActive, new { @type = "checkbox", @id = "checkboxGlow2" })
-                                                            <label for="checkboxGlow2">Faol</label>
+                                                            <label for="checkboxGlow2">@L.T("Active")</label>
                                                         </div>
                                                         @Html.ValidationMessageFor(model => model.IsActive, "", new { @class = "text-danger" })
                                                     </fieldset>
@@ -109,10 +109,10 @@
                                             <div class="row">
                                                 <div class="col-12">
                                                     <button class="btn btn-primary" type="submit">
-                                                        <i class='bx bx-save'></i> Saqlash
+                                                        <i class='bx bx-save'></i> @L.T("Save")
                                                     </button>
                                                     <a href="@Url.Action("Index", "User")" class="btn btn-secondary">
-                                                        <i class='bx bx-x'></i> Bekor qilish
+                                                        <i class='bx bx-x'></i> @L.T("Cancel")
                                                     </a>
                                                 </div>
                                             </div>

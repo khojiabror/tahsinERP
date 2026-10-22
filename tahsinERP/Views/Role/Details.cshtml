@@ -1,6 +1,6 @@
 @model tahsinERP.Models.ROLE
 @{
-    ViewBag.Title = "Rol ma'lumotlari";
+    ViewBag.Title = L.T("Core_RoleData");
     Layout = "~/Views/Shared/_AdminPanelLayout.cshtml";
 }
 
@@ -18,7 +18,7 @@
                             <div class="breadcrumb-wrapper col-12">
                                 <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                     <li class="breadcrumb-item"><a href="~/AdminPanel"><i class="bx bx-home-alt"></i></a></li>
-                                    <li class="breadcrumb-item"><a href="~/Role">Rollar</a></li>
+                                    <li class="breadcrumb-item"><a href="~/Role">@L.T("Adm_Roles")</a></li>
                                     <li class="breadcrumb-item active">@Model.RName</li>
                                 </ol>
                             </div>
@@ -37,19 +37,19 @@
                             <div class="card-content">
                                 <div class="card-body">
                                     <div class="form-group">
-                                        <label><strong>Rol nomi:</strong></label>
+                                        <label><strong>@L.T("Core_RoleNameColon")</strong></label>
                                         <p class="form-control-plaintext">@Model.RName</p>
                                     </div>
 
                                     <div class="form-group">
-                                        <label><strong>Tavsif:</strong></label>
+                                        <label><strong>@L.T("Core_DescriptionColon")</strong></label>
                                         <p class="form-control-plaintext">@(string.IsNullOrEmpty(Model.Description) ? "-" : Model.Description)</p>
                                     </div>
 
                                     <div class="form-group">
-                                        <label><strong>Huquqlar soni:</strong></label>
+                                        <label><strong>@L.T("Core_PermissionsCountColon")</strong></label>
                                         <p class="form-control-plaintext">
-                                            <span class="badge badge-light-info">@(Model.PERMISSIONS?.Count ?? 0) ta</span>
+                                            <span class="badge badge-light-info">@L.T("Core_CountTa", Model.PERMISSIONS?.Count ?? 0)</span>
                                         </p>
                                     </div>
 
@@ -57,13 +57,13 @@
                                     {
                                         <div class="form-group">
                                             <a href="@Url.Action("Permissions", "Role", new { id = Model.ID })" class="btn btn-warning">
-                                                <i class="bx bx-lock"></i> Huquqlarni boshqarish
+                                                <i class="bx bx-lock"></i> @L.T("Core_ManagePermissions")
                                             </a>
                                             <a href="@Url.Action("Edit", "Role", new { id = Model.ID })" class="btn btn-primary">
-                                                <i class="bx bx-edit"></i> Tahrirlash
+                                                <i class="bx bx-edit"></i> @L.T("Edit")
                                             </a>
                                             <a href="@Url.Action("Index", "Role")" class="btn btn-outline-secondary">
-                                                <i class="bx bx-arrow-back"></i> Orqaga
+                                                <i class="bx bx-arrow-back"></i> @L.T("Back")
                                             </a>
                                         </div>
                                     }
@@ -79,7 +79,7 @@
                         <div class="col-12">
                             <div class="card">
                                 <div class="card-header">
-                                    <h4 class="card-title"><i class="bx bx-lock mr-1"></i>Huquqlar ro'yxati</h4>
+                                    <h4 class="card-title"><i class="bx bx-lock mr-1"></i>@L.T("Core_PermissionsList")</h4>
                                 </div>
                                 <div class="card-content">
                                     <div class="card-body">
@@ -87,7 +87,7 @@
                                             <table id="rolePermissionsDataTable" class="table table-striped table-bordered" style="width:100%">
                                                 <thead>
                                                     <tr>
-                                                        <th>Modul</th>
+                                                        <th>@L.T("Core_Module")</th>
                                                         <th>Controller</th>
                                                         <th>Action</th>
                                                         <th class="text-center">View</th>
@@ -140,22 +140,9 @@
         <script>
             $(document).ready(function () {
                 $('#rolePermissionsDataTable').DataTable({
-                    "language": {
-                        "search": "Qidirish:",
-                        "lengthMenu": "_MENU_ ta ko'rsatish",
-                        "info": "_TOTAL_ ta yozuvdan _START_ dan _END_ gacha",
-                        "infoEmpty": "Yozuvlar yo'q",
-                        "infoFiltered": "(jami _MAX_ ta yozuvdan filtrlangan)",
-                        "paginate": {
-                            "first": "Birinchi",
-                            "last": "Oxirgi",
-                            "next": "Keyingi",
-                            "previous": "Oldingi"
-                        },
-                        "zeroRecords": "Ma'lumot topilmadi"
-                    },
+                    language: erpDataTable.language,
                     "pageLength": 25,
-                    "lengthMenu": [[25, 50, 100, -1], [25, 50, 100, "Barchasi"]],
+                    "lengthMenu": [[25, 50, 100, -1], [25, 50, 100, '@L.Js("All")']],
                     "order": [[0, "asc"], [1, "asc"]], // Sort by Module, then Controller
                     "scrollX": true
                 });

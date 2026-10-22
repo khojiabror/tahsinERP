@@ -1,6 +1,6 @@
 @model tahsinERP.ViewModels.TaskChangeStatusViewModel
 @{
-    ViewBag.Title = "Status o'zgartirish";
+    ViewBag.Title = L.T("Task_ChangeStatus");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -19,13 +19,13 @@
                                         <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                     </li>
                                     <li class="breadcrumb-item">
-                                        <a href="~/Tasks">Tasks</a>
+                                        <a href="~/Tasks">@L.T("Menu_Tasks")</a>
                                     </li>
                                     <li class="breadcrumb-item">
                                         <a href="@Url.Action("Details", "Tasks", new { id = Model.TaskID })">@Model.KeyCode</a>
                                     </li>
                                     <li class="breadcrumb-item active">
-                                        Status o'zgartirish
+                                        @L.T("Task_ChangeStatus")
                                     </li>
                                 </ol>
                             </div>
@@ -55,14 +55,14 @@
                                                     </div>
                                                 }
 
-                                                <h4 class="text-primary">Task Status o'zgartirish</h4>
+                                                <h4 class="text-primary">@L.T("Task_TaskChangeStatus")</h4>
                                                 <hr>
                                                 
                                                 <div class="row">
                                                     <div class="col-md-6">
-                                                        <p><b>Kod:</b> @Model.KeyCode</p>
-                                                        <p><b>Sarlavha:</b> @Model.Title</p>
-                                                        <p><b>Joriy Status:</b> 
+                                                        <p><b>@L.T("Task_CodeColon")</b> @Model.KeyCode</p>
+                                                        <p><b>@L.T("Task_TitleColon")</b> @Model.Title</p>
+                                                        <p><b>@L.T("Task_CurrentStatusColon")</b> 
                                                             <span class="badge badge-secondary">@Model.CurrentStatusName</span>
                                                         </p>
                                                     </div>
@@ -77,15 +77,15 @@
                                                     @Html.HiddenFor(model => model.KeyCode)
                                                     @Html.HiddenFor(model => model.Title)
                                                     
-                                                    <h6 class="invoice-to">Yangi Status *</h6>
+                                                    <h6 class="invoice-to">@L.T("Task_NewStatusStar")</h6>
                                                     <fieldset class="invoice-address form-group">
-                                                        @Html.DropDownListFor(model => model.StatusID, (SelectList)ViewBag.StatusID, "Status tanlang", new { @class = "form-control round", @required = "required" })
+                                                        @Html.DropDownListFor(model => model.StatusID, (SelectList)ViewBag.StatusID, L.T("Task_SelectStatusUz"), new { @class = "form-control round", @required = "required" })
                                                         @Html.ValidationMessageFor(model => model.StatusID, "", new { @class = "text-danger" })
                                                     </fieldset>
 
-                                                    <h6 class="invoice-to">Izoh</h6>
+                                                    <h6 class="invoice-to">@L.T("Comment")</h6>
                                                     <fieldset class="invoice-address form-group">
-                                                        @Html.TextAreaFor(model => model.UserComment, new { @class = "form-control round", @placeholder = "Status o'zgarishi haqida izoh yozing...", @rows = "5" })
+                                                        @Html.TextAreaFor(model => model.UserComment, new { @class = "form-control round", @placeholder = L.T("Task_StatusCommentPh"), @rows = "5" })
                                                         @Html.ValidationMessageFor(model => model.UserComment, "", new { @class = "text-danger" })
                                                     </fieldset>
 
@@ -93,11 +93,11 @@
                                                         <li class="list-group-item border-0 pb-0">
                                                             <button class="btn btn-primary btn-block subtotal-preview-btn" type="submit">
                                                                 <i class='bx bx-save'></i>
-                                                                Saqlash
+                                                                @L.T("Save")
                                                             </button>
                                                             <a href="@Url.Action("Details", "Tasks", new { id = Model.TaskID })" class="btn btn-secondary btn-block mt-2">
                                                                 <i class='bx bx-arrow-back'></i>
-                                                                Orqaga
+                                                                @L.T("Back")
                                                             </a>
                                                         </li>
                                                     </ul>

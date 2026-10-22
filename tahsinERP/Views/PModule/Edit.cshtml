@@ -1,6 +1,6 @@
 @model tahsinERP.Models.PERMISSIONMODULE
 @{
-    ViewBag.Title = "Modulni tahrirlash";
+    ViewBag.Title = L.T("Core_PmEdit");
     Layout = "~/Views/Shared/_AdminPanelLayout.cshtml";
 }
 
@@ -16,7 +16,7 @@
                             <div class="breadcrumb-wrapper col-12">
                                 <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                     <li class="breadcrumb-item"><a href="~/AdminPanel"><i class="bx bx-home-alt"></i></a></li>
-                                    <li class="breadcrumb-item"><a href="~/PModule">Ruxsat modullari</a></li>
+                                    <li class="breadcrumb-item"><a href="~/PModule">@L.T("Core_PmModules")</a></li>
                                     <li class="breadcrumb-item active">@Model.Module</li>
                                 </ol>
                             </div>
@@ -38,7 +38,7 @@
                     <div class="col-md-8 col-12">
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title"><i class="bx bx-edit mr-1"></i>Modul ma'lumotlari</h4>
+                                <h4 class="card-title"><i class="bx bx-edit mr-1"></i>@L.T("Core_PmData")</h4>
                             </div>
                             <div class="card-content">
                                 <div class="card-body">
@@ -49,10 +49,10 @@
                                         @Html.ValidationSummary(true, "", new { @class = "text-danger" })
 
                                         <div class="form-group">
-                                            <label for="Module">Modul nomi <span class="text-danger">*</span></label>
+                                            <label for="Module">@L.T("Core_PmModuleName") <span class="text-danger">*</span></label>
                                             @Html.TextBoxFor(model => model.Module, new { 
                                                 @class = "form-control", 
-                                                @placeholder = "Modul nomi",
+                                                @placeholder = L.T("Core_PmModuleName"),
                                                 @required = "required"
                                             })
                                             @Html.ValidationMessageFor(model => model.Module, "", new { @class = "text-danger" })
@@ -72,38 +72,38 @@
                                             <label for="Action">Action</label>
                                             @Html.TextBoxFor(model => model.Action, new { 
                                                 @class = "form-control", 
-                                                @placeholder = "Masalan: Index, Create, Edit",
+                                                @placeholder = L.T("Core_PmActionPlaceholder"),
                                                 @id = "actionInput"
                                             })
                                             @Html.ValidationMessageFor(model => model.Action, "", new { @class = "text-danger" })
-                                            <small class="form-text text-muted">Controller tanlanganda actionlar avtomatik yuklanadi</small>
+                                            <small class="form-text text-muted">@L.T("Core_PmActionsAutoload")</small>
                                         </div>
 
                                         <div class="form-group">
-                                            <label for="Parameter">Parametr</label>
+                                            <label for="Parameter">@L.T("Core_PmParameter")</label>
                                             @Html.TextBoxFor(model => model.Parameter, new { 
                                                 @class = "form-control", 
-                                                @placeholder = "Parametrlar"
+                                                @placeholder = L.T("Core_PmParametersPh")
                                             })
                                             @Html.ValidationMessageFor(model => model.Parameter, "", new { @class = "text-danger" })
                                         </div>
 
                                         <div class="form-group">
-                                            <label for="RoleID">Rollarga biriktirish</label>
+                                            <label for="RoleID">@L.T("Core_PmAssignRoles")</label>
                                             @Html.ListBox("RoleID", ViewBag.Roles as MultiSelectList, new { 
                                                 @class = "select2 form-control", 
                                                 multiple = "multiple",
                                                 @style = "width: 100%;"
                                             })
-                                            <small class="form-text text-muted">Bir nechta rollarni tanlash mumkin</small>
+                                            <small class="form-text text-muted">@L.T("Core_PmMultiRoles")</small>
                                         </div>
 
                                         <div class="form-group">
                                             <button type="submit" class="btn btn-primary">
-                                                <i class="bx bx-save"></i> Saqlash
+                                                <i class="bx bx-save"></i> @L.T("Save")
                                             </button>
                                             <a href="@Url.Action("Index", "PModule")" class="btn btn-outline-secondary">
-                                                <i class="bx bx-x"></i> Bekor qilish
+                                                <i class="bx bx-x"></i> @L.T("Cancel")
                                             </a>
                                         </div>
                                     }

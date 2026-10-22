@@ -93,7 +93,8 @@ namespace tahsinERP.Tests.Localization
             var skip = new[] { "\\obj\\", "\\bin\\", "\\app-assets\\", "\\Scripts\\", "\\packages\\" };
             var files = Directory.GetFiles(project, "*.*", SearchOption.AllDirectories)
                 .Where(f => (f.EndsWith(".cs") || f.EndsWith(".cshtml")) && !skip.Any(f.Contains) && !f.Contains("\\I18n\\"));
-            var rx = new Regex("(?:\\bL|DstLocalization|\\bL\\.Translator)\\.(?:T|Js|TFor)\\((?:[^,()\"]+,\\s*)?\"([A-Za-z0-9_.]+)\"");
+            // L.T("Key"...), L.Js("Key"), L.TFor(til, "Key"...) — TFor'ning birinchi argumenti (til, masalan "uz") kalit emas
+            var rx = new Regex("(?:\\bL|DstLocalization|\\bL\\.Translator)\\.(?:(?:T|Js)\\(|TFor\\((?:\"[^\"]*\"|[^,()\"]+),\\s*)\"([A-Za-z0-9_.]+)\"");
             var missing = files.SelectMany(f => rx.Matches(File.ReadAllText(f)).Cast<Match>().Select(m => m.Groups[1].Value + " (" + Path.GetFileName(f) + ")")
                                                  .Where(k => !k.Contains("_ (") && !keys.Contains(k.Substring(0, k.IndexOf(' ')))))   // "Prefix_" + kod — dinamik
                 .Distinct().ToList();

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using tahsinERP.Models;
+using tahsinERP.I18n;
 
 namespace tahsinERP.Controllers.TaskSettings
 {
@@ -21,7 +22,7 @@ namespace tahsinERP.Controllers.TaskSettings
 
         protected override string LogLabel => "Status";
 
-        protected override string InUseMessage => "Bu status vazifalarda ishlatilmoqda. O'chirish mumkin emas.";
+        protected override string InUseMessage => L.T("Task_StatusInUse");
 
         protected override async Task OnCreatingAsync(DBTHSNEntities db, APP_TASK_STATUS_REF entity)
         {

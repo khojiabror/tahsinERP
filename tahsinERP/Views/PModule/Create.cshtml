@@ -1,6 +1,6 @@
 @model tahsinERP.Models.PERMISSIONMODULE
 @{
-    ViewBag.Title = "Yangi modul qo'shish";
+    ViewBag.Title = L.T("Core_PmAddNew");
     Layout = "~/Views/Shared/_AdminPanelLayout.cshtml";
 }
 
@@ -16,8 +16,8 @@
                             <div class="breadcrumb-wrapper col-12">
                                 <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                     <li class="breadcrumb-item"><a href="~/AdminPanel"><i class="bx bx-home-alt"></i></a></li>
-                                    <li class="breadcrumb-item"><a href="~/PModule">Ruxsat modullari</a></li>
-                                    <li class="breadcrumb-item active">Yangi modul</li>
+                                    <li class="breadcrumb-item"><a href="~/PModule">@L.T("Core_PmModules")</a></li>
+                                    <li class="breadcrumb-item active">@L.T("Core_PmNew")</li>
                                 </ol>
                             </div>
                         </div>
@@ -45,7 +45,7 @@
                     <div class="col-md-8 col-12">
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title"><i class="bx bx-plus-circle mr-1"></i>Yangi modul ma'lumotlari</h4>
+                                <h4 class="card-title"><i class="bx bx-plus-circle mr-1"></i>@L.T("Core_PmNewData")</h4>
                             </div>
                             <div class="card-content">
                                 <div class="card-body">
@@ -55,10 +55,10 @@
                                         @Html.ValidationSummary(true, "", new { @class = "text-danger" })
 
                                         <div class="form-group">
-                                            <label for="Module">Modul nomi <span class="text-danger">*</span></label>
+                                            <label for="Module">@L.T("Core_PmModuleName") <span class="text-danger">*</span></label>
                                             @Html.TextBoxFor(model => model.Module, new { 
                                                 @class = "form-control", 
-                                                @placeholder = "Masalan: Maxsulotlar, Xomashyo",
+                                                @placeholder = L.T("Core_PmModulePlaceholder"),
                                                 @required = "required",
                                                 @autofocus = "autofocus"
                                             })
@@ -67,7 +67,7 @@
 
                                         <div class="form-group">
                                             <label for="Controller">Controller <span class="text-danger">*</span></label>
-                                            @Html.DropDownListFor(model => model.Controller, (List<SelectListItem>)ViewBag.ControllerNames, "Tanlang", new { 
+                                            @Html.DropDownListFor(model => model.Controller, (List<SelectListItem>)ViewBag.ControllerNames, L.T("Select"), new { 
                                                 @class = "form-control select2", 
                                                 @id = "controllerDropdown",
                                                 @required = "required"
@@ -79,29 +79,29 @@
                                             <label for="Action">Action</label>
                                             @Html.TextBoxFor(model => model.Action, new { 
                                                 @class = "form-control", 
-                                                @placeholder = "Masalan: Index, Create, Edit",
+                                                @placeholder = L.T("Core_PmActionPlaceholder"),
                                                 @id = "actionInput"
                                             })
                                             @Html.ValidationMessageFor(model => model.Action, "", new { @class = "text-danger" })
-                                            <small class="form-text text-muted">Controller tanlanganda actionlar avtomatik yuklanadi</small>
+                                            <small class="form-text text-muted">@L.T("Core_PmActionsAutoload")</small>
                                         </div>
 
                                         <div class="form-group">
-                                            <label for="Parameter">Parametr</label>
+                                            <label for="Parameter">@L.T("Core_PmParameter")</label>
                                             @Html.TextBoxFor(model => model.Parameter, new { 
                                                 @class = "form-control", 
-                                                @placeholder = "Masalan: id, productId, period"
+                                                @placeholder = L.T("Core_PmParamPlaceholder")
                                             })
                                             @Html.ValidationMessageFor(model => model.Parameter, "", new { @class = "text-danger" })
-                                            <small class="form-text text-muted">Ixtiyoriy parametr nomi (masalan: id, productId)</small>
+                                            <small class="form-text text-muted">@L.T("Core_PmParamHint")</small>
                                         </div>
 
                                         <div class="form-group">
                                             <button type="submit" class="btn btn-primary">
-                                                <i class="bx bx-save"></i> Saqlash
+                                                <i class="bx bx-save"></i> @L.T("Save")
                                             </button>
                                             <a href="@Url.Action("Index", "PModule")" class="btn btn-outline-secondary">
-                                                <i class="bx bx-x"></i> Bekor qilish
+                                                <i class="bx bx-x"></i> @L.T("Cancel")
                                             </a>
                                         </div>
                                     }

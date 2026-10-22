@@ -70,7 +70,7 @@ namespace tahsinERP.Filters
             }
 
             string message = status.ReadOnly
-                ? status.Message + " Ma'lumotni o'zgartirish vaqtincha mumkin emas."
+                ? status.Message + " " + I18n.L.T("Core_LicWriteBlocked")
                 : status.Message;
 
             // AJAX so'rovlarga redirect emas — 403 va matnli xabar

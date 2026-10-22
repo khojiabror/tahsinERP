@@ -1,6 +1,6 @@
 @model tahsinERP.ViewModels.UserViewModel
 @{
-    ViewBag.Title = "Foydalanuvchi ma'lumotlari";
+    ViewBag.Title = L.T("Core_UserData");
     Layout = "~/Views/Shared/_AdminPanelLayout.cshtml";
 }
 
@@ -18,8 +18,8 @@
                             <div class="breadcrumb-wrapper col-12">
                                 <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                     <li class="breadcrumb-item"><a href="~/AdminPanel"><i class="bx bx-home-alt"></i></a></li>
-                                    <li class="breadcrumb-item"><a href="~/User/Index">Foydalanuvchilar</a></li>
-                                    <li class="breadcrumb-item active">Ma'lumotlar</li>
+                                    <li class="breadcrumb-item"><a href="~/User/Index">@L.T("Adm_Users")</a></li>
+                                    <li class="breadcrumb-item active">@L.T("Core_Info")</li>
                                 </ol>
                             </div>
                         </div>
@@ -38,13 +38,13 @@
                                         <li class="nav-item">
                                             <a class="nav-link d-flex align-items-center active" id="account-pill-general" data-toggle="pill" href="#account-vertical-general" aria-expanded="true">
                                                 <i class="bx bx-cog"></i>
-                                                <span>Foydalanuvchi ma'lumotlari</span>
+                                                <span>@L.T("Core_UserData")</span>
                                             </a>
                                         </li>
                                         <li class="nav-item">
                                             <a class="nav-link d-flex align-items-center" id="account-pill-info" data-toggle="pill" href="#account-vertical-info" aria-expanded="false">
                                                 <i class="bx bx-info-circle"></i>
-                                                <span>Amallar to'g'risida ma'lumot</span>
+                                                <span>@L.T("Core_ActionsInfo")</span>
                                             </a>
                                         </li>
                                     </ul>
@@ -61,25 +61,25 @@
                                                             <div class="card-body pb-0 mx-25">
                                                                 <div class="row my-2 py-50">
                                                                     <div class="col-sm-6 col-12">
-                                                                        <h4 class="text-primary mb-3">Foydalanuvchi ma'lumotlari</h4>
-                                                                        <p><strong>Foydalanuvchi nomi:</strong> @Html.DisplayFor(model => model.UName)</p>
-                                                                        <p><strong>E-mail:</strong> @Html.DisplayFor(model => model.Email)</p>
-                                                                        <p><strong>Ismi sharifi:</strong> @Html.DisplayFor(model => model.FullName)</p>
-                                                                        <p><strong>Roli:</strong> <span class="badge badge-light-primary">@Html.DisplayFor(model => model.Role)</span></p>
+                                                                        <h4 class="text-primary mb-3">@L.T("Core_UserData")</h4>
+                                                                        <p><strong>@L.T("Core_UserNameColon")</strong> @Html.DisplayFor(model => model.UName)</p>
+                                                                        <p><strong>@L.T("Core_EmailColon")</strong> @Html.DisplayFor(model => model.Email)</p>
+                                                                        <p><strong>@L.T("Core_FullNameColon")</strong> @Html.DisplayFor(model => model.FullName)</p>
+                                                                        <p><strong>@L.T("Core_RoleColon")</strong> <span class="badge badge-light-primary">@Html.DisplayFor(model => model.Role)</span></p>
                                                                         <p>
-                                                                            <strong>Faolligi:</strong>
+                                                                            <strong>@L.T("Core_ActivityColon")</strong>
                                                                             @if (Model.IsActive)
                                                                             {
-                                                                                <span class="badge badge-light-success">Faol</span>
+                                                                                <span class="badge badge-light-success">@L.T("Active")</span>
                                                                             }
                                                                             else
                                                                             {
-                                                                                <span class="badge badge-light-danger">Nofaol</span>
+                                                                                <span class="badge badge-light-danger">@L.T("Inactive")</span>
                                                                             }
                                                                         </p>
                                                                     </div>
                                                                     <div class="col-sm-6 col-12 text-center">
-                                                                        <h4 class="text-primary mb-3">Foydalanuvchi rasmi</h4>
+                                                                        <h4 class="text-primary mb-3">@L.T("Core_UserPhoto")</h4>
                                                                         @if (ViewBag.Base64String != null)
                                                                         {
                                                                             <img alt="" src="@ViewBag.Base64String" style="height:200px;width:200px;border-radius:8px;border:2px solid #ddd;" />
@@ -88,7 +88,7 @@
                                                                         {
                                                                             <div class="text-muted">
                                                                                 <i class="bx bx-user" style="font-size:100px;"></i>
-                                                                                <p>Rasm yuklanmagan</p>
+                                                                                <p>@L.T("Core_NoPhoto")</p>
                                                                             </div>
                                                                         }
                                                                     </div>
@@ -99,10 +99,10 @@
                                                                     <div class="row">
                                                                         <div class="col-12">
                                                                             <a href="@Url.Action("Edit", "User", new { id = Model.ID })" class="btn btn-primary">
-                                                                                <i class="bx bx-edit"></i> Tahrirlash
+                                                                                <i class="bx bx-edit"></i> @L.T("Edit")
                                                                             </a>
                                                                             <a href="@Url.Action("Index", "User")" class="btn btn-secondary">
-                                                                                <i class="bx bx-arrow-back"></i> Orqaga
+                                                                                <i class="bx bx-arrow-back"></i> @L.T("Back")
                                                                             </a>
                                                                         </div>
                                                                     </div>
@@ -117,7 +117,7 @@
                                                                 <div class="col-12">
                                                                     <div class="card">
                                                                         <div class="card-header">
-                                                                            <h4 class="card-title">Foydalanuvchining tizimga ulangan vaqti va ma'lumotlari</h4>
+                                                                            <h4 class="card-title">@L.T("Core_UserActivityTitle")</h4>
                                                                         </div>
                                                                         <div class="card-content">
                                                                             <div class="card-body card-dashboard">
@@ -126,11 +126,11 @@
                                                                                         <thead>
                                                                                             <tr>
                                                                                                 <th>Controller</th>
-                                                                                                <th>Amali</th>
-                                                                                                <th>Sanasi</th>
-                                                                                                <th>Vaqti</th>
-                                                                                                <th>IP manzili</th>
-                                                                                                <th>MAC manzili</th>
+                                                                                                <th>@L.T("Core_ActionCol")</th>
+                                                                                                <th>@L.T("Core_DateCol")</th>
+                                                                                                <th>@L.T("Core_TimeCol")</th>
+                                                                                                <th>@L.T("Core_IpAddress")</th>
+                                                                                                <th>@L.T("Core_MacAddress")</th>
                                                                                             </tr>
                                                                                         </thead>
                                                                                         <tbody>
@@ -151,7 +151,7 @@
                                                                                             else
                                                                                             {
                                                                                                 <tr>
-                                                                                                    <td colspan="6" class="text-center text-muted">Ma'lumotlar yo'q</td>
+                                                                                                    <td colspan="6" class="text-center text-muted">@L.T("Core_NoDataPlural")</td>
                                                                                                 </tr>
                                                                                             }
                                                                                         </tbody>
@@ -181,22 +181,9 @@
         <script>
             $(document).ready(function () {
                 $('#userLogsDataTable').DataTable({
-                    "language": {
-                        "search": "Qidirish:",
-                        "lengthMenu": "_MENU_ ta ko'rsatish",
-                        "info": "_TOTAL_ ta yozuvdan _START_ dan _END_ gacha",
-                        "infoEmpty": "Yozuvlar yo'q",
-                        "infoFiltered": "(jami _MAX_ ta yozuvdan filtrlangan)",
-                        "paginate": {
-                            "first": "Birinchi",
-                            "last": "Oxirgi",
-                            "next": "Keyingi",
-                            "previous": "Oldingi"
-                        },
-                        "zeroRecords": "Ma'lumot topilmadi"
-                    },
+                    language: erpDataTable.language,
                     "pageLength": 25,
-                    "lengthMenu": [[25, 50, 100, -1], [25, 50, 100, "Barchasi"]],
+                    "lengthMenu": [[25, 50, 100, -1], [25, 50, 100, '@L.Js("All")']],
                     "order": [[2, "desc"], [3, "desc"]], // Sort by date desc, then time desc
                     "scrollX": true,
                     "columnDefs": [

@@ -11391,4 +11391,2722 @@
   <data name="Hr_EmployeeNotFound" xml:space="preserve">
     <value>Xodim topilmadi</value>
   </data>
+  <data name="Core_LoginPageTitle" xml:space="preserve">
+    <value>Kirish sahifasi</value>
+  </data>
+  <data name="Core_LoginSystemTitle" xml:space="preserve">
+    <value>tahsinERP tizimi</value>
+  </data>
+  <data name="Core_LoginWelcome" xml:space="preserve">
+    <value>Xush kelibsiz!</value>
+  </data>
+  <data name="Core_UserNameUpper" xml:space="preserve">
+    <value>FOYDALANUVCHI NOMI</value>
+  </data>
+  <data name="Core_UserName" xml:space="preserve">
+    <value>Foydalanuvchi nomi</value>
+  </data>
+  <data name="Core_PasswordUpper" xml:space="preserve">
+    <value>KALIT SO'ZI</value>
+  </data>
+  <data name="Core_PasswordPlaceholder" xml:space="preserve">
+    <value>Kalit so'zi</value>
+  </data>
+  <data name="Core_KeepMeSigned" xml:space="preserve">
+    <value>Meni tizimda saqlab qolish (1 soat)</value>
+  </data>
+  <data name="Core_AccountSettings" xml:space="preserve">
+    <value>Akkaunt sozlamalari</value>
+  </data>
+  <data name="Core_Pages" xml:space="preserve">
+    <value>Sahifalar</value>
+  </data>
+  <data name="Core_ProfileImage" xml:space="preserve">
+    <value>Profil rasmi</value>
+  </data>
+  <data name="Core_UploadNewPhoto" xml:space="preserve">
+    <value>Yangi rasm yuklash</value>
+  </data>
+  <data name="Core_UserFullName" xml:space="preserve">
+    <value>Foydalanuvchi F.I.Sh</value>
+  </data>
+  <data name="Core_FullNameShort" xml:space="preserve">
+    <value>FISh</value>
+  </data>
+  <data name="Core_CurrentPassword" xml:space="preserve">
+    <value>Amaldagi kalit so'zi</value>
+  </data>
+  <data name="Core_NewPassword" xml:space="preserve">
+    <value>Yangi kalit so'zi</value>
+  </data>
+  <data name="Core_LeaveEmptyToKeep" xml:space="preserve">
+    <value>O'zgartirmaslik uchun bo'sh qoldiring</value>
+  </data>
+  <data name="Core_ConfirmNewPassword" xml:space="preserve">
+    <value>Yangi kalit so'zini qayta kiriting</value>
+  </data>
+  <data name="Core_EnterUserName" xml:space="preserve">
+    <value>Foydalanuvchi nomini kiriting</value>
+  </data>
+  <data name="Core_EnterPassword" xml:space="preserve">
+    <value>Kalit so'zni kiriting</value>
+  </data>
+  <data name="Core_TooManyAttempts" xml:space="preserve">
+    <value>Juda ko'p noto'g'ri urinish. {0} daqiqadan keyin qayta urinib ko'ring.</value>
+  </data>
+  <data name="Core_UserNotExists" xml:space="preserve">
+    <value>Bunday foydalanuvchi mavjud emas!</value>
+  </data>
+  <data name="Core_UserInactive" xml:space="preserve">
+    <value>Foydalanuvchi faol emas. Administrator bilan bog'laning.</value>
+  </data>
+  <data name="Core_WrongPasswordLocked" xml:space="preserve">
+    <value>Kalit so'zi noto'g'ri! {0} marta xato — {1} daqiqaga bloklandi.</value>
+  </data>
+  <data name="Core_WrongPassword" xml:space="preserve">
+    <value>Kalit so'zi noto'g'ri!</value>
+  </data>
+  <data name="Core_LicenseCheckError" xml:space="preserve">
+    <value>Litsenziyani tekshirishda xatolik yuz berdi. Administrator bilan bog'laning.</value>
+  </data>
+  <data name="Core_TempPasswordLogin" xml:space="preserve">
+    <value>Vaqtinchalik parol bilan kirdingiz. Davom etish uchun yangi parol o'rnating.</value>
+  </data>
+  <data name="Core_CurrentPasswordWrong" xml:space="preserve">
+    <value>Amaldagi kalit so'zi noto'g'ri.</value>
+  </data>
+  <data name="Core_ChangeTempPassword" xml:space="preserve">
+    <value>Vaqtinchalik parolni almashtiring: yangi (boshqa) kalit so'zini kiriting.</value>
+  </data>
+  <data name="Core_PasswordMismatch" xml:space="preserve">
+    <value>Yangi kalit so'zi va takrori mos kelmadi.</value>
+  </data>
+  <data name="Core_PhotoTooLarge" xml:space="preserve">
+    <value>Suratni yuklab bo'lmadi, u 2 MB dan ortiq.</value>
+  </data>
+  <data name="Core_SaveRetryFailed" xml:space="preserve">
+    <value>O'zgarishlarni saqlab bo'lmadi. Qayta urinib ko'ring.</value>
+  </data>
+  <data name="Core_ErrorWithMessage" xml:space="preserve">
+    <value>Xatolik yuz berdi: {0}</value>
+  </data>
+  <data name="Core_ActiveCount" xml:space="preserve">
+    <value>{0} faol</value>
+  </data>
+  <data name="Core_InactiveCount" xml:space="preserve">
+    <value>{0} nofaol</value>
+  </data>
+  <data name="Core_ModulesCount" xml:space="preserve">
+    <value>{0} modul</value>
+  </data>
+  <data name="Core_TodayEntries" xml:space="preserve">
+    <value>Bugungi kirishlar</value>
+  </data>
+  <data name="Core_TotalWithValue" xml:space="preserve">
+    <value>Jami: {0}</value>
+  </data>
+  <data name="Core_TodayLogs" xml:space="preserve">
+    <value>Bugungi loglar</value>
+  </data>
+  <data name="Core_WeeklyWithValue" xml:space="preserve">
+    <value>Haftalik: {0}</value>
+  </data>
+  <data name="Core_RecentEntries" xml:space="preserve">
+    <value>Oxirgi tizimga kirishlar</value>
+  </data>
+  <data name="Core_User" xml:space="preserve">
+    <value>Foydalanuvchi</value>
+  </data>
+  <data name="Core_Unknown" xml:space="preserve">
+    <value>Noma'lum</value>
+  </data>
+  <data name="Core_RecentActions" xml:space="preserve">
+    <value>Oxirgi harakatlar</value>
+  </data>
+  <data name="Core_Action" xml:space="preserve">
+    <value>Harakat</value>
+  </data>
+  <data name="Core_FullName" xml:space="preserve">
+    <value>F.I.Sh</value>
+  </data>
+  <data name="Core_Role" xml:space="preserve">
+    <value>Rol</value>
+  </data>
+  <data name="Core_RolesAndPermissions" xml:space="preserve">
+    <value>Rollar va huquqlar</value>
+  </data>
+  <data name="Core_Manage" xml:space="preserve">
+    <value>Boshqarish</value>
+  </data>
+  <data name="Core_RoleName" xml:space="preserve">
+    <value>Rol nomi</value>
+  </data>
+  <data name="Core_PermissionsCount" xml:space="preserve">
+    <value>Huquqlar soni</value>
+  </data>
+  <data name="Core_PermissionsCountValue" xml:space="preserve">
+    <value>{0} huquq</value>
+  </data>
+  <data name="Core_QuickActions" xml:space="preserve">
+    <value>Tezkor amallar</value>
+  </data>
+  <data name="Core_Logs" xml:space="preserve">
+    <value>Loglar</value>
+  </data>
+  <data name="Core_ModuleNotFound" xml:space="preserve">
+    <value>Modul topilmadi.</value>
+  </data>
+  <data name="Core_DelNotRecoverable" xml:space="preserve">
+    <value>Bu turdagi hujjatni tiklab bo'lmaydi: u ombor qoldig'i yoki moliyaviy yozuvlarga ta'sir qiladi. Hujjatni qaytadan kiriting.</value>
+  </data>
+  <data name="Core_DelRecovered" xml:space="preserve">
+    <value>Ma'lumot muvaffaqiyatli tiklandi.</value>
+  </data>
+  <data name="Core_DelRecoverError" xml:space="preserve">
+    <value>Tiklashda xatolik.</value>
+  </data>
+  <data name="Core_ErrorShort" xml:space="preserve">
+    <value>Xatolik: {0}</value>
+  </data>
+  <data name="Core_ErrorPrefix" xml:space="preserve">
+    <value>Xatolik:</value>
+  </data>
+  <data name="Core_DelRestoreTitle" xml:space="preserve">
+    <value>O'chirilgan ma'lumotlarni tiklash</value>
+  </data>
+  <data name="Core_SelectModule" xml:space="preserve">
+    <value>Modulni tanlang</value>
+  </data>
+  <data name="Core_SearchOrSelectModule" xml:space="preserve">
+    <value>Modulni qidirish yoki tanlash</value>
+  </data>
+  <data name="Core_Searching" xml:space="preserve">
+    <value>Qidirilmoqda...</value>
+  </data>
+  <data name="Core_Load" xml:space="preserve">
+    <value>Yuklash</value>
+  </data>
+  <data name="Core_DelEmptyHint" xml:space="preserve">
+    <value>Modulni tanlang va "Yuklash" tugmasini bosing</value>
+  </data>
+  <data name="Core_DelConfirmRestore" xml:space="preserve">
+    <value>Tiklashni tasdiqlaysizmi?</value>
+  </data>
+  <data name="Core_Restore" xml:space="preserve">
+    <value>Tiklash</value>
+  </data>
+  <data name="Core_DelNoRecords" xml:space="preserve">
+    <value>O'chirilgan yozuv topilmadi</value>
+  </data>
+  <data name="Core_DelCol_Main" xml:space="preserve">
+    <value>Asosiy</value>
+  </data>
+  <data name="Core_DelCol_RequisitionNo" xml:space="preserve">
+    <value>Ariza No</value>
+  </data>
+  <data name="Core_DelCol_DecreeNo" xml:space="preserve">
+    <value>Buyruq No</value>
+  </data>
+  <data name="Core_DelCol_OrderNo" xml:space="preserve">
+    <value>Buyurtma No</value>
+  </data>
+  <data name="Core_DelCol_DocNo" xml:space="preserve">
+    <value>Hujjat No</value>
+  </data>
+  <data name="Core_DelCol_InvoiceNo" xml:space="preserve">
+    <value>Invoys No</value>
+  </data>
+  <data name="Core_DelCol_PersonName" xml:space="preserve">
+    <value>Ism</value>
+  </data>
+  <data name="Core_DelCol_Company" xml:space="preserve">
+    <value>Kompaniya</value>
+  </data>
+  <data name="Core_DelCol_ProductCode" xml:space="preserve">
+    <value>Mahsulot kodi</value>
+  </data>
+  <data name="Core_DelCol_Purpose" xml:space="preserve">
+    <value>Maqsad</value>
+  </data>
+  <data name="Core_DelCol_Topic" xml:space="preserve">
+    <value>Mavzu</value>
+  </data>
+  <data name="Core_DelCol_Product" xml:space="preserve">
+    <value>Maxsulot</value>
+  </data>
+  <data name="Core_DelCol_DefectType" xml:space="preserve">
+    <value>Nukson turi</value>
+  </data>
+  <data name="Core_DelCol_From" xml:space="preserve">
+    <value>Qayerdan</value>
+  </data>
+  <data name="Core_DelCol_To" xml:space="preserve">
+    <value>Qayerga</value>
+  </data>
+  <data name="Core_DelCol_Short" xml:space="preserve">
+    <value>Qisqa</value>
+  </data>
+  <data name="Core_DelCol_ShortName" xml:space="preserve">
+    <value>Qisqacha</value>
+  </data>
+  <data name="Core_DelCol_Title" xml:space="preserve">
+    <value>Sarlavha</value>
+  </data>
+  <data name="Core_DelCol_ContractNo" xml:space="preserve">
+    <value>Shartnoma No</value>
+  </data>
+  <data name="Core_DelCol_TabNo" xml:space="preserve">
+    <value>Tabel No</value>
+  </data>
+  <data name="Core_DelCol_Full" xml:space="preserve">
+    <value>To'liq</value>
+  </data>
+  <data name="Core_DelCol_TransportType" xml:space="preserve">
+    <value>Transport turi</value>
+  </data>
+  <data name="Core_DelCol_Waybill" xml:space="preserve">
+    <value>Yo'l varaqasi</value>
+  </data>
+  <data name="Core_DelMod_FWaybills" xml:space="preserve">
+    <value>Yo'l varaqalari</value>
+  </data>
+  <data name="Core_DelMod_FWaybillPayments" xml:space="preserve">
+    <value>Yo'l varaqasi to'lovlari</value>
+  </data>
+  <data name="Core_DelMod_FContracts" xml:space="preserve">
+    <value>Logistika shartnomalari</value>
+  </data>
+  <data name="Core_DelMod_Forwarder" xml:space="preserve">
+    <value>Tashuvchi kompaniyalar</value>
+  </data>
+  <data name="Core_DelMod_Customer" xml:space="preserve">
+    <value>Xaridorlar</value>
+  </data>
+  <data name="Core_DelMod_CustomerBase" xml:space="preserve">
+    <value>Xaridor ma'lumotnoma</value>
+  </data>
+  <data name="Core_DelMod_SOrders" xml:space="preserve">
+    <value>Sotuv buyurtmalari</value>
+  </data>
+  <data name="Core_DelMod_SContracts" xml:space="preserve">
+    <value>Sotuv shartnomalari</value>
+  </data>
+  <data name="Core_DelMod_Supplier" xml:space="preserve">
+    <value>Ta'minotchilar</value>
+  </data>
+  <data name="Core_DelMod_SupplierBase" xml:space="preserve">
+    <value>Ta'minotchi ma'lumotnoma</value>
+  </data>
+  <data name="Core_DelMod_POrders" xml:space="preserve">
+    <value>Xarid buyurtmalari</value>
+  </data>
+  <data name="Core_DelMod_PContracts" xml:space="preserve">
+    <value>Xarid shartnomalari</value>
+  </data>
+  <data name="Core_DelMod_PInvoices" xml:space="preserve">
+    <value>Xarid invoyslari</value>
+  </data>
+  <data name="Core_DelMod_PRequisitions" xml:space="preserve">
+    <value>Xarid arizalari</value>
+  </data>
+  <data name="Core_DelMod_Product" xml:space="preserve">
+    <value>Maxsulotlar</value>
+  </data>
+  <data name="Core_DelMod_Productplan" xml:space="preserve">
+    <value>Ishlab chiqarish rejalari</value>
+  </data>
+  <data name="Core_DelMod_Productionprocess" xml:space="preserve">
+    <value>Ishlab chiqarish jarayonlari</value>
+  </data>
+  <data name="Core_DelMod_DamagedProducts" xml:space="preserve">
+    <value>Nukson maxsulotlar</value>
+  </data>
+  <data name="Core_DelMod_DefectTypes" xml:space="preserve">
+    <value>Nukson turlari</value>
+  </data>
+  <data name="Core_DelMod_Shop" xml:space="preserve">
+    <value>Sexlar</value>
+  </data>
+  <data name="Core_DelMod_Tannarx" xml:space="preserve">
+    <value>Tannarx</value>
+  </data>
+  <data name="Core_DelMod_FinTransactions" xml:space="preserve">
+    <value>Tranzaksiyalar</value>
+  </data>
+  <data name="Core_DelMod_FinAccounts" xml:space="preserve">
+    <value>Moliya hisoblari</value>
+  </data>
+  <data name="Core_DelMod_FinCategories" xml:space="preserve">
+    <value>Moliya kategoriyalari</value>
+  </data>
+  <data name="Core_DelMod_FinBalanceCategories" xml:space="preserve">
+    <value>Balans kategoriyalari</value>
+  </data>
+  <data name="Core_DelMod_FinPlPlans" xml:space="preserve">
+    <value>P&amp;L rejalar</value>
+  </data>
+  <data name="Core_DelMod_FinPlItems" xml:space="preserve">
+    <value>P&amp;L elementlar</value>
+  </data>
+  <data name="Core_DelMod_Shareholder" xml:space="preserve">
+    <value>Aksiyadorlar</value>
+  </data>
+  <data name="Core_DelMod_Unit" xml:space="preserve">
+    <value>O'lchov birliklari</value>
+  </data>
+  <data name="Core_DelMod_Currency" xml:space="preserve">
+    <value>Valyutalar</value>
+  </data>
+  <data name="Core_DelMod_Warehouse" xml:space="preserve">
+    <value>Omborlar</value>
+  </data>
+  <data name="Core_DelMod_ProductCategories" xml:space="preserve">
+    <value>Maxsulot kategoriyalari</value>
+  </data>
+  <data name="Core_DelMod_User" xml:space="preserve">
+    <value>Foydalanuvchilar</value>
+  </data>
+  <data name="Core_DelMod_Role" xml:space="preserve">
+    <value>Rollar</value>
+  </data>
+  <data name="Core_DelMod_AppTasks" xml:space="preserve">
+    <value>Vazifalar</value>
+  </data>
+  <data name="Core_DelMod_AppTaskProjects" xml:space="preserve">
+    <value>Task loyihalari</value>
+  </data>
+  <data name="Core_DelMod_AppTaskStatusRef" xml:space="preserve">
+    <value>Task statuslari</value>
+  </data>
+  <data name="Core_DelMod_AppTaskPriorityRef" xml:space="preserve">
+    <value>Task prioritetlari</value>
+  </data>
+  <data name="Core_DelMod_StdCompanyStandards" xml:space="preserve">
+    <value>Korxona standartlari</value>
+  </data>
+  <data name="Core_DelMod_JobDesc" xml:space="preserve">
+    <value>Lavozim yo'riqnomalari</value>
+  </data>
+  <data name="Core_DelMod_AdmCompanyOrders" xml:space="preserve">
+    <value>Kompaniya buyruqlari</value>
+  </data>
+  <data name="Core_DelMod_ComOfficialLetters" xml:space="preserve">
+    <value>Rasmiy maktublar</value>
+  </data>
+  <data name="Core_DelMod_Normversion" xml:space="preserve">
+    <value>Norm versiyalari</value>
+  </data>
+  <data name="Core_DelMod_Waste" xml:space="preserve">
+    <value>Chiqindilar</value>
+  </data>
+  <data name="Core_DelMod_HrEmployees" xml:space="preserve">
+    <value>Xodimlar</value>
+  </data>
+  <data name="Core_DelMod_HrPositions" xml:space="preserve">
+    <value>Lavozimlar</value>
+  </data>
+  <data name="Core_DelMod_HrOrgUnits" xml:space="preserve">
+    <value>Tashkiliy birliklar</value>
+  </data>
+  <data name="Core_DelMod_HrSalaryGrades" xml:space="preserve">
+    <value>Ish haqi tariflari</value>
+  </data>
+  <data name="Core_DelMod_HrStaffingPlan" xml:space="preserve">
+    <value>Shtat jadvali</value>
+  </data>
+  <data name="Core_DelMod_HrPieceRateTariffs" xml:space="preserve">
+    <value>Ishbay tariflari</value>
+  </data>
+  <data name="Core_DelMod_FTransportTypes" xml:space="preserve">
+    <value>Transport turlari</value>
+  </data>
+  <data name="Core_DelMod_Expenses" xml:space="preserve">
+    <value>Ombor chiqimlari</value>
+  </data>
+  <data name="Core_DelMod_Incomes" xml:space="preserve">
+    <value>Ombor kirimlari</value>
+  </data>
+  <data name="Core_DelMod_ProductProduction" xml:space="preserve">
+    <value>Ishlab chiqarish</value>
+  </data>
+  <data name="Core_BackToHome" xml:space="preserve">
+    <value>Asosiy sahifaga qaytish</value>
+  </data>
+  <data name="Core_UnexpectedError" xml:space="preserve">
+    <value>Kutilmagan xatolik yuz berdi</value>
+  </data>
+  <data name="Core_ServerErrorText" xml:space="preserve">
+    <value>So'rovni qayta ishlashda server xatoligi yuz berdi. Iltimos, keyinroq qayta urinib ko'ring yoki tizim administratoriga murojaat qiling.</value>
+  </data>
+  <data name="Core_ErrorDetails" xml:space="preserve">
+    <value>Mana bunaqa xato:</value>
+  </data>
+  <data name="Core_PageNotFound" xml:space="preserve">
+    <value>Sahifa topilmadi</value>
+  </data>
+  <data name="Core_NotFoundText" xml:space="preserve">
+    <value>Siz qidirgan sahifa mavjud emas yoki ko'chirilgan. URL manzilni tekshiring yoki asosiy sahifadan davom eting.</value>
+  </data>
+  <data name="Core_NotAuthorizedTitle" xml:space="preserve">
+    <value>Sizga ruxsat berilmagan!</value>
+  </data>
+  <data name="Core_NotAuthorizedText" xml:space="preserve">
+    <value>Siz ushbu katalog yoki sahifani ko'rish uchun ruxsatga ega emassiz sababini aniqlash yoki muammoni hal etish uchun tizim administratoriga bog'laning.</value>
+  </data>
+  <data name="Core_ContactAdmin" xml:space="preserve">
+    <value>Tizim administratoriga bog'lanish</value>
+  </data>
+  <data name="Core_ComingSoon" xml:space="preserve">
+    <value>Yaqinda ishga tushiramiz</value>
+  </data>
+  <data name="Core_InsightLowConversion" xml:space="preserve">
+    <value>Savdo konversiyasi past. Shartnoma -&gt; buyurtma jarayonini kuchaytirish kerak.</value>
+  </data>
+  <data name="Core_InsightSlowFulfillment" xml:space="preserve">
+    <value>Buyurtma bajarilishi sekin. Invoicing va logistika bottleneck bor.</value>
+  </data>
+  <data name="Core_InsightLowProduction" xml:space="preserve">
+    <value>Ishlab chiqarish reja bajarilishi me'yordan past.</value>
+  </data>
+  <data name="Core_InsightDohLow" xml:space="preserve">
+    <value>DOH juda past. Stockout riski bor.</value>
+  </data>
+  <data name="Core_InsightDohHigh" xml:space="preserve">
+    <value>DOH yuqori. Zaxira aylanishi sust.</value>
+  </data>
+  <data name="Core_InsightOverdueTasks" xml:space="preserve">
+    <value>Muddati o'tgan vazifalar mavjud, ijro nazoratini kuchaytiring.</value>
+  </data>
+  <data name="Core_InsightAllGood" xml:space="preserve">
+    <value>Asosiy KPIlar nazorat ostida. Hozirgi trend barqaror.</value>
+  </data>
+  <data name="Core_DashboardLoadError" xml:space="preserve">
+    <value>Dashboard ma'lumotlarini olishda xatolik yuz berdi.</value>
+  </data>
+  <data name="Core_HomeTitle" xml:space="preserve">
+    <value>Bosh sahifa - Dashboard</value>
+  </data>
+  <data name="Core_ExecPanelTitle" xml:space="preserve">
+    <value>Rahbariyat nazorat paneli</value>
+  </data>
+  <data name="Core_ExecPanelSubtitle" xml:space="preserve">
+    <value>Konversiya, bajarilish, zaxira riski va vazifalar ijrosi bir ekranda</value>
+  </data>
+  <data name="Core_AllWarehousesRaw" xml:space="preserve">
+    <value>Barcha omborlar (xomashyo)</value>
+  </data>
+  <data name="Core_KpiMonthlyConversion" xml:space="preserve">
+    <value>Oylik savdo konversiyasi</value>
+  </data>
+  <data name="Core_KpiContractToOrder" xml:space="preserve">
+    <value>Shartnoma -&gt; Buyurtma</value>
+  </data>
+  <data name="Core_KpiSalesFulfillment" xml:space="preserve">
+    <value>Savdo buyurtmasi bajarilishi</value>
+  </data>
+  <data name="Core_KpiOrderToInvoice" xml:space="preserve">
+    <value>Buyurtma -&gt; Hisob-faktura</value>
+  </data>
+  <data name="Core_KpiProductionExec" xml:space="preserve">
+    <value>Ishlab chiqarish bajarilishi</value>
+  </data>
+  <data name="Core_KpiPlanToActual" xml:space="preserve">
+    <value>Reja -&gt; Amalda</value>
+  </data>
+  <data name="Core_KpiTasksExec" xml:space="preserve">
+    <value>Vazifalar bajarilishi</value>
+  </data>
+  <data name="Core_KpiDone" xml:space="preserve">
+    <value>bajarildi</value>
+  </data>
+  <data name="Core_KpiDoh" xml:space="preserve">
+    <value>DOH (zaxira kunlari)</value>
+  </data>
+  <data name="Core_DaysValue" xml:space="preserve">
+    <value>{0} kun</value>
+  </data>
+  <data name="Core_KpiCoverageDays" xml:space="preserve">
+    <value>Qamrov (kun)</value>
+  </data>
+  <data name="Core_KpiSalesOrders" xml:space="preserve">
+    <value>Savdo buyurtmalari</value>
+  </data>
+  <data name="Core_KpiInvoiceVolume" xml:space="preserve">
+    <value>Hisob-faktura hajmi</value>
+  </data>
+  <data name="Core_ChartSalesTrend" xml:space="preserve">
+    <value>Savdo konversiyasi trendi</value>
+  </data>
+  <data name="Core_ChartProductionTrend" xml:space="preserve">
+    <value>Ishlab chiqarish: reja va fakt trendi</value>
+  </data>
+  <data name="Core_ChartCoverageRisk" xml:space="preserve">
+    <value>DOH / qamrov riski (SKU bo'yicha)</value>
+  </data>
+  <data name="Core_ChartExecutionKpi" xml:space="preserve">
+    <value>Buyurtma va ishlab chiqarish bajarilishi KPI</value>
+  </data>
+  <data name="Core_SignalPanel" xml:space="preserve">
+    <value>Boshqaruv signal paneli</value>
+  </data>
+  <data name="Core_NoSignal" xml:space="preserve">
+    <value>Signal topilmadi</value>
+  </data>
+  <data name="Core_SeriesOrder" xml:space="preserve">
+    <value>Buyurtma</value>
+  </data>
+  <data name="Core_SeriesInvoice" xml:space="preserve">
+    <value>Hisob-faktura</value>
+  </data>
+  <data name="Core_SeriesPlanQty" xml:space="preserve">
+    <value>Reja miqdori</value>
+  </data>
+  <data name="Core_SeriesActualQty" xml:space="preserve">
+    <value>Amaldagi miqdor</value>
+  </data>
+  <data name="Core_StockLabel" xml:space="preserve">
+    <value>Zaxira</value>
+  </data>
+  <data name="Core_DailyDemand" xml:space="preserve">
+    <value>Kunlik talab</value>
+  </data>
+  <data name="Core_OrderExec" xml:space="preserve">
+    <value>Buyurtma bajarilishi</value>
+  </data>
+  <data name="Core_TaskExec" xml:space="preserve">
+    <value>Vazifa bajarilishi</value>
+  </data>
+  <data name="Core_AvgControl" xml:space="preserve">
+    <value>O‘rtacha nazorat</value>
+  </data>
+  <data name="Core_WarehouseN" xml:space="preserve">
+    <value>Ombor #{0}</value>
+  </data>
+  <data name="Core_DataNotLoaded" xml:space="preserve">
+    <value>Ma'lumot yuklanmadi</value>
+  </data>
+  <data name="Core_ExecPanelNotLoaded" xml:space="preserve">
+    <value>Rahbariyat paneli yuklanmadi</value>
+  </data>
+  <data name="Core_LicCompanyStatus" xml:space="preserve">
+    <value>Kompaniya litsenziyasi holati</value>
+  </data>
+  <data name="Core_LicInvalidKey" xml:space="preserve">
+    <value>Yaroqsiz kalit.</value>
+  </data>
+  <data name="Core_LicOtherInstallation" xml:space="preserve">
+    <value>Boshqa o'rnatma</value>
+  </data>
+  <data name="Core_LicBlockedClock" xml:space="preserve">
+    <value>Bloklangan (soat)</value>
+  </data>
+  <data name="Core_LicReadOnly" xml:space="preserve">
+    <value>Faqat o'qish</value>
+  </data>
+  <data name="Core_LicExpired" xml:space="preserve">
+    <value>Muddati tugagan</value>
+  </data>
+  <data name="Core_LicNotStarted" xml:space="preserve">
+    <value>Boshlanmagan</value>
+  </data>
+  <data name="Core_LicPlan" xml:space="preserve">
+    <value>Tarif</value>
+  </data>
+  <data name="Core_LicDaysLeft" xml:space="preserve">
+    <value>Qolgan kun</value>
+  </data>
+  <data name="Core_LicStart" xml:space="preserve">
+    <value>Boshlanish</value>
+  </data>
+  <data name="Core_LicEnd" xml:space="preserve">
+    <value>Tugash</value>
+  </data>
+  <data name="Core_LicSeatsUsedTotal" xml:space="preserve">
+    <value>Seat (band / jami)</value>
+  </data>
+  <data name="Core_LicReadOnlyMode" xml:space="preserve">
+    <value>Faqat o'qish rejimi</value>
+  </data>
+  <data name="Core_LicUntilDate" xml:space="preserve">
+    <value>{0} gacha</value>
+  </data>
+  <data name="Core_LicKeyFormat" xml:space="preserve">
+    <value>Kalit formati</value>
+  </data>
+  <data name="Core_LicBoundToInstallation" xml:space="preserve">
+    <value>(o'rnatmaga bog'langan)</value>
+  </data>
+  <data name="Core_LicOldFormat" xml:space="preserve">
+    <value>(eski — yangilash tavsiya etiladi)</value>
+  </data>
+  <data name="Core_LicClockControl" xml:space="preserve">
+    <value>Vaqt nazorati:</value>
+  </data>
+  <data name="Core_LicInstallationIdHint" xml:space="preserve">
+    <value>O'rnatma ID (yangi kalit olish uchun yetkazib beruvchiga yuboring)</value>
+  </data>
+  <data name="Core_Copied" xml:space="preserve">
+    <value>Nusxa olindi</value>
+  </data>
+  <data name="Core_Copy" xml:space="preserve">
+    <value>Nusxa olish</value>
+  </data>
+  <data name="Core_LicActivateKey" xml:space="preserve">
+    <value>Kalitni faollashtirish</value>
+  </data>
+  <data name="Core_LicPasteKey" xml:space="preserve">
+    <value>Litsenziya kalitini shu yerga joylashtiring</value>
+  </data>
+  <data name="Core_LicActivate" xml:space="preserve">
+    <value>Faollashtirish</value>
+  </data>
+  <data name="Core_LicCentralPanel" xml:space="preserve">
+    <value>Markaziy panel</value>
+  </data>
+  <data name="Core_LicConnected" xml:space="preserve">
+    <value>Ulangan</value>
+  </data>
+  <data name="Core_LicAutoRenew" xml:space="preserve">
+    <value>Kalit har 6 soatda avtomatik yangilanadi.</value>
+  </data>
+  <data name="Core_LicNotConnected" xml:space="preserve">
+    <value>Ulanmagan</value>
+  </data>
+  <data name="Core_LicTokenSaved" xml:space="preserve">
+    <value>Token saqlangan — yangisini kiritish mumkin</value>
+  </data>
+  <data name="Core_LicRegToken" xml:space="preserve">
+    <value>Ro'yxat tokeni (reg_token)</value>
+  </data>
+  <data name="Core_LicConnectPanel" xml:space="preserve">
+    <value>Panelga ulash</value>
+  </data>
+  <data name="Core_LicCheckNow" xml:space="preserve">
+    <value>Hozir tekshirish</value>
+  </data>
+  <data name="Core_LicLastCheck" xml:space="preserve">
+    <value>Oxirgi tekshiruv:</value>
+  </data>
+  <data name="Core_LicOnlineCheck" xml:space="preserve">
+    <value>Onlayn tekshiruv:</value>
+  </data>
+  <data name="Core_LicOnlineRequired" xml:space="preserve">
+    <value>majburiy — kalit qisqa muddatli ({0} kun) va panel uni avtomatik yangilaydi</value>
+  </data>
+  <data name="Core_LicOnlineOptional" xml:space="preserve">
+    <value>ixtiyoriy — kalit shartnoma muddatigacha (ko'pi bilan 1 yil), internetsiz ham ishlaydi</value>
+  </data>
+  <data name="Core_LicSeatManagement" xml:space="preserve">
+    <value>Xodimlar seat boshqaruvi</value>
+  </data>
+  <data name="Core_LicBusy" xml:space="preserve">
+    <value>band</value>
+  </data>
+  <data name="Core_Employee" xml:space="preserve">
+    <value>Xodim</value>
+  </data>
+  <data name="Core_LicSeat" xml:space="preserve">
+    <value>Seat</value>
+  </data>
+  <data name="Core_LicTerm" xml:space="preserve">
+    <value>Muddat</value>
+  </data>
+  <data name="Core_LicSeatEnded" xml:space="preserve">
+    <value>Tugagan</value>
+  </data>
+  <data name="Core_LicAssignSeat" xml:space="preserve">
+    <value>Seat berish</value>
+  </data>
+  <data name="Core_LicExtend" xml:space="preserve">
+    <value>Uzaytirish</value>
+  </data>
+  <data name="Core_LicConfirmRevoke" xml:space="preserve">
+    <value>Seatni olib qo'yamizmi?</value>
+  </data>
+  <data name="Core_LicRevoke" xml:space="preserve">
+    <value>Olib qo'yish</value>
+  </data>
+  <data name="Core_LicHistory" xml:space="preserve">
+    <value>Litsenziyalar tarixi</value>
+  </data>
+  <data name="Core_Who" xml:space="preserve">
+    <value>Kim</value>
+  </data>
+  <data name="Core_LicRestriction" xml:space="preserve">
+    <value>Litsenziya cheklovi</value>
+  </data>
+  <data name="Core_LicSystemBlocked" xml:space="preserve">
+    <value>Tizim vaqtincha bloklangan</value>
+  </data>
+  <data name="Core_LicInstallationIdSend" xml:space="preserve">
+    <value>O'rnatma ID (yetkazib beruvchiga yuboring):</value>
+  </data>
+  <data name="Core_LicEnterNewKey" xml:space="preserve">
+    <value>Yangi litsenziya kalitini kiriting:</value>
+  </data>
+  <data name="Core_LicKey" xml:space="preserve">
+    <value>Litsenziya kaliti</value>
+  </data>
+  <data name="Core_LicPage" xml:space="preserve">
+    <value>Litsenziya sahifasi</value>
+  </data>
+  <data name="Core_LicContactVendor" xml:space="preserve">
+    <value>Iltimos, administrator yoki yetkazib beruvchi bilan bog'laning.</value>
+  </data>
+  <data name="Core_LicNotInPlanTitle" xml:space="preserve">
+    <value>Paketingizda yo'q</value>
+  </data>
+  <data name="Core_LicNotInPlanHeader" xml:space="preserve">
+    <value>Paketingizda yo'q — tarifni oshiring</value>
+  </data>
+  <data name="Core_LicModuleNotInEdition" xml:space="preserve">
+    <value>{0} moduli joriy {1} paketiga kirmaydi.</value>
+  </data>
+  <data name="Core_LicAddOnModule" xml:space="preserve">
+    <value>Bu modul paketlarga kirmaydi — alohida xizmat sifatida ulanadi.</value>
+  </data>
+  <data name="Core_LicModuleInEdition" xml:space="preserve">
+    <value>Bu modul {0} paketida mavjud.</value>
+  </data>
+  <data name="Core_LicLicenseAndPlan" xml:space="preserve">
+    <value>Litsenziya va tarif</value>
+  </data>
+  <data name="Core_LicAskAdminUpgrade" xml:space="preserve">
+    <value>Tarifni oshirish uchun administratoringizga murojaat qiling.</value>
+  </data>
+  <data name="Core_LicReadStateError" xml:space="preserve">
+    <value>Litsenziya holatini o'qishda xatolik yuz berdi. Database_Migrations/Create_License_System.sql ishga tushirilganini tekshiring yoki tizim logini ko'ring.</value>
+  </data>
+  <data name="Core_LicStateUnknown" xml:space="preserve">
+    <value>Holat aniqlanmadi.</value>
+  </data>
+  <data name="Core_LicCompanyInvalid" xml:space="preserve">
+    <value>Kompaniya litsenziyasi yaroqsiz yoki muddati tugagan.</value>
+  </data>
+  <data name="Core_LicActivated" xml:space="preserve">
+    <value>Litsenziya muvaffaqiyatli faollashtirildi.</value>
+  </data>
+  <data name="Core_LicSeatAssigned" xml:space="preserve">
+    <value>Seat berildi.</value>
+  </data>
+  <data name="Core_LicSeatExtended" xml:space="preserve">
+    <value>Muddat uzaytirildi.</value>
+  </data>
+  <data name="Core_LicSeatRevoked" xml:space="preserve">
+    <value>Seat olib qo'yildi.</value>
+  </data>
+  <data name="Core_LicNotFoundEnterKey" xml:space="preserve">
+    <value>Kompaniya litsenziyasi topilmadi. Kalitni kiriting.</value>
+  </data>
+  <data name="Core_LicSignatureInvalid" xml:space="preserve">
+    <value>Litsenziya imzosi yaroqsiz (soxta yoki buzilgan).</value>
+  </data>
+  <data name="Core_LicOnlineWarnRequired" xml:space="preserve">
+    <value>Litsenziya paneli bilan {0} kundan beri aloqa yo'q. Onlayn tekshiruv majburiy: kalit internetsiz ko'pi bilan {1} kun amal qiladi va panel uni avtomatik yangilaydi — server internetini tekshiring.</value>
+  </data>
+  <data name="Core_LicOnlineWarnOptional" xml:space="preserve">
+    <value>Litsenziya paneli bilan {0} kundan beri aloqa yo'q. Kalit o'z muddatigacha ishlaydi, lekin yangilanishlar (to'lov, tarif o'zgarishi) yetib kelmaydi — internetni tekshiring yoki kalitni qo'lda kiriting.</value>
+  </data>
+  <data name="Core_LicStampMissing" xml:space="preserve">
+    <value>Litsenziya vaqt muhri topilmadi (bazadan o'chirilgan). Yetkazib beruvchidan yangi kalit oling.</value>
+  </data>
+  <data name="Core_LicStampTampered" xml:space="preserve">
+    <value>Litsenziya vaqt muhri buzilgan (qo'lda o'zgartirilgan). Yetkazib beruvchidan yangi kalit oling.</value>
+  </data>
+  <data name="Core_LicClockRolledBack" xml:space="preserve">
+    <value>Server soati orqaga surilgan: hozirgi vaqt {0}, oxirgi ko'rilgan vaqt {1}. Server sana/vaqtini to'g'rilang.</value>
+  </data>
+  <data name="Core_LicNotFoundContactVendor" xml:space="preserve">
+    <value>Kompaniya litsenziyasi topilmadi. Yetkazib beruvchi bilan bog'laning.</value>
+  </data>
+  <data name="Core_LicCompanySignatureInvalid" xml:space="preserve">
+    <value>Kompaniya litsenziyasi yaroqsiz (imzo mos kelmadi). Yetkazib beruvchi bilan bog'laning.</value>
+  </data>
+  <data name="Core_LicOtherCompany" xml:space="preserve">
+    <value>Litsenziya boshqa kompaniyaga tegishli.</value>
+  </data>
+  <data name="Core_LicOtherInstallationSendId" xml:space="preserve">
+    <value>Litsenziya boshqa o'rnatma uchun chiqarilgan. Yetkazib beruvchiga shu o'rnatma ID'sini yuboring: {0}</value>
+  </data>
+  <data name="Core_LicNotYetValid" xml:space="preserve">
+    <value>Litsenziya hali kuchga kirmagan (boshlanish sanasi: {0}).</value>
+  </data>
+  <data name="Core_LicCompanyExpired" xml:space="preserve">
+    <value>Kompaniya litsenziyasi muddati tugagan ({0}). Yetkazib beruvchi bilan bog'laning.</value>
+  </data>
+  <data name="Core_LicGrace" xml:space="preserve">
+    <value>Litsenziya muddati {0} da tugagan. Tizim {1} gacha faqat o'qish rejimida ishlaydi — yangi kalitni faollashtiring.</value>
+  </data>
+  <data name="Core_LicExpiringSoon" xml:space="preserve">
+    <value>Litsenziya muddati tugashiga {0} kun qoldi ({1}).</value>
+  </data>
+  <data name="Core_LicActive" xml:space="preserve">
+    <value>Litsenziya faol.</value>
+  </data>
+  <data name="Core_LicEnterKey" xml:space="preserve">
+    <value>Kalitni kiriting.</value>
+  </data>
+  <data name="Core_LicKeyInvalid" xml:space="preserve">
+    <value>Kalit yaroqsiz yoki soxta (imzo mos kelmadi).</value>
+  </data>
+  <data name="Core_LicKeyOtherCompany" xml:space="preserve">
+    <value>Bu kalit boshqa kompaniyaga tegishli (CompanyID={0}).</value>
+  </data>
+  <data name="Core_LicV1NotAccepted" xml:space="preserve">
+    <value>Eski formatdagi (v1) kalitlar endi qabul qilinmaydi. Yetkazib beruvchidan o'rnatma ID'si bilan yangi kalit oling: {0}</value>
+  </data>
+  <data name="Core_LicKeyOtherInstallation" xml:space="preserve">
+    <value>Bu kalit boshqa o'rnatma uchun chiqarilgan. Shu o'rnatma ID'si: {0}</value>
+  </data>
+  <data name="Core_LicStampBroken" xml:space="preserve">
+    <value>Litsenziya vaqt muhri buzilgan. Yetkazib beruvchidan yangi kalit oling.</value>
+  </data>
+  <data name="Core_LicClockRolledBackActivate" xml:space="preserve">
+    <value>Server soati orqaga surilgan (oxirgi ko'rilgan vaqt: {0}). Avval sana/vaqtni to'g'rilang.</value>
+  </data>
+  <data name="Core_LicKeyAlreadyExpired" xml:space="preserve">
+    <value>Bu kalitning muddati allaqachon tugagan ({0}).</value>
+  </data>
+  <data name="Core_LicCompanyNotFound" xml:space="preserve">
+    <value>Kompaniya litsenziyasi topilmadi.</value>
+  </data>
+  <data name="Core_LicNoSeat" xml:space="preserve">
+    <value>Sizga litsenziya (seat) berilmagan. Administrator bilan bog'laning.</value>
+  </data>
+  <data name="Core_LicSeatExpired" xml:space="preserve">
+    <value>Sizning litsenziyangiz muddati tugagan ({0}). Administrator bilan bog'laning.</value>
+  </data>
+  <data name="Core_LicActivateFirst" xml:space="preserve">
+    <value>Avval yaroqli kompaniya litsenziyasini faollashtiring.</value>
+  </data>
+  <data name="Core_LicSeatAlreadyActive" xml:space="preserve">
+    <value>Bu xodimda allaqachon faol seat bor.</value>
+  </data>
+  <data name="Core_LicAllSeatsBusy" xml:space="preserve">
+    <value>Barcha {0} seat band. Yetkazib beruvchidan qo'shimcha oling.</value>
+  </data>
+  <data name="Core_LicNoValidCompany" xml:space="preserve">
+    <value>Yaroqli kompaniya litsenziyasi yo'q.</value>
+  </data>
+  <data name="Core_LicSeatNotFound" xml:space="preserve">
+    <value>Seat topilmadi.</value>
+  </data>
+  <data name="Core_LicSeatBeyondCompany" xml:space="preserve">
+    <value>Muddat kompaniya litsenziyasidan ({0}) oshmasligi kerak.</value>
+  </data>
+  <data name="Core_LicWriteBlocked" xml:space="preserve">
+    <value>Ma'lumotni o'zgartirish vaqtincha mumkin emas.</value>
+  </data>
+  <data name="Core_EditionAddOnMessage" xml:space="preserve">
+    <value>"{0}" alohida xizmat — ulash uchun yetkazib beruvchiga murojaat qiling.</value>
+  </data>
+  <data name="Core_EditionNotInPlanMessage" xml:space="preserve">
+    <value>"{0}" moduli paketingizda yo'q — tarifni {1} paketiga o'ting.</value>
+  </data>
+  <data name="Core_SyncRegTokenInvalid" xml:space="preserve">
+    <value>Ro'yxat tokeni yaroqsiz.</value>
+  </data>
+  <data name="Core_SyncDisabled" xml:space="preserve">
+    <value>Panel bilan sinxronlash o'chiq (LicensePanelUrl berilmagan).</value>
+  </data>
+  <data name="Core_SyncErrorPrefix" xml:space="preserve">
+    <value>XATO:</value>
+  </data>
+  <data name="Core_SyncNotConnected" xml:space="preserve">
+    <value>Panelga ulanmagan: ro'yxat tokenini (reg_token) kiriting.</value>
+  </data>
+  <data name="Core_SyncRegisterFailed" xml:space="preserve">
+    <value>Ro'yxatdan o'tmadi: {0}</value>
+  </data>
+  <data name="Core_SyncKeyUnchanged" xml:space="preserve">
+    <value>Kalit o'zgarmagan.</value>
+  </data>
+  <data name="Core_SyncUnauthorized" xml:space="preserve">
+    <value>Panel so'rovni rad etdi (imzo/soat): {0}</value>
+  </data>
+  <data name="Core_SyncNotFound" xml:space="preserve">
+    <value>Panel bu o'rnatmani tanimaydi.</value>
+  </data>
+  <data name="Core_SyncRevoked" xml:space="preserve">
+    <value>Panelda obuna bekor qilingan.</value>
+  </data>
+  <data name="Core_SyncUnknownError" xml:space="preserve">
+    <value>Noma'lum xato.</value>
+  </data>
+  <data name="Core_SyncKeyActivated" xml:space="preserve">
+    <value>Paneldan yangi kalit olindi va faollashtirildi.</value>
+  </data>
+  <data name="Core_SyncKeyRejected" xml:space="preserve">
+    <value>Paneldan kelgan kalit rad etildi: {0}</value>
+  </data>
+  <data name="Core_SyncTokenNotFound" xml:space="preserve">
+    <value>token topilmadi yoki muddati o'tgan.</value>
+  </data>
+  <data name="Core_SyncTokenUsed" xml:space="preserve">
+    <value>token boshqa o'rnatmada ishlatilgan.</value>
+  </data>
+  <data name="Core_LicBannerExpired" xml:space="preserve">
+    <value>Litsenziya muddati tugadi</value>
+  </data>
+  <data name="Core_LicBannerExpiring" xml:space="preserve">
+    <value>Litsenziya muddati tugayapti</value>
+  </data>
+  <data name="Core_LicUpdateKey" xml:space="preserve">
+    <value>Kalitni yangilash</value>
+  </data>
+  <data name="Core_LicPanelNoConnection" xml:space="preserve">
+    <value>Litsenziya paneli bilan aloqa yo'q</value>
+  </data>
+  <data name="Core_MessageWithCode" xml:space="preserve">
+    <value>{0} (kod: {1})</value>
+  </data>
+  <data name="Core_RecordNotFound" xml:space="preserve">
+    <value>Yozuv topilmadi.</value>
+  </data>
+  <data name="Core_DeleteErrorContactAdmin" xml:space="preserve">
+    <value>Ma'lumotni o'chirishda xatolik yuz berdi. Qayta urinib ko'ring va muammo davom etsa, tizim administratoriga murojaat qiling.</value>
+  </data>
+  <data name="Core_IpAddress" xml:space="preserve">
+    <value>IP manzili</value>
+  </data>
+  <data name="Core_MacAddress" xml:space="preserve">
+    <value>MAC manzili</value>
+  </data>
+  <data name="Core_FileSystemLogs" xml:space="preserve">
+    <value>Tizim_loglari</value>
+  </data>
+  <data name="Core_Entries" xml:space="preserve">
+    <value>Kirishlar</value>
+  </data>
+  <data name="Core_FileUserEntries" xml:space="preserve">
+    <value>Foydalanuvchi_kirishlari</value>
+  </data>
+  <data name="Core_Filters" xml:space="preserve">
+    <value>Filterlar</value>
+  </data>
+  <data name="Core_AllUsers" xml:space="preserve">
+    <value>Barcha foydalanuvchilar</value>
+  </data>
+  <data name="Core_From" xml:space="preserve">
+    <value>Dan</value>
+  </data>
+  <data name="Core_To" xml:space="preserve">
+    <value>Gacha</value>
+  </data>
+  <data name="Core_AllFilteredRecords" xml:space="preserve">
+    <value>Filtrdagi barcha yozuvlar</value>
+  </data>
+  <data name="Core_Time" xml:space="preserve">
+    <value>Vaqt</value>
+  </data>
+  <data name="Core_Module" xml:space="preserve">
+    <value>Modul</value>
+  </data>
+  <data name="Core_AllModules" xml:space="preserve">
+    <value>Barcha modullar</value>
+  </data>
+  <data name="Core_UserEntriesTitle" xml:space="preserve">
+    <value>Foydalanuvchi kirishlari</value>
+  </data>
+  <data name="Core_PmDefaultCreated" xml:space="preserve">
+    <value>{0} uchun 4 ta default permission moduli yaratildi</value>
+  </data>
+  <data name="Core_EmptyParen" xml:space="preserve">
+    <value>(bo'sh)</value>
+  </data>
+  <data name="Core_PmComboExistsDetails" xml:space="preserve">
+    <value>Bu modul, controller va action kombinatsiyasi allaqachon mavjud. Mavjud: Module='{0}', Controller='{1}', Action='{2}'</value>
+  </data>
+  <data name="Core_PmControllerNotFound" xml:space="preserve">
+    <value>Controller nomi topilmadi.</value>
+  </data>
+  <data name="Core_PmControllerModulesExist" xml:space="preserve">
+    <value>Bu controller uchun permission modullari allaqachon mavjud.</value>
+  </data>
+  <data name="Core_PmModuleNameRequired" xml:space="preserve">
+    <value>Modul nomi kiritilishi shart</value>
+  </data>
+  <data name="Core_PmControllerRequired" xml:space="preserve">
+    <value>Controller tanlanishi shart</value>
+  </data>
+  <data name="Core_PmComboExists" xml:space="preserve">
+    <value>Bu modul, controller va action kombinatsiyasi allaqachon mavjud</value>
+  </data>
+  <data name="Core_PmCreated" xml:space="preserve">
+    <value>Permission moduli muvaffaqiyatli yaratildi</value>
+  </data>
+  <data name="Core_PmUpdated" xml:space="preserve">
+    <value>Permission moduli muvaffaqiyatli yangilandi</value>
+  </data>
+  <data name="Core_PmDeleted" xml:space="preserve">
+    <value>Permission moduli muvaffaqiyatli o'chirildi</value>
+  </data>
+  <data name="Core_ConcurrencyError" xml:space="preserve">
+    <value>Ma'lumotlar boshqa foydalanuvchi tomonidan o'zgartirilgan yoki o'chirilgan. Qayta urinib ko'ring.</value>
+  </data>
+  <data name="Core_SaveFailedContactAdmin" xml:space="preserve">
+    <value>Oʻzgarishlarni saqlab boʻlmadi. Qayta urinib ko'ring va agar muammo davom etsa, tizim administratoriga murojaat qiling.</value>
+  </data>
+  <data name="Core_RoleNameRequired" xml:space="preserve">
+    <value>Rol nomi kiritilishi shart</value>
+  </data>
+  <data name="Core_RoleNameExists" xml:space="preserve">
+    <value>Bu nomli rol allaqachon mavjud</value>
+  </data>
+  <data name="Core_RoleUpdated" xml:space="preserve">
+    <value>Rol muvaffaqiyatli yangilandi</value>
+  </data>
+  <data name="Core_RoleDeleted" xml:space="preserve">
+    <value>Rol muvaffaqiyatli o'chirildi</value>
+  </data>
+  <data name="Core_DataNotFound" xml:space="preserve">
+    <value>Ma'lumot topilmadi</value>
+  </data>
+  <data name="Core_RoleNotFound" xml:space="preserve">
+    <value>Rol topilmadi</value>
+  </data>
+  <data name="Core_RoleCreated" xml:space="preserve">
+    <value>'{0}' roli muvaffaqiyatli yaratildi</value>
+  </data>
+  <data name="Core_PermissionsSaved" xml:space="preserve">
+    <value>Huquqlar muvaffaqiyatli saqlandi ({0} ta yangi, {1} ta yangilangan)</value>
+  </data>
+  <data name="Core_DbError" xml:space="preserve">
+    <value>Ma'lumotlar bazasi xatosi: {0}</value>
+  </data>
+  <data name="Core_NoRole" xml:space="preserve">
+    <value>Rol yo'q</value>
+  </data>
+  <data name="Core_UserNameExists" xml:space="preserve">
+    <value>Bu foydalanuvchi nomi allaqachon mavjud.</value>
+  </data>
+  <data name="Core_DeveloperRoleFirstTime" xml:space="preserve">
+    <value>Birinchi martada 'Developer' role biriktirish mumkin emas.</value>
+  </data>
+  <data name="Core_PhotoTooLargeContactAdmin" xml:space="preserve">
+    <value>Suratni yuklab bo'lmadi, u 2 MB dan ortiq. Qayta urinib ko'ring va muammo davom etsa, tizim administratoriga murojaat qiling.</value>
+  </data>
+  <data name="Core_UserAdded" xml:space="preserve">
+    <value>Foydalanuvchi muvaffaqiyatli qo'shildi.</value>
+  </data>
+  <data name="Core_SaveFailedAdmin" xml:space="preserve">
+    <value>O'zgarishlarni saqlab bo'lmadi. Qayta urinib ko'ring va muammo davom etsa, tizim administratoriga murojaat qiling.</value>
+  </data>
+  <data name="Core_UserUpdated" xml:space="preserve">
+    <value>Foydalanuvchi ma'lumotlari muvaffaqiyatli yangilandi.</value>
+  </data>
+  <data name="Core_UserDeleted" xml:space="preserve">
+    <value>Foydalanuvchi muvaffaqiyatli o'chirildi.</value>
+  </data>
+  <data name="Core_SectionNotFound" xml:space="preserve">
+    <value>Bo'lim topilmadi</value>
+  </data>
+  <data name="Core_RoleAddNew" xml:space="preserve">
+    <value>Yangi rol qo'shish</value>
+  </data>
+  <data name="Core_RoleNew" xml:space="preserve">
+    <value>Yangi rol</value>
+  </data>
+  <data name="Core_RoleNewData" xml:space="preserve">
+    <value>Yangi rol ma'lumotlari</value>
+  </data>
+  <data name="Core_RoleNamePlaceholder" xml:space="preserve">
+    <value>Masalan: Manager, Admin, User</value>
+  </data>
+  <data name="Core_RoleNameUnique" xml:space="preserve">
+    <value>Rol nomi takrorlanmasligi kerak</value>
+  </data>
+  <data name="Core_RoleDescPlaceholder" xml:space="preserve">
+    <value>Ushbu roldagi xodim nima ish qilishini yozing...</value>
+  </data>
+  <data name="Core_NoteLabel" xml:space="preserve">
+    <value>Eslatma:</value>
+  </data>
+  <data name="Core_RoleCreateNote" xml:space="preserve">
+    <value>Yangi rol yaratilganda, barcha modullar uchun default huquqlar (ViewPermit = true, ChangePermit = false) avtomatik yaratiladi. Keyinchalik huquqlarni tahrirlash sahifasida o'zgartirishingiz mumkin.</value>
+  </data>
+  <data name="Core_RoleDelete" xml:space="preserve">
+    <value>Rolni o'chirish</value>
+  </data>
+  <data name="Core_Attention" xml:space="preserve">
+    <value>Diqqat!</value>
+  </data>
+  <data name="Core_RoleDeleteConfirm" xml:space="preserve">
+    <value>Siz ushbu rolni o'chirishni xohlaysizmi?</value>
+  </data>
+  <data name="Core_RoleNameColon" xml:space="preserve">
+    <value>Rol nomi:</value>
+  </data>
+  <data name="Core_DescriptionColon" xml:space="preserve">
+    <value>Tavsif:</value>
+  </data>
+  <data name="Core_RoleUsersLeftWithout" xml:space="preserve">
+    <value>Rol o'chirilgandan keyin, bu foydalanuvchilar rolsiz qoladi.</value>
+  </data>
+  <data name="Core_YesDelete" xml:space="preserve">
+    <value>Ha, o'chirish</value>
+  </data>
+  <data name="Core_RoleEdit" xml:space="preserve">
+    <value>Rolni tahrirlash</value>
+  </data>
+  <data name="Core_RoleData" xml:space="preserve">
+    <value>Rol ma'lumotlari</value>
+  </data>
+  <data name="Core_RoleDescPlaceholderShort" xml:space="preserve">
+    <value>Rol tavsifi...</value>
+  </data>
+  <data name="Core_ManagePermissions" xml:space="preserve">
+    <value>Huquqlarni boshqarish</value>
+  </data>
+  <data name="Core_RoleUsersCount" xml:space="preserve">
+    <value>Bu rolga ega {0} ta foydalanuvchi mavjud.</value>
+  </data>
+  <data name="Core_RolesList" xml:space="preserve">
+    <value>Rollar ro'yxati</value>
+  </data>
+  <data name="Core_PermissionsCountColon" xml:space="preserve">
+    <value>Huquqlar soni:</value>
+  </data>
+  <data name="Core_PermissionsList" xml:space="preserve">
+    <value>Huquqlar ro'yxati</value>
+  </data>
+  <data name="Core_CountTa" xml:space="preserve">
+    <value>{0} ta</value>
+  </data>
+  <data name="Core_AllView" xml:space="preserve">
+    <value>Barcha View</value>
+  </data>
+  <data name="Core_AllChange" xml:space="preserve">
+    <value>Barcha Change</value>
+  </data>
+  <data name="Core_AllDelete" xml:space="preserve">
+    <value>Barcha Delete</value>
+  </data>
+  <data name="Core_UncheckAll" xml:space="preserve">
+    <value>Barchasini bekor qilish</value>
+  </data>
+  <data name="Core_RolePermissionsFor" xml:space="preserve">
+    <value>{0} roli uchun huquqlar</value>
+  </data>
+  <data name="Core_UserAddNew" xml:space="preserve">
+    <value>Yangi foydalanuvchi qo'shish</value>
+  </data>
+  <data name="Core_UserNew" xml:space="preserve">
+    <value>Yangi foydalanuvchi</value>
+  </data>
+  <data name="Core_FullNameLabel" xml:space="preserve">
+    <value>To'liq F.I.Sh</value>
+  </data>
+  <data name="Core_FullNamePlaceholder" xml:space="preserve">
+    <value>Ismi, familyasi va otasining ismi</value>
+  </data>
+  <data name="Core_UserPhotoLabel" xml:space="preserve">
+    <value>Foydalanuvchi sur'ati</value>
+  </data>
+  <data name="Core_MaxSize2Mb" xml:space="preserve">
+    <value>Maksimal hajmi: 2 MB</value>
+  </data>
+  <data name="Core_RoleLabel" xml:space="preserve">
+    <value>Roli</value>
+  </data>
+  <data name="Core_SelectRole" xml:space="preserve">
+    <value>Rolni tanlang</value>
+  </data>
+  <data name="Core_Activity" xml:space="preserve">
+    <value>Faolligi</value>
+  </data>
+  <data name="Core_UserDeleteTitle" xml:space="preserve">
+    <value>Foydalanuvchi ma'lumotlarini o'chirish</value>
+  </data>
+  <data name="Core_UserDeleteWarning" xml:space="preserve">
+    <value>Siz foydalanuvchini o'chirmoqchisiz. Bu amalni bekor qilib bo'lmaydi.</value>
+  </data>
+  <data name="Core_UserData" xml:space="preserve">
+    <value>Foydalanuvchi ma'lumotlari</value>
+  </data>
+  <data name="Core_UserNameColon" xml:space="preserve">
+    <value>Foydalanuvchi nomi:</value>
+  </data>
+  <data name="Core_EmailColon" xml:space="preserve">
+    <value>E-mail:</value>
+  </data>
+  <data name="Core_FullNameColon" xml:space="preserve">
+    <value>Ismi sharifi:</value>
+  </data>
+  <data name="Core_RoleColon" xml:space="preserve">
+    <value>Roli:</value>
+  </data>
+  <data name="Core_ActivityColon" xml:space="preserve">
+    <value>Faolligi:</value>
+  </data>
+  <data name="Core_UserPhoto" xml:space="preserve">
+    <value>Foydalanuvchi rasmi</value>
+  </data>
+  <data name="Core_NoPhoto" xml:space="preserve">
+    <value>Rasm yuklanmagan</value>
+  </data>
+  <data name="Core_Info" xml:space="preserve">
+    <value>Ma'lumotlar</value>
+  </data>
+  <data name="Core_ActionsInfo" xml:space="preserve">
+    <value>Amallar to'g'risida ma'lumot</value>
+  </data>
+  <data name="Core_UserActivityTitle" xml:space="preserve">
+    <value>Foydalanuvchining tizimga ulangan vaqti va ma'lumotlari</value>
+  </data>
+  <data name="Core_ActionCol" xml:space="preserve">
+    <value>Amali</value>
+  </data>
+  <data name="Core_DateCol" xml:space="preserve">
+    <value>Sanasi</value>
+  </data>
+  <data name="Core_TimeCol" xml:space="preserve">
+    <value>Vaqti</value>
+  </data>
+  <data name="Core_NoDataPlural" xml:space="preserve">
+    <value>Ma'lumotlar yo'q</value>
+  </data>
+  <data name="Core_UserEditTitle" xml:space="preserve">
+    <value>Foydalanuvchi ma'lumotlarini tahrirlash</value>
+  </data>
+  <data name="Core_FullNameEnterPlaceholder" xml:space="preserve">
+    <value>Ismi sharifini to'liq kiriting</value>
+  </data>
+  <data name="Core_MaxSize2MbChange" xml:space="preserve">
+    <value>Maksimal hajmi: 2 MB (o'zgartirish uchun yangi rasm yuklang)</value>
+  </data>
+  <data name="Core_PasswordOnlyChange" xml:space="preserve">
+    <value>Kalit so'zi (faqat o'zgartirish uchun)</value>
+  </data>
+  <data name="Core_PasswordChangeHint" xml:space="preserve">
+    <value>Kalit so'zni o'zgartirish uchun yangi kalit so'z kiriting. Bo'sh qoldirilsa, eski kalit so'z saqlanadi.</value>
+  </data>
+  <data name="Core_FilterByRole" xml:space="preserve">
+    <value>Rol bo'yicha filtrlash</value>
+  </data>
+  <data name="Core_AllRoles" xml:space="preserve">
+    <value>Barcha rollar</value>
+  </data>
+  <data name="Core_InactiveUsers" xml:space="preserve">
+    <value>Nofaol foydalanuvchilar</value>
+  </data>
+  <data name="Core_UsersList" xml:space="preserve">
+    <value>Foydalanuvchilar ro'yxati</value>
+  </data>
+  <data name="Core_UserDeleteConfirm" xml:space="preserve">
+    <value>Haqiqatan ham bu foydalanuvchini o'chirmoqchimisiz?</value>
+  </data>
+  <data name="Core_PmAddNew" xml:space="preserve">
+    <value>Yangi modul qo'shish</value>
+  </data>
+  <data name="Core_PmModules" xml:space="preserve">
+    <value>Ruxsat modullari</value>
+  </data>
+  <data name="Core_PmNew" xml:space="preserve">
+    <value>Yangi modul</value>
+  </data>
+  <data name="Core_PmNewData" xml:space="preserve">
+    <value>Yangi modul ma'lumotlari</value>
+  </data>
+  <data name="Core_PmModuleName" xml:space="preserve">
+    <value>Modul nomi</value>
+  </data>
+  <data name="Core_PmModulePlaceholder" xml:space="preserve">
+    <value>Masalan: Maxsulotlar, Xomashyo</value>
+  </data>
+  <data name="Core_PmActionPlaceholder" xml:space="preserve">
+    <value>Masalan: Index, Create, Edit</value>
+  </data>
+  <data name="Core_PmActionsAutoload" xml:space="preserve">
+    <value>Controller tanlanganda actionlar avtomatik yuklanadi</value>
+  </data>
+  <data name="Core_PmParameter" xml:space="preserve">
+    <value>Parametr</value>
+  </data>
+  <data name="Core_PmParamPlaceholder" xml:space="preserve">
+    <value>Masalan: id, productId, period</value>
+  </data>
+  <data name="Core_PmParamHint" xml:space="preserve">
+    <value>Ixtiyoriy parametr nomi (masalan: id, productId)</value>
+  </data>
+  <data name="Core_PmDelete" xml:space="preserve">
+    <value>Modulni o'chirish</value>
+  </data>
+  <data name="Core_PmDeleteConfirm" xml:space="preserve">
+    <value>Siz ushbu modulni o'chirishni xohlaysizmi?</value>
+  </data>
+  <data name="Core_PmModuleNameColon" xml:space="preserve">
+    <value>Modul nomi:</value>
+  </data>
+  <data name="Core_PmParameterColon" xml:space="preserve">
+    <value>Parametr:</value>
+  </data>
+  <data name="Core_RolesColon" xml:space="preserve">
+    <value>Rollar:</value>
+  </data>
+  <data name="Core_NoRoles" xml:space="preserve">
+    <value>Rollar yo'q</value>
+  </data>
+  <data name="Core_PmDeleteAllPerms" xml:space="preserve">
+    <value>Modul o'chirilganda, barcha permissionlar ham o'chiriladi.</value>
+  </data>
+  <data name="Core_PmData" xml:space="preserve">
+    <value>Modul ma'lumotlari</value>
+  </data>
+  <data name="Core_PmEdit" xml:space="preserve">
+    <value>Modulni tahrirlash</value>
+  </data>
+  <data name="Core_PmAssignRoles" xml:space="preserve">
+    <value>Rollarga biriktirish</value>
+  </data>
+  <data name="Core_PmMultiRoles" xml:space="preserve">
+    <value>Bir nechta rollarni tanlash mumkin</value>
+  </data>
+  <data name="Core_PmMissingControllers" xml:space="preserve">
+    <value>Ruhsat yaratilmagan Controllerlar</value>
+  </data>
+  <data name="Core_PmDefaultsTitle" xml:space="preserve">
+    <value>Controllerlar bo'yicha default modullar</value>
+  </data>
+  <data name="Core_PmDefaults" xml:space="preserve">
+    <value>Default modullar</value>
+  </data>
+  <data name="Core_PmCreateDefaults" xml:space="preserve">
+    <value>Default modullarni yaratish</value>
+  </data>
+  <data name="Core_PmPermsCount" xml:space="preserve">
+    <value>Bu modulga biriktirilgan {0} ta permission mavjud.</value>
+  </data>
+  <data name="Core_SystemRecordDeleteForbidden" xml:space="preserve">
+    <value>Bu tizim yozuvi (hisobotlar unga bog'langan) — uni o'chirib bo'lmaydi. Nomini o'zgartirishingiz mumkin.</value>
+  </data>
+  <data name="Core_UserManual" xml:space="preserve">
+    <value>Foydalanuvchi qo'llanmasi</value>
+  </data>
+  <data name="Core_Sections" xml:space="preserve">
+    <value>Bo'limlar</value>
+  </data>
+  <data name="Core_SearchSections" xml:space="preserve">
+    <value>Bo'limlar bo'yicha qidirish...</value>
+  </data>
+  <data name="Core_EmailInvalid" xml:space="preserve">
+    <value>Email formati noto'g'ri</value>
+  </data>
+  <data name="Core_KeepMeSignedShort" xml:space="preserve">
+    <value>Meni tizimda saqlab qolish</value>
+  </data>
+  <data name="Core_ValidationErrorNoDetails" xml:space="preserve">
+    <value>{0}: validatsiya xatosi (batafsil yo'q).</value>
+  </data>
+  <data name="Core_FieldParen" xml:space="preserve">
+    <value>(maydon)</value>
+  </data>
+  <data name="Core_DbWriteError" xml:space="preserve">
+    <value>Ma'lumotlar bazasiga yozishda xatolik: {0}</value>
+  </data>
+  <data name="Core_InnerError" xml:space="preserve">
+    <value>Ichki: {0}</value>
+  </data>
+  <data name="Core_InnerErrorFull" xml:space="preserve">
+    <value>Ichki xatolik: {0}</value>
+  </data>
+  <data name="Task_OnlyOwnView" xml:space="preserve">
+    <value>Siz faqat o'zingizga tegishli tasklarni ko'rishingiz mumkin</value>
+  </data>
+  <data name="Task_InvalidStatus" xml:space="preserve">
+    <value>Noto'g'ri status</value>
+  </data>
+  <data name="Task_OnlyOwnChange" xml:space="preserve">
+    <value>Siz faqat o'zingizga tegishli tasklarni o'zgartirishingiz mumkin</value>
+  </data>
+  <data name="Task_StatusChanged" xml:space="preserve">
+    <value>Status muvaffaqiyatli o'zgartirildi</value>
+  </data>
+  <data name="Task_NoProject" xml:space="preserve">
+    <value>Loyiha yo'q</value>
+  </data>
+  <data name="Task_NotFound" xml:space="preserve">
+    <value>Task topilmadi</value>
+  </data>
+  <data name="Task_StatusChangeFailed" xml:space="preserve">
+    <value>Statusni o'zgartirib bo'lmadi.</value>
+  </data>
+  <data name="Task_OnlyOwnEdit" xml:space="preserve">
+    <value>Siz faqat o'zingizga tegishli tasklarni tahrirlashingiz mumkin</value>
+  </data>
+  <data name="Task_Cancelled" xml:space="preserve">
+    <value>Topshiriq bekor qilindi</value>
+  </data>
+  <data name="Task_Deleted" xml:space="preserve">
+    <value>Topshiriq o'chirildi</value>
+  </data>
+  <data name="Task_SaveError" xml:space="preserve">
+    <value>Saqlashda xatolik yuz berdi: {0}</value>
+  </data>
+  <data name="Task_CancelledStatusMissing" xml:space="preserve">
+    <value>"Bekor qilindi" (CANCELLED) holati sozlanmagan — Task sozlamalarida qo'shing</value>
+  </data>
+  <data name="Task_OnlyOwnCancel" xml:space="preserve">
+    <value>Siz faqat o'zingizga tegishli tasklarni bekor qilishingiz mumkin</value>
+  </data>
+  <data name="Task_OnlyOwnDelete" xml:space="preserve">
+    <value>Siz faqat o'zingizga tegishli tasklarni o'chirishingiz mumkin</value>
+  </data>
+  <data name="Core_FinGroup_Material" xml:space="preserve">
+    <value>Material</value>
+  </data>
+  <data name="Core_FinGroup_Payroll" xml:space="preserve">
+    <value>Ish haqi</value>
+  </data>
+  <data name="Core_FinGroup_Purchase" xml:space="preserve">
+    <value>Xarid (ta'minotchi)</value>
+  </data>
+  <data name="Core_FinGroup_Logistics" xml:space="preserve">
+    <value>Transport / logistika</value>
+  </data>
+  <data name="Core_FinGroup_Tax" xml:space="preserve">
+    <value>Soliq</value>
+  </data>
+  <data name="Core_FinGroup_Vat" xml:space="preserve">
+    <value>QQS</value>
+  </data>
+  <data name="Core_FinGroup_Bank" xml:space="preserve">
+    <value>Bank xizmatlari</value>
+  </data>
+  <data name="Core_FinGroup_Interest" xml:space="preserve">
+    <value>Kredit foizi</value>
+  </data>
+  <data name="Core_FinGroup_Depreciation" xml:space="preserve">
+    <value>Amortizatsiya</value>
+  </data>
+  <data name="Core_FinGroup_Capex" xml:space="preserve">
+    <value>Kapital xarajat (asosiy vosita, qurilish)</value>
+  </data>
+  <data name="Core_FinGroup_Dividend" xml:space="preserve">
+    <value>Dividend / aksiyador</value>
+  </data>
+  <data name="Core_FinGroup_Financing" xml:space="preserve">
+    <value>Moliyaviy harakat (kredit, o'tkazma, naqd, qarz)</value>
+  </data>
+  <data name="Core_FinGroup_Other" xml:space="preserve">
+    <value>Boshqa</value>
+  </data>
+  <data name="Task_Title" xml:space="preserve">
+    <value>Sarlavha</value>
+  </data>
+  <data name="Task_Project" xml:space="preserve">
+    <value>Loyiha</value>
+  </data>
+  <data name="Task_Assignee" xml:space="preserve">
+    <value>Mas'ul</value>
+  </data>
+  <data name="Task_Reporter" xml:space="preserve">
+    <value>Muallif</value>
+  </data>
+  <data name="Task_Priority" xml:space="preserve">
+    <value>Prioritet</value>
+  </data>
+  <data name="Task_DueDate" xml:space="preserve">
+    <value>Muddati</value>
+  </data>
+  <data name="Task_FileName" xml:space="preserve">
+    <value>Vazifalar</value>
+  </data>
+  <data name="Task_UpdatedAt" xml:space="preserve">
+    <value>Yangilangan</value>
+  </data>
+  <data name="Task_TitleRequired" xml:space="preserve">
+    <value>Sarlavha kiritilishi shart</value>
+  </data>
+  <data name="Task_StatusRequired" xml:space="preserve">
+    <value>Status tanlanishi shart</value>
+  </data>
+  <data name="Task_PriorityRequired" xml:space="preserve">
+    <value>Prioritet tanlanishi shart</value>
+  </data>
+  <data name="Task_CurrentStatus" xml:space="preserve">
+    <value>Joriy Status</value>
+  </data>
+  <data name="Task_StatusSelectRequired" xml:space="preserve">
+    <value>Status tanlash majburiy</value>
+  </data>
+  <data name="Task_NewStatusStar" xml:space="preserve">
+    <value>Yangi Status *</value>
+  </data>
+  <data name="Task_PriorityInUse" xml:space="preserve">
+    <value>Bu prioritet vazifalarda ishlatilmoqda. O'chirish mumkin emas.</value>
+  </data>
+  <data name="Task_ProjectInUse" xml:space="preserve">
+    <value>Bu loyiha vazifalarda ishlatilmoqda. O'chirish mumkin emas.</value>
+  </data>
+  <data name="Task_StatusInUse" xml:space="preserve">
+    <value>Bu status vazifalarda ishlatilmoqda. O'chirish mumkin emas.</value>
+  </data>
+  <data name="Task_CodeExists" xml:space="preserve">
+    <value>Bu kod allaqachon mavjud</value>
+  </data>
+  <data name="Task_PriorityAdd" xml:space="preserve">
+    <value>Prioritet qo'shish</value>
+  </data>
+  <data name="Task_CodeStar" xml:space="preserve">
+    <value>Kod *</value>
+  </data>
+  <data name="Task_NameStar" xml:space="preserve">
+    <value>Nomi *</value>
+  </data>
+  <data name="Task_PriorityCodePh" xml:space="preserve">
+    <value>Masalan: CRITICAL, HIGH, NORMAL</value>
+  </data>
+  <data name="Task_PriorityNamePh" xml:space="preserve">
+    <value>Masalan: Juda muhim (0)</value>
+  </data>
+  <data name="Task_SortOrderStar" xml:space="preserve">
+    <value>SortOrder *</value>
+  </data>
+  <data name="Task_SortOrder" xml:space="preserve">
+    <value>SortOrder</value>
+  </data>
+  <data name="Task_SortOrderColon" xml:space="preserve">
+    <value>SortOrder:</value>
+  </data>
+  <data name="Task_PrioritySortHint" xml:space="preserve">
+    <value>Kichik raqam = yuqori prioritet (0 = eng yuqori)</value>
+  </data>
+  <data name="Task_Color" xml:space="preserve">
+    <value>Rang</value>
+  </data>
+  <data name="Task_ColorHint" xml:space="preserve">
+    <value>Badge va grafiklardagi rang</value>
+  </data>
+  <data name="Task_PriorityInfo" xml:space="preserve">
+    <value>Prioritet ma'lumotlari</value>
+  </data>
+  <data name="Task_PriorityInfoHeader" xml:space="preserve">
+    <value>Prioritet Ma'lumotlari</value>
+  </data>
+  <data name="Task_CodeColon" xml:space="preserve">
+    <value>Kod:</value>
+  </data>
+  <data name="Task_NameColon" xml:space="preserve">
+    <value>Nomi:</value>
+  </data>
+  <data name="Task_PriorityEdit" xml:space="preserve">
+    <value>Prioritet tahrirlash</value>
+  </data>
+  <data name="Task_TaskPriorities" xml:space="preserve">
+    <value>Task Prioritetlar</value>
+  </data>
+  <data name="Task_StatusAdd" xml:space="preserve">
+    <value>Status qo'shish</value>
+  </data>
+  <data name="Task_StatusCodePh" xml:space="preserve">
+    <value>Masalan: TODO, IN_PROGRESS, DONE</value>
+  </data>
+  <data name="Task_StatusNamePh" xml:space="preserve">
+    <value>Masalan: Rejada (to-do)</value>
+  </data>
+  <data name="Task_SortAutoHint" xml:space="preserve">
+    <value>Agar 0 bo'lsa, avtomatik hisoblanadi</value>
+  </data>
+  <data name="Task_ClosedState" xml:space="preserve">
+    <value>Yopilgan holat</value>
+  </data>
+  <data name="Task_ClosedStateHint" xml:space="preserve">
+    <value>Yopilgan (bajarilgan yoki bekor) — muddati o'tgan hisoblanmaydi</value>
+  </data>
+  <data name="Task_ActiveColon" xml:space="preserve">
+    <value>Faol:</value>
+  </data>
+  <data name="Task_StatusInfo" xml:space="preserve">
+    <value>Status ma'lumotlari</value>
+  </data>
+  <data name="Task_StatusInfoHeader" xml:space="preserve">
+    <value>Status Ma'lumotlari</value>
+  </data>
+  <data name="Task_StatusEdit" xml:space="preserve">
+    <value>Status tahrirlash</value>
+  </data>
+  <data name="Task_TaskStatuses" xml:space="preserve">
+    <value>Task Statuslar</value>
+  </data>
+  <data name="Task_ProjectAdd" xml:space="preserve">
+    <value>Loyiha qo'shish</value>
+  </data>
+  <data name="Task_ProjectCodePh" xml:space="preserve">
+    <value>Masalan: PROJ1, ERP, CRM</value>
+  </data>
+  <data name="Task_ProjectNamePh" xml:space="preserve">
+    <value>Masalan: ERP Tizimi</value>
+  </data>
+  <data name="Task_ProjectInfo" xml:space="preserve">
+    <value>Loyiha ma'lumotlari</value>
+  </data>
+  <data name="Task_ProjectInfoHeader" xml:space="preserve">
+    <value>Loyiha Ma'lumotlari</value>
+  </data>
+  <data name="Task_CreatedDateColon" xml:space="preserve">
+    <value>Yaratilgan sana:</value>
+  </data>
+  <data name="Task_CreatedDate" xml:space="preserve">
+    <value>Yaratilgan sana</value>
+  </data>
+  <data name="Task_ProjectTasks" xml:space="preserve">
+    <value>Loyihaga biriktirilgan vazifalar</value>
+  </data>
+  <data name="Task_TasksNotFound" xml:space="preserve">
+    <value>Vazifalar topilmadi</value>
+  </data>
+  <data name="Task_AddNew" xml:space="preserve">
+    <value>Yangi vazifa qo'shish</value>
+  </data>
+  <data name="Task_ProjectEdit" xml:space="preserve">
+    <value>Loyiha tahrirlash</value>
+  </data>
+  <data name="Task_TaskProjects" xml:space="preserve">
+    <value>Task Loyihalar</value>
+  </data>
+  <data name="Task_CreateTitle" xml:space="preserve">
+    <value>Create Task</value>
+  </data>
+  <data name="Task_AddNewTask" xml:space="preserve">
+    <value>Yangi Task qo'shish</value>
+  </data>
+  <data name="Task_TitleStar" xml:space="preserve">
+    <value>Title *</value>
+  </data>
+  <data name="Task_TitlePh" xml:space="preserve">
+    <value>Task Title</value>
+  </data>
+  <data name="Task_DescriptionPh" xml:space="preserve">
+    <value>Task Description</value>
+  </data>
+  <data name="Task_StatusStar" xml:space="preserve">
+    <value>Status *</value>
+  </data>
+  <data name="Task_SelectStatus" xml:space="preserve">
+    <value>Select Status</value>
+  </data>
+  <data name="Task_PriorityStar" xml:space="preserve">
+    <value>Priority *</value>
+  </data>
+  <data name="Task_SelectPriority" xml:space="preserve">
+    <value>Select Priority</value>
+  </data>
+  <data name="Task_Unassigned" xml:space="preserve">
+    <value>Unassigned</value>
+  </data>
+  <data name="Task_EditTitle" xml:space="preserve">
+    <value>Edit Task</value>
+  </data>
+  <data name="Task_EditTask" xml:space="preserve">
+    <value>Task tahrirlash</value>
+  </data>
+  <data name="Task_Info" xml:space="preserve">
+    <value>Vazifa ma'lumotlari</value>
+  </data>
+  <data name="Task_InfoHeader" xml:space="preserve">
+    <value>Vazifa Ma'lumotlari</value>
+  </data>
+  <data name="Task_TitleColon" xml:space="preserve">
+    <value>Sarlavha:</value>
+  </data>
+  <data name="Task_StatusColon" xml:space="preserve">
+    <value>Status:</value>
+  </data>
+  <data name="Task_PriorityColon" xml:space="preserve">
+    <value>Prioritet:</value>
+  </data>
+  <data name="Task_AssigneeColon" xml:space="preserve">
+    <value>Mas'ul:</value>
+  </data>
+  <data name="Task_NotAssigned" xml:space="preserve">
+    <value>Tayinlanmagan</value>
+  </data>
+  <data name="Task_ReporterColon" xml:space="preserve">
+    <value>Hisobot beruvchi:</value>
+  </data>
+  <data name="Task_ProjectColon" xml:space="preserve">
+    <value>Loyiha:</value>
+  </data>
+  <data name="Task_CreatedColon" xml:space="preserve">
+    <value>Yaratilgan:</value>
+  </data>
+  <data name="Task_UpdatedColon" xml:space="preserve">
+    <value>Yangilangan:</value>
+  </data>
+  <data name="Task_DueDateColon" xml:space="preserve">
+    <value>Muddati:</value>
+  </data>
+  <data name="Task_AssigneeComment" xml:space="preserve">
+    <value>Bajaruvchi izohi:</value>
+  </data>
+  <data name="Task_NoComment" xml:space="preserve">
+    <value>Izoh yo'q</value>
+  </data>
+  <data name="Task_ChangeStatus" xml:space="preserve">
+    <value>Status o'zgartirish</value>
+  </data>
+  <data name="Task_DueFrom" xml:space="preserve">
+    <value>Muddati (dan)</value>
+  </data>
+  <data name="Task_DueTo" xml:space="preserve">
+    <value>Muddati (gacha)</value>
+  </data>
+  <data name="Task_Filter" xml:space="preserve">
+    <value>Filtrlash</value>
+  </data>
+  <data name="Task_Overdue" xml:space="preserve">
+    <value>Muddatidan o'tgan</value>
+  </data>
+  <data name="Task_ConfirmCancel" xml:space="preserve">
+    <value>Topshiriqni bekor qilasizmi? U "Bekor qilindi" holatiga o'tadi.</value>
+  </data>
+  <data name="Task_ConfirmDelete" xml:space="preserve">
+    <value>Topshiriqni o'chirasizmi? U ro'yxat, Kanban va hisobotlardan olib tashlanadi.</value>
+  </data>
+  <data name="Task_TaskChangeStatus" xml:space="preserve">
+    <value>Task Status o'zgartirish</value>
+  </data>
+  <data name="Task_CurrentStatusColon" xml:space="preserve">
+    <value>Joriy Status:</value>
+  </data>
+  <data name="Task_SelectStatusUz" xml:space="preserve">
+    <value>Status tanlang</value>
+  </data>
+  <data name="Task_StatusCommentPh" xml:space="preserve">
+    <value>Status o'zgarishi haqida izoh yozing...</value>
+  </data>
+  <data name="Task_Kanban" xml:space="preserve">
+    <value>Task Kanban</value>
+  </data>
+  <data name="Task_ByProject" xml:space="preserve">
+    <value>Loyiha bo'yicha</value>
+  </data>
+  <data name="Task_ByStatus" xml:space="preserve">
+    <value>Status bo'yicha</value>
+  </data>
+  <data name="Task_Last30Days" xml:space="preserve">
+    <value>Faqat oxirgi 30 kun</value>
+  </data>
+  <data name="Task_AllClosed" xml:space="preserve">
+    <value>Barcha yopilganlar</value>
+  </data>
+  <data name="Task_NoTasks" xml:space="preserve">
+    <value>Vazifalar yo'q</value>
+  </data>
+  <data name="Js_Task_ErrorPrefix" xml:space="preserve">
+    <value>Xatolik:</value>
+  </data>
+  <data name="Js_Task_NoData" xml:space="preserve">
+    <value>Ma'lumot mavjud emas</value>
+  </data>
+  <data name="Js_Task_Total" xml:space="preserve">
+    <value>Jami</value>
+  </data>
+  <data name="Js_Task_Done" xml:space="preserve">
+    <value>Bajarildi</value>
+  </data>
+  <data name="Js_Task_TaskCount" xml:space="preserve">
+    <value>Vazifalar soni</value>
+  </data>
+  <data name="Js_Task_Todo" xml:space="preserve">
+    <value>Rejada</value>
+  </data>
+  <data name="Js_Task_InProgress" xml:space="preserve">
+    <value>Jarayonda</value>
+  </data>
+  <data name="Js_Task_NoOverdue" xml:space="preserve">
+    <value>Muddatidan o'tgan vazifalar yo'q</value>
+  </data>
+  <data name="Js_Task_OverdueTasks" xml:space="preserve">
+    <value>Muddatidan o'tgan vazifalar</value>
+  </data>
+  <data name="Js_Task_NoRating" xml:space="preserve">
+    <value>Xodimlar reytingi ma'lumotlari yo'q</value>
+  </data>
+  <data name="Js_Task_OnTimeN" xml:space="preserve">
+    <value>{0} ta muddatida bajarilgan</value>
+  </data>
+  <data name="Js_Task_OverdueN" xml:space="preserve">
+    <value>{0} ta muddati o'tgan</value>
+  </data>
+  <data name="Js_Task_OnTime" xml:space="preserve">
+    <value>Muddatida bajarilgan</value>
+  </data>
+  <data name="Js_Task_Overdue" xml:space="preserve">
+    <value>Muddati o'tgan</value>
+  </data>
+  <data name="Js_Task_OnTimeCount" xml:space="preserve">
+    <value>Muddatida bajarilgan vazifalar soni</value>
+  </data>
+  <data name="Js_Task_OverdueCount" xml:space="preserve">
+    <value>Muddati o'tgan vazifalar soni</value>
+  </data>
+  <data name="Js_Task_Employees" xml:space="preserve">
+    <value>Xodimlar</value>
+  </data>
+  <data name="Js_Task_OnTimeTip" xml:space="preserve">
+    <value>Muddatida bajarilgan: {0} ta</value>
+  </data>
+  <data name="Js_Task_OverdueTip" xml:space="preserve">
+    <value>Muddati o'tgan: {0} ta</value>
+  </data>
+  <data name="Js_Task_ApexMissing" xml:space="preserve">
+    <value>ApexCharts kutubxonasi yuklanmagan!</value>
+  </data>
+  <data name="Task_AllTasks" xml:space="preserve">
+    <value>Barcha vazifalar</value>
+  </data>
+  <data name="Task_Last7Days" xml:space="preserve">
+    <value>So'nggi 7 kun</value>
+  </data>
+  <data name="Task_ByStatusDist" xml:space="preserve">
+    <value>Status bo'yicha taqsimot</value>
+  </data>
+  <data name="Task_ByPriorityDist" xml:space="preserve">
+    <value>Prioritet bo'yicha taqsimot</value>
+  </data>
+  <data name="Task_ByPriorityStats" xml:space="preserve">
+    <value>Prioritet bo'yicha batafsil statistika</value>
+  </data>
+  <data name="Task_OverdueByProject" xml:space="preserve">
+    <value>Muddatidan o'tgan vazifalar (Loyiha bo'yicha)</value>
+  </data>
+  <data name="Task_EmployeeRating" xml:space="preserve">
+    <value>Xodimlar reytingi</value>
+  </data>
+  <data name="Task_TotalTasksFor" xml:space="preserve">
+    <value>Jami vazifalar ({0})</value>
+  </data>
+  <data name="Doc_TypeOrStatusMissingSeed" xml:space="preserve">
+    <value>Hujjat turi yoki holati topilmadi. Iltimos, seed skriptlarini ishga tushiring.</value>
+  </data>
+  <data name="Doc_TypeOrStatusMissing" xml:space="preserve">
+    <value>Hujjat turi yoki holati topilmadi</value>
+  </data>
+  <data name="Doc_SaveErrorDetails" xml:space="preserve">
+    <value>Saqlashda xatolik yuz berdi: {0}</value>
+  </data>
+  <data name="Doc_SaveError" xml:space="preserve">
+    <value>Saqlashda xatolik yuz berdi.</value>
+  </data>
+  <data name="Doc_TemplateNotFoundOrArchived" xml:space="preserve">
+    <value>Tanlangan shablon topilmadi yoki arxivlangan.</value>
+  </data>
+  <data name="Doc_NoActiveTemplate" xml:space="preserve">
+    <value>Faol shablon yo'q. "Shablonlar" sahifasida Word shablon yuklang.</value>
+  </data>
+  <data name="Doc_GenerateFailed" xml:space="preserve">
+    <value>Hujjat yaratib bo'lmadi: {0}</value>
+  </data>
+  <data name="Doc_CheckTemplateFile" xml:space="preserve">
+    <value>shablon faylini tekshiring (Word'da ochilishi kerak).</value>
+  </data>
+  <data name="Doc_GeneratedDownloading" xml:space="preserve">
+    <value>Hujjat yaratildi (versiya {0}) va yuklab olinmoqda.</value>
+  </data>
+  <data name="Doc_UnknownPlaceholdersLeft" xml:space="preserve">
+    <value>Shablonda tanilmagan maydonlar o'zgarishsiz qoldi: {0}. To'g'ri nomlar "Shablonlar" sahifasida.</value>
+  </data>
+  <data name="Doc_StatusChangedTo" xml:space="preserve">
+    <value>Holat '{0}' ga o'zgartirildi</value>
+  </data>
+  <data name="Doc_SuggestFailed" xml:space="preserve">
+    <value>Matn taklif qilib bo'lmadi.</value>
+  </data>
+  <data name="Doc_OrderCreated" xml:space="preserve">
+    <value>Buyruq muvaffaqiyatli yaratildi</value>
+  </data>
+  <data name="Doc_OrderCreatedRenumbered" xml:space="preserve">
+    <value>Buyruq yaratildi. {0} raqami band bo'lgani uchun {1} raqami berildi</value>
+  </data>
+  <data name="Doc_OrderUpdated" xml:space="preserve">
+    <value>Buyruq muvaffaqiyatli yangilandi</value>
+  </data>
+  <data name="Doc_OrderDeleted" xml:space="preserve">
+    <value>Buyruq muvaffaqiyatli o'chirildi</value>
+  </data>
+  <data name="Doc_DirectionOut" xml:space="preserve">
+    <value>Chiqish</value>
+  </data>
+  <data name="Doc_DirectionIn" xml:space="preserve">
+    <value>Kirish</value>
+  </data>
+  <data name="Doc_LetterCreated" xml:space="preserve">
+    <value>Maktub muvaffaqiyatli yaratildi</value>
+  </data>
+  <data name="Doc_LetterCreatedRenumbered" xml:space="preserve">
+    <value>Maktub yaratildi. {0} raqami band bo'lgani uchun {1} raqami berildi</value>
+  </data>
+  <data name="Doc_LetterNoRequired" xml:space="preserve">
+    <value>Maktub raqami kiritilishi shart</value>
+  </data>
+  <data name="Doc_LetterUpdated" xml:space="preserve">
+    <value>Maktub muvaffaqiyatli yangilandi</value>
+  </data>
+  <data name="Doc_LetterDeleted" xml:space="preserve">
+    <value>Maktub muvaffaqiyatli o'chirildi</value>
+  </data>
+  <data name="Doc_OnlyPdf" xml:space="preserve">
+    <value>Faqat PDF fayllarni yuklash mumkin</value>
+  </data>
+  <data name="Doc_FileMax10Mb" xml:space="preserve">
+    <value>Fayl hajmi 10 MB dan oshmasligi kerak</value>
+  </data>
+  <data name="Doc_IncomingRegistered" xml:space="preserve">
+    <value>Kiruvchi xat muvaffaqiyatli ro'yxatga olindi</value>
+  </data>
+  <data name="Doc_NoFileSelected" xml:space="preserve">
+    <value>Fayl tanlanmagan.</value>
+  </data>
+  <data name="Doc_OnlyDocx" xml:space="preserve">
+    <value>Faqat Word (.docx) fayl yuklash mumkin. Eski .doc faylni Word'da .docx qilib saqlang.</value>
+  </data>
+  <data name="Doc_TemplateUploaded" xml:space="preserve">
+    <value>Shablon "{0}" yuklandi.</value>
+  </data>
+  <data name="Doc_RecognizedFields" xml:space="preserve">
+    <value>Tanilgan maydonlar: {0}.</value>
+  </data>
+  <data name="Doc_NoFieldsFound" xml:space="preserve">
+    <value>Diqqat: shablonda birorta ham maydon ({{...}}) topilmadi — hujjat o'zgarishsiz chiqadi.</value>
+  </data>
+  <data name="Doc_UnknownFields" xml:space="preserve">
+    <value>Tanilmagan maydonlar (hujjatda o'zgarishsiz qoladi): {0}. Pastdagi ro'yxatdan to'g'ri nomni tanlang.</value>
+  </data>
+  <data name="Doc_TemplateActivated" xml:space="preserve">
+    <value>Shablon faollashtirildi.</value>
+  </data>
+  <data name="Doc_TemplateArchived" xml:space="preserve">
+    <value>Shablon arxivlandi — hujjat yaratishda tanlanmaydi.</value>
+  </data>
+  <data name="Doc_TemplateInUse" xml:space="preserve">
+    <value>Bu shablon bilan hujjatlar yaratilgan — o'chirib bo'lmaydi, arxivlang.</value>
+  </data>
+  <data name="Doc_TemplateDeleted" xml:space="preserve">
+    <value>Shablon o'chirildi.</value>
+  </data>
+  <data name="Doc_LegacyTemplateMissing" xml:space="preserve">
+    <value>Papkada eski shablon fayli topilmadi.</value>
+  </data>
+  <data name="Doc_TemplateMigrated" xml:space="preserve">
+    <value>Shablon bazaga ko'chirildi.</value>
+  </data>
+  <data name="Doc_StdCodeRequired" xml:space="preserve">
+    <value>Standart kodi kiritilishi shart</value>
+  </data>
+  <data name="Doc_ContentEmpty" xml:space="preserve">
+    <value>Hujjat kontenti bo'sh bo'lishi mumkin emas</value>
+  </data>
+  <data name="Doc_ContentInvalid" xml:space="preserve">
+    <value>Hujjat kontenti noto'g'ri formatda</value>
+  </data>
+  <data name="Doc_StdCreated" xml:space="preserve">
+    <value>Standart muvaffaqiyatli yaratildi</value>
+  </data>
+  <data name="Doc_StdUpdated" xml:space="preserve">
+    <value>Standart muvaffaqiyatli yangilandi</value>
+  </data>
+  <data name="Doc_StdDeleted" xml:space="preserve">
+    <value>Standart muvaffaqiyatli o'chirildi</value>
+  </data>
+  <data name="Doc_NotAnImage" xml:space="preserve">
+    <value>Bu fayl rasm emas</value>
+  </data>
+  <data name="Doc_PhDirectorName" xml:space="preserve">
+    <value>Direktor F.I.Sh. (kompaniya sozlamasi)</value>
+  </data>
+  <data name="Doc_PhToday" xml:space="preserve">
+    <value>Bugungi sana (dd.MM.yyyy)</value>
+  </data>
+  <data name="Doc_PhLetterNo" xml:space="preserve">
+    <value>Maktub raqami</value>
+  </data>
+  <data name="Doc_PhLetterDate" xml:space="preserve">
+    <value>Maktub sanasi (dd.MM.yyyy)</value>
+  </data>
+  <data name="Doc_PhCompanyName" xml:space="preserve">
+    <value>Qabul qiluvchi kompaniya</value>
+  </data>
+  <data name="Doc_PhContactName" xml:space="preserve">
+    <value>Qabul qiluvchi shaxs</value>
+  </data>
+  <data name="Doc_PhContactPosition" xml:space="preserve">
+    <value>Qabul qiluvchi lavozimi</value>
+  </data>
+  <data name="Doc_PhRecipientBlock" xml:space="preserve">
+    <value>Kompaniya, lavozim va shaxs — har biri yangi qatorda</value>
+  </data>
+  <data name="Doc_PhGreetingLine" xml:space="preserve">
+    <value>Murojaat (masalan: Hurmatli ...!)</value>
+  </data>
+  <data name="Doc_PhTopic" xml:space="preserve">
+    <value>Mavzu</value>
+  </data>
+  <data name="Doc_PhLetterBody" xml:space="preserve">
+    <value>Maktub matni (formatlash bilan)</value>
+  </data>
+  <data name="Doc_PhItemsTable" xml:space="preserve">
+    <value>Mahsulot va narxlar jadvali</value>
+  </data>
+  <data name="Doc_PhItemsBlock" xml:space="preserve">
+    <value>Mahsulotlar ro'yxati (oddiy matn)</value>
+  </data>
+  <data name="Doc_PhOurRefNo" xml:space="preserve">
+    <value>Bizning havola raqami</value>
+  </data>
+  <data name="Doc_PhTheirRefNo" xml:space="preserve">
+    <value>Ularning havola raqami</value>
+  </data>
+  <data name="Doc_PhChannel" xml:space="preserve">
+    <value>Yuborish usuli</value>
+  </data>
+  <data name="Doc_PhItemName1" xml:space="preserve">
+    <value>1-mahsulot nomi (2, 3, ... ham bor)</value>
+  </data>
+  <data name="Doc_PhItemDim1" xml:space="preserve">
+    <value>1-mahsulot o'lchami</value>
+  </data>
+  <data name="Doc_PhItemPriceExw1" xml:space="preserve">
+    <value>1-mahsulot EXW narxi</value>
+  </data>
+  <data name="Doc_PhItemPriceVatExw1" xml:space="preserve">
+    <value>1-mahsulot QQS bilan EXW narxi</value>
+  </data>
+  <data name="Doc_PhItemPriceCip1" xml:space="preserve">
+    <value>1-mahsulot CIP narxi</value>
+  </data>
+  <data name="Doc_PhItemPriceVatCip1" xml:space="preserve">
+    <value>1-mahsulot QQS bilan CIP narxi</value>
+  </data>
+  <data name="Doc_PhOrderNo" xml:space="preserve">
+    <value>Buyruq raqami</value>
+  </data>
+  <data name="Doc_PhOrderDate" xml:space="preserve">
+    <value>Buyruq sanasi (dd.MM.yyyy)</value>
+  </data>
+  <data name="Doc_PhOrderTopic" xml:space="preserve">
+    <value>Buyruq mavzusi (sarlavha)</value>
+  </data>
+  <data name="Doc_PhOrderType" xml:space="preserve">
+    <value>Buyruq turi</value>
+  </data>
+  <data name="Doc_PhOrgUnitName" xml:space="preserve">
+    <value>Bo'lim</value>
+  </data>
+  <data name="Doc_PhOrderBody" xml:space="preserve">
+    <value>Buyruq matni (formatlash bilan)</value>
+  </data>
+  <data name="Doc_PhOrderDecree1Content1" xml:space="preserve">
+    <value>Matnning 1-bandi (2, 3, ... ham bor; raqamsiz)</value>
+  </data>
+  <data name="Doc_TypeLetter" xml:space="preserve">
+    <value>Rasmiy maktub</value>
+  </data>
+  <data name="Doc_TypeOrder" xml:space="preserve">
+    <value>Korxona buyrug'i</value>
+  </data>
+  <data name="Doc_TypeStandard" xml:space="preserve">
+    <value>Korxona standarti</value>
+  </data>
+  <data name="Doc_TransitionNotAllowed" xml:space="preserve">
+    <value>Bu holatdan tanlangan holatga o'tkazib bo'lmaydi</value>
+  </data>
+  <data name="Doc_InvalidStatusCode" xml:space="preserve">
+    <value>Noto'g'ri holat kodi</value>
+  </data>
+  <data name="Doc_OrderNo" xml:space="preserve">
+    <value>Buyruq raqami</value>
+  </data>
+  <data name="Doc_OrderDate" xml:space="preserve">
+    <value>Buyruq sanasi</value>
+  </data>
+  <data name="Doc_DateRequired" xml:space="preserve">
+    <value>Sana kiritilishi shart</value>
+  </data>
+  <data name="Doc_OrderType" xml:space="preserve">
+    <value>Buyruq turi</value>
+  </data>
+  <data name="Doc_OrgUnit" xml:space="preserve">
+    <value>Tashkilot bo'limi</value>
+  </data>
+  <data name="Doc_Title" xml:space="preserve">
+    <value>Sarlavha</value>
+  </data>
+  <data name="Doc_TitleRequired" xml:space="preserve">
+    <value>Sarlavha kiritilishi shart</value>
+  </data>
+  <data name="Doc_Text" xml:space="preserve">
+    <value>Matn</value>
+  </data>
+  <data name="Doc_ResponsibleEmployees" xml:space="preserve">
+    <value>Javobgar xodimlar</value>
+  </data>
+  <data name="Doc_Direction" xml:space="preserve">
+    <value>Yo'nalish</value>
+  </data>
+  <data name="Doc_LetterNo" xml:space="preserve">
+    <value>Maktub raqami</value>
+  </data>
+  <data name="Doc_LetterDate" xml:space="preserve">
+    <value>Maktub sanasi</value>
+  </data>
+  <data name="Doc_ExternalCompany" xml:space="preserve">
+    <value>Tashqi kompaniya nomi</value>
+  </data>
+  <data name="Doc_ExternalContact" xml:space="preserve">
+    <value>Tashqi kontakt shaxs</value>
+  </data>
+  <data name="Doc_ExternalPosition" xml:space="preserve">
+    <value>Tashqi kompaniya rahbari lavozimi</value>
+  </data>
+  <data name="Doc_OurRefNo" xml:space="preserve">
+    <value>Bizning havola raqami</value>
+  </data>
+  <data name="Doc_TheirRefNo" xml:space="preserve">
+    <value>Ularning havola raqami</value>
+  </data>
+  <data name="Doc_Channel" xml:space="preserve">
+    <value>Kanal</value>
+  </data>
+  <data name="Doc_Topic" xml:space="preserve">
+    <value>Mavzu</value>
+  </data>
+  <data name="Doc_TopicRequired" xml:space="preserve">
+    <value>Mavzu kiritilishi shart</value>
+  </data>
+  <data name="Doc_Greeting" xml:space="preserve">
+    <value>Salomlashish</value>
+  </data>
+  <data name="Doc_MainText" xml:space="preserve">
+    <value>Asosiy matn</value>
+  </data>
+  <data name="Doc_ProductName" xml:space="preserve">
+    <value>Mahsulot nomi</value>
+  </data>
+  <data name="Doc_Dimension" xml:space="preserve">
+    <value>O'lchami</value>
+  </data>
+  <data name="Doc_PriceExw" xml:space="preserve">
+    <value>Narx EXW</value>
+  </data>
+  <data name="Doc_PriceVatExw" xml:space="preserve">
+    <value>Narx QQS bilan EXW</value>
+  </data>
+  <data name="Doc_PriceCip" xml:space="preserve">
+    <value>Narx CIP</value>
+  </data>
+  <data name="Doc_PriceVatCip" xml:space="preserve">
+    <value>Narx QQS bilan CIP</value>
+  </data>
+  <data name="Doc_CompanyOrPersonRequired" xml:space="preserve">
+    <value>Kompaniya/shaxs nomi kiritilishi shart</value>
+  </data>
+  <data name="Doc_CompanyOrPerson" xml:space="preserve">
+    <value>Kompaniya/Shaxs nomi</value>
+  </data>
+  <data name="Doc_IncomingNoRequired" xml:space="preserve">
+    <value>Xat raqami kiritilishi shart</value>
+  </data>
+  <data name="Doc_IncomingNo" xml:space="preserve">
+    <value>Xat raqami</value>
+  </data>
+  <data name="Doc_IncomingDate" xml:space="preserve">
+    <value>Xat sanasi</value>
+  </data>
+  <data name="Doc_IncomingAttachment" xml:space="preserve">
+    <value>Xat ilovasi (PDF)</value>
+  </data>
+  <data name="Doc_NewOrder" xml:space="preserve">
+    <value>Yangi Buyruq</value>
+  </data>
+  <data name="Doc_OrderDetails" xml:space="preserve">
+    <value>Buyruq Tafsilotlari</value>
+  </data>
+  <data name="Doc_DetailsCrumb" xml:space="preserve">
+    <value>Tafsilotlar</value>
+  </data>
+  <data name="Doc_Template" xml:space="preserve">
+    <value>Shablon</value>
+  </data>
+  <data name="Doc_CreateWordDoc" xml:space="preserve">
+    <value>Word hujjat yaratish</value>
+  </data>
+  <data name="Doc_UploadTemplateFirst" xml:space="preserve">
+    <value>Avval shablon yuklang</value>
+  </data>
+  <data name="Doc_Templates" xml:space="preserve">
+    <value>Shablonlar</value>
+  </data>
+  <data name="Doc_Department" xml:space="preserve">
+    <value>Bo'lim</value>
+  </data>
+  <data name="Doc_SendForApproval" xml:space="preserve">
+    <value>Tasdiqlash uchun yuborish</value>
+  </data>
+  <data name="Doc_GeneratedDocs" xml:space="preserve">
+    <value>Yaratilgan hujjatlar</value>
+  </data>
+  <data name="Doc_Version" xml:space="preserve">
+    <value>Versiya</value>
+  </data>
+  <data name="Doc_FileName" xml:space="preserve">
+    <value>Fayl nomi</value>
+  </data>
+  <data name="Doc_NoFile" xml:space="preserve">
+    <value>Fayl yo'q</value>
+  </data>
+  <data name="Doc_EditOrder" xml:space="preserve">
+    <value>Buyruqni Tahrirlash</value>
+  </data>
+  <data name="Doc_WordTemplates" xml:space="preserve">
+    <value>Word shablonlar</value>
+  </data>
+  <data name="Doc_Year" xml:space="preserve">
+    <value>Yil</value>
+  </data>
+  <data name="Doc_SearchOrderPh" xml:space="preserve">
+    <value>Raqam, sarlavha...</value>
+  </data>
+  <data name="Doc_ConfirmGenerate" xml:space="preserve">
+    <value>Hujjat yaratilsinmi?</value>
+  </data>
+  <data name="Doc_GenerateDoc" xml:space="preserve">
+    <value>Hujjat yaratish</value>
+  </data>
+  <data name="Doc_OrdersFile" xml:space="preserve">
+    <value>Buyruqlar</value>
+  </data>
+  <data name="Doc_OrdersList" xml:space="preserve">
+    <value>Buyruqlar ro'yxati</value>
+  </data>
+  <data name="Doc_SuggestText" xml:space="preserve">
+    <value>Matn taklif qilish</value>
+  </data>
+  <data name="Doc_OrderTextPh" xml:space="preserve">
+    <value>Buyruq matnini kiriting...</value>
+  </data>
+  <data name="Doc_Waiting" xml:space="preserve">
+    <value>Kutilmoqda...</value>
+  </data>
+  <data name="Doc_ConfirmSendApproval" xml:space="preserve">
+    <value>Tasdiqlash uchun yuborilsinmi?</value>
+  </data>
+  <data name="Doc_ConfirmApprove" xml:space="preserve">
+    <value>Tasdiqlansinmi?</value>
+  </data>
+  <data name="Doc_ConfirmReject" xml:space="preserve">
+    <value>Rad etilsinmi?</value>
+  </data>
+  <data name="Doc_Company" xml:space="preserve">
+    <value>Kompaniya</value>
+  </data>
+  <data name="Doc_ContactPerson" xml:space="preserve">
+    <value>Kontakt shaxs</value>
+  </data>
+  <data name="Doc_HeadPosition" xml:space="preserve">
+    <value>Rahbar lavozimi</value>
+  </data>
+  <data name="Doc_OurRef" xml:space="preserve">
+    <value>Bizning havola</value>
+  </data>
+  <data name="Doc_TheirRef" xml:space="preserve">
+    <value>Ularning havola</value>
+  </data>
+  <data name="Doc_ProductsAndPrices" xml:space="preserve">
+    <value>Mahsulot va narxlar</value>
+  </data>
+  <data name="Doc_ProductAndPrice" xml:space="preserve">
+    <value>Mahsulot va narx</value>
+  </data>
+  <data name="Doc_EditLetter" xml:space="preserve">
+    <value>Maktubni Tahrirlash</value>
+  </data>
+  <data name="Doc_Contact" xml:space="preserve">
+    <value>Kontakt</value>
+  </data>
+  <data name="Doc_LettersList" xml:space="preserve">
+    <value>Xatlar ro'yxati</value>
+  </data>
+  <data name="Doc_RegisterIncoming" xml:space="preserve">
+    <value>Kiruvchi xatni ro'yxatga olish</value>
+  </data>
+  <data name="Doc_CompanyOrPersonPh" xml:space="preserve">
+    <value>Kompaniya yoki shaxs nomi</value>
+  </data>
+  <data name="Doc_SelectPdf" xml:space="preserve">
+    <value>PDF fayl tanlang</value>
+  </data>
+  <data name="Doc_PdfOnlyHint" xml:space="preserve">
+    <value>Faqat PDF fayllar, maksimal hajm: 10 MB</value>
+  </data>
+  <data name="Doc_LetterTextPh" xml:space="preserve">
+    <value>Maktub matnini kiriting...</value>
+  </data>
+  <data name="Doc_StdAdd" xml:space="preserve">
+    <value>Yangi standart qo'shish</value>
+  </data>
+  <data name="Doc_StdDelete" xml:space="preserve">
+    <value>Standartni o'chirish</value>
+  </data>
+  <data name="Doc_StdWillBeDeleted" xml:space="preserve">
+    <value>Quyidagi standart o'chiriladi:</value>
+  </data>
+  <data name="Doc_StdCodeColon" xml:space="preserve">
+    <value>Standart kodi:</value>
+  </data>
+  <data name="Doc_FieldColon" xml:space="preserve">
+    <value>Soha:</value>
+  </data>
+  <data name="Doc_VersionColon" xml:space="preserve">
+    <value>Versiya:</value>
+  </data>
+  <data name="Doc_StdInfo" xml:space="preserve">
+    <value>Standart ma'lumotlari</value>
+  </data>
+  <data name="Doc_UpdatedDateColon" xml:space="preserve">
+    <value>Yangilangan sana:</value>
+  </data>
+  <data name="Doc_VersionHistory" xml:space="preserve">
+    <value>Versiya tarixi</value>
+  </data>
+  <data name="Doc_DocImages" xml:space="preserve">
+    <value>Hujjatdagi rasmlar</value>
+  </data>
+  <data name="Doc_NoImages" xml:space="preserve">
+    <value>Hujjatda rasmlar topilmadi</value>
+  </data>
+  <data name="Doc_Image" xml:space="preserve">
+    <value>Rasm</value>
+  </data>
+  <data name="Doc_StdEdit" xml:space="preserve">
+    <value>Standartni tahrirlash</value>
+  </data>
+  <data name="Doc_StdCode" xml:space="preserve">
+    <value>Standart kodi</value>
+  </data>
+  <data name="Doc_Field" xml:space="preserve">
+    <value>Soha</value>
+  </data>
+  <data name="Doc_StdList" xml:space="preserve">
+    <value>Korxona standartlari ro'yxati</value>
+  </data>
+  <data name="Doc_StdEditData" xml:space="preserve">
+    <value>Standart ma'lumotlarini tahrirlash</value>
+  </data>
+  <data name="Doc_StdNewData" xml:space="preserve">
+    <value>Yangi standart ma'lumotlari</value>
+  </data>
+  <data name="Doc_StdCodeUnique" xml:space="preserve">
+    <value>Standart kodi takrorlanmasligi kerak</value>
+  </data>
+  <data name="Doc_CurrentVersion" xml:space="preserve">
+    <value>Joriy versiya</value>
+  </data>
+  <data name="Doc_NewVersion" xml:space="preserve">
+    <value>Yangi versiya</value>
+  </data>
+  <data name="Doc_DocContent" xml:space="preserve">
+    <value>Hujjat kontenti</value>
+  </data>
+  <data name="Doc_LoadCurrentVersion" xml:space="preserve">
+    <value>Joriy versiyani yuklash</value>
+  </data>
+  <data name="Doc_LoadTemplateToEditor" xml:space="preserve">
+    <value>Shablonni muharrirga yuklash</value>
+  </data>
+  <data name="Doc_UploadWord" xml:space="preserve">
+    <value>Word fayl yuklash</value>
+  </data>
+  <data name="Doc_SaveNewVersion" xml:space="preserve">
+    <value>Saqlash (Yangi versiya yaratish)</value>
+  </data>
+  <data name="Doc_TemplateNotFoundEmpty" xml:space="preserve">
+    <value>Shablon topilmadi. Bo'sh hujjat bilan davom eting.</value>
+  </data>
+  <data name="Doc_DocTemplates" xml:space="preserve">
+    <value>Hujjat shablonlari</value>
+  </data>
+  <data name="Doc_ConfirmMigrateTemplate" xml:space="preserve">
+    <value>Papkadagi eski shablon bazaga ko'chirilsinmi?</value>
+  </data>
+  <data name="Doc_File" xml:space="preserve">
+    <value>Fayl</value>
+  </data>
+  <data name="Doc_Uploaded" xml:space="preserve">
+    <value>Yuklangan</value>
+  </data>
+  <data name="Doc_TemplatesActiveHint" xml:space="preserve">
+    <value>Hujjat yaratishda faol shablonlardan biri tanlanadi. Eski shablonni o'chirmasdan arxivlang — u bilan yaratilgan hujjatlar tarixi saqlanadi.</value>
+  </data>
+  <data name="Doc_TemplateFields" xml:space="preserve">
+    <value>Shablon maydonlari</value>
+  </data>
+  <data name="Doc_FieldCol" xml:space="preserve">
+    <value>Maydon</value>
+  </data>
+  <data name="Doc_MeaningCol" xml:space="preserve">
+    <value>Ma'nosi</value>
+  </data>
+  <data name="Doc_UploadNewTemplate" xml:space="preserve">
+    <value>Yangi shablon yuklash</value>
+  </data>
+  <data name="Doc_WordFileDocx" xml:space="preserve">
+    <value>Word fayl (.docx)</value>
+  </data>
+  <data name="Doc_ArchiveOtherActive" xml:space="preserve">
+    <value>Boshqa faol shablonlarni arxivlash</value>
+  </data>
+  <data name="Doc_UploadCheckHint" xml:space="preserve">
+    <value>Fayl yuklanganda tekshiriladi: Word formati va tanilgan/tanilmagan maydonlar ko'rsatiladi.</value>
+  </data>
+  <data name="Doc_RichText" xml:space="preserve">
+    <value>Formatlangan matn</value>
+  </data>
+  <data name="Doc_Table" xml:space="preserve">
+    <value>Jadval</value>
+  </data>
+  <data name="Doc_ConfirmApproveDirect" xml:space="preserve">
+    <value>To'g'ridan-to'g'ri tasdiqlansinmi?</value>
+  </data>
+  <data name="Doc_UnknownError" xml:space="preserve">
+    <value>Noma'lum xatolik</value>
+  </data>
+  <data name="Doc_OrderNoDocument" xml:space="preserve">
+    <value>Bu buyruq uchun hujjat yaratilmagan.</value>
+  </data>
+  <data name="Doc_LetterNoDocument" xml:space="preserve">
+    <value>Bu maktub uchun hujjat yaratilmagan.</value>
+  </data>
+  <data name="Doc_NewLetter" xml:space="preserve">
+    <value>Yangi Maktub</value>
+  </data>
+  <data name="Doc_AddProduct" xml:space="preserve">
+    <value>Mahsulot qo'shish</value>
+  </data>
+  <data name="Doc_LettersFile" xml:space="preserve">
+    <value>Xatlar</value>
+  </data>
+  <data name="Doc_StdDeleteWarning" xml:space="preserve">
+    <value>Siz standartni o'chirmoqchisiz. Bu amalni qaytarib bo'lmaydi.</value>
+  </data>
+  <data name="Doc_ConfirmDeleteIrreversible" xml:space="preserve">
+    <value>Rostdan ham o'chirmoqchimisiz? Bu amalni qaytarib bo'lmaydi.</value>
+  </data>
+  <data name="Doc_DownloadWordDocx" xml:space="preserve">
+    <value>Word hujjatini yuklash (.docx)</value>
+  </data>
+  <data name="Doc_ImagesCount" xml:space="preserve">
+    <value>{0} ta rasm</value>
+  </data>
+  <data name="Doc_NewStd" xml:space="preserve">
+    <value>Yangi standart</value>
+  </data>
+  <data name="Doc_AdditionalInfoPh" xml:space="preserve">
+    <value>Qo'shimcha ma'lumotlar...</value>
+  </data>
+  <data name="Doc_EditorHint" xml:space="preserve">
+    <value>Quyida Word hujjatini tahrirlashingiz mumkin. Matn orasiga rasmlar qo'shishingiz mumkin.</value>
+  </data>
+  <data name="Doc_CurrentVersionMissing" xml:space="preserve">
+    <value>Joriy versiya fayli topilmadi</value>
+  </data>
+  <data name="Doc_StdFile" xml:space="preserve">
+    <value>Korxona_Standartlari</value>
+  </data>
+  <data name="Doc_TypeTemplates" xml:space="preserve">
+    <value>{0} shablonlari</value>
+  </data>
+  <data name="Doc_NoTemplateYet1" xml:space="preserve">
+    <value>Hali shablon yo'q. Avval</value>
+  </data>
+  <data name="Doc_NoTemplateYetLink" xml:space="preserve">
+    <value>namunaviy shablonni</value>
+  </data>
+  <data name="Doc_NoTemplateYet2" xml:space="preserve">
+    <value>yuklab oling, Word'da korxona blankasi bilan bezang va o'ngdagi forma orqali yuklang.</value>
+  </data>
+  <data name="Doc_MigrateLegacyTemplate" xml:space="preserve">
+    <value>Papkadagi eski shablonni bazaga ko'chirish</value>
+  </data>
+  <data name="Doc_ConfirmDeleteTemplate" xml:space="preserve">
+    <value>Shablon o'chirilsinmi?</value>
+  </data>
+  <data name="Doc_FieldsHelp1" xml:space="preserve">
+    <value>Word shablonda kerakli joyga maydon nomini &lt;b&gt;ikki juft jingalak qavs&lt;/b&gt; ichida yozing, masalan</value>
+  </data>
+  <data name="Doc_FieldsHelp2" xml:space="preserve">
+    <value>Maydon qaysi shrift va formatda yozilsa, qiymat ham shunday chiqadi.</value>
+  </data>
+  <data name="Doc_FieldsHelp3" xml:space="preserve">
+    <value>&lt;b&gt;Matn&lt;/b&gt; va &lt;b&gt;jadval&lt;/b&gt; maydonlarini alohida qatorga (paragrafga) yozing — shunda formatlangan matn/jadval qo'yiladi.</value>
+  </data>
+  <data name="Doc_DownloadSample" xml:space="preserve">
+    <value>Namunaviy shablonni yuklab olish</value>
+  </data>
+  <data name="Doc_SampleHint" xml:space="preserve">
+    <value>Tayyor tuzilma va barcha maydonlar bilan — Word'da o'z blankangizga moslang.</value>
+  </data>
+  <data name="Js_Doc_ContentPh" xml:space="preserve">
+    <value>Hujjat kontentini kiriting...</value>
+  </data>
+  <data name="Js_Doc_Loaded" xml:space="preserve">
+    <value>Hujjat muvaffaqiyatli yuklandi!</value>
+  </data>
+  <data name="Js_Doc_FileLoadError" xml:space="preserve">
+    <value>Fayl yuklashda xatolik yuz berdi</value>
+  </data>
+  <data name="Js_Doc_FileNotFound" xml:space="preserve">
+    <value>Fayl topilmadi</value>
+  </data>
+  <data name="Js_Doc_WordLoadError" xml:space="preserve">
+    <value>Word fayl yuklashda xatolik yuz berdi</value>
+  </data>
+  <data name="Js_Doc_ContractsLoadError" xml:space="preserve">
+    <value>Shartnomalarni yuklashda xatolik yuz berdi</value>
+  </data>
+  <data name="Doc_RepAbcXyz" xml:space="preserve">
+    <value>ABC / XYZ segmentatsiya</value>
+  </data>
+  <data name="Doc_RepSrmReports" xml:space="preserve">
+    <value>SRM Hisobotlar</value>
+  </data>
+  <data name="Doc_RepCoverageReport" xml:space="preserve">
+    <value>Coverage report</value>
+  </data>
+  <data name="Doc_RepSafetyStockTitle" xml:space="preserve">
+    <value>Zaxira zaxirasi va qayta buyurtma nuqtasi</value>
+  </data>
+  <data name="Doc_RepWarehouseColon" xml:space="preserve">
+    <value>Ombor:</value>
+  </data>
+  <data name="Doc_RepFromColon" xml:space="preserve">
+    <value>Dan:</value>
+  </data>
+  <data name="Doc_RepToColon" xml:space="preserve">
+    <value>Gacha:</value>
+  </data>
+  <data name="Doc_RepCalculate" xml:space="preserve">
+    <value>Hisoblash</value>
+  </data>
+  <data name="Doc_RepDemandTotal" xml:space="preserve">
+    <value>Talab (jami)</value>
+  </data>
+  <data name="Doc_RepSharePct" xml:space="preserve">
+    <value>Ulush, %</value>
+  </data>
+  <data name="Doc_RepCumulativePct" xml:space="preserve">
+    <value>Kumulyativ, %</value>
+  </data>
+  <data name="Doc_RepAbcXyzNote" xml:space="preserve">
+    <value>ABC / XYZ segmentatsiya izohi</value>
+  </data>
+  <data name="Doc_RepAbcHeader" xml:space="preserve">
+    <value>ABC klassifikatsiya (qiymat bo'yicha, oddiy so'zlar bilan):</value>
+  </data>
+  <data name="Doc_RepAClass" xml:space="preserve">
+    <value>A klass (taxminan 80% qiymat):</value>
+  </data>
+  <data name="Doc_RepAText" xml:space="preserve">
+    <value>eng muhim, asosiy pul aylanadigan pozitsiyalar. Soni kam, lekin summasi juda katta. Ularni eng sinchkov nazorat qilish kerak.</value>
+  </data>
+  <data name="Doc_RepBClass" xml:space="preserve">
+    <value>B klass (keyingi taxminan 15% qiymat):</value>
+  </data>
+  <data name="Doc_RepBText" xml:space="preserve">
+    <value>o'rtacha muhim pozitsiyalar. Ular bo'yicha boshqaruv ham muhim, lekin A klassdek qattiq emas.</value>
+  </data>
+  <data name="Doc_RepCClass" xml:space="preserve">
+    <value>C klass (qolgan kichik qiymat qismi):</value>
+  </data>
+  <data name="Doc_RepCText" xml:space="preserve">
+    <value>juda ko'p turdagi, lekin umumiy qiymatda ulushi kichik bo'lgan oddiy pozitsiyalar. Ular uchun soddaroq boshqaruv yetarli bo'ladi.</value>
+  </data>
+  <data name="Doc_RepXyzHeader" xml:space="preserve">
+    <value>XYZ klassifikatsiya (talabning barqarorligi bo'yicha):</value>
+  </data>
+  <data name="Doc_RepXClass" xml:space="preserve">
+    <value>X klass:</value>
+  </data>
+  <data name="Doc_RepXText" xml:space="preserve">
+    <value>talab deyarli bir xil, o'zgarishi juda past. Bunday pozitsiyalarni prognoz qilish va rejalashtirish eng oson.</value>
+  </data>
+  <data name="Doc_RepYClass" xml:space="preserve">
+    <value>Y klass:</value>
+  </data>
+  <data name="Doc_RepYText" xml:space="preserve">
+    <value>talab o'rtacha o'zgaradi, mavsumiylik yoki trend bor. Prognoz o'rtacha aniqlikda bo'ladi.</value>
+  </data>
+  <data name="Doc_RepZClass" xml:space="preserve">
+    <value>Z klass:</value>
+  </data>
+  <data name="Doc_RepZText" xml:space="preserve">
+    <value>talab juda notekis, ba'zan bor, ba'zan yo'q (sporadik). Prognoz qilish qiyin, shuning uchun safety stock siyosati ehtiyotkor va konservativ bo'lishi kerak.</value>
+  </data>
+  <data name="Doc_RepCategoryColon" xml:space="preserve">
+    <value>Kategoriya:</value>
+  </data>
+  <data name="Doc_RepProductTypeColon" xml:space="preserve">
+    <value>Mahsulot turi:</value>
+  </data>
+  <data name="Doc_RepViewColon" xml:space="preserve">
+    <value>Ko'rinish:</value>
+  </data>
+  <data name="Doc_RepDaily" xml:space="preserve">
+    <value>Kunlik</value>
+  </data>
+  <data name="Doc_RepWeekly" xml:space="preserve">
+    <value>Haftalik</value>
+  </data>
+  <data name="Doc_RepMonthly" xml:space="preserve">
+    <value>Oylik</value>
+  </data>
+  <data name="Doc_RepStock" xml:space="preserve">
+    <value>Qoldiq</value>
+  </data>
+  <data name="Doc_RepPlanTotal" xml:space="preserve">
+    <value>Reja (jami)</value>
+  </data>
+  <data name="Doc_RepFactTotal" xml:space="preserve">
+    <value>Fakt (jami)</value>
+  </data>
+  <data name="Doc_RepServiceLevel" xml:space="preserve">
+    <value>Xizmat darajasi, %</value>
+  </data>
+  <data name="Doc_RepLeadTime" xml:space="preserve">
+    <value>Yetkazish muddati, kun</value>
+  </data>
+  <data name="Doc_RepProduct" xml:space="preserve">
+    <value>Mahsulot</value>
+  </data>
+  <data name="Doc_RepAvgDailyDemand" xml:space="preserve">
+    <value>O'rtacha kunlik talab</value>
+  </data>
+  <data name="Doc_RepStdDev" xml:space="preserve">
+    <value>Og'ilish (kunlik)</value>
+  </data>
+  <data name="Doc_RepSafetyStock" xml:space="preserve">
+    <value>Zaxira zaxirasi</value>
+  </data>
+  <data name="Doc_RepStockDays" xml:space="preserve">
+    <value>Zaxira (kun)</value>
+  </data>
+  <data name="Doc_RepReorderPoint" xml:space="preserve">
+    <value>Qayta buyurtma nuqtasi</value>
+  </data>
+  <data name="Core_PmParametersPh" xml:space="preserve">
+    <value>Parametrlar</value>
+  </data>
+  <data name="Task_PriorityNewAdd" xml:space="preserve">
+    <value>Yangi Prioritet qo'shish</value>
+  </data>
+  <data name="Task_ProjectNewAdd" xml:space="preserve">
+    <value>Yangi Loyiha qo'shish</value>
+  </data>
+  <data name="Task_StatusNewAdd" xml:space="preserve">
+    <value>Yangi Status qo'shish</value>
+  </data>
+  <data name="Task_TasksSlash" xml:space="preserve">
+    <value>Tasks / Vazifalar</value>
+  </data>
 </root>

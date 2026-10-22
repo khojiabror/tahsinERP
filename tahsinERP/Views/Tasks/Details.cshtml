@@ -1,7 +1,7 @@
 @using tahsinERP.Services.Tasks
 @model tahsinERP.ViewModels.TaskViewModel
 @{
-    ViewBag.Title = "Vazifa ma'lumotlari";
+    ViewBag.Title = L.T("Task_Info");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 @if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
@@ -21,7 +21,7 @@
                                         <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                     </li>
                                     <li class="breadcrumb-item">
-                                        <a href="~/Tasks">Vazifalar</a>
+                                        <a href="~/Tasks">@L.T("Menu_Tasks")</a>
                                     </li>
                                     <li class="breadcrumb-item active">
                                         @Model.KeyCode - @Model.Title
@@ -41,42 +41,42 @@
                                     <div class="card-body pb-0 mx-25">
                                         <div class="row invoice-info">
                                             <div class="col-lg-12 col-md-12 mt-25">
-                                                <h4 class="text-primary">Vazifa Ma'lumotlari</h4>
+                                                <h4 class="text-primary">@L.T("Task_InfoHeader")</h4>
                                                 <hr />
                                                 <div class="row">
                                                     <div class="col-md-6">
-                                                        <p><b>Kod:</b> @(Model.KeyCode ?? "-")</p>
-                                                        <p><b>Sarlavha:</b> @(Model.Title ?? "-")</p>
-                                                        <p><b>Tavsif:</b></p>
+                                                        <p><b>@L.T("Task_CodeColon")</b> @(Model.KeyCode ?? "-")</p>
+                                                        <p><b>@L.T("Task_TitleColon")</b> @(Model.Title ?? "-")</p>
+                                                        <p><b>@L.T("Core_DescriptionColon")</b></p>
                                                         <p>@(Model.Description ?? "-")</p>
                                                     </div>
                                                     <div class="col-md-6">
-                                                        <p><b>Status:</b> 
+                                                        <p><b>@L.T("Task_StatusColon")</b> 
                                                             @Html.TaskStatusBadge(Model.StatusID, "-")
                                                         </p>
-                                                        <p><b>Prioritet:</b> 
+                                                        <p><b>@L.T("Task_PriorityColon")</b> 
                                                             @Html.TaskPriorityBadge(Model.PriorityID, "-")
                                                         </p>
-                                                        <p><b>Mas'ul:</b> @(Model.AssigneeFullName ?? "Tayinlanmagan")</p>
-                                                        <p><b>Hisobot beruvchi:</b> @(Model.ReporterFullName ?? "-")</p>
-                                                        <p><b>Loyiha:</b> 
+                                                        <p><b>@L.T("Task_AssigneeColon")</b> @(Model.AssigneeFullName ?? L.T("Task_NotAssigned"))</p>
+                                                        <p><b>@L.T("Task_ReporterColon")</b> @(Model.ReporterFullName ?? "-")</p>
+                                                        <p><b>@L.T("Task_ProjectColon")</b> 
                                                             @if (Model.ProjectID.HasValue)
                                                             {
                                                                 <a href="@Url.Action("Details", "TaskProject", new { id = Model.ProjectID.Value })" class="text-primary font-weight-bold">
-                                                                    @(Model.ProjectName ?? "Loyiha yo'q")
+                                                                    @(Model.ProjectName ?? L.T("Task_NoProject"))
                                                                 </a>
                                                             }
                                                             else
                                                             {
-                                                                <span>Loyiha yo'q</span>
+                                                                <span>@L.T("Task_NoProject")</span>
                                                             }
                                                         </p>
-                                                        <p><b>Yaratilgan:</b> @Model.CreatedDT.ToString("yyyy-MM-dd HH:mm")</p>
+                                                        <p><b>@L.T("Task_CreatedColon")</b> @Model.CreatedDT.ToString("yyyy-MM-dd HH:mm")</p>
                                                         @if (Model.UpdatedDT.HasValue)
                                                         {
-                                                            <p><b>Yangilangan:</b> @Model.UpdatedDT.Value.ToString("yyyy-MM-dd HH:mm")</p>
+                                                            <p><b>@L.T("Task_UpdatedColon")</b> @Model.UpdatedDT.Value.ToString("yyyy-MM-dd HH:mm")</p>
                                                         }
-                                                        <p><b>Muddati:</b> 
+                                                        <p><b>@L.T("Task_DueDateColon")</b> 
                                                             @if (Model.DueDate.HasValue)
                                                             {
                                                                 <span class="@(tahsinERP.Services.Tasks.TaskBadges.IsOverdue(Model.DueDate, Model.StatusID) ? "text-danger font-weight-bold" : "")">
@@ -88,14 +88,14 @@
                                                                 <span>-</span>
                                                             }
                                                         </p>
-                                                        <p><b>Bajaruvchi izohi:</b></p>
+                                                        <p><b>@L.T("Task_AssigneeComment")</b></p>
                                                         @if (!string.IsNullOrWhiteSpace(Model.UserComment))
                                                         {
                                                             <div class="border rounded p-2 bg-light" style="white-space: pre-wrap;">@Model.UserComment</div>
                                                         }
                                                         else
                                                         {
-                                                            <p class="text-muted font-italic">Izoh yo'q</p>
+                                                            <p class="text-muted font-italic">@L.T("Task_NoComment")</p>
                                                         }
                                                     </div>
                                                 </div>
@@ -104,16 +104,16 @@
                                                 <div class="row mt-3">
                                                     <div class="col-12">
                                                         <a href="@Url.Action("ChangeStatus", "TaskChangeStatus", new { id = Model.ID })" class="btn btn-warning">
-                                                            <i class="bx bx-sync"></i> Status o'zgartirish
+                                                            <i class="bx bx-sync"></i> @L.T("Task_ChangeStatus")
                                                         </a>
                                                         @if (changePermit)
                                                         {
                                                             <a href="@Url.Action("Edit", "Tasks", new { id = Model.ID })" class="btn btn-primary">
-                                                                <i class="bx bx-edit-alt"></i> Tahrirlash
+                                                                <i class="bx bx-edit-alt"></i> @L.T("Edit")
                                                             </a>
                                                         }
                                                         <a href="@Url.Action("Index", "Tasks")" class="btn btn-secondary">
-                                                            <i class="bx bx-arrow-back"></i> Orqaga
+                                                            <i class="bx bx-arrow-back"></i> @L.T("Back")
                                                         </a>
                                                     </div>
                                                 </div>

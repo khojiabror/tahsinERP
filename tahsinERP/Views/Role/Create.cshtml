@@ -1,6 +1,6 @@
 @model tahsinERP.Models.ROLE
 @{
-    ViewBag.Title = "Yangi rol qo'shish";
+    ViewBag.Title = L.T("Core_RoleAddNew");
     Layout = "~/Views/Shared/_AdminPanelLayout.cshtml";
 }
 
@@ -16,8 +16,8 @@
                             <div class="breadcrumb-wrapper col-12">
                                 <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                     <li class="breadcrumb-item"><a href="~/AdminPanel"><i class="bx bx-home-alt"></i></a></li>
-                                    <li class="breadcrumb-item"><a href="~/Role">Rollar</a></li>
-                                    <li class="breadcrumb-item active">Yangi rol</li>
+                                    <li class="breadcrumb-item"><a href="~/Role">@L.T("Adm_Roles")</a></li>
+                                    <li class="breadcrumb-item active">@L.T("Core_RoleNew")</li>
                                 </ol>
                             </div>
                         </div>
@@ -30,7 +30,7 @@
                     <div class="col-md-8 col-12">
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title"><i class="bx bx-plus-circle mr-1"></i>Yangi rol ma'lumotlari</h4>
+                                <h4 class="card-title"><i class="bx bx-plus-circle mr-1"></i>@L.T("Core_RoleNewData")</h4>
                             </div>
                             <div class="card-content">
                                 <div class="card-body">
@@ -40,38 +40,38 @@
                                         @Html.ValidationSummary(true, "", new { @class = "text-danger" })
 
                                         <div class="form-group">
-                                            <label for="RName">Rol nomi <span class="text-danger">*</span></label>
+                                            <label for="RName">@L.T("Core_RoleName") <span class="text-danger">*</span></label>
                                             @Html.TextBoxFor(model => model.RName, new { 
                                                 @class = "form-control", 
-                                                @placeholder = "Masalan: Manager, Admin, User",
+                                                @placeholder = L.T("Core_RoleNamePlaceholder"),
                                                 @required = "required",
                                                 @autofocus = "autofocus"
                                             })
                                             @Html.ValidationMessageFor(model => model.RName, "", new { @class = "text-danger" })
-                                            <small class="form-text text-muted">Rol nomi takrorlanmasligi kerak</small>
+                                            <small class="form-text text-muted">@L.T("Core_RoleNameUnique")</small>
                                         </div>
 
                                         <div class="form-group">
-                                            <label for="Description">Tavsif</label>
+                                            <label for="Description">@L.T("Description")</label>
                                             @Html.TextAreaFor(model => model.Description, new { 
                                                 @class = "form-control", 
                                                 @rows = "4",
-                                                @placeholder = "Ushbu roldagi xodim nima ish qilishini yozing..."
+                                                @placeholder = L.T("Core_RoleDescPlaceholder")
                                             })
                                             @Html.ValidationMessageFor(model => model.Description, "", new { @class = "text-danger" })
                                         </div>
 
                                         <div class="alert alert-info">
                                             <i class="bx bx-info-circle"></i>
-                                            <strong>Eslatma:</strong> Yangi rol yaratilganda, barcha modullar uchun default huquqlar (ViewPermit = true, ChangePermit = false) avtomatik yaratiladi. Keyinchalik huquqlarni tahrirlash sahifasida o'zgartirishingiz mumkin.
+                                            <strong>@L.T("Core_NoteLabel")</strong> @L.T("Core_RoleCreateNote")
                                         </div>
 
                                         <div class="form-group">
                                             <button type="submit" class="btn btn-primary">
-                                                <i class="bx bx-save"></i> Saqlash
+                                                <i class="bx bx-save"></i> @L.T("Save")
                                             </button>
                                             <a href="@Url.Action("Index", "Role")" class="btn btn-outline-secondary">
-                                                <i class="bx bx-x"></i> Bekor qilish
+                                                <i class="bx bx-x"></i> @L.T("Cancel")
                                             </a>
                                         </div>
                                     }

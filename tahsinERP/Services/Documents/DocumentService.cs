@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using tahsinERP.Models;
 using tahsinERP.Services.Common;
+using tahsinERP.I18n;
 
 namespace tahsinERP.Services.Documents
 {
@@ -57,12 +58,12 @@ namespace tahsinERP.Services.Documents
             if (current == null || !Transitions.TryGetValue(current, out allowed) ||
                 !allowed.Contains(statusCode, StringComparer.OrdinalIgnoreCase))
             {
-                return new StatusChangeResult { Error = "Bu holatdan tanlangan holatga o'tkazib bo'lmaydi" };
+                return new StatusChangeResult { Error = L.T("Doc_TransitionNotAllowed") };
             }
 
             var status = await db.DOC_DOCUMENT_STATUS_REF.FirstOrDefaultAsync(s => s.Code == statusCode && s.IsActive);
             if (status == null)
-                return new StatusChangeResult { Error = "Noto'g'ri holat kodi" };
+                return new StatusChangeResult { Error = L.T("Doc_InvalidStatusCode") };
 
             doc.StatusID = status.ID;
             doc.UpdatedDT = DateTime.Now;

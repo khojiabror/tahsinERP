@@ -12,6 +12,7 @@ using tahsinERP.Services.Common;
 using tahsinERP.Services.Documents;
 using System.Web;
 using tahsinERP.Filters;
+using tahsinERP.I18n;
 
 namespace tahsinERP.Controllers
 {
@@ -94,13 +95,13 @@ namespace tahsinERP.Controllers
         {
             if (string.IsNullOrWhiteSpace(model.StandardCode))
             {
-                ModelState.AddModelError("StandardCode", "Standart kodi kiritilishi shart");
+                ModelState.AddModelError("StandardCode", L.T("Doc_StdCodeRequired"));
             }
 
             byte[] docxBytes = null;
             if (string.IsNullOrWhiteSpace(model.DocumentContent))
             {
-                ModelState.AddModelError("DocumentContent", "Hujjat kontenti bo'sh bo'lishi mumkin emas");
+                ModelState.AddModelError("DocumentContent", L.T("Doc_ContentEmpty"));
             }
             else
             {
@@ -108,7 +109,7 @@ namespace tahsinERP.Controllers
                 docxBytes = ConvertDocumentContent(model.DocumentContent);
                 if (docxBytes == null)
                 {
-                    ModelState.AddModelError("DocumentContent", "Hujjat kontenti noto'g'ri formatda");
+                    ModelState.AddModelError("DocumentContent", L.T("Doc_ContentInvalid"));
                 }
             }
 
@@ -150,7 +151,7 @@ namespace tahsinERP.Controllers
                     tx.Commit();
 
                     LogHelper.LogToDatabase(CurrentUserName, "STDCompanyStandards", $"Yangi standart yaratildi: {model.StandardCode}");
-                    TempData["Success"] = "Standart muvaffaqiyatli yaratildi";
+                    TempData["Success"] = L.T("Doc_StdCreated");
 
                     return RedirectToAction("Index");
                 }
@@ -158,7 +159,7 @@ namespace tahsinERP.Controllers
             catch (Exception ex)
             {
                 System.Diagnostics.Trace.TraceError("STD Create: {0}", ex);
-                ModelState.AddModelError("", "Saqlashda xatolik yuz berdi.");
+                ModelState.AddModelError("", L.T("Doc_SaveError"));
                 await SetTemplatesAsync();
                 return View(model);
             }
@@ -252,7 +253,7 @@ namespace tahsinERP.Controllers
         {
             if (string.IsNullOrWhiteSpace(model.StandardCode))
             {
-                ModelState.AddModelError("StandardCode", "Standart kodi kiritilishi shart");
+                ModelState.AddModelError("StandardCode", L.T("Doc_StdCodeRequired"));
             }
 
             // Bo'sh DocumentContent = faqat metadata tahrirlandi (view matn o'zgarmasa yubormaydi)
@@ -262,7 +263,7 @@ namespace tahsinERP.Controllers
                 docxBytes = ConvertDocumentContent(model.DocumentContent);
                 if (docxBytes == null)
                 {
-                    ModelState.AddModelError("DocumentContent", "Hujjat kontenti noto'g'ri formatda");
+                    ModelState.AddModelError("DocumentContent", L.T("Doc_ContentInvalid"));
                 }
             }
 
@@ -305,7 +306,7 @@ namespace tahsinERP.Controllers
                     tx.Commit();
 
                     LogHelper.LogToDatabase(CurrentUserName, "STDCompanyStandards", $"Standart yangilandi: {model.StandardCode} (v{model.NewVersionNo:F2})");
-                    TempData["Success"] = "Standart muvaffaqiyatli yangilandi";
+                    TempData["Success"] = L.T("Doc_StdUpdated");
 
                     return RedirectToAction("Index");
                 }
@@ -313,7 +314,7 @@ namespace tahsinERP.Controllers
             catch (Exception ex)
             {
                 System.Diagnostics.Trace.TraceError("STD Edit {0}: {1}", model.DocumentID, ex);
-                ModelState.AddModelError("", "Saqlashda xatolik yuz berdi.");
+                ModelState.AddModelError("", L.T("Doc_SaveError"));
                 return await EditViewAsync(model);
             }
         }
@@ -441,14 +442,14 @@ namespace tahsinERP.Controllers
                     await DocumentService.SoftDeleteAsync(db, id);
 
                     LogHelper.LogToDatabase(CurrentUserName, "STDCompanyStandards", $"Standart o'chirildi: {standardCode}");
-                    TempData["Success"] = "Standart muvaffaqiyatli o'chirildi";
+                    TempData["Success"] = L.T("Doc_StdDeleted");
 
                     return RedirectToAction("Index");
                 }
             }
             catch (Exception ex)
             {
-                TempData["Error"] = $"Xatolik yuz berdi: {ex.Message}";
+                TempData["Error"] = L.T("Core_ErrorWithMessage", ex.Message);
                 return RedirectToAction("Index");
             }
         }
@@ -509,7 +510,7 @@ namespace tahsinERP.Controllers
 
                 if (imagesOnly && !DocFileResult.IsImage(file.MimeType, file.FileExtension))
                 {
-                    return new HttpStatusCodeResult(System.Net.HttpStatusCode.BadRequest, "Bu fayl rasm emas");
+                    return new HttpStatusCodeResult(System.Net.HttpStatusCode.BadRequest, L.T("Doc_NotAnImage"));
                 }
 
                 return await DocFileResult.ForAsync(db, file);

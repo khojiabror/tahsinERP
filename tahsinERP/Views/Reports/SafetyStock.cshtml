@@ -1,6 +1,6 @@
 @model tahsinERP.ViewModels.Reports.SRMSafetyStockViewModel
 @{
-    ViewBag.Title = "Zaxira zaxirasi va qayta buyurtma nuqtasi";
+    ViewBag.Title = L.T("Doc_RepSafetyStockTitle");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -17,7 +17,7 @@
                                     <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                 </li>
                                 <li class="breadcrumb-item ">
-                                    SRM Hisobotlar
+                                    @L.T("Doc_RepSrmReports")
                                 </li>
                                 <li class="breadcrumb-item active">
                                     Zaxira zaxirasi (Safety stock)
@@ -35,40 +35,40 @@
                     {
                         <div class="row border rounded py-2 mb-2">
                             <div class="col-md-2 col-sm-6">
-                                <label>Ombor:</label>
+                                <label>@L.T("Doc_RepWarehouseColon")</label>
                                 @Html.DropDownList("warehouseId", Model.Warehouses as IEnumerable<SelectListItem>, new { @class = "form-control" })
                             </div>
                             <div class="col-md-2 col-sm-6">
-                                <label>Kategoriya:</label>
+                                <label>@L.T("Doc_RepCategoryColon")</label>
                                 @Html.DropDownList("categoryId", Model.Categories as IEnumerable<SelectListItem>, new { @class = "form-control" })
                             </div>
                             <div class="col-md-2 col-sm-6">
-                                <label>Mahsulot turi:</label>
+                                <label>@L.T("Doc_RepProductTypeColon")</label>
                                 <select name="productType" class="form-control">
-                                    <option value="" @(string.IsNullOrEmpty(Model.ProductType) ? "selected=\"selected\"" : "")>Barchasi</option>
-                                    <option value="finished" @(Model.ProductType == "finished" ? "selected=\"selected\"" : "")>Tayyor mahsulot</option>
-                                    <option value="raw" @(Model.ProductType == "raw" ? "selected=\"selected\"" : "")>Xomashyo</option>
+                                    <option value="" @(string.IsNullOrEmpty(Model.ProductType) ? "selected=\"selected\"" : "")>@L.T("All")</option>
+                                    <option value="finished" @(Model.ProductType == "finished" ? "selected=\"selected\"" : "")>@L.T("Menu_FinishedGoods")</option>
+                                    <option value="raw" @(Model.ProductType == "raw" ? "selected=\"selected\"" : "")>@L.T("Menu_RawMaterials")</option>
                                 </select>
                             </div>
                             <div class="col-md-2 col-sm-6">
-                                <label>Dan:</label>
+                                <label>@L.T("Doc_RepFromColon")</label>
                                 <input type="date" name="fromDate" class="form-control" value="@Model.FromDate.ToString("yyyy-MM-dd")" />
                             </div>
                             <div class="col-md-2 col-sm-6">
-                                <label>Gacha:</label>
+                                <label>@L.T("Doc_RepToColon")</label>
                                 <input type="date" name="toDate" class="form-control" value="@Model.ToDate.ToString("yyyy-MM-dd")" />
                             </div>
                             <div class="col-md-1 col-sm-6">
-                                <label>Xizmat darajasi, %</label>
+                                <label>@L.T("Doc_RepServiceLevel")</label>
                                 <input type="number" name="serviceLevel" class="form-control" min="80" max="99" step="1" value="@Model.ServiceLevel" title="Mijoz talabini qondirish ehtimoli (masalan 95)" />
                             </div>
                             <div class="col-md-1 col-sm-6">
-                                <label>Yetkazish muddati, kun</label>
+                                <label>@L.T("Doc_RepLeadTime")</label>
                                 <input type="number" name="leadTimeDays" class="form-control" min="1" max="60" step="1" value="@Model.LeadTimeDays" title="Buyurtmadan yetkazib berishgacha kunlar" />
                             </div>
                             <div class="col-md-1 col-sm-6 d-flex align-items-end">
                                 <button type="submit" class="btn btn-primary btn-block">
-                                    <i class="bx bx-refresh"></i> Hisoblash
+                                    <i class="bx bx-refresh"></i> @L.T("Doc_RepCalculate")
                                 </button>
                             </div>
                         </div>
@@ -83,14 +83,14 @@
                                     <table id="safetyTable" class="table table-striped table-bordered nowrap" style="width:100%">
                                         <thead>
                                             <tr class="table-primary">
-                                                <th>Kod</th>
-                                                <th>Mahsulot</th>
-                                                <th>Birlik</th>
-                                                <th class="text-right">O'rtacha kunlik talab</th>
-                                                <th class="text-right">Og'ilish (kunlik)</th>
-                                                <th class="text-right">Zaxira zaxirasi</th>
-                                                <th class="text-right">Zaxira (kun)</th>
-                                                <th class="text-right">Qayta buyurtma nuqtasi</th>
+                                                <th>@L.T("Code")</th>
+                                                <th>@L.T("Doc_RepProduct")</th>
+                                                <th>@L.T("Unit")</th>
+                                                <th class="text-right">@L.T("Doc_RepAvgDailyDemand")</th>
+                                                <th class="text-right">@L.T("Doc_RepStdDev")</th>
+                                                <th class="text-right">@L.T("Doc_RepSafetyStock")</th>
+                                                <th class="text-right">@L.T("Doc_RepStockDays")</th>
+                                                <th class="text-right">@L.T("Doc_RepReorderPoint")</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -136,24 +136,11 @@
     <script>
         $(document).ready(function () {
             $('#safetyTable').DataTable({
-                language: {
-                    search: "Qidirish:",
-                    lengthMenu: "_MENU_ ta ko'rsatish",
-                    info: "_TOTAL_ ta yozuvdan _START_ dan _END_ gacha",
-                    infoEmpty: "Yozuvlar yo'q",
-                    infoFiltered: "(jami _MAX_ ta yozuvdan filtrlangan)",
-                    paginate: {
-                        first: "Birinchi",
-                        last: "Oxirgi",
-                        next: "Keyingi",
-                        previous: "Oldingi"
-                    },
-                    zeroRecords: "Ma'lumot topilmadi"
-                },
+                language: erpDataTable.language,
                 pageLength: 50,
                 scrollX: true,
                 dom: 'lBfrtip',
-                buttons: erpDataTable.buttons({ landscape: true, pdfOptions: { pageSize: 'A3', title: 'Zaxira zaxirasi' } })
+                buttons: erpDataTable.buttons({ landscape: true, pdfOptions: { pageSize: 'A3', title: '@L.Js("Doc_RepSafetyStock")' } })
             });
         });
     </script>

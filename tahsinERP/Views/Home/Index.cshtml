@@ -1,5 +1,5 @@
 @{
-    ViewBag.Title = "Bosh sahifa - Dashboard";
+    ViewBag.Title = L.T("Core_HomeTitle");
 }
 <!-- BEGIN: Content-->
 <div class="app-content content">
@@ -27,17 +27,17 @@
                         <div class="card">
                             <div class="card-body d-flex flex-wrap justify-content-between align-items-center">
                                 <div>
-                                    <h4 class="mb-50">Rahbariyat nazorat paneli</h4>
-                                    <small class="text-muted">Konversiya, bajarilish, zaxira riski va vazifalar ijrosi bir ekranda</small>
+                                    <h4 class="mb-50">@L.T("Core_ExecPanelTitle")</h4>
+                                    <small class="text-muted">@L.T("Core_ExecPanelSubtitle")</small>
                                 </div>
                                 <div class="d-flex align-items-center mt-1 mt-md-0">
                                     <select id="warehouseFilter" class="form-control mr-1" style="min-width: 220px;">
-                                        <option value="">Barcha omborlar (xomashyo)</option>
+                                        <option value="">@L.T("Core_AllWarehousesRaw")</option>
                                     </select>
                                     <input type="date" id="fromDate" class="form-control mr-1" style="min-width: 150px;" />
                                     <input type="date" id="toDate" class="form-control mr-1" style="min-width: 150px;" />
                                     <button class="btn btn-primary" id="applyFilters">
-                                        <i class="bx bx-refresh mr-25"></i> Yangilash
+                                        <i class="bx bx-refresh mr-25"></i> @L.T("Refresh")
                                     </button>
                                 </div>
                             </div>
@@ -46,29 +46,29 @@
                 </div>
 
                 <div class="row">
-                    <div class="col-xl-3 col-sm-6 col-12"><div class="card"><div class="card-body"><p class="mb-0 text-muted">Oylik savdo konversiyasi</p><h2 class="mb-50" id="kpi-conversion">0%</h2><small class="text-muted">Shartnoma -> Buyurtma</small></div></div></div>
-                    <div class="col-xl-3 col-sm-6 col-12"><div class="card"><div class="card-body"><p class="mb-0 text-muted">Savdo buyurtmasi bajarilishi</p><h2 class="mb-50" id="kpi-fulfillment">0%</h2><small class="text-muted">Buyurtma -> Hisob-faktura</small></div></div></div>
-                    <div class="col-xl-3 col-sm-6 col-12"><div class="card"><div class="card-body"><p class="mb-0 text-muted">Ishlab chiqarish bajarilishi</p><h2 class="mb-50" id="kpi-production">0%</h2><small class="text-muted">Reja -> Amalda</small></div></div></div>
-                    <div class="col-xl-3 col-sm-6 col-12"><div class="card"><div class="card-body"><p class="mb-0 text-muted">Vazifalar bajarilishi</p><h2 class="mb-50" id="kpi-tasks">0%</h2><small class="text-muted"><span id="task-done">0</span>/<span id="task-total">0</span> bajarildi</small></div></div></div>
+                    <div class="col-xl-3 col-sm-6 col-12"><div class="card"><div class="card-body"><p class="mb-0 text-muted">@L.T("Core_KpiMonthlyConversion")</p><h2 class="mb-50" id="kpi-conversion">0%</h2><small class="text-muted">@L.T("Core_KpiContractToOrder")</small></div></div></div>
+                    <div class="col-xl-3 col-sm-6 col-12"><div class="card"><div class="card-body"><p class="mb-0 text-muted">@L.T("Core_KpiSalesFulfillment")</p><h2 class="mb-50" id="kpi-fulfillment">0%</h2><small class="text-muted">@L.T("Core_KpiOrderToInvoice")</small></div></div></div>
+                    <div class="col-xl-3 col-sm-6 col-12"><div class="card"><div class="card-body"><p class="mb-0 text-muted">@L.T("Core_KpiProductionExec")</p><h2 class="mb-50" id="kpi-production">0%</h2><small class="text-muted">@L.T("Core_KpiPlanToActual")</small></div></div></div>
+                    <div class="col-xl-3 col-sm-6 col-12"><div class="card"><div class="card-body"><p class="mb-0 text-muted">@L.T("Core_KpiTasksExec")</p><h2 class="mb-50" id="kpi-tasks">0%</h2><small class="text-muted"><span id="task-done">0</span>/<span id="task-total">0</span> @L.T("Core_KpiDone")</small></div></div></div>
                 </div>
 
                 <div class="row">
-                    <div class="col-xl-3 col-sm-6 col-12"><div class="card"><div class="card-body"><p class="mb-0 text-muted">DOH (zaxira kunlari)</p><h3 id="kpi-doh">0 kun</h3></div></div></div>
-                    <div class="col-xl-3 col-sm-6 col-12"><div class="card"><div class="card-body"><p class="mb-0 text-muted">Qamrov (kun)</p><h3 id="kpi-coverage">0 kun</h3></div></div></div>
-                    <div class="col-xl-3 col-sm-6 col-12"><div class="card"><div class="card-body"><p class="mb-0 text-muted">Savdo buyurtmalari</p><h3 id="kpi-orders-amount">0</h3></div></div></div>
-                    <div class="col-xl-3 col-sm-6 col-12"><div class="card"><div class="card-body"><p class="mb-0 text-muted">Hisob-faktura hajmi</p><h3 id="kpi-invoice-amount">0</h3></div></div></div>
+                    <div class="col-xl-3 col-sm-6 col-12"><div class="card"><div class="card-body"><p class="mb-0 text-muted">@L.T("Core_KpiDoh")</p><h3 id="kpi-doh">@L.T("Core_DaysValue", 0)</h3></div></div></div>
+                    <div class="col-xl-3 col-sm-6 col-12"><div class="card"><div class="card-body"><p class="mb-0 text-muted">@L.T("Core_KpiCoverageDays")</p><h3 id="kpi-coverage">@L.T("Core_DaysValue", 0)</h3></div></div></div>
+                    <div class="col-xl-3 col-sm-6 col-12"><div class="card"><div class="card-body"><p class="mb-0 text-muted">@L.T("Core_KpiSalesOrders")</p><h3 id="kpi-orders-amount">0</h3></div></div></div>
+                    <div class="col-xl-3 col-sm-6 col-12"><div class="card"><div class="card-body"><p class="mb-0 text-muted">@L.T("Core_KpiInvoiceVolume")</p><h3 id="kpi-invoice-amount">0</h3></div></div></div>
                 </div>
 
                 <div class="row match-height">
                     <div class="col-lg-6 col-12">
                         <div class="card">
-                            <div class="card-header"><h4 class="card-title mb-0">Savdo konversiyasi trendi</h4></div>
+                            <div class="card-header"><h4 class="card-title mb-0">@L.T("Core_ChartSalesTrend")</h4></div>
                             <div class="card-body"><div id="sales-funnel-chart"></div></div>
                         </div>
                     </div>
                     <div class="col-lg-6 col-12">
                         <div class="card">
-                            <div class="card-header"><h4 class="card-title mb-0">Ishlab chiqarish: reja va fakt trendi</h4></div>
+                            <div class="card-header"><h4 class="card-title mb-0">@L.T("Core_ChartProductionTrend")</h4></div>
                             <div class="card-body"><div id="production-trend-chart"></div></div>
                         </div>
                     </div>
@@ -77,13 +77,13 @@
                 <div class="row match-height">
                     <div class="col-lg-6 col-12">
                         <div class="card">
-                            <div class="card-header"><h4 class="card-title mb-0">DOH / qamrov riski (SKU bo'yicha)</h4></div>
+                            <div class="card-header"><h4 class="card-title mb-0">@L.T("Core_ChartCoverageRisk")</h4></div>
                             <div class="card-body"><div id="coverage-heat-chart"></div></div>
                         </div>
                     </div>
                     <div class="col-lg-6 col-12">
                         <div class="card">
-                            <div class="card-header"><h4 class="card-title mb-0">Buyurtma va ishlab chiqarish bajarilishi KPI</h4></div>
+                            <div class="card-header"><h4 class="card-title mb-0">@L.T("Core_ChartExecutionKpi")</h4></div>
                             <div class="card-body"><div id="execution-gauge-chart"></div></div>
                         </div>
                     </div>
@@ -91,7 +91,7 @@
                 <div class="row">
                     <div class="col-12">
                         <div class="card">
-                            <div class="card-header"><h4 class="card-title mb-0">Boshqaruv signal paneli</h4></div>
+                            <div class="card-header"><h4 class="card-title mb-0">@L.T("Core_SignalPanel")</h4></div>
                             <div class="card-body"><div id="insight-list"></div></div>
                         </div>
                     </div>
@@ -116,6 +116,28 @@
         var charts = {};
         var currencyShortname = '@(ViewBag.CurrencyShortname ?? "")';
         var warehouseInitialized = false;
+        var T = {
+            days: '@L.Js("Core_DaysValue")',
+            noSignal: '@L.Js("Core_NoSignal")',
+            order: '@L.Js("Core_SeriesOrder")',
+            invoice: '@L.Js("Core_SeriesInvoice")',
+            amount: '@L.Js("Amount")',
+            planQty: '@L.Js("Core_SeriesPlanQty")',
+            actualQty: '@L.Js("Core_SeriesActualQty")',
+            qty: '@L.Js("Quantity")',
+            coverageDays: '@L.Js("Core_KpiCoverageDays")',
+            stock: '@L.Js("Core_StockLabel")',
+            dailyDemand: '@L.Js("Core_DailyDemand")',
+            orderExec: '@L.Js("Core_OrderExec")',
+            productionExec: '@L.Js("Core_KpiProductionExec")',
+            taskExec: '@L.Js("Core_TaskExec")',
+            avgControl: '@L.Js("Core_AvgControl")',
+            allWarehouses: '@L.Js("Core_AllWarehousesRaw")',
+            warehouseN: '@L.Js("Core_WarehouseN")',
+            notLoaded: '@L.Js("Core_DataNotLoaded")',
+            panelNotLoaded: '@L.Js("Core_ExecPanelNotLoaded")'
+        };
+        function days(v) { return T.days.replace('{0}', v); }
 
         function formatSpaceNumber(value, decimals) {
             var d = typeof decimals === 'number' ? decimals : 0;
@@ -147,7 +169,7 @@
                 var color = x.level === 'high' ? 'danger' : (x.level === 'medium' ? 'warning' : 'success');
                 html += '<div class="alert alert-light-' + color + ' mb-1"><i class="bx bx-bell mr-50"></i>' + x.text + '</div>';
             });
-            document.getElementById('insight-list').innerHTML = html || '<p class="text-muted mb-0">Signal topilmadi</p>';
+            document.getElementById('insight-list').innerHTML = html || '<p class="text-muted mb-0">' + T.noSignal + '</p>';
         }
 
         function renderSalesFunnelChart(data) {
@@ -156,13 +178,13 @@
             charts.sales = new ApexCharts(document.querySelector("#sales-funnel-chart"), {
                 chart: { type: 'line', height: 330, stacked: false, toolbar: { show: true } },
                 series: [
-                    { name: 'Buyurtma', type: 'column', data: trend.map(function (x) { return x.orderAmount; }) },
-                    { name: 'Hisob-faktura', type: 'column', data: trend.map(function (x) { return x.invoiceAmount; }) }
+                    { name: T.order, type: 'column', data: trend.map(function (x) { return x.orderAmount; }) },
+                    { name: T.invoice, type: 'column', data: trend.map(function (x) { return x.invoiceAmount; }) }
                 ],
                 stroke: { width: [0, 0], curve: 'smooth' },
                 colors: ['#39DA8A', '#00CFDD'],
                 xaxis: { categories: periods },
-                yaxis: [{ title: { text: 'Summa' }, labels: { formatter: function (v) { return formatSpaceNumber(v, 0); } } }],
+                yaxis: [{ title: { text: T.amount }, labels: { formatter: function (v) { return formatSpaceNumber(v, 0); } } }],
                 tooltip: {
                     shared: true,
                     intersect: false,
@@ -179,13 +201,13 @@
             charts.production = new ApexCharts(document.querySelector("#production-trend-chart"), {
                 chart: { type: 'line', height: 330, stacked: false, toolbar: { show: true } },
                 series: [
-                    { name: 'Reja miqdori', type: 'line', data: trend.map(function (x) { return x.plannedQty; }) },
-                    { name: 'Amaldagi miqdor', type: 'line', data: trend.map(function (x) { return x.producedQty; }) }
+                    { name: T.planQty, type: 'line', data: trend.map(function (x) { return x.plannedQty; }) },
+                    { name: T.actualQty, type: 'line', data: trend.map(function (x) { return x.producedQty; }) }
                 ],
                 stroke: { width: [3, 3], curve: 'smooth' },
                 colors: ['#FDAC41', '#198754'],
                 xaxis: { categories: periods },
-                yaxis: [{ title: { text: 'Miqdor' }, labels: { formatter: function (v) { return formatSpaceNumber(v, 0); } } }],
+                yaxis: [{ title: { text: T.qty }, labels: { formatter: function (v) { return formatSpaceNumber(v, 0); } } }],
                 tooltip: {
                     shared: true,
                     intersect: false,
@@ -200,7 +222,7 @@
             var stock = (data.stockCoverage || []).slice(0, 12);
             charts.coverage = new ApexCharts(document.querySelector("#coverage-heat-chart"), {
                 chart: { type: 'bar', height: 340, toolbar: { show: false } },
-                series: [{ name: 'Qamrov (kun)', data: stock.map(function (x) { return x.coverageDays; }) }],
+                series: [{ name: T.coverageDays, data: stock.map(function (x) { return x.coverageDays; }) }],
                 plotOptions: {
                     bar: {
                         horizontal: true,
@@ -218,7 +240,7 @@
                 },
                 dataLabels: {
                     enabled: true,
-                    formatter: function (v) { return formatSpaceNumber(v, 1) + ' kun'; }
+                    formatter: function (v) { return days(formatSpaceNumber(v, 1)); }
                 },
                 xaxis: { categories: stock.map(function (x) { return x.product; }) },
                 tooltip: {
@@ -226,7 +248,7 @@
                         formatter: function (val, opts) {
                             var i = opts.dataPointIndex;
                             var item = stock[i] || {};
-                            return formatSpaceNumber(val, 1) + ' kun | Zaxira: ' + formatSpaceNumber(item.stockQty || 0, 2) + ' | Kunlik talab: ' + formatSpaceNumber(item.avgDailyDemand || 0, 2);
+                            return days(formatSpaceNumber(val, 1)) + ' | ' + T.stock + ': ' + formatSpaceNumber(item.stockQty || 0, 2) + ' | ' + T.dailyDemand + ': ' + formatSpaceNumber(item.avgDailyDemand || 0, 2);
                         }
                     }
                 }
@@ -239,7 +261,7 @@
             charts.gauge = new ApexCharts(document.querySelector("#execution-gauge-chart"), {
                 chart: { type: 'radialBar', height: 340 },
                 series: [k.orderFulfillmentRate || 0, k.productionExecutionRate || 0, k.taskCompletionRate || 0],
-                labels: ['Buyurtma bajarilishi', 'Ishlab chiqarish bajarilishi', 'Vazifa bajarilishi'],
+                labels: [T.orderExec, T.productionExec, T.taskExec],
                 colors: ['#1f8ef1', '#198754', '#FDAC41'],
                 plotOptions: {
                     radialBar: {
@@ -255,7 +277,7 @@
                             },
                             total: {
                                 show: true,
-                                label: 'O‘rtacha nazorat',
+                                label: T.avgControl,
                                 formatter: function (w) {
                                     var s = w.globals.seriesTotals;
                                     var avg = s.reduce(function (a, b) { return a + b; }, 0) / s.length;
@@ -276,8 +298,8 @@
             $('#kpi-tasks').text(formatPercent(k.taskCompletionRate));
             $('#task-done').text(formatSpaceNumber(k.completedTasks || 0, 0));
             $('#task-total').text(formatSpaceNumber(k.totalTasks || 0, 0));
-            $('#kpi-doh').text(formatSpaceNumber(k.dohDays || 0, 1) + ' kun');
-            $('#kpi-coverage').text(formatSpaceNumber(k.coverageDays || 0, 1) + ' kun');
+            $('#kpi-doh').text(days(formatSpaceNumber(k.dohDays || 0, 1)));
+            $('#kpi-coverage').text(days(formatSpaceNumber(k.coverageDays || 0, 1)));
             $('#kpi-orders-amount').text(formatAmount(k.orderAmount, 2));
             $('#kpi-invoice-amount').text(formatAmount(k.invoiceAmount, 2));
         }
@@ -286,10 +308,10 @@
             if (warehouseInitialized) return;
             var list = data.warehouses || [];
             var current = data.selectedWarehouseId;
-            var html = '<option value="">Barcha omborlar (xomashyo)</option>';
+            var html = '<option value="">' + T.allWarehouses + '</option>';
             list.forEach(function (w) {
                 var selected = current && Number(current) === Number(w.id) ? ' selected' : '';
-                html += '<option value="' + w.id + '"' + selected + '>' + (w.name || ('Ombor #' + w.id)) + '</option>';
+                html += '<option value="' + w.id + '"' + selected + '>' + (w.name || T.warehouseN.replace('{0}', w.id)) + '</option>';
             });
             $('#warehouseFilter').html(html);
             warehouseInitialized = true;
@@ -305,7 +327,7 @@
                 data: { fromDate: fromDate, toDate: toDate, warehouseId: warehouseId },
                 success: function (data) {
                     if (!data || data.error) {
-                        $('#insight-list').html('<p class="text-danger mb-0">' + (data && data.error ? data.error : 'Ma\'lumot yuklanmadi') + '</p>');
+                        $('#insight-list').html('<p class="text-danger mb-0">' + (data && data.error ? data.error : T.notLoaded) + '</p>');
                         return;
                     }
                     bindWarehouseOptions(data);
@@ -318,7 +340,7 @@
                     renderExecutionGauge(data);
                 },
                 error: function () {
-                    $('#insight-list').html('<p class="text-danger mb-0">Rahbariyat paneli yuklanmadi</p>');
+                    $('#insight-list').html('<p class="text-danger mb-0">' + T.panelNotLoaded + '</p>');
                 }
             });
         }

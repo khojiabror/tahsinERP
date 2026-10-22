@@ -1,6 +1,6 @@
 @{
     Layout = null;
-    ViewBag.Title = "Ro'yxat";
+    ViewBag.Title = L.T("Error_NotAuthorized");
 }
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
@@ -47,14 +47,13 @@
                         <div class="card bg-transparent shadow-none">
                             <div class="card-content">
                                 <div class="card-body text-center bg-transparent miscellaneous">
-                                    <img src="~/app-assets/images/pages/not-authorized.png" class="img-fluid" alt="not authorized" width="400">
-                                    <h1 class="my-2 error-title">Sizga ruxsat berilmagan!</h1>
+                                    <img src="~/app-assets/images/pages/not-authorized.png" class="img-fluid" alt="@L.T("Error_NotAuthorized")" width="400">
+                                    <h1 class="my-2 error-title">@L.T("Core_NotAuthorizedTitle")</h1>
                                     <p>
-                                        Siz ushbu katalog yoki sahifani ko'rish uchun ruxsatga ega emassiz
-                                        sababini aniqlash yoki muammoni hal etish uchun tizim administratoriga bog'laning.
+                                        @L.T("Core_NotAuthorizedText")
                                     </p>
-                                    <a href="~/Home" class="btn btn-primary round glow mt-2">Asosiy sahifa</a>
-                                    <a href="mailto:admin@uzsmg.uz" class="btn btn-info round glow mt-2">Tizim administratoriga bog'lanish</a>
+                                    <a href="~/Home" class="btn btn-primary round glow mt-2">@L.T("Home")</a>
+                                    <a href="mailto:admin@uzsmg.uz" class="btn btn-info round glow mt-2">@L.T("Core_ContactAdmin")</a>
                                 </div>
                             </div>
                         </div>

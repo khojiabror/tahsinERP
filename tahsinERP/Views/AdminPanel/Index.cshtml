@@ -1,6 +1,6 @@
 @model tahsinERP.ViewModels.AdminDashboardViewModel
 @{
-    ViewBag.Title = "Admin Panel";
+    ViewBag.Title = L.T("Menu_AdminPanel");
     Layout = "~/Views/Shared/_AdminPanelLayout.cshtml";
 }
 
@@ -34,10 +34,10 @@
                                     <div class="badge-circle badge-circle-lg badge-circle-light-primary mx-auto my-1">
                                         <i class="bx bx-user font-medium-5"></i>
                                     </div>
-                                    <p class="text-muted mb-0">Foydalanuvchilar</p>
+                                    <p class="text-muted mb-0">@L.T("Adm_Users")</p>
                                     <h2 class="mb-0">@Model.TotalUsers</h2>
-                                    <small class="text-success">@Model.ActiveUsers faol</small> |
-                                    <small class="text-danger">@Model.InactiveUsers nofaol</small>
+                                    <small class="text-success">@L.T("Core_ActiveCount", Model.ActiveUsers)</small> |
+                                    <small class="text-danger">@L.T("Core_InactiveCount", Model.InactiveUsers)</small>
                                 </div>
                             </div>
                         </div>
@@ -51,9 +51,9 @@
                                     <div class="badge-circle badge-circle-lg badge-circle-light-success mx-auto my-1">
                                         <i class="bx bx-shield font-medium-5"></i>
                                     </div>
-                                    <p class="text-muted mb-0">Rollar</p>
+                                    <p class="text-muted mb-0">@L.T("Adm_Roles")</p>
                                     <h2 class="mb-0">@Model.TotalRoles</h2>
-                                    <small class="text-muted">@Model.TotalPermissionModules modul</small>
+                                    <small class="text-muted">@L.T("Core_ModulesCount", Model.TotalPermissionModules)</small>
                                 </div>
                             </div>
                         </div>
@@ -67,9 +67,9 @@
                                     <div class="badge-circle badge-circle-lg badge-circle-light-warning mx-auto my-1">
                                         <i class="bx bx-log-in font-medium-5"></i>
                                     </div>
-                                    <p class="text-muted mb-0">Bugungi kirishlar</p>
+                                    <p class="text-muted mb-0">@L.T("Core_TodayEntries")</p>
                                     <h2 class="mb-0">@Model.TodayUserEntries</h2>
-                                    <small class="text-muted">Jami: @Model.TotalUserEntries</small>
+                                    <small class="text-muted">@L.T("Core_TotalWithValue", Model.TotalUserEntries)</small>
                                 </div>
                             </div>
                         </div>
@@ -83,9 +83,9 @@
                                     <div class="badge-circle badge-circle-lg badge-circle-light-info mx-auto my-1">
                                         <i class="bx bx-file font-medium-5"></i>
                                     </div>
-                                    <p class="text-muted mb-0">Bugungi loglar</p>
+                                    <p class="text-muted mb-0">@L.T("Core_TodayLogs")</p>
                                     <h2 class="mb-0">@Model.TodayLogs</h2>
-                                    <small class="text-muted">Haftalik: @Model.ThisWeekLogs</small>
+                                    <small class="text-muted">@L.T("Core_WeeklyWithValue", Model.ThisWeekLogs)</small>
                                 </div>
                             </div>
                         </div>
@@ -98,8 +98,8 @@
                 <div class="col-lg-6">
                     <div class="card">
                         <div class="card-header d-flex justify-content-between align-items-center">
-                            <h4 class="card-title"><i class="bx bx-log-in mr-1"></i>Oxirgi tizimga kirishlar</h4>
-                            <a href="~/UserEntries" class="btn btn-sm btn-outline-primary">Barchasi</a>
+                            <h4 class="card-title"><i class="bx bx-log-in mr-1"></i>@L.T("Core_RecentEntries")</h4>
+                            <a href="~/UserEntries" class="btn btn-sm btn-outline-primary">@L.T("All")</a>
                         </div>
                         <div class="card-content">
                             <div class="card-body p-0">
@@ -107,9 +107,9 @@
                                     <table class="table table-hover mb-0">
                                         <thead>
                                             <tr>
-                                                <th>Foydalanuvchi</th>
+                                                <th>@L.T("Core_User")</th>
                                                 <th>IP</th>
-                                                <th>Sana</th>
+                                                <th>@L.T("Date")</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -118,7 +118,7 @@
                                                 foreach (var entry in Model.RecentUserEntries)
                                                 {
                                                     <tr>
-                                                        <td>@(entry.USER?.FullName ?? "Noma'lum")</td>
+                                                        <td>@(entry.USER?.FullName ?? L.T("Core_Unknown"))</td>
                                                         <td><code>@entry.IP</code></td>
                                                         <td>@entry.DateTime.ToString("dd.MM.yyyy HH:mm:ss")</td>
                                                     </tr>
@@ -126,7 +126,7 @@
                                             }
                                             else
                                             {
-                                                <tr><td colspan="3" class="text-center text-muted">Ma'lumot yo'q</td></tr>
+                                                <tr><td colspan="3" class="text-center text-muted">@L.T("NoData")</td></tr>
                                             }
                                         </tbody>
                                     </table>
@@ -140,8 +140,8 @@
                 <div class="col-lg-6">
                     <div class="card">
                         <div class="card-header d-flex justify-content-between align-items-center">
-                            <h4 class="card-title"><i class="bx bx-file mr-1"></i>Oxirgi harakatlar</h4>
-                            <a href="~/Log" class="btn btn-sm btn-outline-primary">Barchasi</a>
+                            <h4 class="card-title"><i class="bx bx-file mr-1"></i>@L.T("Core_RecentActions")</h4>
+                            <a href="~/Log" class="btn btn-sm btn-outline-primary">@L.T("All")</a>
                         </div>
                         <div class="card-content">
                             <div class="card-body p-0">
@@ -149,9 +149,9 @@
                                     <table class="table table-hover mb-0">
                                         <thead>
                                             <tr>
-                                                <th>Foydalanuvchi</th>
-                                                <th>Harakat</th>
-                                                <th>Sana</th>
+                                                <th>@L.T("Core_User")</th>
+                                                <th>@L.T("Core_Action")</th>
+                                                <th>@L.T("Date")</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -160,7 +160,7 @@
                                                 foreach (var log in Model.RecentLogs)
                                                 {
                                                     <tr>
-                                                        <td>@(log.USER?.FullName ?? log.USER?.Uname ?? "Noma'lum")</td>
+                                                        <td>@(log.USER?.FullName ?? log.USER?.Uname ?? L.T("Core_Unknown"))</td>
                                                         <td>
                                                             <small>@log.ControllerName</small><br>
                                                             <span class="text-muted">@(log.ActionName?.Length > 50 ? log.ActionName.Substring(0, 50) + "..." : log.ActionName)</span>
@@ -171,7 +171,7 @@
                                             }
                                             else
                                             {
-                                                <tr><td colspan="3" class="text-center text-muted">Ma'lumot yo'q</td></tr>
+                                                <tr><td colspan="3" class="text-center text-muted">@L.T("NoData")</td></tr>
                                             }
                                         </tbody>
                                     </table>
@@ -187,8 +187,8 @@
                 <div class="col-lg-6">
                     <div class="card">
                         <div class="card-header d-flex justify-content-between align-items-center">
-                            <h4 class="card-title"><i class="bx bx-user mr-1"></i>Foydalanuvchilar</h4>
-                            <a href="~/User" class="btn btn-sm btn-outline-primary">Barchasi</a>
+                            <h4 class="card-title"><i class="bx bx-user mr-1"></i>@L.T("Adm_Users")</h4>
+                            <a href="~/User" class="btn btn-sm btn-outline-primary">@L.T("All")</a>
                         </div>
                         <div class="card-content">
                             <div class="card-body p-0">
@@ -196,10 +196,10 @@
                                     <table class="table table-hover mb-0">
                                         <thead>
                                             <tr>
-                                                <th>F.I.Sh</th>
-                                                <th>Login</th>
-                                                <th>Rol</th>
-                                                <th>Holat</th>
+                                                <th>@L.T("Core_FullName")</th>
+                                                <th>@L.T("Username")</th>
+                                                <th>@L.T("Core_Role")</th>
+                                                <th>@L.T("Status")</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -219,11 +219,11 @@
                                                         <td>
                                                             @if (user.IsActive)
                                                             {
-                                                                <span class="badge badge-light-success">Faol</span>
+                                                                <span class="badge badge-light-success">@L.T("Active")</span>
                                                             }
                                                             else
                                                             {
-                                                                <span class="badge badge-light-danger">Nofaol</span>
+                                                                <span class="badge badge-light-danger">@L.T("Inactive")</span>
                                                             }
                                                         </td>
                                                     </tr>
@@ -241,8 +241,8 @@
                 <div class="col-lg-6">
                     <div class="card">
                         <div class="card-header d-flex justify-content-between align-items-center">
-                            <h4 class="card-title"><i class="bx bx-shield mr-1"></i>Rollar va huquqlar</h4>
-                            <a href="~/Permission" class="btn btn-sm btn-outline-primary">Boshqarish</a>
+                            <h4 class="card-title"><i class="bx bx-shield mr-1"></i>@L.T("Core_RolesAndPermissions")</h4>
+                            <a href="~/Permission" class="btn btn-sm btn-outline-primary">@L.T("Core_Manage")</a>
                         </div>
                         <div class="card-content">
                             <div class="card-body p-0">
@@ -250,9 +250,9 @@
                                     <table class="table table-hover mb-0">
                                         <thead>
                                             <tr>
-                                                <th>Rol nomi</th>
-                                                <th class="text-center">Huquqlar soni</th>
-                                                <th>Amallar</th>
+                                                <th>@L.T("Core_RoleName")</th>
+                                                <th class="text-center">@L.T("Core_PermissionsCount")</th>
+                                                <th>@L.T("Actions")</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -267,13 +267,13 @@
                                                         </td>
                                                         <td class="text-center">
                                                             <span class="badge badge-light-info">
-                                                                @(role.PERMISSIONS?.Count ?? 0) huquq
+                                                                @L.T("Core_PermissionsCountValue", role.PERMISSIONS?.Count ?? 0)
                                                             </span>
                                                         </td>
                                                         <td>
                                                             <a href="/Role/Permissions/@role.ID" 
                                                                class="btn btn-sm btn-outline-primary">
-                                                                <i class="bx bx-edit"></i> Tahrirlash
+                                                                <i class="bx bx-edit"></i> @L.T("Edit")
                                                             </a>
                                                         </td>
                                                     </tr>
@@ -329,28 +329,28 @@
                     <div class="col-12">
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title"><i class="bx bx-zap mr-1"></i>Tezkor amallar</h4>
+                                <h4 class="card-title"><i class="bx bx-zap mr-1"></i>@L.T("Core_QuickActions")</h4>
                             </div>
                             <div class="card-body">
                                 <div class="row">
                                     <div class="col-md-3 col-6 mb-2">
                                         <a href="~/User" class="btn btn-outline-primary btn-block">
-                                            <i class="bx bx-user"></i> Foydalanuvchilar
+                                            <i class="bx bx-user"></i> @L.T("Adm_Users")
                                         </a>
                                     </div>
                                     <div class="col-md-3 col-6 mb-2">
                                         <a href="~/Role" class="btn btn-outline-success btn-block">
-                                            <i class="bx bx-shield"></i> Rollar
+                                            <i class="bx bx-shield"></i> @L.T("Adm_Roles")
                                         </a>
                                     </div>
                                     <div class="col-md-3 col-6 mb-2">
                                         <a href="~/PModule" class="btn btn-outline-warning btn-block">
-                                            <i class="bx bx-lock"></i> Huquqlar
+                                            <i class="bx bx-lock"></i> @L.T("Adm_Permissions")
                                         </a>
                                     </div>
                                     <div class="col-md-3 col-6 mb-2">
                                         <a href="~/LastActions" class="btn btn-outline-info btn-block">
-                                            <i class="bx bx-file"></i> Loglar
+                                            <i class="bx bx-file"></i> @L.T("Core_Logs")
                                         </a>
                                     </div>
                                 </div>

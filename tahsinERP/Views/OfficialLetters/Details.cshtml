@@ -22,8 +22,8 @@
                                     <li class="breadcrumb-item">
                                         <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                     </li>
-                                    <li class="breadcrumb-item"><a href="@Url.Action("Index")">Rasmiy Maktublar</a></li>
-                                    <li class="breadcrumb-item active">Tafsilotlar</li>
+                                    <li class="breadcrumb-item"><a href="@Url.Action("Index")">@L.T("Menu_OfficialLetters")</a></li>
+                                    <li class="breadcrumb-item active">@L.T("Doc_DetailsCrumb")</li>
                                 </ol>
                             </div>
                         </div>
@@ -74,7 +74,7 @@
                                             @if (changePermit)
                                             {
                                                 <a href="@Url.Action("Edit", new { id = Model.ID })" class="btn btn-warning">
-                                                    <i class="bx bx-edit"></i> Tahrirlash
+                                                    <i class="bx bx-edit"></i> @L.T("Edit")
                                                 </a>
                                                 @* Shablon tanlab Word hujjat yaratish (shablonlar bazada — "Shablonlar" sahifasi) *@
                                                 var templates = ViewBag.Templates as System.Collections.Generic.List<tahsinERP.Services.Documents.DocTemplateListItem>;
@@ -84,7 +84,7 @@
                                                         @Html.AntiForgeryToken()
                                                         @if (templates.Count > 1)
                                                         {
-                                                            <select name="templateId" class="form-control mr-1" style="width: auto;" title="Shablon">
+                                                            <select name="templateId" class="form-control mr-1" style="width: auto;" title="@L.T("Doc_Template")">
                                                                 @foreach (var t in templates)
                                                                 {
                                                                     <option value="@t.ID">@t.Name</option>
@@ -96,17 +96,17 @@
                                                             <input type="hidden" name="templateId" value="@templates[0].ID" />
                                                         }
                                                         <button type="submit" class="btn btn-success" style="color: white;">
-                                                            <i class="bx bx-file"></i> Word hujjat yaratish
+                                                            <i class="bx bx-file"></i> @L.T("Doc_CreateWordDoc")
                                                         </button>
                                                     </form>
                                                 }
                                                 else
                                                 {
                                                     <a href="@Url.Action("Index", "DocTemplates", new { docType = "OFFICIAL_LETTER" })" class="btn btn-outline-success ml-1">
-                                                        <i class="bx bx-upload"></i> Avval shablon yuklang
+                                                        <i class="bx bx-upload"></i> @L.T("Doc_UploadTemplateFirst")
                                                     </a>
                                                 }
-                                                <a href="@Url.Action("Index", "DocTemplates", new { docType = "OFFICIAL_LETTER" })" class="btn btn-outline-secondary ml-1" title="Shablonlar">
+                                                <a href="@Url.Action("Index", "DocTemplates", new { docType = "OFFICIAL_LETTER" })" class="btn btn-outline-secondary ml-1" title="@L.T("Doc_Templates")">
                                                     <i class="bx bx-cog"></i>
                                                 </a>
                                             }
@@ -117,43 +117,43 @@
                                         <div class="col-md-6">
                                             <table class="table table-bordered">
                                                 <tr>
-                                                    <th>Raqam</th>
+                                                    <th>@L.T("Number")</th>
                                                     <td>@letter.LetterNo</td>
                                                 </tr>
                                                 <tr>
-                                                    <th>Sana</th>
+                                                    <th>@L.T("Date")</th>
                                                     <td>@letter.LetterDate.ToString("dd.MM.yyyy")</td>
                                                 </tr>
                                                 <tr>
-                                                    <th>Yo'nalish</th>
+                                                    <th>@L.T("Doc_Direction")</th>
                                                     <td><span class="badge badge-@(letter.DirectionCode == "OUT" ? "primary" : "secondary")">@(letter.DirectionCode == "OUT" ? "Chiqish" : "Kirish")</span></td>
                                                 </tr>
                                                 <tr>
-                                                    <th>Kompaniya</th>
+                                                    <th>@L.T("Doc_Company")</th>
                                                     <td>@(letter.ExternalCompanyName ?? "-")</td>
                                                 </tr>
                                                 <tr>
-                                                    <th>Kontakt shaxs</th>
+                                                    <th>@L.T("Doc_ContactPerson")</th>
                                                     <td>@(letter.ExternalContactName ?? "-")</td>
                                                 </tr>
                                                 <tr>
-                                                    <th>Rahbar lavozimi</th>
+                                                    <th>@L.T("Doc_HeadPosition")</th>
                                                     <td>@(letter.ExternalContactPosition ?? "-")</td>
                                                 </tr>
                                                 <tr>
-                                                    <th>Bizning havola</th>
+                                                    <th>@L.T("Doc_OurRef")</th>
                                                     <td>@(letter.OurRefNo ?? "-")</td>
                                                 </tr>
                                                 <tr>
-                                                    <th>Ularning havola</th>
+                                                    <th>@L.T("Doc_TheirRef")</th>
                                                     <td>@(letter.TheirRefNo ?? "-")</td>
                                                 </tr>
                                                 <tr>
-                                                    <th>Kanal</th>
+                                                    <th>@L.T("Doc_Channel")</th>
                                                     <td>@(letter.ChannelCode ?? "-")</td>
                                                 </tr>
                                                 <tr>
-                                                    <th>Holat</th>
+                                                    <th>@L.T("Status")</th>
                                                     <td>
                                                         <span class="badge badge-@(Model.DOC_DOCUMENT_STATUS_REF?.Code == "APPROVED" ? "success" : Model.DOC_DOCUMENT_STATUS_REF?.Code == "CANCELLED" ? "danger" : Model.DOC_DOCUMENT_STATUS_REF?.Code == "FOR_APPROVAL" ? "warning" : "info")">
                                                             @(Model.DOC_DOCUMENT_STATUS_REF?.Name ?? "-")
@@ -166,15 +166,15 @@
                                                                     <form method="post" action="@Url.Action("ChangeStatus", new { id = Model.ID })" style="display:inline;">
                                                                         @Html.AntiForgeryToken()
                                                                         <input type="hidden" name="statusCode" value="FOR_APPROVAL" />
-                                                                        <button type="submit" class="btn btn-sm btn-warning" onclick="return confirm('Tasdiqlash uchun yuborilsinmi?');">
-                                                                            <i class="bx bx-send"></i> Tasdiqlash uchun yuborish
+                                                                        <button type="submit" class="btn btn-sm btn-warning" onclick="return confirm('@L.Js("Doc_ConfirmSendApproval")');">
+                                                                            <i class="bx bx-send"></i> @L.T("Doc_SendForApproval")
                                                                         </button>
                                                                     </form>
                                                                     <form method="post" action="@Url.Action("ChangeStatus", new { id = Model.ID })" style="display:inline;">
                                                                         @Html.AntiForgeryToken()
                                                                         <input type="hidden" name="statusCode" value="APPROVED" />
-                                                                        <button type="submit" class="btn btn-sm btn-success" onclick="return confirm('To\'g\'ridan-to\'g\'ri tasdiqlansinmi?');">
-                                                                            <i class="bx bx-check"></i> Tasdiqlash
+                                                                        <button type="submit" class="btn btn-sm btn-success" onclick="return confirm('@L.Js("Doc_ConfirmApproveDirect")');">
+                                                                            <i class="bx bx-check"></i> @L.T("Approve")
                                                                         </button>
                                                                     </form>
                                                                 }
@@ -183,16 +183,16 @@
                                                                     <form method="post" action="@Url.Action("ChangeStatus", new { id = Model.ID })" style="display:inline;">
                                                                         @Html.AntiForgeryToken()
                                                                         <input type="hidden" name="statusCode" value="APPROVED" />
-                                                                        <button type="submit" class="btn btn-sm btn-success" onclick="return confirm('Tasdiqlansinmi?');">
-                                                                            <i class="bx bx-check"></i> Tasdiqlash
+                                                                        <button type="submit" class="btn btn-sm btn-success" onclick="return confirm('@L.Js("Doc_ConfirmApprove")');">
+                                                                            <i class="bx bx-check"></i> @L.T("Approve")
                                                                         </button>
                                                                     </form>
                                                                 }
                                                                 <form method="post" action="@Url.Action("ChangeStatus", new { id = Model.ID })" style="display:inline;">
                                                                     @Html.AntiForgeryToken()
                                                                     <input type="hidden" name="statusCode" value="CANCELLED" />
-                                                                    <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Rad etilsinmi?');">
-                                                                        <i class="bx bx-x"></i> Rad etish
+                                                                    <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('@L.Js("Doc_ConfirmReject")');">
+                                                                        <i class="bx bx-x"></i> @L.T("Reject")
                                                                     </button>
                                                                 </form>
                                                             </div>
@@ -200,13 +200,13 @@
                                                     </td>
                                                 </tr>
                                                 <tr>
-                                                    <th>Mavzu</th>
+                                                    <th>@L.T("Doc_Topic")</th>
                                                     <td>@Model.Title</td>
                                                 </tr>
                                             </table>
                                         </div>
                                         <div class="col-md-6">
-                                            <h5>Matn</h5>
+                                            <h5>@L.T("Doc_Text")</h5>
                                             <div class="border p-3" style="min-height: 200px;">
                                                 @{
                                                     var bodyHtml = ViewBag.BodyHtml as string;
@@ -230,16 +230,16 @@
                                     {
                                         <div class="row mt-3">
                                             <div class="col-12">
-                                                <h5>Mahsulot va narxlar</h5>
+                                                <h5>@L.T("Doc_ProductsAndPrices")</h5>
                                                 <table class="table table-bordered">
                                                     <thead>
                                                         <tr>
-                                                            <th>Mahsulot nomi</th>
-                                                            <th>O'lchami</th>
-                                                            <th>Narx EXW</th>
-                                                            <th>Narx QQS bilan EXW</th>
-                                                            <th>Narx CIP</th>
-                                                            <th>Narx QQS bilan CIP</th>
+                                                            <th>@L.T("Doc_ProductName")</th>
+                                                            <th>@L.T("Doc_Dimension")</th>
+                                                            <th>@L.T("Doc_PriceExw")</th>
+                                                            <th>@L.T("Doc_PriceVatExw")</th>
+                                                            <th>@L.T("Doc_PriceCip")</th>
+                                                            <th>@L.T("Doc_PriceVatCip")</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody>
@@ -262,16 +262,16 @@
 
                                     <div class="row mt-3">
                                         <div class="col-12">
-                                            <h5>Yaratilgan hujjatlar</h5>
+                                            <h5>@L.T("Doc_GeneratedDocs")</h5>
                                             @if (files != null && files.Any())
                                             {
                                                 <table class="table">
                                                     <thead>
                                                         <tr>
-                                                            <th>Versiya</th>
-                                                            <th>Fayl nomi</th>
-                                                            <th>Yaratilgan</th>
-                                                            <th>Amallar</th>
+                                                            <th>@L.T("Doc_Version")</th>
+                                                            <th>@L.T("Doc_FileName")</th>
+                                                            <th>@L.T("CreatedAt")</th>
+                                                            <th>@L.T("Actions")</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody>
@@ -283,7 +283,7 @@
                                                                 <td>@file.CreatedDT.ToString("dd.MM.yyyy HH:mm")</td>
                                                                 <td>
                                                                     <a href="@Url.Action("DownloadFile", new { fileId = file.ID })" class="btn btn-sm btn-primary" style="color: white !important;">
-                                                                        <i class="bx bx-download"></i> Yuklab olish
+                                                                        <i class="bx bx-download"></i> @L.T("Download")
                                                                     </a>
                                                                 </td>
                                                             </tr>
@@ -294,7 +294,7 @@
                                             else
                                             {
                                                 <div class="alert alert-danger" role="alert">
-                                                    <i class="bx bx-error"></i> <strong>Fayl yo'q</strong> - Bu maktub uchun hujjat yaratilmagan.
+                                                    <i class="bx bx-error"></i> <strong>@L.T("Doc_NoFile")</strong> - @L.T("Doc_LetterNoDocument")
                                                 </div>
                                             }
                                         </div>
@@ -303,7 +303,7 @@
                                     <div class="row mt-3">
                                         <div class="col-12">
                                             <a href="@Url.Action("Index")" class="btn btn-secondary">
-                                                <i class="bx bx-arrow-back"></i> Orqaga
+                                                <i class="bx bx-arrow-back"></i> @L.T("Back")
                                             </a>
                                         </div>
                                     </div>

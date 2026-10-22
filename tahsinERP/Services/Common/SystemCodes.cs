@@ -99,23 +99,27 @@ namespace tahsinERP.Services.Common
             /// <summary>Amortizatsiya.</summary>
             public const string Depreciation = "DEPRECIATION";
 
-            /// <summary>Kod → UI nomi (tanlov ro'yxati tartibida).</summary>
-            public static readonly IReadOnlyList<KeyValuePair<string, string>> All = new List<KeyValuePair<string, string>>
+            /// <summary>Kod → resx kaliti (tanlov ro'yxati tartibida).</summary>
+            private static readonly KeyValuePair<string, string>[] DisplayKeys =
             {
-                new KeyValuePair<string, string>(Material, "Material"),
-                new KeyValuePair<string, string>(Payroll, "Ish haqi"),
-                new KeyValuePair<string, string>(Purchase, "Xarid (ta'minotchi)"),
-                new KeyValuePair<string, string>(Logistics, "Transport / logistika"),
-                new KeyValuePair<string, string>(Tax, "Soliq"),
-                new KeyValuePair<string, string>(Vat, "QQS"),
-                new KeyValuePair<string, string>(Bank, "Bank xizmatlari"),
-                new KeyValuePair<string, string>(Interest, "Kredit foizi"),
-                new KeyValuePair<string, string>(Depreciation, "Amortizatsiya"),
-                new KeyValuePair<string, string>(Capex, "Kapital xarajat (asosiy vosita, qurilish)"),
-                new KeyValuePair<string, string>(Dividend, "Dividend / aksiyador"),
-                new KeyValuePair<string, string>(Financing, "Moliyaviy harakat (kredit, o'tkazma, naqd, qarz)"),
-                new KeyValuePair<string, string>(Other, "Boshqa"),
+                new KeyValuePair<string, string>(Material, "Core_FinGroup_Material"),
+                new KeyValuePair<string, string>(Payroll, "Core_FinGroup_Payroll"),
+                new KeyValuePair<string, string>(Purchase, "Core_FinGroup_Purchase"),
+                new KeyValuePair<string, string>(Logistics, "Core_FinGroup_Logistics"),
+                new KeyValuePair<string, string>(Tax, "Core_FinGroup_Tax"),
+                new KeyValuePair<string, string>(Vat, "Core_FinGroup_Vat"),
+                new KeyValuePair<string, string>(Bank, "Core_FinGroup_Bank"),
+                new KeyValuePair<string, string>(Interest, "Core_FinGroup_Interest"),
+                new KeyValuePair<string, string>(Depreciation, "Core_FinGroup_Depreciation"),
+                new KeyValuePair<string, string>(Capex, "Core_FinGroup_Capex"),
+                new KeyValuePair<string, string>(Dividend, "Core_FinGroup_Dividend"),
+                new KeyValuePair<string, string>(Financing, "Core_FinGroup_Financing"),
+                new KeyValuePair<string, string>(Other, "Core_FinGroup_Other"),
             };
+
+            /// <summary>Kod → UI nomi joriy tilda (tanlov ro'yxati tartibida).</summary>
+            public static IReadOnlyList<KeyValuePair<string, string>> All =>
+                DisplayKeys.Select(x => new KeyValuePair<string, string>(x.Key, tahsinERP.I18n.L.T(x.Value))).ToList();
 
             public static bool IsValid(string code) => code != null && All.Any(x => x.Key == code);
         }
@@ -172,8 +176,9 @@ namespace tahsinERP.Services.Common
         /// <summary>Qator tizimnikimi (o'chirish taqiqlangan).</summary>
         public static bool IsSystem(string systemCode) => !string.IsNullOrEmpty(systemCode);
 
-        public const string DeleteForbiddenMessage =
-            "Bu tizim yozuvi (hisobotlar unga bog'langan) — uni o'chirib bo'lmaydi. Nomini o'zgartirishingiz mumkin.";
+        /// <summary>Foydalanuvchiga ko'rsatiladigan xabar — joriy tilda.</summary>
+        public static string DeleteForbiddenMessage =>
+            tahsinERP.I18n.L.T("Core_SystemRecordDeleteForbidden");
     }
 
     /// <summary>Tizim qatorlarini SystemCode bo'yicha topish (nom yoki qattiq ID bo'yicha emas).</summary>

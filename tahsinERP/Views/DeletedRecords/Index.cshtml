@@ -1,6 +1,6 @@
 @model dynamic
 @{
-    ViewBag.Title = "O'chirilganlar";
+    ViewBag.Title = L.T("Adm_Deleted");
     Layout = "~/Views/Shared/_AdminPanelLayout.cshtml";
 }
 @using tahsinERP.Models
@@ -21,8 +21,8 @@
                             <div class="breadcrumb-wrapper col-12">
                                 <ol class="breadcrumb rounded-pill breadcrumb-divider">
                                     <li class="breadcrumb-item"><a href="~/AdminPanel"><i class="bx bx-home-alt"></i></a></li>
-                                    <li class="breadcrumb-item">Admin Panel</li>
-                                    <li class="breadcrumb-item active">O'chirilganlar</li>
+                                    <li class="breadcrumb-item">@L.T("Menu_AdminPanel")</li>
+                                    <li class="breadcrumb-item active">@L.T("Adm_Deleted")</li>
                                 </ol>
                             </div>
                         </div>
@@ -35,14 +35,14 @@
                 @if (TempData["Success"] != null)
                 {
                     <div class="alert alert-success alert-dismissible mb-2" role="alert">
-                        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                        <button type="button" class="close" data-dismiss="alert" aria-label="@L.T("Close")"><span aria-hidden="true">&times;</span></button>
                         @TempData["Success"]
                     </div>
                 }
                 @if (TempData["Error"] != null)
                 {
                     <div class="alert alert-danger alert-dismissible mb-2" role="alert">
-                        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                        <button type="button" class="close" data-dismiss="alert" aria-label="@L.T("Close")"><span aria-hidden="true">&times;</span></button>
                         @TempData["Error"]
                     </div>
                 }
@@ -50,15 +50,15 @@
                 <section class="invoice-list-wrapper">
                     <div class="card">
                         <div class="card-header">
-                            <h4 class="card-title"><i class="bx bx-trash"></i> O'chirilgan ma'lumotlarni tiklash</h4>
+                            <h4 class="card-title"><i class="bx bx-trash"></i> @L.T("Core_DelRestoreTitle")</h4>
                         </div>
                         <div class="card-body">
                             <!-- Modul tanlash -->
                             <div class="row mb-3">
                                 <div class="col-md-6">
-                                    <label>Modulni tanlang</label>
+                                    <label>@L.T("Core_SelectModule")</label>
                                     <select id="moduleSelect" class="form-control select2">
-                                        <option value="">-- Modulni tanlang --</option>
+                                        <option value="">-- @L.T("Core_SelectModule") --</option>
                                         @foreach (var m in modules.OrderBy(x => x.DisplayName))
                                         {
                                             <option value="@m.Key">@m.DisplayName</option>
@@ -66,12 +66,12 @@
                                     </select>
                                 </div>
                                 <div class="col-md-4">
-                                    <label>Qidirish</label>
-                                    <input type="text" id="searchTerm" class="form-control" placeholder="Qidirish..." disabled />
+                                    <label>@L.T("Search")</label>
+                                    <input type="text" id="searchTerm" class="form-control" placeholder="@L.T("SearchPlaceholder")" disabled />
                                 </div>
                                 <div class="col-md-2 d-flex align-items-end">
                                     <button type="button" id="btnLoad" class="btn btn-primary w-100" disabled>
-                                        <i class="bx bx-search"></i> Yuklash
+                                        <i class="bx bx-search"></i> @L.T("Core_Load")
                                     </button>
                                 </div>
                             </div>
@@ -82,10 +82,10 @@
                                     <thead>
                                         <tr id="tableHeaderRow">
                                             <th>ID</th>
-                                            <th>Asosiy</th>
+                                            <th>@L.T("Core_DelCol_Main")</th>
                                             @if (changePermit)
                                             {
-                                                <th>Amallar</th>
+                                                <th>@L.T("Actions")</th>
                                             }
                                         </tr>
                                     </thead>
@@ -95,7 +95,7 @@
 
                             <div id="emptyState" class="text-center py-5 text-muted">
                                 <i class="bx bx-folder-open font-large-2"></i>
-                                <p class="mt-2">Modulni tanlang va "Yuklash" tugmasini bosing</p>
+                                <p class="mt-2">@L.T("Core_DelEmptyHint")</p>
                             </div>
                         </div>
                     </div>
@@ -108,18 +108,19 @@
 
     @section Scripts {
     <script>
+        window.erpDelConfirmRestore = '@L.Js("Core_DelConfirmRestore")';
         $(document).ready(function () {
             var selectedModule = '';
             var dataTable = null;
 
             // Select2 - qidirish bilan modul tanlash
             $('#moduleSelect').select2({
-                placeholder: 'Modulni qidirish yoki tanlash',
+                placeholder: '@L.Js("Core_SearchOrSelectModule")',
                 allowClear: true,
                 width: '100%',
                 language: {
-                    noResults: function () { return "Natija topilmadi"; },
-                    searching: function () { return "Qidirilmoqda..."; }
+                    noResults: function () { return erpT("Js_NoResults"); },
+                    searching: function () { return '@L.Js("Core_Searching")'; }
                 }
             });
 
@@ -161,7 +162,7 @@
                         $('#tableContainer').show();
                     },
                     error: function (xhr) {
-                        alert('Xatolik: ' + (xhr.responseJSON && xhr.responseJSON.error ? xhr.responseJSON.error : xhr.statusText));
+                        alert('@L.Js("Core_ErrorPrefix") ' + (xhr.responseJSON && xhr.responseJSON.error ? xhr.responseJSON.error : xhr.statusText));
                     }
                 });
             }
@@ -172,14 +173,14 @@
                 }
 
                 var changePermit = $('#changePermit').val() === '1';
-                var thead = '<tr><th>ID</th><th>Asosiy</th>';
+                var thead = '<tr><th>ID</th><th>@L.Js("Core_DelCol_Main")</th>';
                 if (columns && columns.length > 0) {
                     columns.forEach(function (col) {
                         thead += '<th>' + col + '</th>';
                     });
                 }
                 if (changePermit) {
-                    thead += '<th>Amallar</th>';
+                    thead += '<th>@L.Js("Actions")</th>';
                 }
                 thead += '</tr>';
                 $('#deletedDataTable thead').html(thead);
@@ -207,25 +208,19 @@
                     if (changePermit) {
                         var token = $('input[name="__RequestVerificationToken"]').val();
                         cells += '<td>' +
-                            '<form method="post" action="@Url.Action("Recover", "DeletedRecords")" style="display:inline;" onsubmit="return confirm(\'Tiklashni tasdiqlaysizmi?\');">' +
+                            '<form method="post" action="@Url.Action("Recover", "DeletedRecords")" style="display:inline;" onsubmit="return confirm(window.erpDelConfirmRestore);">' +
                             (token ? '<input type="hidden" name="__RequestVerificationToken" value="' + token + '" />' : '') +
                             '<input type="hidden" name="moduleKey" value="' + selectedModule + '" />' +
                             '<input type="hidden" name="id" value="' + row.Id + '" />' +
-                            '<button type="submit" class="btn btn-sm btn-success"><i class="bx bx-undo"></i> Tiklash</button>' +
+                            '<button type="submit" class="btn btn-sm btn-success"><i class="bx bx-undo"></i> @L.Js("Core_Restore")</button>' +
                             '</form></td>';
                     }
                     tbody += '<tr>' + cells + '</tr>';
                 });
-                $('#deletedDataTable tbody').html(tbody || '<tr><td colspan="99" class="text-center">O\'chirilgan yozuv topilmadi</td></tr>');
+                $('#deletedDataTable tbody').html(tbody || '<tr><td colspan="99" class="text-center">@L.Js("Core_DelNoRecords")</td></tr>');
 
                 dataTable = $('#deletedDataTable').DataTable({
-                    language: {
-                        search: "Qidirish:",
-                        lengthMenu: "_MENU_ ta ko'rsatish",
-                        info: "_TOTAL_ ta yozuvdan _START_ dan _END_ gacha",
-                        paginate: { first: "Birinchi", last: "Oxirgi", next: "Keyingi", previous: "Oldingi" },
-                        emptyTable: "Ma'lumot yo'q"
-                    },
+                    language: erpDataTable.language,
                     pageLength: 25,
                     order: [[0, "desc"]],
                     dom: 'Blfrtip',

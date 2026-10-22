@@ -1,6 +1,6 @@
 @model IEnumerable<tahsinERP.ViewModels.PermissionModuleViewModel>
 @{
-    ViewBag.Title = "Ruxsat modullari";
+    ViewBag.Title = L.T("Core_PmModules");
     Layout = "~/Views/Shared/_AdminPanelLayout.cshtml";
 }
 
@@ -18,7 +18,7 @@
                             <div class="breadcrumb-wrapper col-12">
                                 <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                     <li class="breadcrumb-item"><a href="~/AdminPanel"><i class="bx bx-home-alt"></i></a></li>
-                                    <li class="breadcrumb-item active">Ruxsat modullari</li>
+                                    <li class="breadcrumb-item active">@L.T("Core_PmModules")</li>
                                 </ol>
                             </div>
                         </div>
@@ -48,10 +48,10 @@
                     {
                         <div class="invoice-create-btn mb-1">
                             <a href="@Url.Action("Create", "PModule")" class="btn btn-success">
-                                <i class="bx bx-plus"></i> Yangi modul qo'shish
+                                <i class="bx bx-plus"></i> @L.T("Core_PmAddNew")
                             </a>
                             <a href="@Url.Action("MissingControllers", "PModule")" class="btn btn-warning ml-1">
-                                <i class="bx bx-list-check"></i> Ruhsat yaratilmagan Controllerlar
+                                <i class="bx bx-list-check"></i> @L.T("Core_PmMissingControllers")
                             </a>
                         </div>
                     }
@@ -63,7 +63,7 @@
                                     <!-- Controls -->
                                     <div class="row mb-3">
                                         <div class="col-md-6">
-                                            <input type="text" id="searchBox" class="form-control form-control-sm" placeholder="Qidirish..." style="width: 100%; max-width: 300px; display: inline-block;">
+                                            <input type="text" id="searchBox" class="form-control form-control-sm" placeholder="@L.T("SearchPlaceholder")" style="width: 100%; max-width: 300px; display: inline-block;">
                                         </div>
                                         <div class="col-md-6 text-right">
                                             <select id="pageSize" class="form-control form-control-sm d-inline-block" style="width: 120px;">
@@ -71,7 +71,7 @@
                                                 <option value="25" selected>25</option>
                                                 <option value="50">50</option>
                                                 <option value="100">100</option>
-                                                <option value="-1">Barchasi</option>
+                                                <option value="-1">@L.T("All")</option>
                                             </select>
                                         </div>
                                     </div>
@@ -81,14 +81,14 @@
                                         <table class="table table-striped table-bordered table-hover" id="pmoduleTable">
                                             <thead class="thead-light sticky-top">
                                                 <tr>
-                                                    <th>Modul nomi</th>
+                                                    <th>@L.T("Core_PmModuleName")</th>
                                                     <th>Controller</th>
                                                     <th>Action</th>
-                                                    <th>Parametr</th>
-                                                    <th>Rollar</th>
+                                                    <th>@L.T("Core_PmParameter")</th>
+                                                    <th>@L.T("Adm_Roles")</th>
                                                     @if (changePermit)
                                                     {
-                                                        <th class="text-center">Amallar</th>
+                                                        <th class="text-center">@L.T("Actions")</th>
                                                     }
                                                 </tr>
                                             </thead>
@@ -114,16 +114,16 @@
                                                             }
                                                             else
                                                             {
-                                                                <span class="text-muted">Rollar yo'q</span>
+                                                                <span class="text-muted">@L.T("Core_NoRoles")</span>
                                                             }
                                                         </td>
                                                         @if (changePermit)
                                                         {
                                                             <td class="text-center">
-                                                                <a href="@Url.Action("Edit", "PModule", new { id = item.ID })" class="btn btn-sm btn-outline-primary" title="Tahrirlash">
+                                                                <a href="@Url.Action("Edit", "PModule", new { id = item.ID })" class="btn btn-sm btn-outline-primary" title="@L.T("Edit")">
                                                                     <i class="bx bx-edit"></i>
                                                                 </a>
-                                                                <a href="@Url.Action("Delete", "PModule", new { id = item.ID })" class="btn btn-sm btn-outline-danger" title="O'chirish">
+                                                                <a href="@Url.Action("Delete", "PModule", new { id = item.ID })" class="btn btn-sm btn-outline-danger" title="@L.T("Delete")">
                                                                     <i class="bx bx-trash"></i>
                                                                 </a>
                                                             </td>
@@ -259,7 +259,7 @@
                 var prevLink = document.createElement('a');
                 prevLink.className = 'page-link';
                 prevLink.href = '#';
-                prevLink.textContent = 'Oldingi';
+                prevLink.textContent = erpT('Dt_Previous');
                 prevLink.addEventListener('click', function(e) {
                     e.preventDefault();
                     e.stopPropagation();
@@ -310,7 +310,7 @@
                 var nextLink = document.createElement('a');
                 nextLink.className = 'page-link';
                 nextLink.href = '#';
-                nextLink.textContent = 'Keyingi';
+                nextLink.textContent = erpT('Dt_Next');
                 nextLink.addEventListener('click', function(e) {
                     e.preventDefault();
                     e.stopPropagation();
@@ -327,9 +327,9 @@
             function updateInfo(total, start, end) {
                 var info = document.getElementById('paginationInfo');
                 if (total === 0) {
-                    info.textContent = 'Yozuvlar yo\'q';
+                    info.textContent = erpT('Dt_InfoEmpty');
                 } else {
-                    info.textContent = total + ' ta yozuvdan ' + (start + 1) + ' dan ' + Math.min(end, total) + ' gacha';
+                    info.textContent = erpT('Dt_Info').replace('_TOTAL_', total).replace('_START_', start + 1).replace('_END_', Math.min(end, total));
                 }
             }
 

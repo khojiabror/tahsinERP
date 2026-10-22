@@ -67,7 +67,7 @@ namespace tahsinERP
                 // Xato sahifasining o'zi ishlamasa — oddiy matn (cheksiz aylanishsiz)
                 Response.Clear();
                 Response.ContentType = "text/plain";
-                Response.Write(code == 404 ? "Sahifa topilmadi." : "Xatolik yuz berdi.");
+                Response.Write(code == 404 ? tahsinERP.I18n.L.T("Error_NotFound") : tahsinERP.I18n.L.T("Error_Generic"));
             }
         }
 

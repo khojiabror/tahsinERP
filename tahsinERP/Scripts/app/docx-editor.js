@@ -17,6 +17,9 @@
 (function (window, document) {
     'use strict';
 
+    // Joriy tildagi matn (window.erpT, _I18nScript); yuklanmagan bo'lsa — o'zbekcha
+    function tr(key, fallback) { return window.erpT ? window.erpT(key) : fallback; }
+
     var STYLE_MAP = [
         "p[style-name='Heading 1'] => h1:fresh",
         "p[style-name='Heading 2'] => h2:fresh",
@@ -45,7 +48,7 @@
         var quill = new window.Quill(opts.editor || '#quill-editor', {
             modules: { toolbar: opts.toolbar || '#quill-toolbar' },
             theme: 'snow',
-            placeholder: 'Hujjat kontentini kiriting...'
+            placeholder: tr('Js_Doc_ContentPh', 'Hujjat kontentini kiriting...')
         });
 
         quill.on('text-change', function (delta, oldDelta, source) {
@@ -71,7 +74,7 @@
             }).then(function (result) {
                 setHtml(result.value);
                 if (markChanged) changed = true;
-                if (opts.notify) window.alert('Hujjat muvaffaqiyatli yuklandi!');
+                if (opts.notify) window.alert(tr('Js_Doc_Loaded', 'Hujjat muvaffaqiyatli yuklandi!'));
             });
         }
 
@@ -84,19 +87,19 @@
                     var reader = new FileReader();
                     reader.onload = function (e) {
                         loadArrayBuffer(e.target.result, markChanged).catch(function () {
-                            window.alert(errorText || 'Fayl yuklashda xatolik yuz berdi');
+                            window.alert(errorText || tr('Js_Doc_FileLoadError', 'Fayl yuklashda xatolik yuz berdi'));
                         });
                     };
                     reader.readAsArrayBuffer(blob);
                 },
-                error: function () { window.alert(errorText || 'Fayl yuklashda xatolik yuz berdi'); }
+                error: function () { window.alert(errorText || tr('Js_Doc_FileLoadError', 'Fayl yuklashda xatolik yuz berdi')); }
             });
         }
 
         (opts.buttons || []).forEach(function (b) {
             $(b.selector).on('click', function () {
                 var url = typeof b.url === 'function' ? b.url() : b.url;
-                if (!url) { window.alert(b.missing || 'Fayl topilmadi'); return; }
+                if (!url) { window.alert(b.missing || tr('Js_Doc_FileNotFound', 'Fayl topilmadi')); return; }
                 loadUrl(url, b.error, false);
             });
         });
@@ -112,7 +115,7 @@
                     var reader = new FileReader();
                     reader.onload = function (ev) {
                         loadArrayBuffer(ev.target.result, true).catch(function (err) {
-                            window.alert('Word fayl yuklashda xatolik yuz berdi' + (err && err.message ? ': ' + err.message : ''));
+                            window.alert(tr('Js_Doc_WordLoadError', 'Word fayl yuklashda xatolik yuz berdi') + (err && err.message ? ': ' + err.message : ''));
                         });
                     };
                     reader.readAsArrayBuffer(file);

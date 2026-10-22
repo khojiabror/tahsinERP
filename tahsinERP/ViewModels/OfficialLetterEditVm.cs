@@ -10,8 +10,8 @@ namespace tahsinERP.ViewModels
     {
         public long DocumentId { get; set; }
 
-        [Display(Name = "Maktub raqami")]
-        [Required(ErrorMessage = "Maktub raqami kiritilishi shart")]
+        [Display(Name = "Doc_LetterNo")]
+        [Required(ErrorMessage = "Doc_LetterNoRequired")]
         public override string LetterNo
         {
             get { return base.LetterNo; }

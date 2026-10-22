@@ -1,7 +1,7 @@
 @using tahsinERP.Services.Tasks
 @model tahsinERP.ViewModels.TaskKanbanViewModel
 @{
-    ViewBag.Title = "Task Kanban";
+    ViewBag.Title = L.T("Task_Kanban");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 @Html.AntiForgeryToken()
@@ -18,8 +18,8 @@
                             <div class="breadcrumb-wrapper col-12">
                                 <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                     <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
-                                    <li class="breadcrumb-item"><a href="~/Tasks">Tasks</a></li>
-                                    <li class="breadcrumb-item active">Kanban</li>
+                                    <li class="breadcrumb-item"><a href="~/Tasks">@L.T("Menu_Tasks")</a></li>
+                                    <li class="breadcrumb-item active">@L.T("Menu_Kanban")</li>
                                 </ol>
                             </div>
                         </div>
@@ -35,23 +35,23 @@
                             <div class="card-body">
                                 <div class="d-flex justify-content-between align-items-center">
                                     <div>
-                                        <h4 class="mb-0">Task Kanban</h4>
+                                        <h4 class="mb-0">@L.T("Task_Kanban")</h4>
                                     </div>
                                     <div>
                                         <div class="btn-group" role="group">
                                             <a href="@Url.Action("Index", new { viewType = "project", showClosed = ViewBag.ShowClosed })"
                                                class="btn @(Model.ViewType == "project" ? "btn-primary" : "btn-outline-primary")">
-                                                <i class="bx bx-folder"></i> Loyiha bo'yicha
+                                                <i class="bx bx-folder"></i> @L.T("Task_ByProject")
                                             </a>
                                             <a href="@Url.Action("Index", new { viewType = "status", showClosed = ViewBag.ShowClosed })"
                                                class="btn @(Model.ViewType == "status" ? "btn-primary" : "btn-outline-primary")">
-                                                <i class="bx bx-check-circle"></i> Status bo'yicha
+                                                <i class="bx bx-check-circle"></i> @L.T("Task_ByStatus")
                                             </a>
                                         </div>
                                         @* Yakunlangan topshiriqlar standart holatda faqat oxirgi 30 kun uchun ko'rsatiladi *@
                                         <a href="@Url.Action("Index", new { viewType = Model.ViewType, showClosed = !(ViewBag.ShowClosed ?? false) })"
                                            class="btn btn-sm @(ViewBag.ShowClosed == true ? "btn-secondary" : "btn-outline-secondary") ml-1">
-                                            <i class="bx bx-archive"></i> @(ViewBag.ShowClosed == true ? "Faqat oxirgi 30 kun" : "Barcha yopilganlar")
+                                            <i class="bx bx-archive"></i> @(ViewBag.ShowClosed == true ? L.T("Task_Last30Days") : L.T("Task_AllClosed"))
                                         </a>
                                     </div>
                                 </div>
@@ -114,7 +114,7 @@
                                                 @if (board.Tasks.Count == 0)
                                                 {
                                                     <div class="kanban-item-empty text-center text-muted p-3">
-                                                        Vazifalar yo'q
+                                                        @L.T("Task_NoTasks")
                                                     </div>
                                                 }
                                             </div>
@@ -178,7 +178,7 @@
                                                 @if (board.Tasks.Count == 0)
                                                 {
                                                     <div class="kanban-item-empty text-center text-muted p-3">
-                                                        Vazifalar yo'q
+                                                        @L.T("Task_NoTasks")
                                                     </div>
                                                 }
                                             </div>
@@ -404,17 +404,17 @@
                     success: function(response) {
                         if (response.success) {
                             // Show success message
-                            toastr.success(response.message || 'Status muvaffaqiyatli o\'zgartirildi');
+                            toastr.success(response.message || '@L.Js("Task_StatusChanged")');
                         } else {
                             // Revert the move
                             location.reload();
-                            toastr.error(response.message || 'Xatolik yuz berdi');
+                            toastr.error(response.message || '@L.Js("Error_Generic")');
                         }
                     },
                     error: function() {
                         // Revert the move
                         location.reload();
-                        toastr.error('Xatolik yuz berdi');
+                        toastr.error('@L.Js("Error_Generic")');
                     }
                 });
 

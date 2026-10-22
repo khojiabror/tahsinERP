@@ -7,6 +7,7 @@ using tahsinERP.Filters;
 using tahsinERP.Models;
 using tahsinERP.Services.Tasks;
 using tahsinERP.ViewModels;
+using tahsinERP.I18n;
 
 namespace tahsinERP.Controllers
 {
@@ -97,7 +98,7 @@ namespace tahsinERP.Controllers
                         viewModel.ProjectBoards.Add(new KanbanBoardViewModel
                         {
                             ID = "no-project",
-                            Title = "Loyiha yo'q",
+                            Title = L.T("Task_NoProject"),
                             Tasks = noProjectTasks
                         });
                     }
@@ -135,7 +136,7 @@ namespace tahsinERP.Controllers
                 !RoleHelper.IsViewPermitted(CurrentUserName, "TaskChangeStatus", "ChangeStatus"))
             {
                 Response.StatusCode = 403;
-                return Json(new { success = false, message = "Ruxsat yo'q" });
+                return Json(new { success = false, message = L.T("Error_NotAuthorized") });
             }
 
             bool isAdminOrDeveloper = RoleHelper.IsAdminOrDeveloper(CurrentUserName);
@@ -143,7 +144,7 @@ namespace tahsinERP.Controllers
 
             if (!TaskLookups.Statuses().Any(s => s.ID == newStatusId))
             {
-                return Json(new { success = false, message = "Noto'g'ri status" });
+                return Json(new { success = false, message = L.T("Task_InvalidStatus") });
             }
 
             using (DBTHSNEntities db = new DBTHSNEntities())
@@ -151,13 +152,13 @@ namespace tahsinERP.Controllers
                 var task = await db.APP_TASKS.FindAsync(taskId);
                 if (task == null || task.IsDeleted)
                 {
-                    return Json(new { success = false, message = "Task topilmadi" });
+                    return Json(new { success = false, message = L.T("Task_NotFound") });
                 }
 
                 // Oddiy user boshqalarning tasklarini o'zgartirmasligi kerak
                 if (!TaskRules.CanAccess(task.AssigneeUserID, currentUserId, isAdminOrDeveloper))
                 {
-                    return Json(new { success = false, message = "Siz faqat o'zingizga tegishli tasklarni o'zgartirishingiz mumkin" });
+                    return Json(new { success = false, message = L.T("Task_OnlyOwnChange") });
                 }
 
                 try
@@ -168,11 +169,11 @@ namespace tahsinERP.Controllers
 
                     LogHelper.LogToDatabase(CurrentUserName, "TaskKanbanController", $"Task {task.KeyCode} status o'zgartirildi: {newStatusId}");
 
-                    return Json(new { success = true, message = "Status muvaffaqiyatli o'zgartirildi" });
+                    return Json(new { success = true, message = L.T("Task_StatusChanged") });
                 }
                 catch (Exception ex)
                 {
-                    return JsonError(ex, "Statusni o'zgartirib bo'lmadi.");
+                    return JsonError(ex, L.T("Task_StatusChangeFailed"));
                 }
             }
         }

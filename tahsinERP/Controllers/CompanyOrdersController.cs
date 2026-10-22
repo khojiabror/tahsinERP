@@ -12,6 +12,7 @@ using tahsinERP.Models;
 using tahsinERP.Services;
 using tahsinERP.Services.Documents;
 using tahsinERP.ViewModels;
+using tahsinERP.I18n;
 
 namespace tahsinERP.Controllers
 {
@@ -136,7 +137,7 @@ namespace tahsinERP.Controllers
                             var ids = await DocumentService.DraftHeaderIdsAsync(db, DocumentService.CompanyOrderType);
                             if (ids == null)
                             {
-                                TempData["ErrorMessage"] = "Hujjat turi yoki holati topilmadi. Iltimos, seed skriptlarini ishga tushiring.";
+                                TempData["ErrorMessage"] = L.T("Doc_TypeOrStatusMissingSeed");
                                 return RedirectToAction("Index");
                             }
 
@@ -162,15 +163,15 @@ namespace tahsinERP.Controllers
                             LogHelper.LogToDatabase(CurrentUserName, "CompanyOrders", "Create", $"Buyruq yaratildi: {orderNo}");
 
                             TempData["Success"] = orderNo == vm.OrderNo?.Trim()
-                                ? "Buyruq muvaffaqiyatli yaratildi"
-                                : $"Buyruq yaratildi. {vm.OrderNo} raqami band bo'lgani uchun {orderNo} raqami berildi";
+                                ? L.T("Doc_OrderCreated")
+                                : L.T("Doc_OrderCreatedRenumbered", vm.OrderNo, orderNo);
                             return RedirectToAction("Index");
                         }
                     }
                     catch (Exception ex)
                     {
                         System.Diagnostics.Trace.TraceError("CompanyOrders Create: {0}", ex);
-                        ModelState.AddModelError("", "Saqlashda xatolik yuz berdi: " + InnermostMessage(ex));
+                        ModelState.AddModelError("", L.T("Doc_SaveErrorDetails", InnermostMessage(ex)));
                     }
                 }
 
@@ -253,7 +254,7 @@ namespace tahsinERP.Controllers
 
                     LogHelper.LogToDatabase(CurrentUserName, "CompanyOrders", "Edit", $"Buyruq yangilandi: {vm.OrderNo}");
 
-                    TempData["Success"] = "Buyruq muvaffaqiyatli yangilandi";
+                    TempData["Success"] = L.T("Doc_OrderUpdated");
                     return RedirectToAction("Index");
                 }
 
@@ -312,7 +313,7 @@ namespace tahsinERP.Controllers
 
                     LogHelper.LogToDatabase(CurrentUserName, "CompanyOrders", "Delete", $"Buyruq o'chirildi: {code}");
 
-                    TempData["Success"] = "Buyruq muvaffaqiyatli o'chirildi";
+                    TempData["Success"] = L.T("Doc_OrderDeleted");
                 }
             }
 
@@ -343,8 +344,8 @@ namespace tahsinERP.Controllers
                 if (resolvedTemplateId == null)
                 {
                     TempData["ErrorMessage"] = templateId.HasValue
-                        ? "Tanlangan shablon topilmadi yoki arxivlangan."
-                        : "Faol shablon yo'q. \"Shablonlar\" sahifasida Word shablon yuklang.";
+                        ? L.T("Doc_TemplateNotFoundOrArchived")
+                        : L.T("Doc_NoActiveTemplate");
                     return RedirectToAction("Details", new { id });
                 }
 
@@ -358,8 +359,8 @@ namespace tahsinERP.Controllers
                 catch (Exception ex)
                 {
                     System.Diagnostics.Trace.TraceError("CompanyOrders GenerateDoc {0}: {1}", id, ex);
-                    TempData["ErrorMessage"] = "Hujjat yaratib bo'lmadi: " +
-                        (ex is InvalidOperationException ? ex.Message : "shablon faylini tekshiring (Word'da ochilishi kerak).");
+                    TempData["ErrorMessage"] = L.T("Doc_GenerateFailed",
+                        ex is InvalidOperationException ? ex.Message : L.T("Doc_CheckTemplateFile"));
                     return RedirectToAction("Details", new { id });
                 }
 
@@ -377,12 +378,11 @@ namespace tahsinERP.Controllers
 
                 LogHelper.LogToDatabase(CurrentUserName, "CompanyOrders", "GenerateDoc", $"Buyruq uchun hujjat yaratildi: {order.OrderNo}");
 
-                TempData["Success"] = $"Hujjat yaratildi (versiya {file.VersionNo}) va yuklab olinmoqda.";
+                TempData["Success"] = L.T("Doc_GeneratedDownloading", file.VersionNo);
                 if (generated.UnknownPlaceholders.Count > 0)
                 {
-                    TempData["Warning"] = "Shablonda tanilmagan maydonlar o'zgarishsiz qoldi: " +
-                        string.Join(", ", generated.UnknownPlaceholders.Select(p => "{{" + p + "}}")) +
-                        ". To'g'ri nomlar \"Shablonlar\" sahifasida.";
+                    TempData["Warning"] = L.T("Doc_UnknownPlaceholdersLeft",
+                        string.Join(", ", generated.UnknownPlaceholders.Select(p => "{{" + p + "}}")));
                 }
                 // Details sahifasi faylni avtomatik yuklab beradi
                 TempData["DownloadFileId"] = file.ID;
@@ -413,7 +413,7 @@ namespace tahsinERP.Controllers
                 LogHelper.LogToDatabase(CurrentUserName, "CompanyOrders", "ChangeStatus",
                     $"Buyruq holati '{result.StatusName}' ga o'zgartirildi: {result.DocumentCode}");
 
-                TempData["Success"] = $"Holat '{result.StatusName}' ga o'zgartirildi";
+                TempData["Success"] = L.T("Doc_StatusChangedTo", result.StatusName);
                 return RedirectToAction("Details", new { id });
             }
         }
@@ -471,7 +471,7 @@ namespace tahsinERP.Controllers
             catch (Exception ex)
             {
                 System.Diagnostics.Trace.TraceError("CompanyOrders SuggestText: {0}", ex);
-                return Json(new { success = false, error = "Matn taklif qilib bo'lmadi." });
+                return Json(new { success = false, error = L.T("Doc_SuggestFailed") });
             }
         }
     }

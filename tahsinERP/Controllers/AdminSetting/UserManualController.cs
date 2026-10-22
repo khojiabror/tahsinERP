@@ -44,7 +44,7 @@ namespace tahsinERP.Controllers
 
             if (chapter == null)
             {
-                return Json(new { error = "Bo'lim topilmadi" }, JsonRequestBehavior.AllowGet);
+                return Json(new { error = tahsinERP.I18n.L.T("Core_SectionNotFound") }, JsonRequestBehavior.AllowGet);
             }
 
             return Json(new { 

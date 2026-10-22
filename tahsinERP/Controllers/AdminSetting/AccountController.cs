@@ -12,6 +12,7 @@ using tahsinERP.Helpers;
 using tahsinERP.Models;
 using tahsinERP.ViewModels;
 using tahsinERP.Filters;
+using tahsinERP.I18n;
 
 namespace tahsinERP.Controllers
 {
@@ -43,13 +44,13 @@ namespace tahsinERP.Controllers
         {
             if (string.IsNullOrWhiteSpace(user.UName))
             {
-                ModelState.AddModelError("UName", "Foydalanuvchi nomini kiriting");
+                ModelState.AddModelError("UName", L.T("Core_EnterUserName"));
                 return View();
             }
 
             if (string.IsNullOrWhiteSpace(user.Password))
             {
-                ModelState.AddModelError("Password", "Kalit so'zni kiriting");
+                ModelState.AddModelError("Password", L.T("Core_EnterPassword"));
                 return View();
             }
 
@@ -57,7 +58,7 @@ namespace tahsinERP.Controllers
             TimeSpan lockRemaining;
             if (LoginThrottle.Default.IsLockedOut(user.UName, clientIp, out lockRemaining))
             {
-                ModelState.AddModelError("", $"Juda ko'p noto'g'ri urinish. {Math.Ceiling(lockRemaining.TotalMinutes)} daqiqadan keyin qayta urinib ko'ring.");
+                ModelState.AddModelError("", L.T("Core_TooManyAttempts", Math.Ceiling(lockRemaining.TotalMinutes)));
                 return View();
             }
 
@@ -70,13 +71,13 @@ namespace tahsinERP.Controllers
                 if (getUser == null)
                 {
                     LoginThrottle.Default.RegisterFailure(user.UName, clientIp);
-                    ModelState.AddModelError("", "Bunday foydalanuvchi mavjud emas!");
+                    ModelState.AddModelError("", L.T("Core_UserNotExists"));
                     return View();
                 }
 
                 if (!getUser.IsActive)
                 {
-                    ModelState.AddModelError("", "Foydalanuvchi faol emas. Administrator bilan bog'laning.");
+                    ModelState.AddModelError("", L.T("Core_UserInactive"));
                     return View();
                 }
 
@@ -86,8 +87,8 @@ namespace tahsinERP.Controllers
                 {
                     bool nowLocked = LoginThrottle.Default.RegisterFailure(user.UName, clientIp);
                     ModelState.AddModelError("", nowLocked
-                        ? $"Kalit so'zi noto'g'ri! {LoginThrottle.Default.MaxFailures} marta xato — {LoginThrottle.Default.LockoutDuration.TotalMinutes:0} daqiqaga bloklandi."
-                        : "Kalit so'zi noto'g'ri!");
+                        ? L.T("Core_WrongPasswordLocked", LoginThrottle.Default.MaxFailures, LoginThrottle.Default.LockoutDuration.TotalMinutes.ToString("0"))
+                        : L.T("Core_WrongPassword"));
                     return View();
                 }
                 LoginThrottle.Default.Reset(user.UName, clientIp);
@@ -117,7 +118,7 @@ namespace tahsinERP.Controllers
                     System.Diagnostics.Trace.TraceError("[License] Login paytida litsenziya tekshiruvi xatosi: " + ex);
                     if (!canManageLicense)
                     {
-                        ModelState.AddModelError("", "Litsenziyani tekshirishda xatolik yuz berdi. Administrator bilan bog'laning.");
+                        ModelState.AddModelError("", L.T("Core_LicenseCheckError"));
                         return View();
                     }
                 }
@@ -188,7 +189,7 @@ namespace tahsinERP.Controllers
                 if (getUser.MustChangePassword)
                 {
                     Session[tahsinERP.Filters.MustChangePasswordAttribute.SessionKey] = true;
-                    TempData["MustChangePassword"] = "Vaqtinchalik parol bilan kirdingiz. Davom etish uchun yangi parol o'rnating.";
+                    TempData["MustChangePassword"] = L.T("Core_TempPasswordLogin");
                     return RedirectToAction("Settings");
                 }
 
@@ -356,7 +357,7 @@ namespace tahsinERP.Controllers
                 if (string.IsNullOrEmpty(uvm.CurrentPassword) ||
                     !PasswordHasher.Verify(uvm.CurrentPassword, userToUpdate.Password, userToUpdate.HashCode, out ignoredRehash))
                 {
-                    ModelState.AddModelError("", "Amaldagi kalit so'zi noto'g'ri.");
+                    ModelState.AddModelError("", L.T("Core_CurrentPasswordWrong"));
                     return View("Settings", uvm);
                 }
 
@@ -364,7 +365,7 @@ namespace tahsinERP.Controllers
                 if (userToUpdate.MustChangePassword &&
                     (string.IsNullOrEmpty(uvm.Password) || uvm.Password == uvm.CurrentPassword))
                 {
-                    ModelState.AddModelError("", "Vaqtinchalik parolni almashtiring: yangi (boshqa) kalit so'zini kiriting.");
+                    ModelState.AddModelError("", L.T("Core_ChangeTempPassword"));
                     return View("Settings", uvm);
                 }
 
@@ -373,7 +374,7 @@ namespace tahsinERP.Controllers
                 {
                     if (uvm.Password != uvm.ConfirmPassword)
                     {
-                        ModelState.AddModelError("", "Yangi kalit so'zi va takrori mos kelmadi.");
+                        ModelState.AddModelError("", L.T("Core_PasswordMismatch"));
                         return View("Settings", uvm);
                     }
                     string keyNew;
@@ -398,7 +399,7 @@ namespace tahsinERP.Controllers
                     {
                         if (Request.Files["userPhotoUpload"].InputStream.Length > userPhotoMaxLength)
                         {
-                            ModelState.AddModelError("", "Suratni yuklab bo'lmadi, u 2 MB dan ortiq.");
+                            ModelState.AddModelError("", L.T("Core_PhotoTooLarge"));
                             return View("Settings", uvm);
                         }
 
@@ -429,11 +430,11 @@ namespace tahsinERP.Controllers
                 }
                 catch (RetryLimitExceededException)
                 {
-                    ModelState.AddModelError("", "O'zgarishlarni saqlab bo'lmadi. Qayta urinib ko'ring.");
+                    ModelState.AddModelError("", L.T("Core_SaveRetryFailed"));
                 }
                 catch (Exception ex)
                 {
-                    ModelState.AddModelError("", $"Xatolik yuz berdi: {ex.Message}");
+                    ModelState.AddModelError("", L.T("Core_ErrorWithMessage", ex.Message));
                 }
 
                 return View("Settings", uvm);

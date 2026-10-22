@@ -2,12 +2,12 @@
     Layout = null;
 }
 <!DOCTYPE html>
-<html lang="uz">
+<html lang="@tahsinERP.Localization.Languages.HtmlLang(L.Lang)">
 <head>
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0">
-    <title>Sahifa topilmadi - tahsinERP</title>
+    <title>@L.T("Core_PageNotFound") - tahsinERP</title>
     <link rel="apple-touch-icon" href="~/app-assets/images/ico/apple-touch-icon.png">
     <link rel="shortcut icon" type="image/x-icon" href="~/app-assets/images/ico/favicon.ico">
     <link href="https://fonts.googleapis.com/css?family=Rubik:300,400,500,600%7CIBM+Plex+Sans:300,400,500,600,700" rel="stylesheet">
@@ -48,13 +48,13 @@
                                         </svg>
                                     </div>
                                     <h1 class="error-code">404</h1>
-                                    <h2 class="error-title">Sahifa topilmadi</h2>
+                                    <h2 class="error-title">@L.T("Core_PageNotFound")</h2>
                                     <p class="error-message">
-                                        Siz qidirgan sahifa mavjud emas yoki ko'chirilgan. URL manzilni tekshiring yoki asosiy sahifadan davom eting.
+                                        @L.T("Core_NotFoundText")
                                     </p>
                                     <div class="btn-group-error">
-                                        <a href="~/Home" class="btn btn-primary round">Asosiy sahifaga qaytish</a>
-                                        <a href="javascript:history.back()" class="btn btn-outline-primary round">Orqaga</a>
+                                        <a href="~/Home" class="btn btn-primary round">@L.T("Core_BackToHome")</a>
+                                        <a href="javascript:history.back()" class="btn btn-outline-primary round">@L.T("Back")</a>
                                     </div>
                                 </div>
                             </div>

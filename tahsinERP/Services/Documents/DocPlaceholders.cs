@@ -15,7 +15,9 @@ namespace tahsinERP.Services.Documents
     public sealed class PlaceholderInfo
     {
         public string Key { get; set; }
-        public string Description { get; set; }
+        /// <summary>Tavsif resx kaliti; <see cref="Description"/> — joriy tilda.</summary>
+        public string DescriptionKey { get; set; }
+        public string Description => tahsinERP.I18n.L.T(DescriptionKey);
         public PlaceholderKind Kind { get; set; }
 
         /// <summary>Shablonda yoziladigan ko'rinish: {{KEY}}.</summary>
@@ -55,43 +57,43 @@ namespace tahsinERP.Services.Documents
 
         private static readonly PlaceholderInfo[] Common =
         {
-            P("DIRECTOR_NAME", "Direktor F.I.Sh. (kompaniya sozlamasi)"),
-            P("TODAY", "Bugungi sana (dd.MM.yyyy)")
+            P("DIRECTOR_NAME", "Doc_PhDirectorName"),
+            P("TODAY", "Doc_PhToday")
         };
 
         private static readonly PlaceholderInfo[] Letter =
         {
-            P("LETTER_NO", "Maktub raqami"),
-            P("LETTER_DATE", "Maktub sanasi (dd.MM.yyyy)"),
-            P("COMPANY_NAME", "Qabul qiluvchi kompaniya"),
-            P("CONTACT_NAME", "Qabul qiluvchi shaxs"),
-            P("CONTACT_POSITION", "Qabul qiluvchi lavozimi"),
-            P("RECIPIENT_BLOCK", "Kompaniya, lavozim va shaxs — har biri yangi qatorda"),
-            P("GREETING_LINE", "Murojaat (masalan: Hurmatli ...!)"),
-            P("TOPIC", "Mavzu"),
-            P("LETTER_BODY", "Maktub matni (formatlash bilan)", PlaceholderKind.RichText),
-            P("ITEMS_TABLE", "Mahsulot va narxlar jadvali", PlaceholderKind.Table),
-            P("ITEMS_BLOCK", "Mahsulotlar ro'yxati (oddiy matn)"),
-            P("OUR_REF_NO", "Bizning havola raqami"),
-            P("THEIR_REF_NO", "Ularning havola raqami"),
-            P("CHANNEL", "Yuborish usuli"),
-            P("ITEM_NAME_1", "1-mahsulot nomi (2, 3, ... ham bor)"),
-            P("ITEM_DIM_1", "1-mahsulot o'lchami"),
-            P("ITEM_PRICE_EXW_1", "1-mahsulot EXW narxi"),
-            P("ITEM_PRICE_VAT_EXW_1", "1-mahsulot QQS bilan EXW narxi"),
-            P("ITEM_PRICE_CIP_1", "1-mahsulot CIP narxi"),
-            P("ITEM_PRICE_VAT_CIP_1", "1-mahsulot QQS bilan CIP narxi")
+            P("LETTER_NO", "Doc_PhLetterNo"),
+            P("LETTER_DATE", "Doc_PhLetterDate"),
+            P("COMPANY_NAME", "Doc_PhCompanyName"),
+            P("CONTACT_NAME", "Doc_PhContactName"),
+            P("CONTACT_POSITION", "Doc_PhContactPosition"),
+            P("RECIPIENT_BLOCK", "Doc_PhRecipientBlock"),
+            P("GREETING_LINE", "Doc_PhGreetingLine"),
+            P("TOPIC", "Doc_PhTopic"),
+            P("LETTER_BODY", "Doc_PhLetterBody", PlaceholderKind.RichText),
+            P("ITEMS_TABLE", "Doc_PhItemsTable", PlaceholderKind.Table),
+            P("ITEMS_BLOCK", "Doc_PhItemsBlock"),
+            P("OUR_REF_NO", "Doc_PhOurRefNo"),
+            P("THEIR_REF_NO", "Doc_PhTheirRefNo"),
+            P("CHANNEL", "Doc_PhChannel"),
+            P("ITEM_NAME_1", "Doc_PhItemName1"),
+            P("ITEM_DIM_1", "Doc_PhItemDim1"),
+            P("ITEM_PRICE_EXW_1", "Doc_PhItemPriceExw1"),
+            P("ITEM_PRICE_VAT_EXW_1", "Doc_PhItemPriceVatExw1"),
+            P("ITEM_PRICE_CIP_1", "Doc_PhItemPriceCip1"),
+            P("ITEM_PRICE_VAT_CIP_1", "Doc_PhItemPriceVatCip1")
         };
 
         private static readonly PlaceholderInfo[] Order =
         {
-            P("ORDER_NO", "Buyruq raqami"),
-            P("ORDER_DATE", "Buyruq sanasi (dd.MM.yyyy)"),
-            P("ORDER_TOPIC", "Buyruq mavzusi (sarlavha)"),
-            P("ORDER_TYPE", "Buyruq turi"),
-            P("ORG_UNIT_NAME", "Bo'lim"),
-            P("ORDER_BODY", "Buyruq matni (formatlash bilan)", PlaceholderKind.RichText),
-            P("ORDER_DECREE_1_CONTENT_1", "Matnning 1-bandi (2, 3, ... ham bor; raqamsiz)")
+            P("ORDER_NO", "Doc_PhOrderNo"),
+            P("ORDER_DATE", "Doc_PhOrderDate"),
+            P("ORDER_TOPIC", "Doc_PhOrderTopic"),
+            P("ORDER_TYPE", "Doc_PhOrderType"),
+            P("ORG_UNIT_NAME", "Doc_PhOrgUnitName"),
+            P("ORDER_BODY", "Doc_PhOrderBody", PlaceholderKind.RichText),
+            P("ORDER_DECREE_1_CONTENT_1", "Doc_PhOrderDecree1Content1")
         };
 
         /// <summary>Eski shablonlardagi nomlar (avval DocumentTemplateService ichida qattiq yozilgan edi).</summary>
@@ -110,9 +112,9 @@ namespace tahsinERP.Services.Documents
             { "ITEM_PRICE_VAT_1", "ITEM_PRICE_VAT_EXW_1" }
         };
 
-        private static PlaceholderInfo P(string key, string description, PlaceholderKind kind = PlaceholderKind.Text)
+        private static PlaceholderInfo P(string key, string descriptionKey, PlaceholderKind kind = PlaceholderKind.Text)
         {
-            return new PlaceholderInfo { Key = key, Description = description, Kind = kind };
+            return new PlaceholderInfo { Key = key, DescriptionKey = descriptionKey, Kind = kind };
         }
 
         public static IEnumerable<string> DocTypes => TypeNames.Keys;
@@ -121,6 +123,15 @@ namespace tahsinERP.Services.Documents
         {
             string name;
             return docTypeCode != null && TypeNames.TryGetValue(docTypeCode, out name) ? name : docTypeCode;
+        }
+
+        /// <summary>Turi nomi joriy tilda (faqat ko'rsatish; <see cref="TypeName"/> DOC_TYPES'ga yoziladi).</summary>
+        public static string TypeDisplayName(string docTypeCode)
+        {
+            if (string.Equals(docTypeCode, LetterType, StringComparison.OrdinalIgnoreCase)) return tahsinERP.I18n.L.T("Doc_TypeLetter");
+            if (string.Equals(docTypeCode, OrderType, StringComparison.OrdinalIgnoreCase)) return tahsinERP.I18n.L.T("Doc_TypeOrder");
+            if (string.Equals(docTypeCode, StandardType, StringComparison.OrdinalIgnoreCase)) return tahsinERP.I18n.L.T("Doc_TypeStandard");
+            return docTypeCode;
         }
 
         public static bool IsKnownType(string docTypeCode) => docTypeCode != null && TypeNames.ContainsKey(docTypeCode);

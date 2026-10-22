@@ -1,6 +1,6 @@
 @model tahsinERP.ViewModels.Reports.SRMABCSegmentationViewModel
 @{
-    ViewBag.Title = "ABC / XYZ segmentatsiya";
+    ViewBag.Title = L.T("Doc_RepAbcXyz");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -17,10 +17,10 @@
                                     <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                 </li>
                                 <li class="breadcrumb-item ">
-                                    SRM Hisobotlar
+                                    @L.T("Doc_RepSrmReports")
                                 </li>
                                 <li class="breadcrumb-item active">
-                                    ABC / XYZ segmentatsiya
+                                    @L.T("Doc_RepAbcXyz")
                                 </li>
                             </ol>
                         </div>
@@ -35,20 +35,20 @@
                     {
                         <div class="row border rounded py-2 mb-2">
                             <div class="col-md-3 col-sm-6">
-                                <label>Ombor:</label>
+                                <label>@L.T("Doc_RepWarehouseColon")</label>
                                 @Html.DropDownList("warehouseId", Model.Warehouses as IEnumerable<SelectListItem>, new { @class = "form-control" })
                             </div>
                             <div class="col-md-3 col-sm-6">
-                                <label>Dan:</label>
+                                <label>@L.T("Doc_RepFromColon")</label>
                                 <input type="date" name="fromDate" class="form-control" value="@Model.FromDate.ToString("yyyy-MM-dd")" />
                             </div>
                             <div class="col-md-3 col-sm-6">
-                                <label>Gacha:</label>
+                                <label>@L.T("Doc_RepToColon")</label>
                                 <input type="date" name="toDate" class="form-control" value="@Model.ToDate.ToString("yyyy-MM-dd")" />
                             </div>
                             <div class="col-md-3 col-sm-6 d-flex align-items-end">
                                 <button type="submit" class="btn btn-primary btn-block">
-                                    <i class="bx bx-refresh"></i> Hisoblash
+                                    <i class="bx bx-refresh"></i> @L.T("Doc_RepCalculate")
                                 </button>
                             </div>
                         </div>
@@ -63,12 +63,12 @@
                                     <table id="abcTable" class="table table-striped table-bordered nowrap" style="width:100%">
                                         <thead>
                                             <tr class="table-primary">
-                                                <th>Kod</th>
-                                                <th>Xomashyo</th>
-                                                <th>Birlik</th>
-                                                <th class="text-right">Talab (jami)</th>
-                                                <th class="text-right">Ulush, %</th>
-                                                <th class="text-right">Kumulyativ, %</th>
+                                                <th>@L.T("Code")</th>
+                                                <th>@L.T("Menu_RawMaterials")</th>
+                                                <th>@L.T("Unit")</th>
+                                                <th class="text-right">@L.T("Doc_RepDemandTotal")</th>
+                                                <th class="text-right">@L.T("Doc_RepSharePct")</th>
+                                                <th class="text-right">@L.T("Doc_RepCumulativePct")</th>
                                                 <th>ABC</th>
                                                 <th class="text-right">CoV</th>
                                                 <th>XYZ</th>
@@ -106,20 +106,20 @@
                 <div class="col-md-12 col-sm-12 mt-2">
                     <div class="card">
                         <div class="card-header">
-                            <h4 class="card-title mb-0">ABC / XYZ segmentatsiya izohi</h4>
+                            <h4 class="card-title mb-0">@L.T("Doc_RepAbcXyzNote")</h4>
                         </div>
                         <div class="card-body">
-                            <p class="mb-1"><strong>ABC klassifikatsiya (qiymat bo'yicha, oddiy so'zlar bilan):</strong></p>
+                            <p class="mb-1"><strong>@L.T("Doc_RepAbcHeader")</strong></p>
                             <ul class="mb-1">
-                                <li><strong>A klass (taxminan 80% qiymat):</strong> eng muhim, asosiy pul aylanadigan pozitsiyalar. Soni kam, lekin summasi juda katta. Ularni eng sinchkov nazorat qilish kerak.</li>
-                                <li><strong>B klass (keyingi taxminan 15% qiymat):</strong> o'rtacha muhim pozitsiyalar. Ular bo'yicha boshqaruv ham muhim, lekin A klassdek qattiq emas.</li>
-                                <li><strong>C klass (qolgan kichik qiymat qismi):</strong> juda ko'p turdagi, lekin umumiy qiymatda ulushi kichik bo'lgan oddiy pozitsiyalar. Ular uchun soddaroq boshqaruv yetarli bo'ladi.</li>
+                                <li><strong>@L.T("Doc_RepAClass")</strong> @L.T("Doc_RepAText")</li>
+                                <li><strong>@L.T("Doc_RepBClass")</strong> @L.T("Doc_RepBText")</li>
+                                <li><strong>@L.T("Doc_RepCClass")</strong> @L.T("Doc_RepCText")</li>
                             </ul>
-                            <p class="mb-1"><strong>XYZ klassifikatsiya (talabning barqarorligi bo'yicha):</strong></p>
+                            <p class="mb-1"><strong>@L.T("Doc_RepXyzHeader")</strong></p>
                             <ul class="mb-0">
-                                <li><strong>X klass:</strong> talab deyarli bir xil, o'zgarishi juda past. Bunday pozitsiyalarni prognoz qilish va rejalashtirish eng oson.</li>
-                                <li><strong>Y klass:</strong> talab o'rtacha o'zgaradi, mavsumiylik yoki trend bor. Prognoz o'rtacha aniqlikda bo'ladi.</li>
-                                <li><strong>Z klass:</strong> talab juda notekis, ba'zan bor, ba'zan yo'q (sporadik). Prognoz qilish qiyin, shuning uchun safety stock siyosati ehtiyotkor va konservativ bo'lishi kerak.</li>
+                                <li><strong>@L.T("Doc_RepXClass")</strong> @L.T("Doc_RepXText")</li>
+                                <li><strong>@L.T("Doc_RepYClass")</strong> @L.T("Doc_RepYText")</li>
+                                <li><strong>@L.T("Doc_RepZClass")</strong> @L.T("Doc_RepZText")</li>
                             </ul>
                         </div>
                     </div>
@@ -133,24 +133,11 @@
     <script>
         $(document).ready(function () {
             $('#abcTable').DataTable({
-                language: {
-                    search: "Qidirish:",
-                    lengthMenu: "_MENU_ ta ko'rsatish",
-                    info: "_TOTAL_ ta yozuvdan _START_ dan _END_ gacha",
-                    infoEmpty: "Yozuvlar yo'q",
-                    infoFiltered: "(jami _MAX_ ta yozuvdan filtrlangan)",
-                    paginate: {
-                        first: "Birinchi",
-                        last: "Oxirgi",
-                        next: "Keyingi",
-                        previous: "Oldingi"
-                    },
-                    zeroRecords: "Ma'lumot topilmadi"
-                },
+                language: erpDataTable.language,
                 pageLength: 50,
                 scrollX: true,
                 dom: 'lBfrtip',
-                buttons: erpDataTable.buttons({ landscape: true, pdfOptions: { title: 'ABC / XYZ segmentatsiya', pageSize: 'A3' } })
+                buttons: erpDataTable.buttons({ landscape: true, pdfOptions: { title: '@L.Js("Doc_RepAbcXyz")', pageSize: 'A3' } })
             });
         });
     </script>

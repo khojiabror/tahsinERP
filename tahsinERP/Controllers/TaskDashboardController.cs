@@ -8,6 +8,7 @@ using tahsinERP.Filters;
 using tahsinERP.Models;
 using tahsinERP.Services.Tasks;
 using tahsinERP.ViewModels;
+using tahsinERP.I18n;
 
 namespace tahsinERP.Controllers
 {
@@ -117,7 +118,7 @@ namespace tahsinERP.Controllers
                     .Select(s => new TaskStatusStatViewModel
                     {
                         StatusCode = s.Key,
-                        StatusName = s.First().StatusName ?? "Noma'lum",
+                        StatusName = s.First().StatusName ?? L.T("Core_Unknown"),
                         Count = s.Sum(g => g.Count),
                         Percentage = (decimal)s.Sum(g => g.Count) * 100 / (total > 0 ? total : 1)
                     })
@@ -130,7 +131,7 @@ namespace tahsinERP.Controllers
                     .Select(p => new TaskPriorityStatViewModel
                     {
                         PriorityCode = p.Key,
-                        PriorityName = p.First().PriorityName ?? "Noma'lum",
+                        PriorityName = p.First().PriorityName ?? L.T("Core_Unknown"),
                         TotalCount = p.Sum(g => g.Count),
                         DoneCount = p.Where(g => g.IsDone).Sum(g => g.Count),
                         InProgressCount = p.Where(g => g.StatusCode == "IN_PROGRESS").Sum(g => g.Count),
@@ -150,7 +151,7 @@ namespace tahsinERP.Controllers
                 // Overdue tasks by project (muddatidan o'tgan tasklar)
                 viewModel.OverdueTasksStatistics = groups
                     .Where(g => g.IsOverdue)
-                    .GroupBy(g => g.ProjectName ?? "Loyiha yo'q")
+                    .GroupBy(g => g.ProjectName ?? L.T("Task_NoProject"))
                     .Select(p => new TaskOverdueStatViewModel
                     {
                         ProjectName = p.Key,
@@ -180,7 +181,7 @@ namespace tahsinERP.Controllers
                     employeeRatings.Add(new EmployeeRatingViewModel
                     {
                         UserID = assigneeId.Value,
-                        FullName = fullName ?? "Noma'lum",
+                        FullName = fullName ?? L.T("Core_Unknown"),
                         OnTimeCompletedCount = onTimeCompleted,
                         OverdueNotCompletedCount = overdueNotCompleted,
                         // Muddatida bajarilganlar bo'lsa — ular soni; aks holda kamroq kechikkan yuqorida
@@ -201,7 +202,7 @@ namespace tahsinERP.Controllers
                 }
                 else
                 {
-                    viewModel.UserName = "Barcha foydalanuvchilar";
+                    viewModel.UserName = L.T("Core_AllUsers");
                 }
 
                 // User dropdown: admin — hammasi, oddiy user — faqat o'zi

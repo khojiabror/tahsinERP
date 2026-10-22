@@ -1,6 +1,6 @@
 @model List<tahsinERP.Models.ROLE>
 @{
-    ViewBag.Title = "Rollar";
+    ViewBag.Title = L.T("Adm_Roles");
     Layout = "~/Views/Shared/_AdminPanelLayout.cshtml";
 }
 
@@ -18,7 +18,7 @@
                             <div class="breadcrumb-wrapper col-12">
                                 <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                     <li class="breadcrumb-item"><a href="~/AdminPanel"><i class="bx bx-home-alt"></i></a></li>
-                                    <li class="breadcrumb-item active">Rollar</li>
+                                    <li class="breadcrumb-item active">@L.T("Adm_Roles")</li>
                                 </ol>
                             </div>
                         </div>
@@ -32,7 +32,7 @@
                     {
                         <div class="invoice-create-btn mb-1">
                             <a href="@Url.Action("Create", "Role")" class="btn btn-success">
-                                <i class="bx bx-plus"></i> Yangi rol qo'shish
+                                <i class="bx bx-plus"></i> @L.T("Core_RoleAddNew")
                             </a>
                         </div>
                     }
@@ -65,13 +65,13 @@
                                         <table id="roleDataTable" class="table table-striped table-bordered" style="width:100%">
                                             <thead>
                                                 <tr>
-                                                    <th>Rol nomi</th>
-                                                    <th>Tavsif</th>
-                                                    <th>Huquqlar soni</th>
-                                                    <th>Foydalanuvchilar</th>
+                                                    <th>@L.T("Core_RoleName")</th>
+                                                    <th>@L.T("Description")</th>
+                                                    <th>@L.T("Core_PermissionsCount")</th>
+                                                    <th>@L.T("Adm_Users")</th>
                                                     @if (changePermit)
                                                     {
-                                                        <th class="text-center">Amallar</th>
+                                                        <th class="text-center">@L.T("Actions")</th>
                                                     }
                                                 </tr>
                                             </thead>
@@ -103,17 +103,17 @@
                                                         {
                                                             <td class="text-center">
                                                                 <a href="@Url.Action("Permissions", "Role", new { id = item.ID })" 
-                                                                   class="btn btn-sm btn-outline-warning" title="Huquqlar">
+                                                                   class="btn btn-sm btn-outline-warning" title="@L.T("Adm_Permissions")">
                                                                     <i class="bx bx-lock"></i>
                                                                 </a>
                                                                 <a href="@Url.Action("Edit", "Role", new { id = item.ID })" 
-                                                                   class="btn btn-sm btn-outline-primary" title="Tahrirlash">
+                                                                   class="btn btn-sm btn-outline-primary" title="@L.T("Edit")">
                                                                     <i class="bx bx-edit"></i>
                                                                 </a>
                                                                 @if (!tahsinERP.Services.Common.SystemCodes.IsSystem(item.SystemCode))
                                                                 {
                                                                 <a href="@Url.Action("Delete", "Role", new { id = item.ID })" 
-                                                                   class="btn btn-sm btn-outline-danger" title="O'chirish">
+                                                                   class="btn btn-sm btn-outline-danger" title="@L.T("Delete")">
                                                                     <i class="bx bx-trash"></i>
                                                                 </a>
                                                                 }
@@ -143,25 +143,12 @@
             }
             
             $('#roleDataTable').DataTable({
-                "language": {
-                    "search": "Qidirish:",
-                    "lengthMenu": "_MENU_ ta ko'rsatish",
-                    "info": "_TOTAL_ ta yozuvdan _START_ dan _END_ gacha",
-                    "infoEmpty": "Yozuvlar yo'q",
-                    "infoFiltered": "(jami _MAX_ ta yozuvdan filtrlangan)",
-                    "paginate": {
-                        "first": "Birinchi",
-                        "last": "Oxirgi",
-                        "next": "Keyingi",
-                        "previous": "Oldingi"
-                    },
-                    "zeroRecords": "Ma'lumot topilmadi"
-                },
+                language: erpDataTable.language,
                 "pageLength": 25,
                 "order": [[0, "asc"]],
                 "columnDefs": columnDefs,
                 dom: 'lBfrtip',
-                buttons: erpDataTable.buttons({ fileName: 'Rollar', pdfTitle: "Rollar ro'yxati", columns: changePermit ? ':not(:last-child)' : ':visible' }),
+                buttons: erpDataTable.buttons({ fileName: '@L.Js("Adm_Roles")', pdfTitle: '@L.Js("Core_RolesList")', columns: changePermit ? ':not(:last-child)' : ':visible' }),
                 "scrollX": true
             });
         });

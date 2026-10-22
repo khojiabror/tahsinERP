@@ -1,6 +1,6 @@
 @model tahsinERP.ViewModels.LicenseIndexViewModel
 @{
-    ViewBag.Title = "Litsenziya";
+    ViewBag.Title = L.T("Hdr_License");
     Layout = "~/Views/Shared/_AdminPanelLayout.cshtml";
     var today = DateTime.Today.ToString("yyyy-MM-dd");
     var maxExpiry = Model.ExpiryDate.HasValue ? Model.ExpiryDate.Value.ToString("yyyy-MM-dd") : today;
@@ -15,7 +15,7 @@
                     <div class="col-12">
                         <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                             <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
-                            <li class="breadcrumb-item active">Litsenziya</li>
+                            <li class="breadcrumb-item active">@L.T("Hdr_License")</li>
                         </ol>
                     </div>
                 </div>
@@ -38,7 +38,7 @@
                 <div class="col-md-8">
                     <div class="card">
                         <div class="card-header">
-                            <h4 class="card-title">Kompaniya litsenziyasi holati</h4>
+                            <h4 class="card-title">@L.T("Core_LicCompanyStatus")</h4>
                         </div>
                         <div class="card-body">
                             @if (!Model.HasLicense)
@@ -47,7 +47,7 @@
                             }
                             else if (!Model.SignatureValid)
                             {
-                                <div class="alert alert-danger mb-0"><b>Yaroqsiz kalit.</b> @Model.StatusMessage</div>
+                                <div class="alert alert-danger mb-0"><b>@L.T("Core_LicInvalidKey")</b> @Model.StatusMessage</div>
                             }
                             else
                             {
@@ -57,64 +57,64 @@
                                 }
                                 <div class="row">
                                     <div class="col-md-4 mb-1">
-                                        <small class="text-muted">Holat</small><br />
+                                        <small class="text-muted">@L.T("Status")</small><br />
                                         @if (Model.IsValid)
                                         {
-                                            <span class="badge @(Model.ExpiringSoon ? "badge-warning" : "badge-success")">Faol</span>
+                                            <span class="badge @(Model.ExpiringSoon ? "badge-warning" : "badge-success")">@L.T("Active")</span>
                                         }
                                         else if (Model.WrongInstallation)
                                         {
-                                            <span class="badge badge-danger">Boshqa o'rnatma</span>
+                                            <span class="badge badge-danger">@L.T("Core_LicOtherInstallation")</span>
                                         }
                                         else if (Model.ClockProblem != null)
                                         {
-                                            <span class="badge badge-danger">Bloklangan (soat)</span>
+                                            <span class="badge badge-danger">@L.T("Core_LicBlockedClock")</span>
                                         }
                                         else if (Model.InGrace)
                                         {
-                                            <span class="badge badge-warning">Faqat o'qish</span>
+                                            <span class="badge badge-warning">@L.T("Core_LicReadOnly")</span>
                                         }
                                         else if (Model.IsExpired)
                                         {
-                                            <span class="badge badge-danger">Muddati tugagan</span>
+                                            <span class="badge badge-danger">@L.T("Core_LicExpired")</span>
                                         }
                                         else
                                         {
-                                            <span class="badge badge-secondary">Boshlanmagan</span>
+                                            <span class="badge badge-secondary">@L.T("Core_LicNotStarted")</span>
                                         }
                                     </div>
                                     <div class="col-md-4 mb-1">
-                                        <small class="text-muted">Tarif</small><br /><b>@Model.Edition</b>
+                                        <small class="text-muted">@L.T("Core_LicPlan")</small><br /><b>@Model.Edition</b>
                                     </div>
                                     <div class="col-md-4 mb-1">
-                                        <small class="text-muted">Qolgan kun</small><br />
-                                        <b class="@(Model.DaysRemaining <= 15 ? "text-danger" : "")">@Model.DaysRemaining kun</b>
+                                        <small class="text-muted">@L.T("Core_LicDaysLeft")</small><br />
+                                        <b class="@(Model.DaysRemaining <= 15 ? "text-danger" : "")">@L.T("Core_DaysValue", Model.DaysRemaining)</b>
                                     </div>
                                     <div class="col-md-4 mb-1">
-                                        <small class="text-muted">Boshlanish</small><br />@(Model.StartDate.HasValue ? Model.StartDate.Value.ToString("dd.MM.yyyy") : "-")
+                                        <small class="text-muted">@L.T("Core_LicStart")</small><br />@(Model.StartDate.HasValue ? Model.StartDate.Value.ToString("dd.MM.yyyy") : "-")
                                     </div>
                                     <div class="col-md-4 mb-1">
-                                        <small class="text-muted">Tugash</small><br />@(Model.ExpiryDate.HasValue ? Model.ExpiryDate.Value.ToString("dd.MM.yyyy") : "-")
+                                        <small class="text-muted">@L.T("Core_LicEnd")</small><br />@(Model.ExpiryDate.HasValue ? Model.ExpiryDate.Value.ToString("dd.MM.yyyy") : "-")
                                     </div>
                                     <div class="col-md-4 mb-1">
-                                        <small class="text-muted">Seat (band / jami)</small><br />
+                                        <small class="text-muted">@L.T("Core_LicSeatsUsedTotal")</small><br />
                                         <b>@Model.UsedSeats / @(Model.Unlimited ? "∞" : Model.MaxUsers.ToString())</b>
                                     </div>
                                     @if (Model.InGrace && Model.GraceUntil.HasValue)
                                     {
                                         <div class="col-md-4 mb-1">
-                                            <small class="text-muted">Faqat o'qish rejimi</small><br /><b class="text-danger">@Model.GraceUntil.Value.ToString("dd.MM.yyyy") gacha</b>
+                                            <small class="text-muted">@L.T("Core_LicReadOnlyMode")</small><br /><b class="text-danger">@L.T("Core_LicUntilDate", Model.GraceUntil.Value.ToString("dd.MM.yyyy"))</b>
                                         </div>
                                     }
                                     <div class="col-md-4 mb-1">
-                                        <small class="text-muted">Kalit formati</small><br />
+                                        <small class="text-muted">@L.T("Core_LicKeyFormat")</small><br />
                                         @if (Model.KeyVersion >= 2)
                                         {
-                                            <span>@("v" + Model.KeyVersion) (o'rnatmaga bog'langan)</span>
+                                            <span>@("v" + Model.KeyVersion) @L.T("Core_LicBoundToInstallation")</span>
                                         }
                                         else
                                         {
-                                            <span class="text-warning">v1 (eski — yangilash tavsiya etiladi)</span>
+                                            <span class="text-warning">v1 @L.T("Core_LicOldFormat")</span>
                                         }
                                     </div>
                                 </div>
@@ -123,16 +123,16 @@
                             @if (Model.ClockProblem != null)
                             {
                                 <div class="alert alert-danger mt-1 mb-0">
-                                    <b>Vaqt nazorati:</b> @Model.ClockProblem
+                                    <b>@L.T("Core_LicClockControl")</b> @Model.ClockProblem
                                 </div>
                             }
 
                             <hr />
-                            <small class="text-muted">O'rnatma ID (yangi kalit olish uchun yetkazib beruvchiga yuboring)</small>
+                            <small class="text-muted">@L.T("Core_LicInstallationIdHint")</small>
                             <div class="input-group input-group-sm mt-25">
                                 <input type="text" id="installationId" class="form-control" readonly value="@Model.InstallationId" style="font-family:monospace;" />
                                 <div class="input-group-append">
-                                    <button type="button" class="btn btn-outline-primary" onclick="var t=document.getElementById('installationId');t.select();try{navigator.clipboard.writeText(t.value);}catch(e){document.execCommand('copy');}this.innerText='Nusxa olindi';">Nusxa olish</button>
+                                    <button type="button" class="btn btn-outline-primary" onclick="var t=document.getElementById('installationId');t.select();try{navigator.clipboard.writeText(t.value);}catch(e){document.execCommand('copy');}this.innerText='@L.Js("Core_Copied")';">@L.T("Core_Copy")</button>
                                 </div>
                             </div>
                         </div>
@@ -142,15 +142,15 @@
                 <!-- ==== KALIT KIRITISH ==== -->
                 <div class="col-md-4">
                     <div class="card">
-                        <div class="card-header"><h4 class="card-title">Kalitni faollashtirish</h4></div>
+                        <div class="card-header"><h4 class="card-title">@L.T("Core_LicActivateKey")</h4></div>
                         <div class="card-body">
                             @using (Html.BeginForm("Activate", "License", FormMethod.Post))
                             {
                                 @Html.AntiForgeryToken()
                                 <div class="form-group">
-                                    <textarea name="licenseKey" class="form-control" rows="4" placeholder="Litsenziya kalitini shu yerga joylashtiring" style="font-family:monospace;font-size:12px;"></textarea>
+                                    <textarea name="licenseKey" class="form-control" rows="4" placeholder="@L.T("Core_LicPasteKey")" style="font-family:monospace;font-size:12px;"></textarea>
                                 </div>
-                                <button type="submit" class="btn btn-primary btn-block">Faollashtirish</button>
+                                <button type="submit" class="btn btn-primary btn-block">@L.T("Core_LicActivate")</button>
                             }
                         </div>
                     </div>
@@ -159,42 +159,42 @@
                     @if (Model.PanelEnabled)
                     {
                         <div class="card">
-                            <div class="card-header"><h4 class="card-title">Markaziy panel</h4></div>
+                            <div class="card-header"><h4 class="card-title">@L.T("Core_LicCentralPanel")</h4></div>
                             <div class="card-body">
                                 @if (Model.PanelConnected)
                                 {
-                                    <p class="mb-50"><span class="badge badge-success">Ulangan</span> Kalit har 6 soatda avtomatik yangilanadi.</p>
+                                    <p class="mb-50"><span class="badge badge-success">@L.T("Core_LicConnected")</span> @L.T("Core_LicAutoRenew")</p>
                                 }
                                 else
                                 {
-                                    <p class="mb-50"><span class="badge badge-secondary">Ulanmagan</span></p>
+                                    <p class="mb-50"><span class="badge badge-secondary">@L.T("Core_LicNotConnected")</span></p>
                                     using (Html.BeginForm("ConnectPanel", "License", FormMethod.Post))
                                     {
                                         @Html.AntiForgeryToken()
                                         <div class="form-group mb-50">
                                             <input type="text" name="regToken" class="form-control" autocomplete="off" maxlength="200"
-                                                   placeholder="@(Model.HasRegToken ? "Token saqlangan — yangisini kiritish mumkin" : "Ro'yxat tokeni (reg_token)")" style="font-family:monospace;" />
+                                                   placeholder="@(Model.HasRegToken ? L.T("Core_LicTokenSaved") : L.T("Core_LicRegToken"))" style="font-family:monospace;" />
                                         </div>
-                                        <button type="submit" class="btn btn-outline-primary btn-block">Panelga ulash</button>
+                                        <button type="submit" class="btn btn-outline-primary btn-block">@L.T("Core_LicConnectPanel")</button>
                                     }
                                 }
                                 @using (Html.BeginForm("SyncNow", "License", FormMethod.Post, new { @class = "mt-50" }))
                                 {
                                     @Html.AntiForgeryToken()
-                                    <button type="submit" class="btn btn-primary btn-block">Hozir tekshirish</button>
+                                    <button type="submit" class="btn btn-primary btn-block">@L.T("Core_LicCheckNow")</button>
                                 }
                                 @if (Model.LastSyncUtc.HasValue)
                                 {
                                     <small class="text-muted d-block mt-50">
-                                        Oxirgi tekshiruv: @Model.LastSyncUtc.Value.ToLocalTime().ToString("dd.MM.yyyy HH:mm")<br />@Model.LastSyncResult
+                                        @L.T("Core_LicLastCheck") @Model.LastSyncUtc.Value.ToLocalTime().ToString("dd.MM.yyyy HH:mm")<br />@Model.LastSyncResult
                                     </small>
                                 }
                                 @if (Model.PanelConnected)
                                 {
                                     <small class="text-muted d-block mt-50">
-                                        Onlayn tekshiruv: @(Model.OnlineCheckRequired
-                                            ? "majburiy — kalit qisqa muddatli (" + (Model.OfflineGraceDays ?? 30) + " kun) va panel uni avtomatik yangilaydi"
-                                            : "ixtiyoriy — kalit shartnoma muddatigacha (ko'pi bilan 1 yil), internetsiz ham ishlaydi")
+                                        @L.T("Core_LicOnlineCheck") @(Model.OnlineCheckRequired
+                                            ? L.T("Core_LicOnlineRequired", Model.OfflineGraceDays ?? 30)
+                                            : L.T("Core_LicOnlineOptional"))
                                     </small>
                                 }
                                 @if (!string.IsNullOrEmpty(Model.OnlineWarning))
@@ -210,19 +210,19 @@
             <!-- ==== SEAT (XODIMLAR) ==== -->
             <div class="card">
                 <div class="card-header">
-                    <h4 class="card-title">Xodimlar seat boshqaruvi</h4>
-                    <span class="badge badge-light">@Model.UsedSeats / @(Model.Unlimited ? "∞" : Model.MaxUsers.ToString()) band</span>
+                    <h4 class="card-title">@L.T("Core_LicSeatManagement")</h4>
+                    <span class="badge badge-light">@Model.UsedSeats / @(Model.Unlimited ? "∞" : Model.MaxUsers.ToString()) @L.T("Core_LicBusy")</span>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
                         <table class="table table-hover">
                             <thead>
                                 <tr>
-                                    <th>Xodim</th>
-                                    <th>Login</th>
-                                    <th>Seat</th>
-                                    <th>Muddat</th>
-                                    <th style="width:320px;">Amallar</th>
+                                    <th>@L.T("Core_Employee")</th>
+                                    <th>@L.T("Username")</th>
+                                    <th>@L.T("Core_LicSeat")</th>
+                                    <th>@L.T("Core_LicTerm")</th>
+                                    <th style="width:320px;">@L.T("Actions")</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -234,15 +234,15 @@
                                         <td>
                                             @if (u.HasSeat && !u.SeatExpired)
                                             {
-                                                <span class="badge badge-success">Faol</span>
+                                                <span class="badge badge-success">@L.T("Active")</span>
                                             }
                                             else if (u.HasSeat && u.SeatExpired)
                                             {
-                                                <span class="badge badge-danger">Tugagan</span>
+                                                <span class="badge badge-danger">@L.T("Core_LicSeatEnded")</span>
                                             }
                                             else
                                             {
-                                                <span class="badge badge-secondary">Yo'q</span>
+                                                <span class="badge badge-secondary">@L.T("No")</span>
                                             }
                                         </td>
                                         <td>@(u.SeatExpiry.HasValue ? u.SeatExpiry.Value.ToString("dd.MM.yyyy") : "-")</td>
@@ -254,7 +254,7 @@
                                                     @Html.AntiForgeryToken()
                                                     <input type="hidden" name="userId" value="@u.UserID" />
                                                     <input type="date" name="expiryDate" class="form-control form-control-sm mr-1" value="@maxExpiry" max="@maxExpiry" />
-                                                    <button type="submit" class="btn btn-sm btn-success">Seat berish</button>
+                                                    <button type="submit" class="btn btn-sm btn-success">@L.T("Core_LicAssignSeat")</button>
                                                 }
                                             }
                                             else
@@ -264,13 +264,13 @@
                                                     @Html.AntiForgeryToken()
                                                     <input type="hidden" name="userLicenseId" value="@u.UserLicenseID" />
                                                     <input type="date" name="newExpiry" class="form-control form-control-sm mr-1" value="@maxExpiry" max="@maxExpiry" />
-                                                    <button type="submit" class="btn btn-sm btn-primary">Uzaytirish</button>
+                                                    <button type="submit" class="btn btn-sm btn-primary">@L.T("Core_LicExtend")</button>
                                                 }
-                                                using (Html.BeginForm("RevokeSeat", "License", FormMethod.Post, new { @class = "d-inline", onsubmit = "return confirm('Seatni olib qo\\'yamizmi?');" }))
+                                                using (Html.BeginForm("RevokeSeat", "License", FormMethod.Post, new { @class = "d-inline", onsubmit = "return confirm('" + HttpUtility.JavaScriptStringEncode(L.T("Core_LicConfirmRevoke")) + "');" }))
                                                 {
                                                     @Html.AntiForgeryToken()
                                                     <input type="hidden" name="userLicenseId" value="@u.UserLicenseID" />
-                                                    <button type="submit" class="btn btn-sm btn-outline-danger">Olib qo'yish</button>
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger">@L.T("Core_LicRevoke")</button>
                                                 }
                                             }
                                         </td>
@@ -284,12 +284,12 @@
 
             <!-- ==== TARIX ==== -->
             <div class="card">
-                <div class="card-header"><h4 class="card-title">Litsenziyalar tarixi</h4></div>
+                <div class="card-header"><h4 class="card-title">@L.T("Core_LicHistory")</h4></div>
                 <div class="card-body">
                     <div class="table-responsive">
                         <table class="table table-sm">
                             <thead>
-                                <tr><th>#</th><th>Max</th><th>Boshlanish</th><th>Tugash</th><th>Tarif</th><th>Faol</th><th>Yaratilgan</th><th>Kim</th></tr>
+                                <tr><th>#</th><th>Max</th><th>@L.T("Core_LicStart")</th><th>@L.T("Core_LicEnd")</th><th>@L.T("Core_LicPlan")</th><th>@L.T("Active")</th><th>@L.T("CreatedAt")</th><th>@L.T("Core_Who")</th></tr>
                             </thead>
                             <tbody>
                                 @foreach (var h in Model.History)

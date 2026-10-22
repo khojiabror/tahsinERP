@@ -4,6 +4,7 @@ using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
+using tahsinERP.I18n;
 using tahsinERP.Models;
 using tahsinERP.ViewModels;
 
@@ -15,63 +16,63 @@ namespace tahsinERP.Controllers
     /// </summary>
     public class DeletedRecordsController : Controller
     {
-        // Modullar ro'yxati: Key -> DisplayName (o'zbekcha)
+        // Modullar ro'yxati: Key -> DisplayName (resx kaliti; ko'rsatishda L.T bilan tarjima qilinadi)
         private static readonly List<DeletedModuleInfo> Modules = new List<DeletedModuleInfo>
         {
-            new DeletedModuleInfo { Key = "F_WAYBILLS", DisplayName = "Yo'l varaqalari" },
-            new DeletedModuleInfo { Key = "F_WAYBILL_PAYMENTS", DisplayName = "Yo'l varaqasi to'lovlari" },
-            new DeletedModuleInfo { Key = "F_CONTRACTS", DisplayName = "Logistika shartnomalari" },
-            new DeletedModuleInfo { Key = "FORWARDER", DisplayName = "Tashuvchi kompaniyalar" },
-            new DeletedModuleInfo { Key = "CUSTOMER", DisplayName = "Xaridorlar" },
-            new DeletedModuleInfo { Key = "CUSTOMER_BASE", DisplayName = "Xaridor ma'lumotnoma" },
-            new DeletedModuleInfo { Key = "S_ORDERS", DisplayName = "Sotuv buyurtmalari" },
-            new DeletedModuleInfo { Key = "S_CONTRACTS", DisplayName = "Sotuv shartnomalari" },
-            new DeletedModuleInfo { Key = "SUPPLIER", DisplayName = "Ta'minotchilar" },
-            new DeletedModuleInfo { Key = "SUPPLIER_BASE", DisplayName = "Ta'minotchi ma'lumotnoma" },
-            new DeletedModuleInfo { Key = "P_ORDERS", DisplayName = "Xarid buyurtmalari" },
-            new DeletedModuleInfo { Key = "P_CONTRACTS", DisplayName = "Xarid shartnomalari" },
-            new DeletedModuleInfo { Key = "P_INVOICES", DisplayName = "Xarid invoyslari" },
-            new DeletedModuleInfo { Key = "P_REQUISITIONS", DisplayName = "Xarid arizalari" },
-            new DeletedModuleInfo { Key = "PRODUCT", DisplayName = "Maxsulotlar" },
-            new DeletedModuleInfo { Key = "PRODUCTPLAN", DisplayName = "Ishlab chiqarish rejalari" },
-            new DeletedModuleInfo { Key = "PRODUCTIONPROCESS", DisplayName = "Ishlab chiqarish jarayonlari" },
-            new DeletedModuleInfo { Key = "DAMAGED_PRODUCTS", DisplayName = "Nukson maxsulotlar" },
-            new DeletedModuleInfo { Key = "DEFECT_TYPES", DisplayName = "Nukson turlari" },
-            new DeletedModuleInfo { Key = "SHOP", DisplayName = "Sexlar" },
-            new DeletedModuleInfo { Key = "TANNARX", DisplayName = "Tannarx" },
-            new DeletedModuleInfo { Key = "FIN_TRANSACTIONS", DisplayName = "Tranzaksiyalar" },
-            new DeletedModuleInfo { Key = "FIN_ACCOUNTS", DisplayName = "Moliya hisoblari" },
-            new DeletedModuleInfo { Key = "FIN_CATEGORIES", DisplayName = "Moliya kategoriyalari" },
-            new DeletedModuleInfo { Key = "FIN_BALANCE_CATEGORIES", DisplayName = "Balans kategoriyalari" },
-            new DeletedModuleInfo { Key = "FIN_PL_PLANS", DisplayName = "P&L rejalar" },
-            new DeletedModuleInfo { Key = "FIN_PL_ITEMS", DisplayName = "P&L elementlar" },
-            new DeletedModuleInfo { Key = "SHAREHOLDER", DisplayName = "Aksiyadorlar" },
-            new DeletedModuleInfo { Key = "UNIT", DisplayName = "O'lchov birliklari" },
-            new DeletedModuleInfo { Key = "CURRENCY", DisplayName = "Valyutalar" },
-            new DeletedModuleInfo { Key = "WAREHOUSE", DisplayName = "Omborlar" },
-            new DeletedModuleInfo { Key = "PRODUCT_CATEGORIES", DisplayName = "Maxsulot kategoriyalari" },
-            new DeletedModuleInfo { Key = "USER", DisplayName = "Foydalanuvchilar" },
-            new DeletedModuleInfo { Key = "ROLE", DisplayName = "Rollar" },
-            new DeletedModuleInfo { Key = "APP_TASKS", DisplayName = "Vazifalar" },
-            new DeletedModuleInfo { Key = "APP_TASK_PROJECTS", DisplayName = "Task loyihalari" },
-            new DeletedModuleInfo { Key = "APP_TASK_STATUS_REF", DisplayName = "Task statuslari" },
-            new DeletedModuleInfo { Key = "APP_TASK_PRIORITY_REF", DisplayName = "Task prioritetlari" },
-            new DeletedModuleInfo { Key = "STD_COMPANY_STANDARDS", DisplayName = "Korxona standartlari" },
-            new DeletedModuleInfo { Key = "JOB_DESC", DisplayName = "Lavozim yo'riqnomalari" },
-            new DeletedModuleInfo { Key = "ADM_COMPANY_ORDERS", DisplayName = "Kompaniya buyruqlari" },
-            new DeletedModuleInfo { Key = "COM_OFFICIAL_LETTERS", DisplayName = "Rasmiy maktublar" },
-            new DeletedModuleInfo { Key = "NORMVERSION", DisplayName = "Norm versiyalari" },
-            new DeletedModuleInfo { Key = "WASTE", DisplayName = "Chiqindilar" },
-            new DeletedModuleInfo { Key = "HR_EMPLOYEES", DisplayName = "Xodimlar" },
-            new DeletedModuleInfo { Key = "HR_POSITIONS", DisplayName = "Lavozimlar" },
-            new DeletedModuleInfo { Key = "HR_ORG_UNITS", DisplayName = "Tashkiliy birliklar" },
-            new DeletedModuleInfo { Key = "HR_SALARY_GRADES", DisplayName = "Ish haqi tariflari" },
-            new DeletedModuleInfo { Key = "HR_STAFFING_PLAN", DisplayName = "Shtat jadvali" },
-            new DeletedModuleInfo { Key = "HR_PIECE_RATE_TARIFFS", DisplayName = "Ishbay tariflari" },
-            new DeletedModuleInfo { Key = "F_TRANSPORT_TYPES", DisplayName = "Transport turlari" },
-            new DeletedModuleInfo { Key = "EXPENSES", DisplayName = "Ombor chiqimlari" },
-            new DeletedModuleInfo { Key = "INCOMES", DisplayName = "Ombor kirimlari" },
-            new DeletedModuleInfo { Key = "PRODUCT_PRODUCTION", DisplayName = "Ishlab chiqarish" }
+            new DeletedModuleInfo { Key = "F_WAYBILLS", DisplayName = "Core_DelMod_FWaybills" },
+            new DeletedModuleInfo { Key = "F_WAYBILL_PAYMENTS", DisplayName = "Core_DelMod_FWaybillPayments" },
+            new DeletedModuleInfo { Key = "F_CONTRACTS", DisplayName = "Core_DelMod_FContracts" },
+            new DeletedModuleInfo { Key = "FORWARDER", DisplayName = "Core_DelMod_Forwarder" },
+            new DeletedModuleInfo { Key = "CUSTOMER", DisplayName = "Core_DelMod_Customer" },
+            new DeletedModuleInfo { Key = "CUSTOMER_BASE", DisplayName = "Core_DelMod_CustomerBase" },
+            new DeletedModuleInfo { Key = "S_ORDERS", DisplayName = "Core_DelMod_SOrders" },
+            new DeletedModuleInfo { Key = "S_CONTRACTS", DisplayName = "Core_DelMod_SContracts" },
+            new DeletedModuleInfo { Key = "SUPPLIER", DisplayName = "Core_DelMod_Supplier" },
+            new DeletedModuleInfo { Key = "SUPPLIER_BASE", DisplayName = "Core_DelMod_SupplierBase" },
+            new DeletedModuleInfo { Key = "P_ORDERS", DisplayName = "Core_DelMod_POrders" },
+            new DeletedModuleInfo { Key = "P_CONTRACTS", DisplayName = "Core_DelMod_PContracts" },
+            new DeletedModuleInfo { Key = "P_INVOICES", DisplayName = "Core_DelMod_PInvoices" },
+            new DeletedModuleInfo { Key = "P_REQUISITIONS", DisplayName = "Core_DelMod_PRequisitions" },
+            new DeletedModuleInfo { Key = "PRODUCT", DisplayName = "Core_DelMod_Product" },
+            new DeletedModuleInfo { Key = "PRODUCTPLAN", DisplayName = "Core_DelMod_Productplan" },
+            new DeletedModuleInfo { Key = "PRODUCTIONPROCESS", DisplayName = "Core_DelMod_Productionprocess" },
+            new DeletedModuleInfo { Key = "DAMAGED_PRODUCTS", DisplayName = "Core_DelMod_DamagedProducts" },
+            new DeletedModuleInfo { Key = "DEFECT_TYPES", DisplayName = "Core_DelMod_DefectTypes" },
+            new DeletedModuleInfo { Key = "SHOP", DisplayName = "Core_DelMod_Shop" },
+            new DeletedModuleInfo { Key = "TANNARX", DisplayName = "Core_DelMod_Tannarx" },
+            new DeletedModuleInfo { Key = "FIN_TRANSACTIONS", DisplayName = "Core_DelMod_FinTransactions" },
+            new DeletedModuleInfo { Key = "FIN_ACCOUNTS", DisplayName = "Core_DelMod_FinAccounts" },
+            new DeletedModuleInfo { Key = "FIN_CATEGORIES", DisplayName = "Core_DelMod_FinCategories" },
+            new DeletedModuleInfo { Key = "FIN_BALANCE_CATEGORIES", DisplayName = "Core_DelMod_FinBalanceCategories" },
+            new DeletedModuleInfo { Key = "FIN_PL_PLANS", DisplayName = "Core_DelMod_FinPlPlans" },
+            new DeletedModuleInfo { Key = "FIN_PL_ITEMS", DisplayName = "Core_DelMod_FinPlItems" },
+            new DeletedModuleInfo { Key = "SHAREHOLDER", DisplayName = "Core_DelMod_Shareholder" },
+            new DeletedModuleInfo { Key = "UNIT", DisplayName = "Core_DelMod_Unit" },
+            new DeletedModuleInfo { Key = "CURRENCY", DisplayName = "Core_DelMod_Currency" },
+            new DeletedModuleInfo { Key = "WAREHOUSE", DisplayName = "Core_DelMod_Warehouse" },
+            new DeletedModuleInfo { Key = "PRODUCT_CATEGORIES", DisplayName = "Core_DelMod_ProductCategories" },
+            new DeletedModuleInfo { Key = "USER", DisplayName = "Core_DelMod_User" },
+            new DeletedModuleInfo { Key = "ROLE", DisplayName = "Core_DelMod_Role" },
+            new DeletedModuleInfo { Key = "APP_TASKS", DisplayName = "Core_DelMod_AppTasks" },
+            new DeletedModuleInfo { Key = "APP_TASK_PROJECTS", DisplayName = "Core_DelMod_AppTaskProjects" },
+            new DeletedModuleInfo { Key = "APP_TASK_STATUS_REF", DisplayName = "Core_DelMod_AppTaskStatusRef" },
+            new DeletedModuleInfo { Key = "APP_TASK_PRIORITY_REF", DisplayName = "Core_DelMod_AppTaskPriorityRef" },
+            new DeletedModuleInfo { Key = "STD_COMPANY_STANDARDS", DisplayName = "Core_DelMod_StdCompanyStandards" },
+            new DeletedModuleInfo { Key = "JOB_DESC", DisplayName = "Core_DelMod_JobDesc" },
+            new DeletedModuleInfo { Key = "ADM_COMPANY_ORDERS", DisplayName = "Core_DelMod_AdmCompanyOrders" },
+            new DeletedModuleInfo { Key = "COM_OFFICIAL_LETTERS", DisplayName = "Core_DelMod_ComOfficialLetters" },
+            new DeletedModuleInfo { Key = "NORMVERSION", DisplayName = "Core_DelMod_Normversion" },
+            new DeletedModuleInfo { Key = "WASTE", DisplayName = "Core_DelMod_Waste" },
+            new DeletedModuleInfo { Key = "HR_EMPLOYEES", DisplayName = "Core_DelMod_HrEmployees" },
+            new DeletedModuleInfo { Key = "HR_POSITIONS", DisplayName = "Core_DelMod_HrPositions" },
+            new DeletedModuleInfo { Key = "HR_ORG_UNITS", DisplayName = "Core_DelMod_HrOrgUnits" },
+            new DeletedModuleInfo { Key = "HR_SALARY_GRADES", DisplayName = "Core_DelMod_HrSalaryGrades" },
+            new DeletedModuleInfo { Key = "HR_STAFFING_PLAN", DisplayName = "Core_DelMod_HrStaffingPlan" },
+            new DeletedModuleInfo { Key = "HR_PIECE_RATE_TARIFFS", DisplayName = "Core_DelMod_HrPieceRateTariffs" },
+            new DeletedModuleInfo { Key = "F_TRANSPORT_TYPES", DisplayName = "Core_DelMod_FTransportTypes" },
+            new DeletedModuleInfo { Key = "EXPENSES", DisplayName = "Core_DelMod_Expenses" },
+            new DeletedModuleInfo { Key = "INCOMES", DisplayName = "Core_DelMod_Incomes" },
+            new DeletedModuleInfo { Key = "PRODUCT_PRODUCTION", DisplayName = "Core_DelMod_ProductProduction" }
         };
 
         // Olish so'rovi: DeletedRecords - Admin panel permission (AdminPanel moduli orqali kirish)
@@ -82,7 +83,9 @@ namespace tahsinERP.Controllers
                 return RedirectToAction("Index", "ViewNotAuthorized");
             }
 
-            ViewBag.Modules = Modules.OrderBy(m => m.DisplayName).ToList();
+            ViewBag.Modules = Modules
+                .Select(m => new DeletedModuleInfo { Key = m.Key, DisplayName = L.T(m.DisplayName) })
+                .OrderBy(m => m.DisplayName).ToList();
             return View();
         }
 
@@ -92,7 +95,7 @@ namespace tahsinERP.Controllers
         {
             if (!RoleHelper.IsViewPermitted(User.Identity.Name, "AdminPanel"))
             {
-                return Json(new { error = "Ruxsat yo'q" }, JsonRequestBehavior.AllowGet);
+                return Json(new { error = L.T("Error_NotAuthorized") }, JsonRequestBehavior.AllowGet);
             }
 
             if (string.IsNullOrEmpty(moduleKey))
@@ -103,7 +106,14 @@ namespace tahsinERP.Controllers
             try
             {
                 var result = await GetDeletedRecordsAsync(moduleKey, searchTerm);
-                return Json(new { data = result.Items, columns = result.ColumnNames }, JsonRequestBehavior.AllowGet);
+                // Ustun nomlari (o'zbekcha ichki nom) joriy tilga — data kalitlari ham shu nom bilan
+                foreach (var item in result.Items)
+                {
+                    if (item.Columns != null)
+                        item.Columns = item.Columns.ToDictionary(kv => ColumnTitle(kv.Key), kv => kv.Value);
+                }
+                var columns = result.ColumnNames.Select(ColumnTitle).ToArray();
+                return Json(new { data = result.Items, columns }, JsonRequestBehavior.AllowGet);
             }
             catch (Exception ex)
             {
@@ -123,7 +133,7 @@ namespace tahsinERP.Controllers
 
             if (string.IsNullOrEmpty(moduleKey))
             {
-                TempData["Error"] = "Modul topilmadi.";
+                TempData["Error"] = L.T("Core_ModuleNotFound");
                 return RedirectToAction("Index");
             }
 
@@ -131,7 +141,7 @@ namespace tahsinERP.Controllers
             // bo'lmaydi — qoldiq va moliya qayta hisoblanmaydi (CORE-B02). Bunday hujjat qaytadan kiritiladi.
             if (NonRecoverableModules.Contains(moduleKey))
             {
-                TempData["Error"] = "Bu turdagi hujjatni tiklab bo'lmaydi: u ombor qoldig'i yoki moliyaviy yozuvlarga ta'sir qiladi. Hujjatni qaytadan kiriting.";
+                TempData["Error"] = L.T("Core_DelNotRecoverable");
                 return RedirectToAction("Index", new { selectedModule = moduleKey });
             }
 
@@ -140,20 +150,64 @@ namespace tahsinERP.Controllers
                 var success = await RecoverRecordAsync(moduleKey, id);
                 if (success)
                 {
-                    TempData["Success"] = "Ma'lumot muvaffaqiyatli tiklandi.";
+                    TempData["Success"] = L.T("Core_DelRecovered");
                     LogHelper.LogToDatabase(User.Identity.Name, "DeletedRecords", $"Tiklandi: {moduleKey} ID={id}");
                 }
                 else
                 {
-                    TempData["Error"] = "Tiklashda xatolik.";
+                    TempData["Error"] = L.T("Core_DelRecoverError");
                 }
             }
             catch (Exception ex)
             {
-                TempData["Error"] = $"Xatolik: {ex.Message}";
+                TempData["Error"] = L.T("Core_ErrorShort", ex.Message);
             }
 
             return RedirectToAction("Index", new { selectedModule = moduleKey });
+        }
+
+        // Ichki ustun nomi (o'zbekcha) -> resx kaliti
+        private static readonly Dictionary<string, string> ColumnKeys = new Dictionary<string, string>
+        {
+            ["Asosiy"] = "Core_DelCol_Main",
+            ["Ariza No"] = "Core_DelCol_RequisitionNo",
+            ["Buyruq No"] = "Core_DelCol_DecreeNo",
+            ["Buyurtma No"] = "Core_DelCol_OrderNo",
+            ["Hujjat No"] = "Core_DelCol_DocNo",
+            ["Invoys No"] = "Core_DelCol_InvoiceNo",
+            ["Ism"] = "Core_DelCol_PersonName",
+            ["Izoh"] = "Comment",
+            ["Kod"] = "Code",
+            ["Kompaniya"] = "Core_DelCol_Company",
+            ["Login"] = "Username",
+            ["Mahsulot kodi"] = "Core_DelCol_ProductCode",
+            ["Manzil"] = "Address",
+            ["Maqsad"] = "Core_DelCol_Purpose",
+            ["Mavzu"] = "Core_DelCol_Topic",
+            ["Maxsulot"] = "Core_DelCol_Product",
+            ["Nomi"] = "Name",
+            ["Nukson turi"] = "Core_DelCol_DefectType",
+            ["Qayerdan"] = "Core_DelCol_From",
+            ["Qayerga"] = "Core_DelCol_To",
+            ["Qisqa"] = "Core_DelCol_Short",
+            ["Qisqacha"] = "Core_DelCol_ShortName",
+            ["Rol nomi"] = "Core_RoleName",
+            ["Sana"] = "Date",
+            ["Sarlavha"] = "Core_DelCol_Title",
+            ["Shartnoma No"] = "Core_DelCol_ContractNo",
+            ["Summa"] = "Amount",
+            ["Tabel No"] = "Core_DelCol_TabNo",
+            ["Tavsif"] = "Description",
+            ["Telefon"] = "Phone",
+            ["To'liq"] = "Core_DelCol_Full",
+            ["Transport turi"] = "Core_DelCol_TransportType",
+            ["Yo'l varaqasi"] = "Core_DelCol_Waybill",
+        };
+
+        private static string ColumnTitle(string name)
+        {
+            string key;
+            return name != null && ColumnKeys.TryGetValue(name, out key) ? L.T(key) : name;
         }
 
         private async Task<(List<DeletedRecordItem> Items, string[] ColumnNames)> GetDeletedRecordsAsync(string moduleKey, string searchTerm)

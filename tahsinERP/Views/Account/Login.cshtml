@@ -4,13 +4,13 @@
 }
 
 <!DOCTYPE html>
-<html class="loading" lang="en" data-textdirection="ltr">
+<html class="loading" lang="@tahsinERP.Localization.Languages.HtmlLang(L.Lang)" data-textdirection="ltr">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0">
     <meta name="author" content="Khojiabror Makhmudov">
-    <title>Login Page - tahsinERP</title>
+    <title>@L.T("Core_LoginPageTitle") - tahsinERP</title>
     <link rel="apple-touch-icon" href="~/app-assets/images/ico/apple-touch-icon.png">
     <link rel="shortcut icon" type="image/x-icon" href="~/app-assets/images/ico/favicon.ico">
     <link href="https://fonts.googleapis.com/css?family=Rubik:300,400,500,600%7CIBM+Plex+Sans:300,400,500,600,700" rel="stylesheet">
@@ -186,6 +186,21 @@
             margin-top: 0.25rem;
         }
 
+        .login-lang-switch {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            z-index: 5;
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        .login-lang-switch .nav-link {
+            color: #666666;
+            padding: 0.25rem 0.5rem;
+        }
+
         /* Right Section - Branding */
         .branding-section {
             background: #E8E8E8;
@@ -299,11 +314,14 @@
                             <div class="row m-0">
                                 <!-- left section-login -->
                                 <div class="col-md-6 col-12 px-0">
-                                    <div class="card disable-rounded-right mb-0 h-100 login-form-section">
+                                    <div class="card disable-rounded-right mb-0 h-100 login-form-section position-relative">
+                                        <ul class="nav login-lang-switch">
+                                            @Html.Partial("_LanguageSwitch", new ViewDataDictionary { { "MenuClass", "dropdown-menu dropdown-menu-right" } })
+                                        </ul>
                                         <div class="card-header">
                                             <div>
-                                                <h4>tahsinERP tizimi</h4>
-                                                <h6>Xush kelibsiz!</h6>
+                                                <h4>@L.T("Core_LoginSystemTitle")</h4>
+                                                <h6>@L.T("Core_LoginWelcome")</h6>
                                             </div>
                                         </div>
                                         <div class="card-content">
@@ -314,14 +332,14 @@
                                                     @Html.ValidationSummary(true, "", new { @class = "text-danger" })
 
                                                     <div class="form-group">
-                                                        <label class="text-bold-600" for="username">FOYDALANUVCHI NOMI</label>
-                                                        @Html.TextBoxFor(u => u.UName, new { @class = "form-control", @id = "username", @placeholder = "Foydalanuvchi nomi", @autocomplete = "username" })
+                                                        <label class="text-bold-600" for="username">@L.T("Core_UserNameUpper")</label>
+                                                        @Html.TextBoxFor(u => u.UName, new { @class = "form-control", @id = "username", @placeholder = L.T("Core_UserName"), @autocomplete = "username" })
                                                         @Html.ValidationMessageFor(m => m.UName, "", new { @class = "text-danger" })
                                                     </div>
 
                                                     <div class="form-group" style="margin-bottom: 1.5rem;">
-                                                        <label class="text-bold-600" for="password">KALIT SO'ZI</label>
-                                                        @Html.PasswordFor(u => u.Password, new { @class = "form-control", @id = "password", @placeholder = "Kalit so'zi", @autocomplete = "current-password" })
+                                                        <label class="text-bold-600" for="password">@L.T("Core_PasswordUpper")</label>
+                                                        @Html.PasswordFor(u => u.Password, new { @class = "form-control", @id = "password", @placeholder = L.T("Core_PasswordPlaceholder"), @autocomplete = "current-password" })
                                                         @Html.ValidationMessageFor(m => m.Password, "", new { @class = "text-danger" })
                                                     </div>
 
@@ -329,14 +347,14 @@
                                                         <div class="checkbox checkbox-sm">
                                                             @Html.CheckBoxFor(u => u.KeepMeSigned, new { @id = "keepMeSigned" })
                                                             <label for="keepMeSigned">
-                                                                <small style="margin-top: 0,5rem; margin-left: 1rem;">Meni tizimda saqlab qolish (1 soat)</small>
+                                                                <small style="margin-top: 0,5rem; margin-left: 1rem;">@L.T("Core_KeepMeSigned")</small>
                                                             </label>
                                                         </div>
                                                     </div>
 
                                                     <hr />
                                                     <button type="submit" class="btn btn-primary glow w-100 position-relative">
-                                                        Kirish <i id="icon-arrow" class="bx bx-right-arrow-alt"></i>
+                                                        @L.T("Login") <i id="icon-arrow" class="bx bx-right-arrow-alt"></i>
                                                     </button>
                                                 }
                                             </div>

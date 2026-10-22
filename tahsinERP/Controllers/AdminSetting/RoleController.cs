@@ -10,6 +10,7 @@ using tahsinERP.Models;
 using tahsinERP.Services;
 using tahsinERP.Services.Common;
 using tahsinERP.ViewModels;
+using tahsinERP.I18n;
 
 namespace tahsinERP.Controllers
 {
@@ -82,7 +83,7 @@ namespace tahsinERP.Controllers
 
             if (string.IsNullOrWhiteSpace(role.RName))
             {
-                ModelState.AddModelError("RName", "Rol nomi kiritilishi shart");
+                ModelState.AddModelError("RName", L.T("Core_RoleNameRequired"));
                 return View(role);
             }
 
@@ -96,7 +97,7 @@ namespace tahsinERP.Controllers
 
                     if (existingRole != null)
                     {
-                        ModelState.AddModelError("RName", "Bu nomli rol allaqachon mavjud");
+                        ModelState.AddModelError("RName", L.T("Core_RoleNameExists"));
                         return View(role);
                     }
 
@@ -121,14 +122,14 @@ namespace tahsinERP.Controllers
                     RoleHelper.ClearAllCache();
 
                     LogHelper.LogToDatabase(User.Identity.Name, "Role", $"{newRole.RName} roli yaratildi");
-                    TempData["Success"] = $"'{newRole.RName}' roli muvaffaqiyatli yaratildi";
+                    TempData["Success"] = L.T("Core_RoleCreated", newRole.RName);
 
                     return RedirectToAction("Index");
                 }
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError("", $"Xatolik yuz berdi: {ex.Message}");
+                ModelState.AddModelError("", L.T("Core_ErrorWithMessage", ex.Message));
                 return View(role);
             }
         }
@@ -177,7 +178,7 @@ namespace tahsinERP.Controllers
 
             if (string.IsNullOrWhiteSpace(role.RName))
             {
-                ModelState.AddModelError("RName", "Rol nomi kiritilishi shart");
+                ModelState.AddModelError("RName", L.T("Core_RoleNameRequired"));
                 return View(role);
             }
 
@@ -203,7 +204,7 @@ namespace tahsinERP.Controllers
 
                     if (existingRole != null)
                     {
-                        ModelState.AddModelError("RName", "Bu nomli rol allaqachon mavjud");
+                        ModelState.AddModelError("RName", L.T("Core_RoleNameExists"));
                         return View(role);
                     }
 
@@ -217,14 +218,14 @@ namespace tahsinERP.Controllers
                     RoleHelper.ClearAllCache();
 
                     LogHelper.LogToDatabase(User.Identity.Name, "Role", $"{roleToUpdate.RName} roli yangilandi");
-                    TempData["Success"] = "Rol muvaffaqiyatli yangilandi";
+                    TempData["Success"] = L.T("Core_RoleUpdated");
 
                     return RedirectToAction("Index");
                 }
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError("", $"Xatolik yuz berdi: {ex.Message}");
+                ModelState.AddModelError("", L.T("Core_ErrorWithMessage", ex.Message));
                 return View(role);
             }
         }
@@ -319,14 +320,14 @@ namespace tahsinERP.Controllers
                     RoleHelper.ClearAllCache();
 
                     LogHelper.LogToDatabase(User.Identity.Name, "Role", $"{role.RName} roli o'chirildi");
-                    TempData["Success"] = "Rol muvaffaqiyatli o'chirildi";
+                    TempData["Success"] = L.T("Core_RoleDeleted");
 
                     return RedirectToAction("Index");
                 }
             }
             catch (Exception ex)
             {
-                TempData["Error"] = $"Xatolik yuz berdi: {ex.Message}";
+                TempData["Error"] = L.T("Core_ErrorWithMessage", ex.Message);
                 return RedirectToAction("Index");
             }
         }
@@ -445,7 +446,7 @@ namespace tahsinERP.Controllers
 
             if (model == null || model.Permissions == null || !model.Permissions.Any())
             {
-                TempData["Error"] = "Ma'lumot topilmadi";
+                TempData["Error"] = L.T("Core_DataNotFound");
                 return RedirectToAction("Permissions", new { id = model?.RoleID ?? 0 });
             }
 
@@ -459,7 +460,7 @@ namespace tahsinERP.Controllers
 
                     if (role == null)
                     {
-                        TempData["Error"] = "Rol topilmadi";
+                        TempData["Error"] = L.T("Core_RoleNotFound");
                         return RedirectToAction("Index", "Role");
                     }
 
@@ -539,14 +540,14 @@ namespace tahsinERP.Controllers
                     RoleHelper.ClearAllCache();
 
                     LogHelper.LogToDatabase(User.Identity.Name, "Role", $"{role.RName} roli uchun {permissionsToAdd.Count} ta yangi va {permissionsToUpdate.Count} ta yangilangan huquq saqlandi");
-                    TempData["Success"] = $"Huquqlar muvaffaqiyatli saqlandi ({permissionsToAdd.Count} ta yangi, {permissionsToUpdate.Count} ta yangilangan)";
+                    TempData["Success"] = L.T("Core_PermissionsSaved", permissionsToAdd.Count, permissionsToUpdate.Count);
 
                     return RedirectToAction("Permissions", new { id = model.RoleID });
                 }
             }
             catch (DbUpdateException dbEx)
             {
-                TempData["Error"] = $"Ma'lumotlar bazasi xatosi: {dbEx.Message}";
+                TempData["Error"] = L.T("Core_DbError", dbEx.Message);
                 if (dbEx.InnerException != null)
                 {
                     TempData["Error"] += $" | {dbEx.InnerException.Message}";
@@ -555,7 +556,7 @@ namespace tahsinERP.Controllers
             }
             catch (Exception ex)
             {
-                TempData["Error"] = $"Xatolik yuz berdi: {ex.Message}";
+                TempData["Error"] = L.T("Core_ErrorWithMessage", ex.Message);
                 return RedirectToAction("Permissions", new { id = model.RoleID });
             }
         }

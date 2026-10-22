@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using System.Web.Mvc;
+using tahsinERP.I18n;
 using tahsinERP.Models;
 using tahsinERP.ViewModels.Home;
 
@@ -206,13 +207,13 @@ namespace tahsinERP.Controllers
                         .ToList();
 
                     var insights = new List<object>();
-                    if (salesConversionRate < 65) insights.Add(new { level = "high", text = "Savdo konversiyasi past. Shartnoma -> buyurtma jarayonini kuchaytirish kerak." });
-                    if (orderFulfillmentRate < 75) insights.Add(new { level = "high", text = "Buyurtma bajarilishi sekin. Invoicing va logistika bottleneck bor." });
-                    if (productionExecutionRate < 80) insights.Add(new { level = "medium", text = "Ishlab chiqarish reja bajarilishi me'yordan past." });
-                    if (inventoryCoverageDays < 20) insights.Add(new { level = "high", text = "DOH juda past. Stockout riski bor." });
-                    if (inventoryCoverageDays > 90) insights.Add(new { level = "medium", text = "DOH yuqori. Zaxira aylanishi sust." });
-                    if (overdueTasks > 0) insights.Add(new { level = "medium", text = "Muddati o'tgan vazifalar mavjud, ijro nazoratini kuchaytiring." });
-                    if (!insights.Any()) insights.Add(new { level = "good", text = "Asosiy KPIlar nazorat ostida. Hozirgi trend barqaror." });
+                    if (salesConversionRate < 65) insights.Add(new { level = "high", text = L.T("Core_InsightLowConversion") });
+                    if (orderFulfillmentRate < 75) insights.Add(new { level = "high", text = L.T("Core_InsightSlowFulfillment") });
+                    if (productionExecutionRate < 80) insights.Add(new { level = "medium", text = L.T("Core_InsightLowProduction") });
+                    if (inventoryCoverageDays < 20) insights.Add(new { level = "high", text = L.T("Core_InsightDohLow") });
+                    if (inventoryCoverageDays > 90) insights.Add(new { level = "medium", text = L.T("Core_InsightDohHigh") });
+                    if (overdueTasks > 0) insights.Add(new { level = "medium", text = L.T("Core_InsightOverdueTasks") });
+                    if (!insights.Any()) insights.Add(new { level = "good", text = L.T("Core_InsightAllGood") });
 
                     return Json(new
                     {
@@ -245,7 +246,7 @@ namespace tahsinERP.Controllers
             {
                 // Ichki xabar foydalanuvchiga ko'rsatilmaydi (CORE-S06)
                 System.Diagnostics.Trace.TraceError("[Home.GetExecutiveDashboard] " + ex);
-                return Json(new { error = "Dashboard ma'lumotlarini olishda xatolik yuz berdi." }, JsonRequestBehavior.AllowGet);
+                return Json(new { error = L.T("Core_DashboardLoadError") }, JsonRequestBehavior.AllowGet);
             }
         }
     }

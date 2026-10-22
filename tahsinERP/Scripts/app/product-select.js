@@ -32,9 +32,14 @@
         return null;
     }
 
+    /** "---Tanlang---" joriy tilda (window.erpT, _I18nScript). */
+    function selectText() {
+        return '---' + (window.erpT ? window.erpT('Js_Select') : 'Tanlang') + '---';
+    }
+
     /** Bo'sh variant + (bo'lsa) faqat tanlangan mahsulot. */
     function optionsHtml(products, selectedId, fallbackText) {
-        var html = '<option value="">---Tanlang---</option>';
+        var html = '<option value="">' + selectText() + '</option>';
         var text = findText(products || [], selectedId);
         if (text === null && selectedId && fallbackText) text = fallbackText;
         if (text !== null) {
@@ -58,7 +63,7 @@
 
             $select.select2({
                 width: '100%',
-                placeholder: '---Tanlang---',
+                placeholder: selectText(),
                 ajax: remoteUrl ? {
                     url: remoteUrl,
                     delay: 250,

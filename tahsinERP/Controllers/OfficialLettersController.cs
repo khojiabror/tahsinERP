@@ -12,6 +12,7 @@ using tahsinERP.Models;
 using tahsinERP.Services;
 using tahsinERP.Services.Documents;
 using tahsinERP.ViewModels;
+using tahsinERP.I18n;
 
 namespace tahsinERP.Controllers
 {
@@ -21,7 +22,6 @@ namespace tahsinERP.Controllers
     [Permission]
     public class OfficialLettersController : BaseController
     {
-        private static readonly object[] DirectionItems = { new { Code = "OUT", Name = "Chiqish" }, new { Code = "IN", Name = "Kirish" } };
         private static readonly string[] ChannelItems = { "EMAIL", "LETTER", "COURIER", "FAX" };
 
         // Servislar faqat kerak bo'lganda yaratiladi (avval har so'rovda, Index'da ham — yangi HttpClient bilan)
@@ -30,7 +30,9 @@ namespace tahsinERP.Controllers
         private IDocumentTemplateService TemplateService => _templateService ?? (_templateService = new DocumentTemplateService());
         private ITextSuggestionService TextSuggestion => _textSuggestionService ?? (_textSuggestionService = new TextSuggestionService());
 
-        private static SelectList Directions(string selected) => new SelectList(DirectionItems, "Code", "Name", selected);
+        private static SelectList Directions(string selected) => new SelectList(
+            new[] { new { Code = "OUT", Name = L.T("Doc_DirectionOut") }, new { Code = "IN", Name = L.T("Doc_DirectionIn") } },
+            "Code", "Name", selected);
 
         private static SelectList Channels(string selected) => new SelectList(ChannelItems, selected);
 
@@ -129,7 +131,7 @@ namespace tahsinERP.Controllers
                         var ids = await DocumentService.DraftHeaderIdsAsync(db, DocumentService.OfficialLetterType);
                         if (ids == null)
                         {
-                            TempData["ErrorMessage"] = "Hujjat turi yoki holati topilmadi. Iltimos, seed skriptlarini ishga tushiring.";
+                            TempData["ErrorMessage"] = L.T("Doc_TypeOrStatusMissingSeed");
                             return RedirectToAction("Index");
                         }
 
@@ -167,15 +169,15 @@ namespace tahsinERP.Controllers
                         LogHelper.LogToDatabase(CurrentUserName, "OfficialLetters", "Create", $"Xat yaratildi: {letterNo}");
 
                         TempData["Success"] = letterNo == vm.LetterNo?.Trim()
-                            ? "Maktub muvaffaqiyatli yaratildi"
-                            : $"Maktub yaratildi. {vm.LetterNo} raqami band bo'lgani uchun {letterNo} raqami berildi";
+                            ? L.T("Doc_LetterCreated")
+                            : L.T("Doc_LetterCreatedRenumbered", vm.LetterNo, letterNo);
                         return RedirectToAction("Index");
                     }
                 }
                 catch (Exception ex)
                 {
                     System.Diagnostics.Trace.TraceError("OfficialLetters Create: {0}", ex);
-                    ModelState.AddModelError("", "Saqlashda xatolik yuz berdi: " + InnermostMessage(ex));
+                    ModelState.AddModelError("", L.T("Doc_SaveErrorDetails", InnermostMessage(ex)));
                 }
             }
 
@@ -244,7 +246,7 @@ namespace tahsinERP.Controllers
         {
             if (string.IsNullOrWhiteSpace(vm.LetterNo))
             {
-                ModelState.AddModelError("LetterNo", "Maktub raqami kiritilishi shart");
+                ModelState.AddModelError("LetterNo", L.T("Doc_LetterNoRequired"));
             }
 
             if (ModelState.IsValid)
@@ -286,14 +288,14 @@ namespace tahsinERP.Controllers
 
                         LogHelper.LogToDatabase(CurrentUserName, "OfficialLetters", "Edit", $"Xat yangilandi: {vm.LetterNo}");
 
-                        TempData["Success"] = "Maktub muvaffaqiyatli yangilandi";
+                        TempData["Success"] = L.T("Doc_LetterUpdated");
                         return RedirectToAction("Index");
                     }
                 }
                 catch (Exception ex)
                 {
                     System.Diagnostics.Trace.TraceError("OfficialLetters Edit {0}: {1}", vm.DocumentId, ex);
-                    ModelState.AddModelError("", "Saqlashda xatolik yuz berdi: " + InnermostMessage(ex));
+                    ModelState.AddModelError("", L.T("Doc_SaveErrorDetails", InnermostMessage(ex)));
                 }
             }
 
@@ -356,7 +358,7 @@ namespace tahsinERP.Controllers
 
                     LogHelper.LogToDatabase(CurrentUserName, "OfficialLetters", "Delete", $"Xat o'chirildi: {code}");
 
-                    TempData["Success"] = "Maktub muvaffaqiyatli o'chirildi";
+                    TempData["Success"] = L.T("Doc_LetterDeleted");
                 }
             }
 
@@ -386,8 +388,8 @@ namespace tahsinERP.Controllers
                 if (resolvedTemplateId == null)
                 {
                     TempData["ErrorMessage"] = templateId.HasValue
-                        ? "Tanlangan shablon topilmadi yoki arxivlangan."
-                        : "Faol shablon yo'q. \"Shablonlar\" sahifasida Word shablon yuklang.";
+                        ? L.T("Doc_TemplateNotFoundOrArchived")
+                        : L.T("Doc_NoActiveTemplate");
                     return RedirectToAction("Details", new { id });
                 }
 
@@ -403,8 +405,8 @@ namespace tahsinERP.Controllers
                 catch (Exception ex)
                 {
                     System.Diagnostics.Trace.TraceError("OfficialLetters GenerateDoc {0}: {1}", id, ex);
-                    TempData["ErrorMessage"] = "Hujjat yaratib bo'lmadi: " +
-                        (ex is InvalidOperationException ? ex.Message : "shablon faylini tekshiring (Word'da ochilishi kerak).");
+                    TempData["ErrorMessage"] = L.T("Doc_GenerateFailed",
+                        ex is InvalidOperationException ? ex.Message : L.T("Doc_CheckTemplateFile"));
                     return RedirectToAction("Details", new { id });
                 }
 
@@ -422,12 +424,11 @@ namespace tahsinERP.Controllers
 
                 LogHelper.LogToDatabase(CurrentUserName, "OfficialLetters", "GenerateDoc", $"Xat uchun hujjat yaratildi: {letter.LetterNo}");
 
-                TempData["Success"] = $"Hujjat yaratildi (versiya {file.VersionNo}) va yuklab olinmoqda.";
+                TempData["Success"] = L.T("Doc_GeneratedDownloading", file.VersionNo);
                 if (generated.UnknownPlaceholders.Count > 0)
                 {
-                    TempData["Warning"] = "Shablonda tanilmagan maydonlar o'zgarishsiz qoldi: " +
-                        string.Join(", ", generated.UnknownPlaceholders.Select(p => "{{" + p + "}}")) +
-                        ". To'g'ri nomlar \"Shablonlar\" sahifasida.";
+                    TempData["Warning"] = L.T("Doc_UnknownPlaceholdersLeft",
+                        string.Join(", ", generated.UnknownPlaceholders.Select(p => "{{" + p + "}}")));
                 }
                 // Details sahifasi faylni avtomatik yuklab beradi
                 TempData["DownloadFileId"] = file.ID;
@@ -458,7 +459,7 @@ namespace tahsinERP.Controllers
                 LogHelper.LogToDatabase(CurrentUserName, "OfficialLetters", "ChangeStatus",
                     $"Xat holati '{result.StatusName}' ga o'zgartirildi: {result.DocumentCode}");
 
-                TempData["Success"] = $"Holat '{result.StatusName}' ga o'zgartirildi";
+                TempData["Success"] = L.T("Doc_StatusChangedTo", result.StatusName);
                 return RedirectToAction("Details", new { id });
             }
         }
@@ -506,7 +507,7 @@ namespace tahsinERP.Controllers
             catch (Exception ex)
             {
                 System.Diagnostics.Trace.TraceError("OfficialLetters SuggestText: {0}", ex);
-                return Json(new { success = false, error = "Matn taklif qilib bo'lmadi." });
+                return Json(new { success = false, error = L.T("Doc_SuggestFailed") });
             }
         }
 
@@ -598,11 +599,11 @@ namespace tahsinERP.Controllers
                 fileExtension = System.IO.Path.GetExtension(vm.AttachmentFile.FileName).ToLower();
                 if (fileExtension != ".pdf")
                 {
-                    ModelState.AddModelError("AttachmentFile", "Faqat PDF fayllarni yuklash mumkin");
+                    ModelState.AddModelError("AttachmentFile", L.T("Doc_OnlyPdf"));
                 }
                 else if (vm.AttachmentFile.ContentLength > 10 * 1024 * 1024)
                 {
-                    ModelState.AddModelError("AttachmentFile", "Fayl hajmi 10 MB dan oshmasligi kerak");
+                    ModelState.AddModelError("AttachmentFile", L.T("Doc_FileMax10Mb"));
                 }
             }
 
@@ -616,7 +617,7 @@ namespace tahsinERP.Controllers
                 var ids = await DocumentService.DraftHeaderIdsAsync(db, DocumentService.OfficialLetterType);
                 if (ids == null)
                 {
-                    TempData["ErrorMessage"] = "Hujjat turi yoki holati topilmadi";
+                    TempData["ErrorMessage"] = L.T("Doc_TypeOrStatusMissing");
                     return View(vm);
                 }
 
@@ -663,7 +664,7 @@ namespace tahsinERP.Controllers
                 LogHelper.LogToDatabase(CurrentUserName, "OfficialLetters", "RegisterIncoming",
                     $"Kiruvchi xat ro'yxatga olindi: {vm.LetterNo} - {vm.CompanyOrPersonName}");
 
-                TempData["Success"] = "Kiruvchi xat muvaffaqiyatli ro'yxatga olindi";
+                TempData["Success"] = L.T("Doc_IncomingRegistered");
                 return RedirectToAction("Index");
             }
         }

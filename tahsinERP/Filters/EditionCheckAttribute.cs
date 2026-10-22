@@ -25,9 +25,9 @@ namespace tahsinERP.Filters
 
             var module = EditionModules.ModuleOf(controller);
             string message = EditionModules.IsAddOn(module)
-                ? "\"" + EditionModules.DisplayName(module) + "\" alohida xizmat — ulash uchun yetkazib beruvchiga murojaat qiling."
-                : "\"" + EditionModules.DisplayName(module) + "\" moduli paketingizda yo'q — tarifni " +
-                  EditionModules.SuggestionText(EditionGate.CurrentEdition, module) + " paketiga o'ting.";
+                ? I18n.L.T("Core_EditionAddOnMessage", EditionModules.DisplayName(module))
+                : I18n.L.T("Core_EditionNotInPlanMessage", EditionModules.DisplayName(module),
+                    EditionModules.SuggestionText(EditionGate.CurrentEdition, module));
 
             if (filterContext.HttpContext.Request.IsAjaxRequest())
             {

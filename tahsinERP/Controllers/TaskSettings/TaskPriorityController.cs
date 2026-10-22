@@ -4,6 +4,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using tahsinERP.Models;
+using tahsinERP.I18n;
 
 namespace tahsinERP.Controllers.TaskSettings
 {
@@ -21,7 +22,7 @@ namespace tahsinERP.Controllers.TaskSettings
 
         protected override string LogLabel => "Priority";
 
-        protected override string InUseMessage => "Bu prioritet vazifalarda ishlatilmoqda. O'chirish mumkin emas.";
+        protected override string InUseMessage => L.T("Task_PriorityInUse");
 
         protected override async Task OnCreatingAsync(DBTHSNEntities db, APP_TASK_PRIORITY_REF entity)
         {

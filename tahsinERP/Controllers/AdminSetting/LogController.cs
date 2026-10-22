@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.Caching;
 using System.Threading.Tasks;
 using System.Web.Mvc;
+using tahsinERP.I18n;
 using tahsinERP.Models;
 using tahsinERP.Filters;
 using tahsinERP.Services.Common;
@@ -82,7 +83,7 @@ namespace tahsinERP.Controllers
 
                 var rows = page.Select(l => new
                 {
-                    user = l.User ?? "Noma'lum",
+                    user = l.User ?? L.T("Core_Unknown"),
                     controller = l.ControllerName,
                     action = l.ActionName,
                     ip = l.IP,
@@ -105,15 +106,15 @@ namespace tahsinERP.Controllers
                     .Select(l => new LogRow { User = l.USER.FullName ?? l.USER.Uname, Controller = l.ControllerName, Action = l.ActionName, IP = l.IP, Mac = l.MacAddr, DateTime = l.DateTime })
                     .ToListAsync();
 
-                var bytes = ExcelExport.Create("Tizim loglari", rows,
-                    ExcelExport.Col<LogRow>("Foydalanuvchi", x => x.User ?? "Noma'lum"),
+                var bytes = ExcelExport.Create(L.T("Adm_SystemLogs"), rows,
+                    ExcelExport.Col<LogRow>(L.T("Core_User"), x => x.User ?? L.T("Core_Unknown")),
                     ExcelExport.Col<LogRow>("Controller", x => x.Controller),
                     ExcelExport.Col<LogRow>("Action", x => x.Action),
-                    ExcelExport.Col<LogRow>("IP manzili", x => x.IP),
-                    ExcelExport.Col<LogRow>("MAC manzili", x => x.Mac),
-                    ExcelExport.Col<LogRow>("Sana", x => x.DateTime, "dd.MM.yyyy HH:mm:ss"));
+                    ExcelExport.Col<LogRow>(L.T("Core_IpAddress"), x => x.IP),
+                    ExcelExport.Col<LogRow>(L.T("Core_MacAddress"), x => x.Mac),
+                    ExcelExport.Col<LogRow>(L.T("Date"), x => x.DateTime, "dd.MM.yyyy HH:mm:ss"));
 
-                return File(bytes, ExcelExport.ContentType, "Tizim_loglari_" + DateTime.Now.ToString("yyyyMMdd_HHmmss") + ".xlsx");
+                return File(bytes, ExcelExport.ContentType, L.T("Core_FileSystemLogs") + "_" + DateTime.Now.ToString("yyyyMMdd_HHmmss") + ".xlsx");
             }
         }
 

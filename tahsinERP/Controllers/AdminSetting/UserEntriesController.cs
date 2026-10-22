@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using tahsinERP.Filters;
+using tahsinERP.I18n;
 using tahsinERP.Models;
 using tahsinERP.Services.Common;
 
@@ -68,7 +69,7 @@ namespace tahsinERP.Controllers
 
                 var rows = page.Select(e => new
                 {
-                    user = e.User ?? "Noma'lum",
+                    user = e.User ?? L.T("Core_Unknown"),
                     ip = e.IP,
                     mac = e.MAC,
                     date = e.DateTime.ToString("dd.MM.yyyy"),
@@ -89,12 +90,12 @@ namespace tahsinERP.Controllers
                     .Select(e => new EntryRow { User = e.USER.FullName ?? e.USER.Uname, IP = e.IP, Mac = e.MAC, DateTime = e.DateTime })
                     .ToListAsync();
 
-                var bytes = ExcelExport.Create("Kirishlar", rows,
-                    ExcelExport.Col<EntryRow>("Foydalanuvchi", x => x.User ?? "Noma'lum"),
-                    ExcelExport.Col<EntryRow>("IP manzili", x => x.IP),
-                    ExcelExport.Col<EntryRow>("MAC manzili", x => x.Mac),
-                    ExcelExport.Col<EntryRow>("Sana", x => x.DateTime, "dd.MM.yyyy HH:mm:ss"));
-                return File(bytes, ExcelExport.ContentType, "Foydalanuvchi_kirishlari_" + DateTime.Now.ToString("yyyyMMdd_HHmmss") + ".xlsx");
+                var bytes = ExcelExport.Create(L.T("Core_Entries"), rows,
+                    ExcelExport.Col<EntryRow>(L.T("Core_User"), x => x.User ?? L.T("Core_Unknown")),
+                    ExcelExport.Col<EntryRow>(L.T("Core_IpAddress"), x => x.IP),
+                    ExcelExport.Col<EntryRow>(L.T("Core_MacAddress"), x => x.Mac),
+                    ExcelExport.Col<EntryRow>(L.T("Date"), x => x.DateTime, "dd.MM.yyyy HH:mm:ss"));
+                return File(bytes, ExcelExport.ContentType, L.T("Core_FileUserEntries") + "_" + DateTime.Now.ToString("yyyyMMdd_HHmmss") + ".xlsx");
             }
         }
 

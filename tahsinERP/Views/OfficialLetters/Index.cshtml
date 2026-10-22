@@ -1,6 +1,6 @@
 @model List<tahsinERP.ViewModels.OfficialLetterIndexVm>
 @{
-    ViewBag.Title = "Rasmiy Maktublar";
+    ViewBag.Title = L.T("Menu_OfficialLetters");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -20,7 +20,7 @@
                                     <li class="breadcrumb-item">
                                         <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                     </li>
-                                    <li class="breadcrumb-item active">Rasmiy Maktublar</li>
+                                    <li class="breadcrumb-item active">@L.T("Menu_OfficialLetters")</li>
                                 </ol>
                             </div>
                         </div>
@@ -33,13 +33,13 @@
                     {
                         <div class="invoice-create-btn mb-1">
                             <a href="@Url.Action("Create", "OfficialLetters")" class="btn btn-success bg-light invoice-create" role="button">
-                                <i class="bx bx-plus"></i> Yangi Maktub
+                                <i class="bx bx-plus"></i> @L.T("Doc_NewLetter")
                             </a>
                             <a href="@Url.Action("RegisterIncoming", "OfficialLetters")" class="btn btn-info bg-light invoice-create" role="button" style="margin-left: 10px;">
-                                <i class="bx bx-file"></i> Kiruvchi xatni ro'yxatga olish
+                                <i class="bx bx-file"></i> @L.T("Doc_RegisterIncoming")
                             </a>
                             <a href="@Url.Action("Index", "DocTemplates", new { docType = "OFFICIAL_LETTER" })" class="btn btn-outline-secondary" role="button" style="margin-left: 10px;">
-                                <i class="bx bx-cog"></i> Word shablonlar
+                                <i class="bx bx-cog"></i> @L.T("Doc_WordTemplates")
                             </a>
                         </div>
                     }
@@ -69,21 +69,21 @@
                                         <form method="get" action="@Url.Action("Index")">
                                             <div class="row border rounded py-2 mb-2">
                                                 <div class="col-12 col-sm-6 col-lg-3">
-                                                    <label>Qidirish</label>
+                                                    <label>@L.T("Search")</label>
                                                     <input type="text" name="topicSearch" class="form-control" value="@ViewBag.TopicSearch" placeholder="Mavzu, kompaniya..." />
                                                 </div>
                                                 <div class="col-12 col-sm-6 col-lg-2">
-                                                    <label>Yil</label>
-                                                    @Html.DropDownList("year", ViewBag.Years as SelectList, "Barchasi", new { @class = "form-control" })
+                                                    <label>@L.T("Doc_Year")</label>
+                                                    @Html.DropDownList("year", ViewBag.Years as SelectList, L.T("All"), new { @class = "form-control" })
                                                 </div>
                                                 <div class="col-12 col-sm-6 col-lg-2">
-                                                    <label>Yo'nalish</label>
-                                                    @Html.DropDownList("directionCode", ViewBag.Directions as SelectList, "Barchasi", new { @class = "form-control" })
+                                                    <label>@L.T("Doc_Direction")</label>
+                                                    @Html.DropDownList("directionCode", ViewBag.Directions as SelectList, L.T("All"), new { @class = "form-control" })
                                                 </div>
                                                 <div class="col-12 col-sm-6 col-lg-2">
                                                     <label>&nbsp;</label>
                                                     <button type="submit" class="btn btn-primary btn-block">
-                                                        <i class="bx bx-search"></i> Qidirish
+                                                        <i class="bx bx-search"></i> @L.T("Search")
                                                     </button>
                                                 </div>
                                             </div>
@@ -95,14 +95,14 @@
                                         <table id="officialLettersTable" class="table table-striped table-bordered" style="width:100%">
                                             <thead>
                                                 <tr>
-                                                    <th>Raqam</th>
-                                                    <th>Sana</th>
-                                                    <th>Yo'nalish</th>
-                                                    <th>Kompaniya</th>
-                                                    <th>Kontakt</th>
-                                                    <th>Mavzu</th>
-                                                    <th>Holat</th>
-                                                    <th>Amallar</th>
+                                                    <th>@L.T("Number")</th>
+                                                    <th>@L.T("Date")</th>
+                                                    <th>@L.T("Doc_Direction")</th>
+                                                    <th>@L.T("Doc_Company")</th>
+                                                    <th>@L.T("Doc_Contact")</th>
+                                                    <th>@L.T("Doc_Topic")</th>
+                                                    <th>@L.T("Status")</th>
+                                                    <th>@L.T("Actions")</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -119,16 +119,16 @@
                                                             <td>@item.Topic</td>
                                                             <td><span class="badge badge-info">@item.StatusName</span></td>
                                                             <td>
-                                                                <a href="@Url.Action("Details", new { id = item.DocumentId })" class="btn btn-sm btn-info" title="Ko'rish">
+                                                                <a href="@Url.Action("Details", new { id = item.DocumentId })" class="btn btn-sm btn-info" title="@L.T("View")">
                                                                     <i class="bx bx-show"></i>
                                                                 </a>
                                                                 @if (changePermit)
                                                                 {
-                                                                    <a href="@Url.Action("Edit", new { id = item.DocumentId })" class="btn btn-sm btn-warning" title="Tahrirlash">
+                                                                    <a href="@Url.Action("Edit", new { id = item.DocumentId })" class="btn btn-sm btn-warning" title="@L.T("Edit")">
                                                                         <i class="bx bx-edit"></i>
                                                                     </a>
-                                                                    <a href="#" data-post-url="@Url.Action("Delete", "OfficialLetters", new { id = item.DocumentId })" data-confirm="O'chirishni tasdiqlaysizmi?" class="btn btn-sm btn-danger" title="O'chirish"><i class="bx bx-trash"></i></a>
-                                                                    <a href="#" data-post-url="@Url.Action("GenerateDoc", "OfficialLetters", new { id = item.DocumentId })" data-confirm="Hujjat yaratilsinmi?" class="btn btn-sm btn-success" title="Hujjat yaratish"><i class="bx bx-file"></i></a>
+                                                                    <a href="#" data-post-url="@Url.Action("Delete", "OfficialLetters", new { id = item.DocumentId })" data-confirm="@L.T("Js_ConfirmDelete")" class="btn btn-sm btn-danger" title="@L.T("Delete")"><i class="bx bx-trash"></i></a>
+                                                                    <a href="#" data-post-url="@Url.Action("GenerateDoc", "OfficialLetters", new { id = item.DocumentId })" data-confirm="@L.T("Doc_ConfirmGenerate")" class="btn btn-sm btn-success" title="@L.T("Doc_GenerateDoc")"><i class="bx bx-file"></i></a>
                                                                 }
                                                             </td>
                                                         </tr>
@@ -162,20 +162,7 @@
             }
 
             $('#officialLettersTable').DataTable({
-            "language": {
-                "search": "Qidirish:",
-                "lengthMenu": "_MENU_ ta ko'rsatish",
-                "info": "_TOTAL_ ta yozuvdan _START_ dan _END_ gacha",
-                "infoEmpty": "Yozuvlar yo'q",
-                "infoFiltered": "(jami _MAX_ ta yozuvdan filtrlangan)",
-                "paginate": {
-                    "first": "Birinchi",
-                    "last": "Oxirgi",
-                    "next": "Keyingi",
-                    "previous": "Oldingi"
-                },
-                "zeroRecords": "Ma'lumot topilmadi"
-            },
+            language: erpDataTable.language,
             "paging": true,
             "info": true,
             "lengthChange": true,
@@ -184,7 +171,7 @@
             "order": [[3, "desc"]],
             "columnDefs": columnDefs,
             dom: 'lBfrtip',
-            buttons: erpDataTable.buttons({ fileName: 'Xatlar', pdfTitle: "Xatlar ro'yxati", columns: true ? ':not(:last-child)' : ':visible' }),
+            buttons: erpDataTable.buttons({ fileName: '@L.Js("Doc_LettersFile")', pdfTitle: '@L.Js("Doc_LettersList")', columns: true ? ':not(:last-child)' : ':visible' }),
             "scrollX": true
         });
         }

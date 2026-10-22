@@ -26,7 +26,7 @@
             // konvertatsiyasi formatlashni soddalashtiradi, faqat metadata tahrirlanganda asosiy fayl buzilmasin.
             onlyIfChanged: true,
             autoLoadUrl: currentUrl,
-            buttons: [{ selector: '#loadCurrentDocxBtn', url: function () { return currentUrl; }, missing: 'Joriy versiya fayli topilmadi' }],
+            buttons: [{ selector: '#loadCurrentDocxBtn', url: function () { return currentUrl; }, missing: '@L.Js("Doc_CurrentVersionMissing")' }],
             </text>
 }
 else
@@ -36,7 +36,7 @@ else
             buttons: [{
                 selector: '#loadTemplateBtn',
                 url: function () { return templateUrl + ($('#templateSelect').length ? '?templateId=' + encodeURIComponent($('#templateSelect').val()) : ''); },
-                error: "Shablon topilmadi. Bo'sh hujjat bilan davom eting."
+                error: '@L.Js("Doc_TemplateNotFoundEmpty")'
             }],
             </text>
 }

@@ -1,7 +1,7 @@
 @using tahsinERP.Services.Tasks
 @model tahsinERP.ViewModels.TaskDashboardViewModel
 @{
-    ViewBag.Title = "Task Dashboard";
+    ViewBag.Title = L.T("Menu_DashTasks");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -17,8 +17,8 @@
                             <div class="breadcrumb-wrapper col-12">
                                 <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                     <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
-                                    <li class="breadcrumb-item"><a href="~/Tasks">Tasks</a></li>
-                                    <li class="breadcrumb-item active">Dashboard</li>
+                                    <li class="breadcrumb-item"><a href="~/Tasks">@L.T("Menu_Tasks")</a></li>
+                                    <li class="breadcrumb-item active">@L.T("Menu_Dashboard")</li>
                                 </ol>
                             </div>
                         </div>
@@ -36,13 +36,13 @@
                                     @if (ViewBag.IsAdminOrDeveloper == true)
                                     {
                                         <div class="col-md-6">
-                                            <label>Foydalanuvchi</label>
+                                            <label>@L.T("Core_User")</label>
                                             @{
                                                 var userSelectList = ViewBag.UserID as SelectList;
                                                 var selectedUserId = ViewBag.SelectedUserID as int?;
                                             }
                                             <select name="userId" class="form-control" onchange="this.form.submit()">
-                                                <option value="">Barcha foydalanuvchilar</option>
+                                                <option value="">@L.T("Core_AllUsers")</option>
                                                 @if (userSelectList != null)
                                                 {
                                                     foreach (var item in userSelectList)
@@ -56,7 +56,7 @@
                                     else
                                     {
                                         <div class="col-md-6">
-                                            <label>Foydalanuvchi</label>
+                                            <label>@L.T("Core_User")</label>
                                             <select name="userId" class="form-control" disabled>
                                                 @if (ViewBag.UserID != null)
                                                 {
@@ -74,7 +74,7 @@
                                         <label>&nbsp;</label>
                                         <div>
                                             <a href="@Url.Action("Index", "Tasks")" class="btn btn-secondary">
-                                                <i class="bx bx-list-ul"></i> Barcha vazifalar
+                                                <i class="bx bx-list-ul"></i> @L.T("Task_AllTasks")
                                             </a>
                                         </div>
                                     </div>
@@ -96,7 +96,7 @@
                                         </div>
                                         <div class="media-body text-right">
                                             <h3>@Model.UserTaskCount</h3>
-                                            <span>Jami vazifalar (@Model.UserName)</span>
+                                            <span>@L.T("Task_TotalTasksFor", Model.UserName)</span>
                                         </div>
                                     </div>
                                 </div>
@@ -113,7 +113,7 @@
                                         </div>
                                         <div class="media-body text-right">
                                             <h3>@Model.UserDoneCount</h3>
-                                            <span>Bajarildi</span>
+                                            <span>@L.T("Js_Task_Done")</span>
                                         </div>
                                     </div>
                                 </div>
@@ -130,7 +130,7 @@
                                         </div>
                                         <div class="media-body text-right">
                                             <h3>@Model.UserInProgressCount</h3>
-                                            <span>Jarayonda</span>
+                                            <span>@L.T("Js_Task_InProgress")</span>
                                         </div>
                                     </div>
                                 </div>
@@ -147,7 +147,7 @@
                                         </div>
                                         <div class="media-body text-right">
                                             <h3>@Model.UserTodoCount</h3>
-                                            <span>Rejada</span>
+                                            <span>@L.T("Js_Task_Todo")</span>
                                         </div>
                                     </div>
                                 </div>
@@ -168,7 +168,7 @@
                                         </div>
                                         <div class="media-body text-right">
                                             <h3>@Model.OverdueCount</h3>
-                                            <span>Muddati o'tgan</span>
+                                            <span>@L.T("Js_Task_Overdue")</span>
                                         </div>
                                     </div>
                                 </div>
@@ -185,7 +185,7 @@
                                         </div>
                                         <div class="media-body text-right">
                                             <h3>@Model.RecentTasksCount</h3>
-                                            <span>So'nggi 7 kun</span>
+                                            <span>@L.T("Task_Last7Days")</span>
                                         </div>
                                     </div>
                                 </div>
@@ -200,7 +200,7 @@
                     <div class="col-md-6">
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">Status bo'yicha taqsimot</h4>
+                                <h4 class="card-title">@L.T("Task_ByStatusDist")</h4>
                             </div>
                             <div class="card-body">
                                 <div id="statusPieChart" style="min-height: 350px;"></div>
@@ -212,7 +212,7 @@
                     <div class="col-md-6">
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">Prioritet bo'yicha taqsimot</h4>
+                                <h4 class="card-title">@L.T("Task_ByPriorityDist")</h4>
                             </div>
                             <div class="card-body">
                                 <div id="priorityBarChart" style="min-height: 350px;"></div>
@@ -226,7 +226,7 @@
                     <div class="col-12">
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">Prioritet bo'yicha batafsil statistika</h4>
+                                <h4 class="card-title">@L.T("Task_ByPriorityStats")</h4>
                             </div>
                             <div class="card-body">
                                 <div id="priorityStackedChart" style="min-height: 400px;"></div>
@@ -240,7 +240,7 @@
                     <div class="col-12">
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">Muddatidan o'tgan vazifalar (Loyiha bo'yicha)</h4>
+                                <h4 class="card-title">@L.T("Task_OverdueByProject")</h4>
                             </div>
                             <div class="card-body">
                                 <div id="overdueTasksChart" style="min-height: 400px;"></div>
@@ -254,7 +254,7 @@
                     <div class="col-12">
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">Xodimlar reytingi</h4>
+                                <h4 class="card-title">@L.T("Task_EmployeeRating")</h4>
                             </div>
                             <div class="card-body">
                                 <div id="employeeRatingChart" style="min-height: 400px;"></div>

@@ -6,6 +6,11 @@
 (function (window, document) {
     'use strict';
 
+    // Joriy tildagi matn (window.erpT, _I18nScript); yuklanmagan bo'lsa — o'zbekcha
+    function t(key, fallback, args) {
+        return window.erpT ? window.erpT(key, args) : fallback;
+    }
+
     function message(selector, text, cls) {
         var el = document.querySelector(selector);
         if (el) el.innerHTML = '<p class="text-center ' + (cls || 'text-muted') + '">' + text + '</p>';
@@ -17,12 +22,12 @@
         try {
             new window.ApexCharts(el, options).render();
         } catch (e) {
-            message(selector, 'Xatolik: ' + String(e.message).replace(/</g, '&lt;'), 'text-danger');
+            message(selector, t('Js_Task_ErrorPrefix', 'Xatolik:') + ' ' + String(e.message).replace(/</g, '&lt;'), 'text-danger');
         }
     }
 
     function statusChart(d) {
-        if (!d.statusSeries.length) return message('#statusPieChart', "Ma'lumot mavjud emas");
+        if (!d.statusSeries.length) return message('#statusPieChart', t('Js_Task_NoData', "Ma'lumot mavjud emas"));
         render('#statusPieChart', {
             chart: { type: 'pie', height: 350 },
             labels: d.statusLabels,
@@ -35,8 +40,8 @@
 
     function priorityCharts(d) {
         if (!d.priorityCategories.length) {
-            message('#priorityBarChart', "Ma'lumot mavjud emas");
-            message('#priorityStackedChart', "Ma'lumot mavjud emas");
+            message('#priorityBarChart', t('Js_Task_NoData', "Ma'lumot mavjud emas"));
+            message('#priorityStackedChart', t('Js_Task_NoData', "Ma'lumot mavjud emas"));
             return;
         }
         var xaxis = { categories: d.priorityCategories, labels: { style: { colors: d.priorityColors } } };
@@ -46,9 +51,9 @@
             plotOptions: { bar: { horizontal: false, columnWidth: '55%', endingShape: 'rounded' } },
             dataLabels: { enabled: false },
             stroke: { show: true, width: 2, colors: ['transparent'] },
-            series: [{ name: 'Jami', data: d.priorityTotal }, { name: 'Bajarildi', data: d.priorityDone }],
+            series: [{ name: t('Js_Task_Total', 'Jami'), data: d.priorityTotal }, { name: t('Js_Task_Done', 'Bajarildi'), data: d.priorityDone }],
             xaxis: xaxis,
-            yaxis: { title: { text: 'Vazifalar soni' } },
+            yaxis: { title: { text: t('Js_Task_TaskCount', 'Vazifalar soni') } },
             fill: { opacity: 1 },
             colors: d.priorityColors,
             legend: { position: 'top' }
@@ -58,9 +63,9 @@
             chart: { type: 'bar', height: 400, stacked: true, stackType: '100%' },
             plotOptions: { bar: { horizontal: false } },
             series: [
-                { name: 'Rejada', data: d.priorityTodo },
-                { name: 'Jarayonda', data: d.priorityInProgress },
-                { name: 'Bajarildi', data: d.priorityDone }
+                { name: t('Js_Task_Todo', 'Rejada'), data: d.priorityTodo },
+                { name: t('Js_Task_InProgress', 'Jarayonda'), data: d.priorityInProgress },
+                { name: t('Js_Task_Done', 'Bajarildi'), data: d.priorityDone }
             ],
             xaxis: xaxis,
             colors: ['#6C757D', '#FFC107', '#28A745'],
@@ -70,12 +75,12 @@
     }
 
     function overdueChart(d) {
-        if (!d.overdueCounts.length) return message('#overdueTasksChart', "Muddatidan o'tgan vazifalar yo'q");
+        if (!d.overdueCounts.length) return message('#overdueTasksChart', t('Js_Task_NoOverdue', "Muddatidan o'tgan vazifalar yo'q"));
         render('#overdueTasksChart', {
             chart: { type: 'bar', height: 400 },
             plotOptions: { bar: { horizontal: true, borderRadius: 4 } },
             dataLabels: { enabled: true },
-            series: [{ name: "Muddatidan o'tgan vazifalar", data: d.overdueCounts }],
+            series: [{ name: t('Js_Task_OverdueTasks', "Muddatidan o'tgan vazifalar"), data: d.overdueCounts }],
             xaxis: { categories: d.overdueProjects },
             colors: ['#DC3545'],
             legend: { position: 'top' },
@@ -84,7 +89,7 @@
     }
 
     function employeeChart(d) {
-        if (!d.employeeNames.length) return message('#employeeRatingChart', "Xodimlar reytingi ma'lumotlari yo'q");
+        if (!d.employeeNames.length) return message('#employeeRatingChart', t('Js_Task_NoRating', "Xodimlar reytingi ma'lumotlari yo'q"));
 
         var onTime = d.employeeOnTime, overdue = d.employeeOverdue;
         var hasOnTime = onTime.some(function (v) { return v > 0; });
@@ -96,22 +101,22 @@
                 enabled: true,
                 formatter: function (val, opts) {
                     return hasOnTime
-                        ? onTime[opts.dataPointIndex] + ' ta muddatida bajarilgan'
-                        : overdue[opts.dataPointIndex] + " ta muddati o'tgan";
+                        ? t('Js_Task_OnTimeN', onTime[opts.dataPointIndex] + ' ta muddatida bajarilgan', [onTime[opts.dataPointIndex]])
+                        : t('Js_Task_OverdueN', overdue[opts.dataPointIndex] + " ta muddati o'tgan", [overdue[opts.dataPointIndex]]);
                 },
                 offsetX: 0,
                 offsetY: -5,
                 style: { fontSize: '12px', colors: ['#333'] }
             },
             series: [{
-                name: hasOnTime ? 'Muddatida bajarilgan' : "Muddati o'tgan",
+                name: hasOnTime ? t('Js_Task_OnTime', 'Muddatida bajarilgan') : t('Js_Task_Overdue', "Muddati o'tgan"),
                 data: hasOnTime ? onTime : overdue
             }],
             xaxis: {
                 categories: d.employeeNames,
-                title: { text: hasOnTime ? 'Muddatida bajarilgan vazifalar soni' : "Muddati o'tgan vazifalar soni" }
+                title: { text: hasOnTime ? t('Js_Task_OnTimeCount', 'Muddatida bajarilgan vazifalar soni') : t('Js_Task_OverdueCount', "Muddati o'tgan vazifalar soni") }
             },
-            yaxis: { title: { text: 'Xodimlar' } },
+            yaxis: { title: { text: t('Js_Task_Employees', 'Xodimlar') } },
             colors: hasOnTime ? ['#28A745'] : ['#DC3545'],
             legend: { position: 'top' },
             fill: { opacity: 1 },
@@ -119,8 +124,9 @@
                 y: {
                     formatter: function (val, opts) {
                         return hasOnTime
-                            ? 'Muddatida bajarilgan: ' + val + " ta<br/>Muddati o'tgan: " + overdue[opts.dataPointIndex] + ' ta'
-                            : "Muddati o'tgan: " + val + ' ta';
+                            ? t('Js_Task_OnTimeTip', 'Muddatida bajarilgan: ' + val + ' ta', [val]) + '<br/>' +
+                              t('Js_Task_OverdueTip', "Muddati o'tgan: " + overdue[opts.dataPointIndex] + ' ta', [overdue[opts.dataPointIndex]])
+                            : t('Js_Task_OverdueTip', "Muddati o'tgan: " + val + ' ta', [val]);
                     }
                 }
             }
@@ -132,7 +138,7 @@
         if (!dataEl) return;
         if (typeof window.ApexCharts === 'undefined') {
             ['#statusPieChart', '#priorityBarChart', '#priorityStackedChart', '#overdueTasksChart', '#employeeRatingChart']
-                .forEach(function (s) { message(s, 'ApexCharts kutubxonasi yuklanmagan!', 'text-danger'); });
+                .forEach(function (s) { message(s, t('Js_Task_ApexMissing', 'ApexCharts kutubxonasi yuklanmagan!'), 'text-danger'); });
             return;
         }
         var d = JSON.parse(dataEl.textContent);

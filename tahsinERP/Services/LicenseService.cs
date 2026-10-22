@@ -5,6 +5,7 @@ using System.Globalization;
 using System.Linq;
 using System.Runtime.Caching;
 using tahsinERP.Configuration.Tenancy;
+using tahsinERP.I18n;
 using tahsinERP.Licensing;
 using tahsinERP.Models;
 
@@ -32,6 +33,27 @@ namespace tahsinERP.Services
             public static Result Fail(string m) { return new Result { Ok = false, Message = m }; }
         }
 
+        /// <summary>
+        /// Tarjima qilinadigan xabar (resx kaliti + argumentlar). Holat 5 daqiqa keshlanadi va turli tildagi
+        /// foydalanuvchilarga ko'rsatiladi — shuning uchun matn har o'qilganda joriy so'rov tilida yasaladi.
+        /// </summary>
+        public sealed class LocalizedMessage
+        {
+            public LocalizedMessage(string key, params object[] args)
+            {
+                Key = key;
+                Args = args ?? new object[0];
+            }
+
+            public string Key { get; private set; }
+            public object[] Args { get; private set; }
+
+            public override string ToString()
+            {
+                return Args.Length == 0 ? L.T(Key) : L.T(Key, Args);
+            }
+        }
+
         public class SeatUsage
         {
             public int Max { get; set; }        // 0 = cheksiz
@@ -51,9 +73,12 @@ namespace tahsinERP.Services
             public bool Blocked { get { return !FullAccess && !ReadOnly; } }
 
             public LicenseHelper.LicenseState? State { get; set; }
-            public string Message { get; set; }
+            public LocalizedMessage MessageText { get; set; }
+            /// <summary>Holat xabari — joriy so'rov tilida.</summary>
+            public string Message { get { return MessageText?.ToString(); } }
+            public LocalizedMessage ClockProblemText { get; set; }
             /// <summary>Soat orqaga surilgan yoki muhr buzilgan bo'lsa — sabab (License sahifasida ko'rsatiladi).</summary>
-            public string ClockProblem { get; set; }
+            public string ClockProblem { get { return ClockProblemText?.ToString(); } }
 
             public LicenseHelper.LicenseInfo Info { get; set; }
             public string InstallationId { get; set; }
@@ -62,7 +87,8 @@ namespace tahsinERP.Services
 
             public int DaysRemaining { get { return Info != null ? Info.DaysRemainingAt(EffectiveNow) : 0; } }
             /// <summary>Panel bilan uzoq aloqa yo'q (onlayn tekshiruv siyosati, 08_STAGE4.md 4) — banner matni yoki null.</summary>
-            public string OnlineWarning { get; set; }
+            public string OnlineWarning { get { return OnlineWarningText?.ToString(); } }
+            public LocalizedMessage OnlineWarningText { get; set; }
 
             /// <summary>Admin'ga banner ko'rsatish kerakmi (tugashiga oz qoldi yoki grace).</summary>
             public bool ShowWarning
@@ -124,14 +150,14 @@ namespace tahsinERP.Services
                 using (var db = new DBTHSNEntities())
                 {
                     status = GetStatus(db);
-                    try { status.OnlineWarning = OnlineWarningFor(db); }
+                    try { status.OnlineWarningText = OnlineWarningMessage(db); }
                     catch (Exception ex) { Trace.TraceWarning("[License] onlayn tekshiruv holati o'qilmadi: " + ex.Message); }
                 }
             }
             catch (Exception ex)
             {
                 Trace.TraceError("[License] Litsenziya holatini tekshirishda xatolik: " + ex);
-                status = Blocked("Litsenziyani tekshirishda xatolik yuz berdi. Administrator bilan bog'laning.");
+                status = Blocked(new LocalizedMessage("Core_LicenseCheckError"));
                 ttl = ErrorCacheDuration;
             }
 
@@ -145,6 +171,15 @@ namespace tahsinERP.Services
         /// </summary>
         public static string OnlineWarningFor(DBTHSNEntities db)
         {
+            return OnlineWarningMessage(db)?.ToString();
+        }
+
+        /// <summary>
+        /// OnlineCheckPolicy.Warning bilan bir xil qoida (u panel testlari bilan umumiy fayl — o'zbekcha matn qaytaradi);
+        /// bu yerda xabar joriy tilda ko'rsatish uchun kalit sifatida qaytadi.
+        /// </summary>
+        private static LocalizedMessage OnlineWarningMessage(DBTHSNEntities db)
+        {
             if (!LicenseSync.LicenseSyncService.IsEnabled || string.IsNullOrEmpty(ReadSyncState(db, STATE_PANEL_SECRET)))
                 return null;
             DateTime lastOk;
@@ -153,7 +188,15 @@ namespace tahsinERP.Services
             int grace;
             int? graceDays = int.TryParse(ReadSyncState(db, STATE_OFFLINE_GRACE_DAYS), NumberStyles.None, CultureInfo.InvariantCulture, out grace)
                 ? grace : (int?)null;
-            return LicenseSync.OnlineCheckPolicy.Warning(ReadSyncState(db, STATE_ONLINE_CHECK), graceDays, last, DateTime.UtcNow);
+            string onlineCheck = ReadSyncState(db, STATE_ONLINE_CHECK);
+            DateTime nowUtc = DateTime.UtcNow;
+            if (LicenseSync.OnlineCheckPolicy.Warning(onlineCheck, graceDays, last, nowUtc) == null)
+                return null;
+            int effectiveGrace = graceDays.HasValue && graceDays.Value > 0 ? Math.Min(graceDays.Value, 366) : LicenseSync.OnlineCheckPolicy.DefaultGraceDays;
+            int days = (int)Math.Floor((nowUtc - last.Value).TotalDays);
+            return LicenseSync.OnlineCheckPolicy.IsRequired(onlineCheck)
+                ? new LocalizedMessage("Core_LicOnlineWarnRequired", days, effectiveGrace)
+                : new LocalizedMessage("Core_LicOnlineWarnOptional", days);
         }
 
         /// <summary>Kalit faollashtirilganda (yoki holat o'zgarganda) keshni tozalaydi.</summary>
@@ -274,7 +317,7 @@ namespace tahsinERP.Services
         /// Soatni tekshiradi va muhrni yangilaydi. Muammo bo'lsa sababni qaytaradi (aks holda null).
         /// effectiveNowUtc — muddat hisobida ishlatiladigan vaqt (hech qachon orqaga ketmaydi).
         /// </summary>
-        private static string CheckAndAdvanceClock(DBTHSNEntities db, string installationId,
+        private static LocalizedMessage CheckAndAdvanceClock(DBTHSNEntities db, string installationId,
             COMPANY_LICENSES activeLicense, out DateTime effectiveNowUtc)
         {
             DateTime nowUtc = DateTime.UtcNow;
@@ -285,11 +328,11 @@ namespace tahsinERP.Services
             if (stamp == null)
             {
                 // InstallationId bor, lekin muhr o'chirilgan — qo'lda aralashuv
-                return "Litsenziya vaqt muhri topilmadi (bazadan o'chirilgan). Yetkazib beruvchidan yangi kalit oling.";
+                return new LocalizedMessage("Core_LicStampMissing");
             }
             if (!LicenseHelper.TryReadClockStamp(stamp, installationId, out lastSeenUtc))
             {
-                return "Litsenziya vaqt muhri buzilgan (qo'lda o'zgartirilgan). Yetkazib beruvchidan yangi kalit oling.";
+                return new LocalizedMessage("Core_LicStampTampered");
             }
 
             // Pastki chegara: faol kalit faollashtirilgan vaqt ham "ko'rilgan" vaqt hisoblanadi
@@ -303,10 +346,8 @@ namespace tahsinERP.Services
             if (LicenseHelper.IsClockRolledBack(nowUtc, lastSeenUtc))
             {
                 effectiveNowUtc = lastSeenUtc;
-                return string.Format(
-                    "Server soati orqaga surilgan: hozirgi vaqt {0:dd.MM.yyyy HH:mm}, oxirgi ko'rilgan vaqt {1:dd.MM.yyyy HH:mm}. " +
-                    "Server sana/vaqtini to'g'rilang.",
-                    nowUtc.ToLocalTime(), lastSeenUtc.ToLocalTime());
+                return new LocalizedMessage("Core_LicClockRolledBack",
+                    nowUtc.ToLocalTime().ToString("dd.MM.yyyy HH:mm"), lastSeenUtc.ToLocalTime().ToString("dd.MM.yyyy HH:mm"));
             }
 
             if (lastSeenUtc > nowUtc)
@@ -344,9 +385,9 @@ namespace tahsinERP.Services
             return lic;
         }
 
-        private static LicenseStatus Blocked(string message)
+        private static LicenseStatus Blocked(LocalizedMessage message)
         {
-            return new LicenseStatus { FullAccess = false, ReadOnly = false, Message = message, EffectiveNow = DateTime.Now };
+            return new LicenseStatus { FullAccess = false, ReadOnly = false, MessageText = message, EffectiveNow = DateTime.Now };
         }
 
         /// <summary>
@@ -361,41 +402,41 @@ namespace tahsinERP.Services
             var lic = GetActiveCompanyLicense(db, out info);
 
             DateTime effectiveNowUtc;
-            string clockProblem = CheckAndAdvanceClock(db, installationId, lic, out effectiveNowUtc);
+            LocalizedMessage clockProblem = CheckAndAdvanceClock(db, installationId, lic, out effectiveNowUtc);
 
             var status = Blocked(null);
             status.InstallationId = installationId;
             status.Info = info;
             status.EffectiveNow = effectiveNowUtc.ToLocalTime();
-            status.ClockProblem = clockProblem;
+            status.ClockProblemText = clockProblem;
 
             if (lic == null)
             {
-                status.Message = "Kompaniya litsenziyasi topilmadi. Yetkazib beruvchi bilan bog'laning.";
+                status.MessageText = new LocalizedMessage("Core_LicNotFoundContactVendor");
                 return status;
             }
 
             if (info == null || !info.SignatureValid)
             {
-                status.Message = "Kompaniya litsenziyasi yaroqsiz (imzo mos kelmadi). Yetkazib beruvchi bilan bog'laning.";
+                status.MessageText = new LocalizedMessage("Core_LicCompanySignatureInvalid");
                 return status;
             }
 
             if (info.CompanyID != InstallationCompanyId)
             {
-                status.Message = "Litsenziya boshqa kompaniyaga tegishli.";
+                status.MessageText = new LocalizedMessage("Core_LicOtherCompany");
                 return status;
             }
 
             if (!info.IsBoundTo(installationId))
             {
-                status.Message = "Litsenziya boshqa o'rnatma uchun chiqarilgan. Yetkazib beruvchiga shu o'rnatma ID'sini yuboring: " + installationId;
+                status.MessageText = new LocalizedMessage("Core_LicOtherInstallationSendId", installationId);
                 return status;
             }
 
             if (clockProblem != null)
             {
-                status.Message = clockProblem;
+                status.MessageText = clockProblem;
                 return status;
             }
 
@@ -405,25 +446,24 @@ namespace tahsinERP.Services
             switch (state)
             {
                 case LicenseHelper.LicenseState.NotStarted:
-                    status.Message = "Litsenziya hali kuchga kirmagan (boshlanish sanasi: " + info.StartDate.ToString("dd.MM.yyyy") + ").";
+                    status.MessageText = new LocalizedMessage("Core_LicNotYetValid", info.StartDate.ToString("dd.MM.yyyy"));
                     break;
                 case LicenseHelper.LicenseState.Expired:
-                    status.Message = "Kompaniya litsenziyasi muddati tugagan (" + info.ExpiryDate.ToString("dd.MM.yyyy") + "). Yetkazib beruvchi bilan bog'laning.";
+                    status.MessageText = new LocalizedMessage("Core_LicCompanyExpired", info.ExpiryDate.ToString("dd.MM.yyyy"));
                     break;
                 case LicenseHelper.LicenseState.Grace:
                     status.ReadOnly = true;
-                    status.Message = "Litsenziya muddati " + info.ExpiryDate.ToString("dd.MM.yyyy") +
-                        " da tugagan. Tizim " + info.GraceUntil.ToString("dd.MM.yyyy") +
-                        " gacha faqat o'qish rejimida ishlaydi — yangi kalitni faollashtiring.";
+                    status.MessageText = new LocalizedMessage("Core_LicGrace",
+                        info.ExpiryDate.ToString("dd.MM.yyyy"), info.GraceUntil.ToString("dd.MM.yyyy"));
                     break;
                 case LicenseHelper.LicenseState.ExpiringSoon:
                     status.FullAccess = true;
-                    status.Message = "Litsenziya muddati tugashiga " + info.DaysRemainingAt(status.EffectiveNow) +
-                        " kun qoldi (" + info.ExpiryDate.ToString("dd.MM.yyyy") + ").";
+                    status.MessageText = new LocalizedMessage("Core_LicExpiringSoon",
+                        info.DaysRemainingAt(status.EffectiveNow), info.ExpiryDate.ToString("dd.MM.yyyy"));
                     break;
                 default:
                     status.FullAccess = true;
-                    status.Message = "Litsenziya faol.";
+                    status.MessageText = new LocalizedMessage("Core_LicActive");
                     break;
             }
             return status;
@@ -446,27 +486,27 @@ namespace tahsinERP.Services
         public static Result ActivateCompanyLicense(DBTHSNEntities db, string licenseKey, string activatedBy)
         {
             if (string.IsNullOrWhiteSpace(licenseKey))
-                return Result.Fail("Kalitni kiriting.");
+                return Result.Fail(L.T("Core_LicEnterKey"));
 
             licenseKey = licenseKey.Trim();
 
             LicenseHelper.LicenseInfo info;
             bool ok = LicenseHelper.TryParseKey(licenseKey, out info);
             if (!ok || info == null)
-                return Result.Fail("Kalit yaroqsiz yoki soxta (imzo mos kelmadi).");
+                return Result.Fail(L.T("Core_LicKeyInvalid"));
 
             if (info.CompanyID != InstallationCompanyId)
-                return Result.Fail("Bu kalit boshqa kompaniyaga tegishli (CompanyID=" + info.CompanyID + ").");
+                return Result.Fail(L.T("Core_LicKeyOtherCompany", info.CompanyID));
 
             string installationId = GetOrCreateInstallationId(db);
             if (info.Version < 2)
             {
                 if (DateTime.Now.Date >= LicenseHelper.V1ActivationCutoff)
-                    return Result.Fail("Eski formatdagi (v1) kalitlar endi qabul qilinmaydi. Yetkazib beruvchidan o'rnatma ID'si bilan yangi kalit oling: " + installationId);
+                    return Result.Fail(L.T("Core_LicV1NotAccepted", installationId));
             }
             else if (!info.IsBoundTo(installationId))
             {
-                return Result.Fail("Bu kalit boshqa o'rnatma uchun chiqarilgan. Shu o'rnatma ID'si: " + installationId);
+                return Result.Fail(L.T("Core_LicKeyOtherInstallation", installationId));
             }
 
             // Vaqt muhri buzilgan/yo'q yoki soat orqaga surilgan bo'lsa — faqat avvalgi barcha
@@ -483,15 +523,14 @@ namespace tahsinERP.Services
             bool rolledBack = stampOk && LicenseHelper.IsClockRolledBack(DateTime.UtcNow, lastSeenUtc);
 
             if (!stampOk && !newerThanHistory)
-                return Result.Fail("Litsenziya vaqt muhri buzilgan. Yetkazib beruvchidan yangi kalit oling.");
+                return Result.Fail(L.T("Core_LicStampBroken"));
             if (rolledBack && !newerThanHistory)
-                return Result.Fail("Server soati orqaga surilgan (oxirgi ko'rilgan vaqt: " +
-                    lastSeenUtc.ToLocalTime().ToString("dd.MM.yyyy HH:mm") + "). Avval sana/vaqtni to'g'rilang.");
+                return Result.Fail(L.T("Core_LicClockRolledBackActivate", lastSeenUtc.ToLocalTime().ToString("dd.MM.yyyy HH:mm")));
 
             bool resetStamp = !stampOk || rolledBack;
             DateTime effectiveNow = !resetStamp && lastSeenUtc > DateTime.UtcNow ? lastSeenUtc.ToLocalTime() : DateTime.Now;
             if (info.IsExpiredAt(effectiveNow))
-                return Result.Fail("Bu kalitning muddati allaqachon tugagan (" + info.ExpiryDate.ToString("dd.MM.yyyy") + ").");
+                return Result.Fail(L.T("Core_LicKeyAlreadyExpired", info.ExpiryDate.ToString("dd.MM.yyyy")));
 
             // Eski faol litsenziyalarni o'chiramiz
             var actives = db.COMPANY_LICENSES.Where(l => l.CompanyID == info.CompanyID && l.IsActive).ToList();
@@ -594,14 +633,14 @@ namespace tahsinERP.Services
             LicenseHelper.LicenseInfo info;
             var lic = GetActiveCompanyLicense(db, out info);
             if (lic == null)
-                return Result.Fail("Kompaniya litsenziyasi topilmadi.");
+                return Result.Fail(L.T("Core_LicCompanyNotFound"));
 
             var seat = db.USER_LICENSES.FirstOrDefault(u => u.CompanyLicenseID == lic.ID && u.UserID == userId && u.IsActive);
             if (seat == null)
-                return Result.Fail("Sizga litsenziya (seat) berilmagan. Administrator bilan bog'laning.");
+                return Result.Fail(L.T("Core_LicNoSeat"));
 
             if (seat.ExpiryDate.HasValue && now.Date > seat.ExpiryDate.Value.Date)
-                return Result.Fail("Sizning litsenziyangiz muddati tugagan (" + seat.ExpiryDate.Value.ToString("dd.MM.yyyy") + "). Administrator bilan bog'laning.");
+                return Result.Fail(L.T("Core_LicSeatExpired", seat.ExpiryDate.Value.ToString("dd.MM.yyyy")));
 
             return Result.Success();
         }
@@ -612,7 +651,7 @@ namespace tahsinERP.Services
             LicenseHelper.LicenseInfo info;
             var lic = GetActiveCompanyLicense(db, out info);
             if (lic == null || info == null || !info.SignatureValid)
-                return Result.Fail("Avval yaroqli kompaniya litsenziyasini faollashtiring.");
+                return Result.Fail(L.T("Core_LicActivateFirst"));
 
             // Company muddatidan oshmasin
             DateTime effectiveExpiry = expiryDate ?? info.ExpiryDate;
@@ -623,12 +662,12 @@ namespace tahsinERP.Services
             if (existing != null)
             {
                 if (existing.IsActive)
-                    return Result.Fail("Bu xodimda allaqachon faol seat bor.");
+                    return Result.Fail(L.T("Core_LicSeatAlreadyActive"));
 
                 // Qayta faollashtirish
                 var usageR = GetSeatUsage(db);
                 if (!usageR.HasFreeSeat)
-                    return Result.Fail("Barcha " + usageR.Max + " seat band. Yetkazib beruvchidan qo'shimcha oling.");
+                    return Result.Fail(L.T("Core_LicAllSeatsBusy", usageR.Max));
 
                 existing.IsActive = true;
                 existing.StartDate = DateTime.Now.Date;
@@ -641,7 +680,7 @@ namespace tahsinERP.Services
 
             var usage = GetSeatUsage(db);
             if (!usage.HasFreeSeat)
-                return Result.Fail("Barcha " + usage.Max + " seat band. Yetkazib beruvchidan qo'shimcha oling.");
+                return Result.Fail(L.T("Core_LicAllSeatsBusy", usage.Max));
 
             db.USER_LICENSES.Add(new USER_LICENSES
             {
@@ -663,14 +702,14 @@ namespace tahsinERP.Services
             LicenseHelper.LicenseInfo info;
             var lic = GetActiveCompanyLicense(db, out info);
             if (lic == null || info == null || !info.SignatureValid)
-                return Result.Fail("Yaroqli kompaniya litsenziyasi yo'q.");
+                return Result.Fail(L.T("Core_LicNoValidCompany"));
 
             var seat = db.USER_LICENSES.FirstOrDefault(u => u.ID == userLicenseId && u.CompanyLicenseID == lic.ID);
             if (seat == null)
-                return Result.Fail("Seat topilmadi.");
+                return Result.Fail(L.T("Core_LicSeatNotFound"));
 
             if (newExpiry.Date > info.ExpiryDate.Date)
-                return Result.Fail("Muddat kompaniya litsenziyasidan (" + info.ExpiryDate.ToString("dd.MM.yyyy") + ") oshmasligi kerak.");
+                return Result.Fail(L.T("Core_LicSeatBeyondCompany", info.ExpiryDate.ToString("dd.MM.yyyy")));
 
             seat.ExpiryDate = newExpiry.Date;
             seat.IsActive = true;
@@ -685,7 +724,7 @@ namespace tahsinERP.Services
         {
             var seat = db.USER_LICENSES.FirstOrDefault(u => u.ID == userLicenseId);
             if (seat == null)
-                return Result.Fail("Seat topilmadi.");
+                return Result.Fail(L.T("Core_LicSeatNotFound"));
 
             seat.IsActive = false;
             db.SaveChanges();

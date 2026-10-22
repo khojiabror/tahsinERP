@@ -1,6 +1,6 @@
 @model tahsinERP.Models.APP_TASK_PROJECTS
 @{
-    ViewBag.Title = "Loyiha tahrirlash";
+    ViewBag.Title = L.T("Task_ProjectEdit");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -24,10 +24,10 @@
                                             <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                         </li>
                                         <li class="breadcrumb-item">
-                                            <a href="~/TaskProject">Loyihalar</a>
+                                            <a href="~/TaskProject">@L.T("Menu_Projects")</a>
                                         </li>
                                         <li class="breadcrumb-item active">
-                                            Loyiha tahrirlash
+                                            @L.T("Task_ProjectEdit")
                                         </li>
                                     </ol>
                                 </div>
@@ -46,26 +46,26 @@
                                                 <div class="col-lg-12 col-md-6 mt-25">
                                                     @Html.ValidationSummary(true, "", new { @class = "text-danger" })
                                                     <hr>
-                                                    <h6 class="invoice-to">Kod *</h6>
+                                                    <h6 class="invoice-to">@L.T("Task_CodeStar")</h6>
                                                     <fieldset class="invoice-address form-group">
                                                         @Html.TextBoxFor(model => model.Code, new { @class = "form-control round", @required = "required" })
                                                         @Html.ValidationMessageFor(model => model.Code, "", new { @class = "text-danger" })
                                                     </fieldset>
-                                                    <h6 class="invoice-to">Nomi *</h6>
+                                                    <h6 class="invoice-to">@L.T("Task_NameStar")</h6>
                                                     <fieldset class="invoice-address form-group">
                                                         @Html.TextBoxFor(model => model.Name, new { @class = "form-control round", @required = "required" })
                                                         @Html.ValidationMessageFor(model => model.Name, "", new { @class = "text-danger" })
                                                     </fieldset>
-                                                    <h6 class="invoice-to">Faol</h6>
+                                                    <h6 class="invoice-to">@L.T("Active")</h6>
                                                     <fieldset class="invoice-address form-group">
                                                         @Html.CheckBoxFor(model => model.IsActive)
-                                                        @Html.LabelFor(model => model.IsActive, "Faol")
+                                                        @Html.LabelFor(model => model.IsActive, L.T("Active"))
                                                     </fieldset>
                                                     <ul class="list-group list-group-flush">
                                                         <li class="list-group-item border-0 pb-0">
                                                             <button class="btn btn-primary btn-block subtotal-preview-btn" type="submit">
                                                                 <i class='bx bx-save'></i>
-                                                                Saqlash
+                                                                @L.T("Save")
                                                             </button>
                                                         </li>
                                                     </ul>

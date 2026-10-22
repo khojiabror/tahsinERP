@@ -1,5 +1,5 @@
 @{
-    ViewBag.Title = "Paketingizda yo'q";
+    ViewBag.Title = L.T("Core_LicNotInPlanTitle");
     Layout = "~/Views/Shared/_Layout.cshtml";
     bool canManage = ViewBag.CanManage != null && (bool)ViewBag.CanManage;
 }
@@ -13,27 +13,27 @@
                     <div class="card">
                         <div class="card-body text-center">
                             <i class="bx bx-package" style="font-size:64px;color:#ff9f43;"></i>
-                            <h3 class="mt-1">Paketingizda yo'q — tarifni oshiring</h3>
+                            <h3 class="mt-1">@L.T("Core_LicNotInPlanHeader")</h3>
                             <p class="text-muted mb-50">
-                                <b>@ViewBag.ModuleName</b> moduli joriy <b>@ViewBag.EditionName</b> paketiga kirmaydi.
+                                @Html.Raw(L.T("Core_LicModuleNotInEdition", "<b>" + Html.Encode((string)ViewBag.ModuleName) + "</b>", "<b>" + Html.Encode((string)ViewBag.EditionName) + "</b>"))
                             </p>
                             @if (ViewBag.IsAddOn == true)
                             {
-                                <p class="text-muted">Bu modul paketlarga kirmaydi — alohida xizmat sifatida ulanadi.</p>
+                                <p class="text-muted">@L.T("Core_LicAddOnModule")</p>
                             }
                             else
                             {
-                                <p class="text-muted">Bu modul <b>@ViewBag.RequiredEdition</b> paketida mavjud.</p>
+                                <p class="text-muted">@Html.Raw(L.T("Core_LicModuleInEdition", "<b>" + Html.Encode((string)ViewBag.RequiredEdition) + "</b>"))</p>
                             }
                             @if (canManage)
                             {
-                                <a href="@Url.Action("Index", "License")" class="btn btn-primary">Litsenziya va tarif</a>
+                                <a href="@Url.Action("Index", "License")" class="btn btn-primary">@L.T("Core_LicLicenseAndPlan")</a>
                             }
                             else
                             {
-                                <p><small class="text-muted">Tarifni oshirish uchun administratoringizga murojaat qiling.</small></p>
+                                <p><small class="text-muted">@L.T("Core_LicAskAdminUpgrade")</small></p>
                             }
-                            <a href="~/Home" class="btn btn-outline-secondary ml-50">Bosh sahifa</a>
+                            <a href="~/Home" class="btn btn-outline-secondary ml-50">@L.T("Home")</a>
                         </div>
                     </div>
                 </div>

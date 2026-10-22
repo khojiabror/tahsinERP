@@ -1,6 +1,6 @@
 @model tahsinERP.ViewModels.UserManualPageViewModel
 @{
-    ViewBag.Title = "Foydalanuvchi qo'llanmasi";
+    ViewBag.Title = L.T("Core_UserManual");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -17,7 +17,7 @@
                                     <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                 </li>
                                 <li class="breadcrumb-item active">
-                                    Foydalanuvchi qo'llanmasi
+                                    @L.T("Core_UserManual")
                                 </li>
                             </ol>
                         </div>
@@ -31,12 +31,12 @@
                 <div class="col-md-3 col-12">
                     <div class="card">
                         <div class="card-header">
-                            <h4 class="card-title">Bo'limlar</h4>
+                            <h4 class="card-title">@L.T("Core_Sections")</h4>
                         </div>
                         <div class="card-body">
                             <!-- Search Box -->
                             <div class="form-group">
-                                <input type="text" id="chapterSearch" class="form-control" placeholder="Bo'limlar bo'yicha qidirish..." />
+                                <input type="text" id="chapterSearch" class="form-control" placeholder="@L.T("Core_SearchSections")" />
                             </div>
                             <!-- Chapters List -->
                             <ul class="list-group list-group-flush" id="chaptersList">

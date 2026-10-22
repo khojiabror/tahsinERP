@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using tahsinERP.Configuration.Tenancy;
+using tahsinERP.I18n;
 using tahsinERP.Licensing;
 using tahsinERP.Models;
 
@@ -146,7 +147,7 @@ namespace tahsinERP.Services.LicenseSync
         {
             regToken = (regToken ?? "").Trim();
             if (regToken.Length < 8 || regToken.Length > 200)
-                return LicenseService.Result.Fail("Ro'yxat tokeni yaroqsiz.");
+                return LicenseService.Result.Fail(L.T("Core_SyncRegTokenInvalid"));
             LicenseService.WriteSyncState(db, LicenseService.STATE_REG_TOKEN, regToken);
             return LicenseService.Result.Success();
         }
@@ -158,7 +159,7 @@ namespace tahsinERP.Services.LicenseSync
         public static async Task<SyncResult> SyncNowAsync(string host, CancellationToken ct = default(CancellationToken))
         {
             if (!IsEnabled)
-                return new SyncResult { Ok = false, Message = "Panel bilan sinxronlash o'chiq (LicensePanelUrl berilmagan)." };
+                return new SyncResult { Ok = false, Message = L.T("Core_SyncDisabled") };
 
             // HttpContext await'dan keyin yo'qolishi mumkin — tenant'ni AsyncLocal doiraga olamiz
             var tenant = TenantContext.Current;
@@ -175,7 +176,7 @@ namespace tahsinERP.Services.LicenseSync
                         string now = DateTime.UtcNow.ToString("o", CultureInfo.InvariantCulture);
                         LicenseService.WriteSyncState(db, LicenseService.STATE_LAST_SYNC, now);
                         LicenseService.WriteSyncState(db, LicenseService.STATE_LAST_SYNC_RESULT,
-                            (result.Ok ? "OK: " : "XATO: ") + result.Message);
+                            (result.Ok ? "OK: " : L.T("Core_SyncErrorPrefix") + " ") + result.Message);
                         if (result.Ok)
                             LicenseService.WriteSyncState(db, LicenseService.STATE_LAST_SYNC_OK, now);
                         // Siyosat faqat panel javob bergan bo'lsa yangilanadi (304 — o'zgarmagan, oxirgisi qoladi).
@@ -214,11 +215,11 @@ namespace tahsinERP.Services.LicenseSync
             if (!LicensePanelClient.IsValidSecret(secret))
             {
                 if (string.IsNullOrWhiteSpace(regToken))
-                    return new SyncResult { Ok = false, Message = "Panelga ulanmagan: ro'yxat tokenini (reg_token) kiriting." };
+                    return new SyncResult { Ok = false, Message = L.T("Core_SyncNotConnected") };
 
                 var reg = await Client.RegisterAsync(regToken, installationId, companyId, AppVersion, host, ct).ConfigureAwait(false);
                 if (!reg.Ok)
-                    return new SyncResult { Ok = false, Message = "Ro'yxatdan o'tmadi: " + DescribeRegisterError(reg) };
+                    return new SyncResult { Ok = false, Message = L.T("Core_SyncRegisterFailed", DescribeRegisterError(reg)) };
 
                 using (var db = new DBTHSNEntities())
                 {
@@ -239,18 +240,18 @@ namespace tahsinERP.Services.LicenseSync
                 switch (pull.Status)
                 {
                     case LicensePanelClient.PullStatus.NotModified:
-                        return new SyncResult { Ok = true, Message = "Kalit o'zgarmagan." };
+                        return new SyncResult { Ok = true, Message = L.T("Core_SyncKeyUnchanged") };
                     case LicensePanelClient.PullStatus.Updated:
                         offeredKey = pull.LicenseKey;
                         break;
                     case LicensePanelClient.PullStatus.Unauthorized:
-                        return new SyncResult { Ok = false, Message = "Panel so'rovni rad etdi (imzo/soat): " + pull.Error };
+                        return new SyncResult { Ok = false, Message = L.T("Core_SyncUnauthorized", pull.Error) };
                     case LicensePanelClient.PullStatus.NotFound:
-                        return new SyncResult { Ok = false, Message = "Panel bu o'rnatmani tanimaydi." };
+                        return new SyncResult { Ok = false, Message = L.T("Core_SyncNotFound") };
                     case LicensePanelClient.PullStatus.Revoked:
-                        return new SyncResult { Ok = false, Message = "Panelda obuna bekor qilingan." };
+                        return new SyncResult { Ok = false, Message = L.T("Core_SyncRevoked") };
                     default:
-                        return new SyncResult { Ok = false, Message = pull.Error ?? "Noma'lum xato." };
+                        return new SyncResult { Ok = false, Message = pull.Error ?? L.T("Core_SyncUnknownError") };
                 }
             }
 
@@ -260,14 +261,14 @@ namespace tahsinERP.Services.LicenseSync
         private static SyncResult ActivateIfNew(string offeredKey, string currentKey)
         {
             if (currentKey != null && string.Equals(currentKey.Trim(), offeredKey.Trim(), StringComparison.Ordinal))
-                return new SyncResult { Ok = true, Message = "Kalit o'zgarmagan." };
+                return new SyncResult { Ok = true, Message = L.T("Core_SyncKeyUnchanged") };
 
             using (var db = new DBTHSNEntities())
             {
                 var r = LicenseService.ActivateCompanyLicense(db, offeredKey, SyncUser);
                 return r.Ok
-                    ? new SyncResult { Ok = true, Activated = true, Message = "Paneldan yangi kalit olindi va faollashtirildi." }
-                    : new SyncResult { Ok = false, Message = "Paneldan kelgan kalit rad etildi: " + r.Message };
+                    ? new SyncResult { Ok = true, Activated = true, Message = L.T("Core_SyncKeyActivated") }
+                    : new SyncResult { Ok = false, Message = L.T("Core_SyncKeyRejected", r.Message) };
             }
         }
 
@@ -275,8 +276,8 @@ namespace tahsinERP.Services.LicenseSync
         {
             switch (reg.Error)
             {
-                case "token_not_found": return "token topilmadi yoki muddati o'tgan.";
-                case "token_used": return "token boshqa o'rnatmada ishlatilgan.";
+                case "token_not_found": return L.T("Core_SyncTokenNotFound");
+                case "token_used": return L.T("Core_SyncTokenUsed");
                 default: return reg.Error;
             }
         }

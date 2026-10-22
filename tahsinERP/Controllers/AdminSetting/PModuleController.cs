@@ -10,6 +10,7 @@ using System.Web.Mvc;
 using tahsinERP.Models;
 using tahsinERP.ViewModels;
 using tahsinERP.Filters;
+using tahsinERP.I18n;
 
 namespace tahsinERP.Controllers
 {
@@ -167,7 +168,7 @@ namespace tahsinERP.Controllers
 
             if (string.IsNullOrWhiteSpace(controllerName))
             {
-                TempData["Error"] = "Controller nomi topilmadi.";
+                TempData["Error"] = L.T("Core_PmControllerNotFound");
                 return RedirectToAction("MissingControllers");
             }
 
@@ -184,7 +185,7 @@ namespace tahsinERP.Controllers
 
                     if (hasAny)
                     {
-                        TempData["Error"] = "Bu controller uchun permission modullari allaqachon mavjud.";
+                        TempData["Error"] = L.T("Core_PmControllerModulesExist");
                         return RedirectToAction("MissingControllers");
                     }
 
@@ -220,12 +221,12 @@ namespace tahsinERP.Controllers
                     RoleHelper.ClearAllCache();
 
                     LogHelper.LogToDatabase(User.Identity.Name, "PModule", $"{trimmedController} - default permission modullari yaratildi");
-                    TempData["Success"] = $"{trimmedController} uchun 4 ta default permission moduli yaratildi";
+                    TempData["Success"] = L.T("Core_PmDefaultCreated", trimmedController);
                 }
             }
             catch (Exception ex)
             {
-                TempData["Error"] = $"Xatolik yuz berdi: {ex.Message}";
+                TempData["Error"] = L.T("Core_ErrorWithMessage", ex.Message);
             }
 
             return RedirectToAction("MissingControllers");
@@ -256,12 +257,12 @@ namespace tahsinERP.Controllers
 
             if (string.IsNullOrWhiteSpace(permissions.Module))
             {
-                ModelState.AddModelError("Module", "Modul nomi kiritilishi shart");
+                ModelState.AddModelError("Module", L.T("Core_PmModuleNameRequired"));
             }
 
             if (string.IsNullOrWhiteSpace(permissions.Controller))
             {
-                ModelState.AddModelError("Controller", "Controller tanlanishi shart");
+                ModelState.AddModelError("Controller", L.T("Core_PmControllerRequired"));
             }
 
             if (ModelState.IsValid)
@@ -290,8 +291,8 @@ namespace tahsinERP.Controllers
 
                         if (existingMatch != null)
                         {
-                            var actionText = string.IsNullOrWhiteSpace(existingMatch.Action) ? "(bo'sh)" : existingMatch.Action;
-                            ModelState.AddModelError("", $"Bu modul, controller va action kombinatsiyasi allaqachon mavjud. Mavjud: Module='{existingMatch.Module}', Controller='{existingMatch.Controller}', Action='{actionText}'");
+                            var actionText = string.IsNullOrWhiteSpace(existingMatch.Action) ? L.T("Core_EmptyParen") : existingMatch.Action;
+                            ModelState.AddModelError("", L.T("Core_PmComboExistsDetails", existingMatch.Module, existingMatch.Controller, actionText));
                         }
                         else
                         {
@@ -323,7 +324,7 @@ namespace tahsinERP.Controllers
                             RoleHelper.ClearAllCache();
 
                             LogHelper.LogToDatabase(User.Identity.Name, "PModule", $"{permissions.Module} - Permission moduli yaratildi");
-                            TempData["Success"] = "Permission moduli muvaffaqiyatli yaratildi";
+                            TempData["Success"] = L.T("Core_PmCreated");
 
                             return RedirectToAction("Index");
                         }
@@ -331,7 +332,7 @@ namespace tahsinERP.Controllers
                 }
                 catch (Exception ex)
                 {
-                    ModelState.AddModelError("", $"Xatolik yuz berdi: {ex.Message}");
+                    ModelState.AddModelError("", L.T("Core_ErrorWithMessage", ex.Message));
                 }
             }
 
@@ -426,12 +427,12 @@ namespace tahsinERP.Controllers
 
             if (string.IsNullOrWhiteSpace(permissions.Module))
             {
-                ModelState.AddModelError("Module", "Modul nomi kiritilishi shart");
+                ModelState.AddModelError("Module", L.T("Core_PmModuleNameRequired"));
             }
 
             if (string.IsNullOrWhiteSpace(permissions.Controller))
             {
-                ModelState.AddModelError("Controller", "Controller tanlanishi shart");
+                ModelState.AddModelError("Controller", L.T("Core_PmControllerRequired"));
             }
 
             if (ModelState.IsValid)
@@ -455,7 +456,7 @@ namespace tahsinERP.Controllers
 
                         if (existing != null)
                         {
-                            ModelState.AddModelError("", "Bu modul, controller va action kombinatsiyasi allaqachon mavjud");
+                            ModelState.AddModelError("", L.T("Core_PmComboExists"));
                         }
                         else
                         {
@@ -505,7 +506,7 @@ namespace tahsinERP.Controllers
                             RoleHelper.ClearAllCache();
 
                             LogHelper.LogToDatabase(User.Identity.Name, "PModule", $"{pModule.Module} - Permission moduli yangilandi");
-                            TempData["Success"] = "Permission moduli muvaffaqiyatli yangilandi";
+                            TempData["Success"] = L.T("Core_PmUpdated");
 
                             return RedirectToAction("Index");
                         }
@@ -513,15 +514,15 @@ namespace tahsinERP.Controllers
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    ModelState.AddModelError("", "Ma'lumotlar boshqa foydalanuvchi tomonidan o'zgartirilgan yoki o'chirilgan. Qayta urinib ko'ring.");
+                    ModelState.AddModelError("", L.T("Core_ConcurrencyError"));
                 }
                 catch (RetryLimitExceededException)
                 {
-                    ModelState.AddModelError("", "Oʻzgarishlarni saqlab boʻlmadi. Qayta urinib ko'ring va agar muammo davom etsa, tizim administratoriga murojaat qiling.");
+                    ModelState.AddModelError("", L.T("Core_SaveFailedContactAdmin"));
                 }
                 catch (Exception ex)
                 {
-                    ModelState.AddModelError("", $"Xatolik yuz berdi: {ex.Message}");
+                    ModelState.AddModelError("", L.T("Core_ErrorWithMessage", ex.Message));
                 }
             }
 
@@ -613,14 +614,14 @@ namespace tahsinERP.Controllers
                     RoleHelper.ClearAllCache();
 
                     LogHelper.LogToDatabase(User.Identity.Name, "PModule", $"{permissionModule.Module} - Permission moduli o'chirildi");
-                    TempData["Success"] = "Permission moduli muvaffaqiyatli o'chirildi";
+                    TempData["Success"] = L.T("Core_PmDeleted");
 
                     return RedirectToAction("Index");
                 }
             }
             catch (Exception ex)
             {
-                TempData["Error"] = $"Xatolik yuz berdi: {ex.Message}";
+                TempData["Error"] = L.T("Core_ErrorWithMessage", ex.Message);
                 return RedirectToAction("Index");
             }
         }

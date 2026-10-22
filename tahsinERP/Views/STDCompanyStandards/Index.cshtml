@@ -1,6 +1,6 @@
 @model List<tahsinERP.ViewModels.STDCompanyStandardsIndexViewModel>
 @{
-    ViewBag.Title = "Korxona Standartlari";
+    ViewBag.Title = L.T("Menu_CompanyStandards");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -18,7 +18,7 @@
                             <div class="breadcrumb-wrapper col-12">
                                 <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                     <li class="breadcrumb-item"><a href="~/AdminPanel"><i class="bx bx-home-alt"></i></a></li>
-                                    <li class="breadcrumb-item active">Korxona Standartlari</li>
+                                    <li class="breadcrumb-item active">@L.T("Menu_CompanyStandards")</li>
                                 </ol>
                             </div>
                         </div>
@@ -32,10 +32,10 @@
                     {
                         <div class="invoice-create-btn mb-1">
                             <a href="@Url.Action("Create", "STDCompanyStandards")" class="btn btn-success">
-                                <i class="bx bx-plus"></i> Yangi standart qo'shish
+                                <i class="bx bx-plus"></i> @L.T("Doc_StdAdd")
                             </a>
                             <a href="@Url.Action("Index", "DocTemplates", new { docType = "COMPANY_STANDARD" })" class="btn btn-outline-secondary" style="margin-left: 10px;">
-                                <i class="bx bx-cog"></i> Word shablonlar
+                                <i class="bx bx-cog"></i> @L.T("Doc_WordTemplates")
                             </a>
                         </div>
                     }
@@ -68,14 +68,14 @@
                                         <table id="standardsDataTable" class="table table-striped table-bordered" style="width:100%">
                                             <thead>
                                                 <tr>
-                                                    <th>Standart kodi</th>
-                                                    <th>Soha</th>
-                                                    <th>Versiya</th>
-                                                    <th>Eslatma</th>
-                                                    <th>Yaratilgan sana</th>
+                                                    <th>@L.T("Doc_StdCode")</th>
+                                                    <th>@L.T("Doc_Field")</th>
+                                                    <th>@L.T("Doc_Version")</th>
+                                                    <th>@L.T("Note")</th>
+                                                    <th>@L.T("Task_CreatedDate")</th>
                                                     @if (changePermit)
                                                     {
-                                                        <th class="text-center">Amallar</th>
+                                                        <th class="text-center">@L.T("Actions")</th>
                                                     }
                                                 </tr>
                                             </thead>
@@ -104,11 +104,11 @@
                                                                     <i class="bx bx-show"></i>
                                                                 </a>
                                                                 <a href="@Url.Action("Edit", "STDCompanyStandards", new { id = item.DocumentID })" 
-                                                                   class="btn btn-sm btn-outline-primary" title="Tahrirlash">
+                                                                   class="btn btn-sm btn-outline-primary" title="@L.T("Edit")">
                                                                     <i class="bx bx-edit"></i>
                                                                 </a>
                                                                 <a href="@Url.Action("Delete", "STDCompanyStandards", new { id = item.DocumentID })" 
-                                                                   class="btn btn-sm btn-outline-danger" title="O'chirish">
+                                                                   class="btn btn-sm btn-outline-danger" title="@L.T("Delete")">
                                                                     <i class="bx bx-trash"></i>
                                                                 </a>
                                                             </td>
@@ -138,25 +138,12 @@
             }
             
             $('#standardsDataTable').DataTable({
-                "language": {
-                    "search": "Qidirish:",
-                    "lengthMenu": "_MENU_ ta ko'rsatish",
-                    "info": "_TOTAL_ ta yozuvdan _START_ dan _END_ gacha",
-                    "infoEmpty": "Yozuvlar yo'q",
-                    "infoFiltered": "(jami _MAX_ ta yozuvdan filtrlangan)",
-                    "paginate": {
-                        "first": "Birinchi",
-                        "last": "Oxirgi",
-                        "next": "Keyingi",
-                        "previous": "Oldingi"
-                    },
-                    "zeroRecords": "Ma'lumot topilmadi"
-                },
+                language: erpDataTable.language,
                 "pageLength": 25,
                 "order": [[4, "desc"]],
                 "columnDefs": columnDefs,
                 dom: 'lBfrtip',
-                buttons: erpDataTable.buttons({ fileName: 'Korxona_Standartlari', pdfTitle: "Korxona standartlari ro'yxati", columns: changePermit ? ':not(:last-child)' : ':visible' }),
+                buttons: erpDataTable.buttons({ fileName: '@L.Js("Doc_StdFile")', pdfTitle: '@L.Js("Doc_StdList")', columns: changePermit ? ':not(:last-child)' : ':visible' }),
                 "scrollX": true
             });
         });

@@ -16,8 +16,8 @@
                                 <li class="breadcrumb-item">
                                     <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                 </li>
-                                <li class="breadcrumb-item"><a href="@Url.Action("Index")">Rasmiy Maktublar</a></li>
-                                <li class="breadcrumb-item active">@(isEdit ? "Tahrirlash" : "Yangi Maktub")</li>
+                                <li class="breadcrumb-item"><a href="@Url.Action("Index")">@L.T("Menu_OfficialLetters")</a></li>
+                                <li class="breadcrumb-item active">@(isEdit ? L.T("Edit") : L.T("Doc_NewLetter"))</li>
                             </ol>
                         </div>
                     </div>
@@ -60,14 +60,14 @@
                                         <div class="col-md-6">
                                             <div class="form-group">
                                                 @Html.LabelFor(m => m.DirectionCode, new { @class = "control-label" })
-                                                @Html.DropDownListFor(m => m.DirectionCode, Model.Directions, "Tanlang", new { @class = "form-control" })
+                                                @Html.DropDownListFor(m => m.DirectionCode, Model.Directions, L.T("Select"), new { @class = "form-control" })
                                                 @Html.ValidationMessageFor(m => m.DirectionCode, "", new { @class = "text-danger" })
                                             </div>
                                         </div>
                                         <div class="col-md-6">
                                             <div class="form-group">
                                                 @Html.LabelFor(m => m.ChannelCode, new { @class = "control-label" })
-                                                @Html.DropDownListFor(m => m.ChannelCode, Model.Channels, "Tanlang", new { @class = "form-control" })
+                                                @Html.DropDownListFor(m => m.ChannelCode, Model.Channels, L.T("Select"), new { @class = "form-control" })
                                                 @Html.ValidationMessageFor(m => m.ChannelCode, "", new { @class = "text-danger" })
                                             </div>
                                         </div>
@@ -124,16 +124,16 @@
                                     </div>
 
                                     <div class="form-group">
-                                        <label class="control-label">Salomlashish</label>
+                                        <label class="control-label">@L.T("Doc_Greeting")</label>
                                         @Html.TextBoxFor(m => m.GreetingLine, new { @class = "form-control", @id = "GreetingInput" })
                                         @Html.ValidationMessageFor(m => m.GreetingLine, "", new { @class = "text-danger" })
                                     </div>
 
                                     <div class="form-group">
-                                        <label class="control-label">Asosiy matn</label>
+                                        <label class="control-label">@L.T("Doc_MainText")</label>
                                         <div class="text-right mb-1">
                                             <button type="button" class="btn btn-sm btn-info" id="btnSuggestText">
-                                                <i class="bx bx-bulb"></i> Matn taklif qilish
+                                                <i class="bx bx-bulb"></i> @L.T("Doc_SuggestText")
                                             </button>
                                         </div>
                                         <div id="letter-body-toolbar">
@@ -175,17 +175,17 @@
                                     </div>
 
                                     <div class="form-group">
-                                        <label class="control-label">Mahsulot va narx</label>
+                                        <label class="control-label">@L.T("Doc_ProductAndPrice")</label>
                                         <div class="table-responsive">
                                             <table class="table table-bordered" id="itemsTable">
                                                 <thead>
                                                     <tr>
-                                                        <th style="min-width:160px;">Mahsulot nomi</th>
-                                                        <th style="min-width:110px;">O'lchami</th>
-                                                        <th style="min-width:110px;">Narx EXW</th>
-                                                        <th style="min-width:130px;">Narx QQS bilan EXW</th>
-                                                        <th style="min-width:110px;">Narx CIP</th>
-                                                        <th style="min-width:130px;">Narx QQS bilan CIP</th>
+                                                        <th style="min-width:160px;">@L.T("Doc_ProductName")</th>
+                                                        <th style="min-width:110px;">@L.T("Doc_Dimension")</th>
+                                                        <th style="min-width:110px;">@L.T("Doc_PriceExw")</th>
+                                                        <th style="min-width:130px;">@L.T("Doc_PriceVatExw")</th>
+                                                        <th style="min-width:110px;">@L.T("Doc_PriceCip")</th>
+                                                        <th style="min-width:130px;">@L.T("Doc_PriceVatCip")</th>
                                                         <th style="width:48px;"></th>
                                                     </tr>
                                                 </thead>
@@ -213,16 +213,16 @@
                                             </table>
                                         </div>
                                         <button type="button" class="btn btn-outline-primary btn-sm" id="btnAddItem">
-                                            <i class="bx bx-plus"></i> Mahsulot qo'shish
+                                            <i class="bx bx-plus"></i> @L.T("Doc_AddProduct")
                                         </button>
                                     </div>
 
                                     <div class="form-group">
                                         <button type="submit" class="btn btn-primary">
-                                            <i class="bx bx-save"></i> Saqlash
+                                            <i class="bx bx-save"></i> @L.T("Save")
                                         </button>
                                         <a href="@Url.Action("Index")" class="btn btn-secondary">
-                                            <i class="bx bx-x"></i> Bekor qilish
+                                            <i class="bx bx-x"></i> @L.T("Cancel")
                                         </a>
                                     </div>
                                 }
@@ -255,7 +255,7 @@
                 var quill = new Quill('#letter-body-editor', {
                     modules: { toolbar: '#letter-body-toolbar' },
                     theme: 'snow',
-                    placeholder: 'Maktub matnini kiriting...'
+                    placeholder: '@L.Js("Doc_LetterTextPh")'
                 });
 
                 var initialBody = $('#BodyTextHidden').val();
@@ -298,7 +298,7 @@
                 $('#btnSuggestText').click(function () {
                     var $btn = $(this);
                     var originalText = $btn.html();
-                    $btn.prop('disabled', true).html('<i class="bx bx-loader-alt bx-spin"></i> Kutilmoqda...');
+                    $btn.prop('disabled', true).html('<i class="bx bx-loader-alt bx-spin"></i> @L.Js("Doc_Waiting")');
 
                     $.ajax({
                         url: '@Url.Action("SuggestText", "OfficialLetters")',
@@ -319,12 +319,12 @@
                                 var contactName = $('#ExternalContactName').val();
                                 if (contactName) { $('#GreetingInput').val('Hurmatli ' + contactName + '!'); }
                             } else {
-                                alert('Xatolik: ' + (response ? response.error : 'Noma\'lum xatolik'));
+                                alert('@L.Js("Core_ErrorPrefix") ' + (response ? response.error : '@L.Js("Doc_UnknownError")'));
                             }
                         },
                         error: function (xhr, status, error) {
                             console.error('AJAX Error:', error, xhr.responseText);
-                            var errorMsg = 'Xatolik yuz berdi';
+                            var errorMsg = '@L.Js("Error_Generic")';
                             if (xhr.responseJSON && xhr.responseJSON.error) { errorMsg = xhr.responseJSON.error; }
                             else if (xhr.responseText) { errorMsg = xhr.responseText; }
                             alert(errorMsg);

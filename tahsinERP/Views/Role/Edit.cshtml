@@ -1,6 +1,6 @@
 @model tahsinERP.Models.ROLE
 @{
-    ViewBag.Title = "Rolni tahrirlash";
+    ViewBag.Title = L.T("Core_RoleEdit");
     Layout = "~/Views/Shared/_AdminPanelLayout.cshtml";
 }
 
@@ -16,7 +16,7 @@
                             <div class="breadcrumb-wrapper col-12">
                                 <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                     <li class="breadcrumb-item"><a href="~/AdminPanel"><i class="bx bx-home-alt"></i></a></li>
-                                    <li class="breadcrumb-item"><a href="~/Role">Rollar</a></li>
+                                    <li class="breadcrumb-item"><a href="~/Role">@L.T("Adm_Roles")</a></li>
                                     <li class="breadcrumb-item active">@Model.RName</li>
                                 </ol>
                             </div>
@@ -38,7 +38,7 @@
                     <div class="col-md-8 col-12">
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title"><i class="bx bx-edit mr-1"></i>Rol ma'lumotlari</h4>
+                                <h4 class="card-title"><i class="bx bx-edit mr-1"></i>@L.T("Core_RoleData")</h4>
                             </div>
                             <div class="card-content">
                                 <div class="card-body">
@@ -49,34 +49,34 @@
                                         @Html.ValidationSummary(true, "", new { @class = "text-danger" })
 
                                         <div class="form-group">
-                                            <label for="RName">Rol nomi <span class="text-danger">*</span></label>
+                                            <label for="RName">@L.T("Core_RoleName") <span class="text-danger">*</span></label>
                                             @Html.TextBoxFor(model => model.RName, new { 
                                                 @class = "form-control", 
-                                                @placeholder = "Rol nomi",
+                                                @placeholder = L.T("Core_RoleName"),
                                                 @required = "required"
                                             })
                                             @Html.ValidationMessageFor(model => model.RName, "", new { @class = "text-danger" })
                                         </div>
 
                                         <div class="form-group">
-                                            <label for="Description">Tavsif</label>
+                                            <label for="Description">@L.T("Description")</label>
                                             @Html.TextAreaFor(model => model.Description, new { 
                                                 @class = "form-control", 
                                                 @rows = "4",
-                                                @placeholder = "Rol tavsifi..."
+                                                @placeholder = L.T("Core_RoleDescPlaceholderShort")
                                             })
                                             @Html.ValidationMessageFor(model => model.Description, "", new { @class = "text-danger" })
                                         </div>
 
                                         <div class="form-group">
                                             <button type="submit" class="btn btn-primary">
-                                                <i class="bx bx-save"></i> Saqlash
+                                                <i class="bx bx-save"></i> @L.T("Save")
                                             </button>
                                             <a href="@Url.Action("Permissions", "Role", new { id = Model.ID })" class="btn btn-warning">
-                                                <i class="bx bx-lock"></i> Huquqlarni boshqarish
+                                                <i class="bx bx-lock"></i> @L.T("Core_ManagePermissions")
                                             </a>
                                             <a href="@Url.Action("Index", "Role")" class="btn btn-outline-secondary">
-                                                <i class="bx bx-x"></i> Bekor qilish
+                                                <i class="bx bx-x"></i> @L.T("Cancel")
                                             </a>
                                         </div>
                                     }

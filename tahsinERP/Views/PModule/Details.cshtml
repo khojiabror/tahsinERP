@@ -1,6 +1,6 @@
 @model tahsinERP.ViewModels.PermissionModuleViewModel
 @{
-    ViewBag.Title = "Modul ma'lumotlari";
+    ViewBag.Title = L.T("Core_PmData");
     Layout = "~/Views/Shared/_AdminPanelLayout.cshtml";
 }
 
@@ -18,7 +18,7 @@
                             <div class="breadcrumb-wrapper col-12">
                                 <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                     <li class="breadcrumb-item"><a href="~/AdminPanel"><i class="bx bx-home-alt"></i></a></li>
-                                    <li class="breadcrumb-item"><a href="~/PModule">Ruxsat modullari</a></li>
+                                    <li class="breadcrumb-item"><a href="~/PModule">@L.T("Core_PmModules")</a></li>
                                     <li class="breadcrumb-item active">@Model.Module</li>
                                 </ol>
                             </div>
@@ -37,7 +37,7 @@
                             <div class="card-content">
                                 <div class="card-body">
                                     <div class="form-group">
-                                        <label><strong>Modul nomi:</strong></label>
+                                        <label><strong>@L.T("Core_PmModuleNameColon")</strong></label>
                                         <p class="form-control-plaintext">@Model.Module</p>
                                     </div>
 
@@ -54,13 +54,13 @@
                                     @if (!string.IsNullOrEmpty(Model.Parametr))
                                     {
                                         <div class="form-group">
-                                            <label><strong>Parametr:</strong></label>
+                                            <label><strong>@L.T("Core_PmParameterColon")</strong></label>
                                             <p class="form-control-plaintext">@Model.Parametr</p>
                                         </div>
                                     }
 
                                     <div class="form-group">
-                                        <label><strong>Rollar:</strong></label>
+                                        <label><strong>@L.T("Core_RolesColon")</strong></label>
                                         <p class="form-control-plaintext">
                                             @if (!string.IsNullOrEmpty(Model.RoleNames))
                                             {
@@ -71,7 +71,7 @@
                                             }
                                             else
                                             {
-                                                <span class="text-muted">Rollar yo'q</span>
+                                                <span class="text-muted">@L.T("Core_NoRoles")</span>
                                             }
                                         </p>
                                     </div>
@@ -80,10 +80,10 @@
                                     {
                                         <div class="form-group">
                                             <a href="@Url.Action("Edit", "PModule", new { id = Model.ID })" class="btn btn-primary">
-                                                <i class="bx bx-edit"></i> Tahrirlash
+                                                <i class="bx bx-edit"></i> @L.T("Edit")
                                             </a>
                                             <a href="@Url.Action("Index", "PModule")" class="btn btn-outline-secondary">
-                                                <i class="bx bx-arrow-back"></i> Orqaga
+                                                <i class="bx bx-arrow-back"></i> @L.T("Back")
                                             </a>
                                         </div>
                                     }

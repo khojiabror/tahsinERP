@@ -10,13 +10,13 @@ namespace tahsinERP.ViewModels
     {
         public int ID { get; set; }
 
-        [Required(ErrorMessage = "Foydalanuvchi nomini kiriting")]
-        [Display(Name = "Foydalanuvchi nomi")]
+        [Required(ErrorMessage = "Core_EnterUserName")]
+        [Display(Name = "Core_UserName")]
         public string UName { get; set; }
 
         public string FullName { get; set; }
 
-        [EmailAddress(ErrorMessage = "Email formati noto'g'ri")]
+        [EmailAddress(ErrorMessage = "Core_EmailInvalid")]
         public string Email { get; set; }
 
         [DataType(DataType.Upload)]
@@ -24,7 +24,7 @@ namespace tahsinERP.ViewModels
 
         public int companyID { get; set; }
 
-        [Required(ErrorMessage = "Kalit so'zni kiriting")]
+        [Required(ErrorMessage = "Core_EnterPassword")]
         [DataType(DataType.Password)]
         public string Password { get; set; }
 
@@ -39,7 +39,7 @@ namespace tahsinERP.ViewModels
         public int RoleID { get; set; }
         public bool IsActive { get; set; }
 
-        [Display(Name = "Meni tizimda saqlab qolish")]
+        [Display(Name = "Core_KeepMeSignedShort")]
         public bool KeepMeSigned { get; set; }
 
         public List<USER> userList { get; set; }

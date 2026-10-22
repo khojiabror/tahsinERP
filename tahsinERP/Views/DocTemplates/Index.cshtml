@@ -1,7 +1,7 @@
 @using tahsinERP.Services.Documents
 @model List<DocTemplateListItem>
 @{
-    ViewBag.Title = "Hujjat shablonlari";
+    ViewBag.Title = L.T("Doc_DocTemplates");
     Layout = "~/Views/Shared/_Layout.cshtml";
     string docType = ViewBag.DocType;
     bool canChange = ViewBag.CanChange == true;
@@ -20,8 +20,8 @@
                         <div class="breadcrumb-wrapper col-12">
                             <ol class="breadcrumb rounded-pill breadcrumb-divider">
                                 <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
-                                <li class="breadcrumb-item"><a href="@Url.Action("Index", backController)">@DocPlaceholders.TypeName(docType)</a></li>
-                                <li class="breadcrumb-item active">Shablonlar</li>
+                                <li class="breadcrumb-item"><a href="@Url.Action("Index", backController)">@DocPlaceholders.TypeDisplayName(docType)</a></li>
+                                <li class="breadcrumb-item active">@L.T("Doc_Templates")</li>
                             </ol>
                         </div>
                     </div>
@@ -55,7 +55,7 @@
                 @foreach (var t in docTypes)
                 {
                     <li class="nav-item">
-                        <a class="nav-link @(t == docType ? "active" : "")" href="@Url.Action("Index", new { docType = t })">@DocPlaceholders.TypeName(t)</a>
+                        <a class="nav-link @(t == docType ? "active" : "")" href="@Url.Action("Index", new { docType = t })">@DocPlaceholders.TypeDisplayName(t)</a>
                     </li>
                 }
             </ul>
@@ -64,21 +64,20 @@
                 <div class="col-lg-8">
                     <div class="card">
                         <div class="card-header">
-                            <h4 class="card-title">@DocPlaceholders.TypeName(docType) shablonlari</h4>
+                            <h4 class="card-title">@L.T("Doc_TypeTemplates", DocPlaceholders.TypeDisplayName(docType))</h4>
                         </div>
                         <div class="card-content">
                             <div class="card-body">
                                 @if (!Model.Any())
                                 {
                                     <div class="alert alert-info">
-                                        Hali shablon yo'q. Avval <a href="@Url.Action("Sample", new { docType })">namunaviy shablonni</a> yuklab oling,
-                                        Word'da korxona blankasi bilan bezang va o'ngdagi forma orqali yuklang.
+                                        @L.T("Doc_NoTemplateYet1") <a href="@Url.Action("Sample", new { docType })">@L.T("Doc_NoTemplateYetLink")</a> @L.T("Doc_NoTemplateYet2")
                                     </div>
                                     if (ViewBag.CanImportLegacy == true && canChange)
                                     {
                                         <a href="#" class="btn btn-outline-primary mb-1" data-post-url="@Url.Action("ImportLegacy")"
-                                           data-confirm="Papkadagi eski shablon bazaga ko'chirilsinmi?">
-                                            <i class="bx bx-import"></i> Papkadagi eski shablonni bazaga ko'chirish
+                                           data-confirm="@L.T("Doc_ConfirmMigrateTemplate")">
+                                            <i class="bx bx-import"></i> @L.T("Doc_MigrateLegacyTemplate")
                                         </a>
                                     }
                                 }
@@ -88,13 +87,13 @@
                                         <table class="table table-bordered">
                                             <thead>
                                                 <tr>
-                                                    <th>Kod</th>
-                                                    <th>Nomi</th>
-                                                    <th>Fayl</th>
-                                                    <th>Yuklangan</th>
-                                                    <th>Hujjatlar</th>
-                                                    <th>Holat</th>
-                                                    <th class="text-center">Amallar</th>
+                                                    <th>@L.T("Code")</th>
+                                                    <th>@L.T("Name")</th>
+                                                    <th>@L.T("Doc_File")</th>
+                                                    <th>@L.T("Doc_Uploaded")</th>
+                                                    <th>@L.T("Menu_Documents")</th>
+                                                    <th>@L.T("Status")</th>
+                                                    <th class="text-center">@L.T("Actions")</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -110,15 +109,15 @@
                                                             <span class="badge @(t.IsActive ? "badge-success" : "badge-secondary")">@(t.IsActive ? "Faol" : "Arxivda")</span>
                                                         </td>
                                                         <td class="text-center text-nowrap">
-                                                            <a href="@Url.Action("Download", new { id = t.ID })" class="btn btn-sm btn-outline-primary" title="Yuklab olish"><i class="bx bx-download"></i></a>
+                                                            <a href="@Url.Action("Download", new { id = t.ID })" class="btn btn-sm btn-outline-primary" title="@L.T("Download")"><i class="bx bx-download"></i></a>
                                                             @if (canChange)
                                                             {
                                                                 <a href="#" class="btn btn-sm btn-outline-warning" title="@(t.IsActive ? "Arxivlash" : "Faollashtirish")"
                                                                    data-post-url="@Url.Action("ToggleActive", new { id = t.ID })"><i class="bx @(t.IsActive ? "bx-archive-in" : "bx-archive-out")"></i></a>
                                                                 if (t.UsageCount == 0)
                                                                 {
-                                                                    <a href="#" class="btn btn-sm btn-outline-danger" title="O'chirish"
-                                                                       data-post-url="@Url.Action("Delete", new { id = t.ID })" data-confirm="Shablon o'chirilsinmi?"><i class="bx bx-trash"></i></a>
+                                                                    <a href="#" class="btn btn-sm btn-outline-danger" title="@L.T("Delete")"
+                                                                       data-post-url="@Url.Action("Delete", new { id = t.ID })" data-confirm="@L.T("Doc_ConfirmDeleteTemplate")"><i class="bx bx-trash"></i></a>
                                                                 }
                                                             }
                                                         </td>
@@ -127,7 +126,7 @@
                                             </tbody>
                                         </table>
                                     </div>
-                                    <small class="text-muted">Hujjat yaratishda faol shablonlardan biri tanlanadi. Eski shablonni o'chirmasdan arxivlang — u bilan yaratilgan hujjatlar tarixi saqlanadi.</small>
+                                    <small class="text-muted">@L.T("Doc_TemplatesActiveHint")</small>
                                 }
                             </div>
                         </div>
@@ -137,24 +136,24 @@
                     {
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">Shablon maydonlari</h4>
+                                <h4 class="card-title">@L.T("Doc_TemplateFields")</h4>
                             </div>
                             <div class="card-content">
                                 <div class="card-body">
                                     <p>
-                                        Word shablonda kerakli joyga maydon nomini <b>ikki juft jingalak qavs</b> ichida yozing, masalan
-                                        <code>@placeholders[0].Token</code>. Maydon qaysi shrift va formatda yozilsa, qiymat ham shunday chiqadi.
-                                        <b>Matn</b> va <b>jadval</b> maydonlarini alohida qatorga (paragrafga) yozing — shunda formatlangan matn/jadval qo'yiladi.
+                                        @Html.Raw(L.T("Doc_FieldsHelp1"))
+                                        <code>@placeholders[0].Token</code>. @L.T("Doc_FieldsHelp2")
+                                        @Html.Raw(L.T("Doc_FieldsHelp3"))
                                     </p>
                                     <table class="table table-sm table-striped">
-                                        <thead><tr><th>Maydon</th><th>Ma'nosi</th><th>Turi</th></tr></thead>
+                                        <thead><tr><th>@L.T("Doc_FieldCol")</th><th>@L.T("Doc_MeaningCol")</th><th>@L.T("Type")</th></tr></thead>
                                         <tbody>
                                             @foreach (var p in placeholders)
                                             {
                                                 <tr>
                                                     <td><code>@p.Token</code></td>
                                                     <td>@p.Description</td>
-                                                    <td>@(p.Kind == PlaceholderKind.RichText ? "Formatlangan matn" : p.Kind == PlaceholderKind.Table ? "Jadval" : "Matn")</td>
+                                                    <td>@(p.Kind == PlaceholderKind.RichText ? L.T("Doc_RichText") : p.Kind == PlaceholderKind.Table ? L.T("Doc_Table") : L.T("Doc_Text"))</td>
                                                 </tr>
                                             }
                                         </tbody>
@@ -170,7 +169,7 @@
                     {
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">Yangi shablon yuklash</h4>
+                                <h4 class="card-title">@L.T("Doc_UploadNewTemplate")</h4>
                             </div>
                             <div class="card-content">
                                 <div class="card-body">
@@ -179,21 +178,21 @@
                                         @Html.AntiForgeryToken()
                                         <input type="hidden" name="docType" value="@docType" />
                                         <div class="form-group">
-                                            <label>Nomi</label>
+                                            <label>@L.T("Name")</label>
                                             <input type="text" name="name" class="form-control" maxlength="200" placeholder="Masalan: Asosiy blanka" />
                                         </div>
                                         <div class="form-group">
-                                            <label>Word fayl (.docx)</label>
+                                            <label>@L.T("Doc_WordFileDocx")</label>
                                             <input type="file" name="file" class="form-control-file" accept=".docx" required />
                                         </div>
                                         <div class="form-group form-check">
                                             <input type="checkbox" name="archiveOthers" value="true" class="form-check-input" id="archiveOthers" />
-                                            <label class="form-check-label" for="archiveOthers">Boshqa faol shablonlarni arxivlash</label>
+                                            <label class="form-check-label" for="archiveOthers">@L.T("Doc_ArchiveOtherActive")</label>
                                         </div>
-                                        <button type="submit" class="btn btn-primary"><i class="bx bx-upload"></i> Yuklash</button>
+                                        <button type="submit" class="btn btn-primary"><i class="bx bx-upload"></i> @L.T("Upload")</button>
                                     }
                                     <hr />
-                                    <p class="mb-0">Fayl yuklanganda tekshiriladi: Word formati va tanilgan/tanilmagan maydonlar ko'rsatiladi.</p>
+                                    <p class="mb-0">@L.T("Doc_UploadCheckHint")</p>
                                 </div>
                             </div>
                         </div>
@@ -202,9 +201,9 @@
                         <div class="card-content">
                             <div class="card-body">
                                 <a href="@Url.Action("Sample", new { docType })" class="btn btn-outline-success btn-block">
-                                    <i class="bx bx-file"></i> Namunaviy shablonni yuklab olish
+                                    <i class="bx bx-file"></i> @L.T("Doc_DownloadSample")
                                 </a>
-                                <small class="text-muted d-block mt-1">Tayyor tuzilma va barcha maydonlar bilan — Word'da o'z blankangizga moslang.</small>
+                                <small class="text-muted d-block mt-1">@L.T("Doc_SampleHint")</small>
                             </div>
                         </div>
                     </div>

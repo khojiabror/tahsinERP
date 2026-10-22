@@ -8,22 +8,22 @@ namespace tahsinERP.ViewModels
     /// </summary>
     public class OfficialLetterItemVm
     {
-        [Display(Name = "Mahsulot nomi")]
+        [Display(Name = "Doc_ProductName")]
         public string ItemName { get; set; }
 
-        [Display(Name = "O'lchami")]
+        [Display(Name = "Doc_Dimension")]
         public string ItemSize { get; set; }
 
-        [Display(Name = "Narx EXW")]
+        [Display(Name = "Doc_PriceExw")]
         public decimal? PriceExw { get; set; }
 
-        [Display(Name = "Narx QQS bilan EXW")]
+        [Display(Name = "Doc_PriceVatExw")]
         public decimal? PriceVatExw { get; set; }
 
-        [Display(Name = "Narx CIP")]
+        [Display(Name = "Doc_PriceCip")]
         public decimal? PriceCip { get; set; }
 
-        [Display(Name = "Narx QQS bilan CIP")]
+        [Display(Name = "Doc_PriceVatCip")]
         public decimal? PriceVatCip { get; set; }
     }
 }

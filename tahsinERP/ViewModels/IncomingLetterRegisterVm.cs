@@ -6,19 +6,19 @@ namespace tahsinERP.ViewModels
 {
     public class IncomingLetterRegisterVm
     {
-        [Required(ErrorMessage = "Kompaniya/shaxs nomi kiritilishi shart")]
-        [Display(Name = "Kompaniya/Shaxs nomi")]
+        [Required(ErrorMessage = "Doc_CompanyOrPersonRequired")]
+        [Display(Name = "Doc_CompanyOrPerson")]
         public string CompanyOrPersonName { get; set; }
 
-        [Required(ErrorMessage = "Xat raqami kiritilishi shart")]
-        [Display(Name = "Xat raqami")]
+        [Required(ErrorMessage = "Doc_IncomingNoRequired")]
+        [Display(Name = "Doc_IncomingNo")]
         public string LetterNo { get; set; }
 
-        [Display(Name = "Xat sanasi")]
+        [Display(Name = "Doc_IncomingDate")]
         [DataType(DataType.Date)]
         public DateTime? LetterDate { get; set; }
 
-        [Display(Name = "Xat ilovasi (PDF)")]
+        [Display(Name = "Doc_IncomingAttachment")]
         public HttpPostedFileBase AttachmentFile { get; set; }
     }
 }
