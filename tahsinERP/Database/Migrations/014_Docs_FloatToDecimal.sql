@@ -7,6 +7,9 @@
    Update_Contract_Amount_After_* triggerlari (SUM(TotalAmount)) o'zgarishsiz ishlaydi.
    Katta jadvalda ALTER COLUMN qulf oladi — prod'da texnik oynada.
    ===================================================================== */
+-- Tuzatish: #F2D ustunlari COLLATE DATABASE_DEFAULT (server collation'i bazanikidan farq qilsa c.name = x.Col xato berardi).
+-- Mazmun o'zgarmadi — oldingi tahrir bilan qo'llangan bazalar uchun:
+-- @supersedes-checksum: 291730f13bd80fc449e06f2b76e3c18401604e17871ee6c82de680bde1134fd2
 SET QUOTED_IDENTIFIER ON;
 SET ANSI_NULLS ON;
 SET XACT_ABORT ON;
@@ -162,7 +165,7 @@ END
 GO
 
 IF OBJECT_ID('tempdb..#F2D') IS NOT NULL DROP TABLE #F2D;
-CREATE TABLE #F2D (Tbl sysname, Col sysname, Prec int, Scale int);
+CREATE TABLE #F2D (Tbl sysname COLLATE DATABASE_DEFAULT, Col sysname COLLATE DATABASE_DEFAULT, Prec int, Scale int);
 INSERT #F2D VALUES
     ('P_CONTRACTS',            'Amount',            19, 4),
     ('P_CONTRACT_PRODUCTS',    'Price',             19, 6),
