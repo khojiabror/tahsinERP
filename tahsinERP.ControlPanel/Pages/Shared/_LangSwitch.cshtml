@@ -1,0 +1,13 @@
+@using tahsinERP.Localization
+@* Til tanlagichi (CSP: skriptsiz — oddiy havolalar). /lang/{kod} cookie qo'yadi va shu sahifaga qaytaradi. *@
+@{
+    string current = L.Lang;
+    string back = Context.Request.Path + Context.Request.QueryString;
+}
+<nav class="lang-switch" aria-label="@L.T("Language")">
+    @foreach (var lang in Languages.All)
+    {
+        <a href="/lang/@lang?r=@Uri.EscapeDataString(back)" lang="@Languages.HtmlLang(lang)" title="@Languages.NativeName(lang)"
+           class="@(lang == current ? "active" : null)" aria-current="@(lang == current ? "true" : null)">@Languages.ShortName(lang)</a>
+    }
+</nav>

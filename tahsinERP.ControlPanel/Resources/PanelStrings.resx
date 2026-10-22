@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Pnl_Brand" xml:space="preserve">
+    <value>Boshqaruv paneli</value>
+  </data>
+  <data name="Pnl_TitleSuffix" xml:space="preserve">
+    <value>tahsinERP panel</value>
+  </data>
+  <data name="Pnl_NavMain" xml:space="preserve">
+    <value>Asosiy</value>
+  </data>
+  <data name="Pnl_NavTenants" xml:space="preserve">
+    <value>Tashkilotlar</value>
+  </data>
+  <data name="Pnl_NavRequests" xml:space="preserve">
+    <value>So'rovlar</value>
+  </data>
+  <data name="Pnl_NavFinance" xml:space="preserve">
+    <value>Moliya</value>
+  </data>
+  <data name="Pnl_NavInvoices" xml:space="preserve">
+    <value>Hisob-fakturalar</value>
+  </data>
+  <data name="Pnl_NavBank" xml:space="preserve">
+    <value>Bank</value>
+  </data>
+  <data name="Pnl_NavPlans" xml:space="preserve">
+    <value>Tariflar</value>
+  </data>
+  <data name="Pnl_NavTech" xml:space="preserve">
+    <value>Texnik</value>
+  </data>
+  <data name="Pnl_NavLicenses" xml:space="preserve">
+    <value>Kalitlar</value>
+  </data>
+  <data name="Pnl_NavProvisioning" xml:space="preserve">
+    <value>Provisioning</value>
+  </data>
+  <data name="Pnl_NavServers" xml:space="preserve">
+    <value>Serverlar</value>
+  </data>
+  <data name="Pnl_NavAnalytics" xml:space="preserve">
+    <value>Tahlil</value>
+  </data>
+  <data name="Pnl_NavTraction" xml:space="preserve">
+    <value>Traction</value>
+  </data>
+  <data name="Pnl_NavNotifications" xml:space="preserve">
+    <value>Eslatmalar</value>
+  </data>
+  <data name="Pnl_NavAdmin" xml:space="preserve">
+    <value>Boshqaruv</value>
+  </data>
+  <data name="Pnl_NavStaff" xml:space="preserve">
+    <value>Xodimlar</value>
+  </data>
+  <data name="Pnl_NavAudit" xml:space="preserve">
+    <value>Audit</value>
+  </data>
+  <data name="Pnl_RoleSales" xml:space="preserve">
+    <value>Sotuv</value>
+  </data>
+  <data name="Pnl_RoleSupport" xml:space="preserve">
+    <value>Qo'llab-quvvatlash</value>
+  </data>
+  <data name="Pnl_ChangePassword" xml:space="preserve">
+    <value>Parolni almashtirish</value>
+  </data>
+  <data name="Pnl_Logout" xml:space="preserve">
+    <value>Chiqish</value>
+  </data>
+  <data name="Pnl_Menu" xml:space="preserve">
+    <value>Menyu</value>
+  </data>
+  <data name="Pnl_Crumb" xml:space="preserve">
+    <value>Panel</value>
+  </data>
+  <data name="Pnl_SecureSession" xml:space="preserve">
+    <value>Himoyalangan seans</value>
+  </data>
+  <data name="Pnl_Theme" xml:space="preserve">
+    <value>Mavzu</value>
+  </data>
+  <data name="Ptl_Brand" xml:space="preserve">
+    <value>Mijoz kabineti</value>
+  </data>
+  <data name="Ptl_TitleSuffix" xml:space="preserve">
+    <value>tahsinERP mijoz kabineti</value>
+  </data>
+  <data name="Ptl_NavInvoices" xml:space="preserve">
+    <value>Hisob-fakturalar</value>
+  </data>
+  <data name="Ptl_NavPayment" xml:space="preserve">
+    <value>To'lov rekvizitlari</value>
+  </data>
+  <data name="Ptl_NavRequests" xml:space="preserve">
+    <value>Tarif so'rovi</value>
+  </data>
+  <data name="Ptl_NavLicense" xml:space="preserve">
+    <value>Litsenziya kaliti</value>
+  </data>
+  <data name="Ptl_Profile" xml:space="preserve">
+    <value>Profil</value>
+  </data>
+  <data name="Ptl_Crumb" xml:space="preserve">
+    <value>Kabinet</value>
+  </data>
+  <data name="Auth_ZonePortal" xml:space="preserve">
+    <value>MIJOZ KABINETI</value>
+  </data>
+  <data name="Auth_ZonePanel" xml:space="preserve">
+    <value>BOSHQARUV PANELI</value>
+  </data>
+  <data name="Auth_SecureLogin" xml:space="preserve">
+    <value>XAVFSIZ KIRISH</value>
+  </data>
+  <data name="Auth_Online" xml:space="preserve">
+    <value>TIZIM ONLINE</value>
+  </data>
+  <data name="Auth_TitlePortal" xml:space="preserve">
+    <value>tahsinERP mijoz kabineti</value>
+  </data>
+  <data name="Auth_TitlePanel" xml:space="preserve">
+    <value>tahsinERP panel</value>
+  </data>
+  <data name="Auth_ProtectedArea" xml:space="preserve">
+    <value>Himoyalangan hudud</value>
+  </data>
+  <data name="Auth_OnlyClients" xml:space="preserve">
+    <value>Faqat vakolatli mijozlar uchun.</value>
+  </data>
+  <data name="Auth_OnlyStaff" xml:space="preserve">
+    <value>Faqat vakolatli xodimlar uchun.</value>
+  </data>
+  <data name="Auth_TwoStep" xml:space="preserve">
+    <value>Shaxsingiz ikki bosqichda tasdiqlanadi.</value>
+  </data>
+  <data name="Auth_FeatOtp" xml:space="preserve">
+    <value>Bir martalik kod — Telegram, SMS yoki email</value>
+  </data>
+  <data name="Auth_FeatHttps" xml:space="preserve">
+    <value>Shifrlangan ulanish (HTTPS)</value>
+  </data>
+  <data name="Auth_FeatLockout" xml:space="preserve">
+    <value>Ko'p marta xato urinishda hisob bloklanadi</value>
+  </data>
+  <data name="Auth_FeatTotp" xml:space="preserve">
+    <value>Ikki bosqichli tasdiqlash (TOTP)</value>
+  </data>
+  <data name="Auth_FeatAudit" xml:space="preserve">
+    <value>Har bir kirish audit jurnaliga yoziladi</value>
+  </data>
+  <data name="Auth_Footer" xml:space="preserve">
+    <value>Ruxsatsiz kirish taqiqlanadi. Barcha urinishlar qayd etiladi.</value>
+  </data>
+</root>

@@ -18,12 +18,12 @@
 else
 {
 <!DOCTYPE html>
-<html lang="uz">
+<html lang="@L.HtmlLang">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="robots" content="noindex" />
-    <title>@ViewData["Title"] — tahsinERP mijoz kabineti</title>
+    <title>@ViewData["Title"] — @L.T("Ptl_TitleSuffix")</title>
     <script src="~/js/theme.js" asp-append-version="true"></script>
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
@@ -32,34 +32,35 @@ else
 <aside class="sidebar" id="sidebar">
     <a class="sb-brand" href="/">
         <span class="logo-mark"><svg class="i"><use href="#i-shield" /></svg></span>
-        <span class="sb-brand-t">tahsin<b>ERP</b><small>Mijoz kabineti</small></span>
+        <span class="sb-brand-t">tahsin<b>ERP</b><small>@L.T("Ptl_Brand")</small></span>
     </a>
     @if (pm!.CurrentTenant is { } ct)
     {
         <div class="sb-tenant"><svg class="i"><use href="#i-building" /></svg><span>@ct.LegalName</span></div>
     }
     <nav class="sb-nav">
-        <a class="@Nav("/")" href="/"><svg class="i"><use href="#i-home" /></svg>Bosh sahifa</a>
-        <a class="@Nav("/Invoices")" href="/Invoices"><svg class="i"><use href="#i-file" /></svg>Hisob-fakturalar</a>
-        <a class="@Nav("/Payment")" href="/Payment"><svg class="i"><use href="#i-card" /></svg>To'lov rekvizitlari</a>
-        <a class="@Nav("/Requests")" href="/Requests"><svg class="i"><use href="#i-layers" /></svg>Tarif so'rovi</a>
-        @if (onPrem) { <a class="@Nav("/Licenses")" href="/Licenses"><svg class="i"><use href="#i-key" /></svg>Litsenziya kaliti</a> }
+        <a class="@Nav("/")" href="/"><svg class="i"><use href="#i-home" /></svg>@L.T("Home")</a>
+        <a class="@Nav("/Invoices")" href="/Invoices"><svg class="i"><use href="#i-file" /></svg>@L.T("Ptl_NavInvoices")</a>
+        <a class="@Nav("/Payment")" href="/Payment"><svg class="i"><use href="#i-card" /></svg>@L.T("Ptl_NavPayment")</a>
+        <a class="@Nav("/Requests")" href="/Requests"><svg class="i"><use href="#i-layers" /></svg>@L.T("Ptl_NavRequests")</a>
+        @if (onPrem) { <a class="@Nav("/Licenses")" href="/Licenses"><svg class="i"><use href="#i-key" /></svg>@L.T("Ptl_NavLicense")</a> }
     </nav>
     <form method="post" action="/Logout" class="sb-user">
         <span class="avatar">@initials</span>
-        <a class="sb-user-t" href="/Profile"><b>@userName</b><small>Profil</small></a>
+        <a class="sb-user-t" href="/Profile"><b>@userName</b><small>@L.T("Ptl_Profile")</small></a>
         @Html.AntiForgeryToken()
-        <button type="submit" class="icon-btn" title="Chiqish"><svg class="i"><use href="#i-logout" /></svg></button>
+        <button type="submit" class="icon-btn" title="@L.T("Pnl_Logout")"><svg class="i"><use href="#i-logout" /></svg></button>
     </form>
 </aside>
 <div class="sb-backdrop" data-nav-close></div>
 <div class="shell">
     <header class="topbar">
-        <button type="button" class="icon-btn nav-toggle" data-nav-toggle aria-label="Menyu"><svg class="i"><use href="#i-menu" /></svg></button>
-        <div class="crumbs"><span>Kabinet</span><b>@ViewData["Title"]</b></div>
+        <button type="button" class="icon-btn nav-toggle" data-nav-toggle aria-label="@L.T("Pnl_Menu")"><svg class="i"><use href="#i-menu" /></svg></button>
+        <div class="crumbs"><span>@L.T("Ptl_Crumb")</span><b>@ViewData["Title"]</b></div>
         <div class="tb-right">
-            <span class="tb-secure"><svg class="i"><use href="#i-shield" /></svg>Himoyalangan seans</span>
-            <button type="button" class="icon-btn" data-theme-toggle aria-label="Mavzu"><svg class="i only-light"><use href="#i-moon" /></svg><svg class="i only-dark"><use href="#i-sun" /></svg></button>
+            <span class="tb-secure"><svg class="i"><use href="#i-shield" /></svg>@L.T("Pnl_SecureSession")</span>
+            <partial name="_LangSwitch" />
+            <button type="button" class="icon-btn" data-theme-toggle aria-label="@L.T("Pnl_Theme")"><svg class="i only-light"><use href="#i-moon" /></svg><svg class="i only-dark"><use href="#i-sun" /></svg></button>
         </div>
     </header>
     <main>

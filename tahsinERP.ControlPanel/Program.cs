@@ -8,6 +8,7 @@ using tahsinERP.ControlPanel;
 using tahsinERP.ControlPanel.Api;
 using tahsinERP.ControlPanel.Data;
 using tahsinERP.ControlPanel.Hosting;
+using tahsinERP.ControlPanel.I18n;
 using Microsoft.AspNetCore.Routing.Matching;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using tahsinERP.ControlPanel.Portal;
@@ -224,6 +225,7 @@ app.Use(async (ctx, next) =>
     await next();
 });
 app.UseStaticFiles();
+app.UseUiLanguage();   // til: cookie tahsin_lang (I18n/L.cs)
 app.UseRouting();
 // Endpoint topilmadi (yoki boshqa zonaga tegishli — ZoneMatcherPolicy chiqarib tashlagan) → 404. Aks holda FallbackPolicy
 // anonim so'rovni login sahifasiga yo'naltirib, sahifa "bor"ligini oshkor qilardi.
@@ -244,6 +246,7 @@ app.MapGet("/health", () => Results.Text("ok")).AllowAnonymous();
 LicenseApi.Map(app);
 AgentApi.Map(app);
 TelegramWebhook.Map(app);
+app.MapLanguageSwitch();
 app.MapRazorPages();
 
 app.Run();

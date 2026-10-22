@@ -3,15 +3,15 @@
 @{
     bool portal = (ViewData["AuthKind"] as string) == "portal";
     bool staffTotp = Security.Value.RequireStaffTotp;
-    string zone = portal ? "MIJOZ KABINETI" : "BOSHQARUV PANELI";
+    string zone = portal ? L.T("Auth_ZonePortal") : L.T("Auth_ZonePanel");
 }
 <!DOCTYPE html>
-<html lang="uz">
+<html lang="@L.HtmlLang">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="robots" content="noindex" />
-    <title>@ViewData["Title"] — tahsinERP @(portal ? "mijoz kabineti" : "panel")</title>
+    <title>@ViewData["Title"] — @(portal ? L.T("Auth_TitlePortal") : L.T("Auth_TitlePanel"))</title>
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
 <body class="auth">
@@ -26,8 +26,9 @@
         <span class="logo-mark"><svg class="i"><use href="#i-shield" /></svg></span>
         <span>tahsin<b>ERP</b></span>
     </a>
-    <span class="auth-zone">@zone · XAVFSIZ KIRISH</span>
-    <span class="auth-status"><i></i> TIZIM ONLINE</span>
+    <span class="auth-zone">@zone · @L.T("Auth_SecureLogin")</span>
+    <span class="auth-status"><i></i> @L.T("Auth_Online")</span>
+    <partial name="_LangSwitch" />
     <span class="auth-clock" data-clock>--:--:-- UTC</span>
 </header>
 <div class="auth-wrap">
@@ -43,21 +44,21 @@
             <div class="radar-core"><svg class="i"><use href="#i-@(portal ? "lock" : "shield")" /></svg></div>
             <span class="blip b1"></span><span class="blip b2"></span><span class="blip b3"></span>
         </div>
-        <h2>Himoyalangan hudud</h2>
-        <p>Faqat vakolatli @(portal ? "mijozlar" : "xodimlar") uchun.@(portal || staffTotp ? " Shaxsingiz ikki bosqichda tasdiqlanadi." : "")</p>
+        <h2>@L.T("Auth_ProtectedArea")</h2>
+        <p>@(portal ? L.T("Auth_OnlyClients") : L.T("Auth_OnlyStaff"))@(portal || staffTotp ? " " + L.T("Auth_TwoStep") : "")</p>
         <ul class="auth-feats">
             @if (portal)
             {
-                <li><svg class="i"><use href="#i-send" /></svg>Bir martalik kod — Telegram, SMS yoki email</li>
-                <li><svg class="i"><use href="#i-lock" /></svg>Shifrlangan ulanish (HTTPS)</li>
-                <li><svg class="i"><use href="#i-scan" /></svg>Ko'p marta xato urinishda hisob bloklanadi</li>
+                <li><svg class="i"><use href="#i-send" /></svg>@L.T("Auth_FeatOtp")</li>
+                <li><svg class="i"><use href="#i-lock" /></svg>@L.T("Auth_FeatHttps")</li>
+                <li><svg class="i"><use href="#i-scan" /></svg>@L.T("Auth_FeatLockout")</li>
             }
             else
             {
-                @if (staffTotp) { <li><svg class="i"><use href="#i-scan" /></svg>Ikki bosqichli tasdiqlash (TOTP)</li> }
-                else { <li><svg class="i"><use href="#i-scan" /></svg>Ko'p marta xato urinishda hisob bloklanadi</li> }
-                <li><svg class="i"><use href="#i-activity" /></svg>Har bir kirish audit jurnaliga yoziladi</li>
-                <li><svg class="i"><use href="#i-lock" /></svg>Shifrlangan ulanish (HTTPS)</li>
+                @if (staffTotp) { <li><svg class="i"><use href="#i-scan" /></svg>@L.T("Auth_FeatTotp")</li> }
+                else { <li><svg class="i"><use href="#i-scan" /></svg>@L.T("Auth_FeatLockout")</li> }
+                <li><svg class="i"><use href="#i-activity" /></svg>@L.T("Auth_FeatAudit")</li>
+                <li><svg class="i"><use href="#i-lock" /></svg>@L.T("Auth_FeatHttps")</li>
             }
         </ul>
     </section>
@@ -66,7 +67,7 @@
     </main>
 </div>
 <footer class="auth-foot">
-    <span>Ruxsatsiz kirish taqiqlanadi. Barcha urinishlar qayd etiladi.</span>
+    <span>@L.T("Auth_Footer")</span>
     <span>© @DateTime.UtcNow.Year tahsinERP</span>
 </footer>
 <script src="~/js/app.js" asp-append-version="true"></script>

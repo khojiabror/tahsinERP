@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Pnl_Brand" xml:space="preserve">
+    <value>Панель управления</value>
+  </data>
+  <data name="Pnl_TitleSuffix" xml:space="preserve">
+    <value>панель tahsinERP</value>
+  </data>
+  <data name="Pnl_NavMain" xml:space="preserve">
+    <value>Основное</value>
+  </data>
+  <data name="Pnl_NavTenants" xml:space="preserve">
+    <value>Организации</value>
+  </data>
+  <data name="Pnl_NavRequests" xml:space="preserve">
+    <value>Заявки</value>
+  </data>
+  <data name="Pnl_NavFinance" xml:space="preserve">
+    <value>Финансы</value>
+  </data>
+  <data name="Pnl_NavInvoices" xml:space="preserve">
+    <value>Счета-фактуры</value>
+  </data>
+  <data name="Pnl_NavBank" xml:space="preserve">
+    <value>Банк</value>
+  </data>
+  <data name="Pnl_NavPlans" xml:space="preserve">
+    <value>Тарифы</value>
+  </data>
+  <data name="Pnl_NavTech" xml:space="preserve">
+    <value>Техническое</value>
+  </data>
+  <data name="Pnl_NavLicenses" xml:space="preserve">
+    <value>Ключи</value>
+  </data>
+  <data name="Pnl_NavProvisioning" xml:space="preserve">
+    <value>Развёртывание</value>
+  </data>
+  <data name="Pnl_NavServers" xml:space="preserve">
+    <value>Серверы</value>
+  </data>
+  <data name="Pnl_NavAnalytics" xml:space="preserve">
+    <value>Аналитика</value>
+  </data>
+  <data name="Pnl_NavTraction" xml:space="preserve">
+    <value>Динамика</value>
+  </data>
+  <data name="Pnl_NavNotifications" xml:space="preserve">
+    <value>Напоминания</value>
+  </data>
+  <data name="Pnl_NavAdmin" xml:space="preserve">
+    <value>Администрирование</value>
+  </data>
+  <data name="Pnl_NavStaff" xml:space="preserve">
+    <value>Сотрудники</value>
+  </data>
+  <data name="Pnl_NavAudit" xml:space="preserve">
+    <value>Аудит</value>
+  </data>
+  <data name="Pnl_RoleSales" xml:space="preserve">
+    <value>Продажи</value>
+  </data>
+  <data name="Pnl_RoleSupport" xml:space="preserve">
+    <value>Поддержка</value>
+  </data>
+  <data name="Pnl_ChangePassword" xml:space="preserve">
+    <value>Сменить пароль</value>
+  </data>
+  <data name="Pnl_Logout" xml:space="preserve">
+    <value>Выйти</value>
+  </data>
+  <data name="Pnl_Menu" xml:space="preserve">
+    <value>Меню</value>
+  </data>
+  <data name="Pnl_Crumb" xml:space="preserve">
+    <value>Панель</value>
+  </data>
+  <data name="Pnl_SecureSession" xml:space="preserve">
+    <value>Защищённый сеанс</value>
+  </data>
+  <data name="Pnl_Theme" xml:space="preserve">
+    <value>Тема</value>
+  </data>
+  <data name="Ptl_Brand" xml:space="preserve">
+    <value>Личный кабинет</value>
+  </data>
+  <data name="Ptl_TitleSuffix" xml:space="preserve">
+    <value>личный кабинет tahsinERP</value>
+  </data>
+  <data name="Ptl_NavInvoices" xml:space="preserve">
+    <value>Счета-фактуры</value>
+  </data>
+  <data name="Ptl_NavPayment" xml:space="preserve">
+    <value>Платёжные реквизиты</value>
+  </data>
+  <data name="Ptl_NavRequests" xml:space="preserve">
+    <value>Заявка на тариф</value>
+  </data>
+  <data name="Ptl_NavLicense" xml:space="preserve">
+    <value>Лицензионный ключ</value>
+  </data>
+  <data name="Ptl_Profile" xml:space="preserve">
+    <value>Профиль</value>
+  </data>
+  <data name="Ptl_Crumb" xml:space="preserve">
+    <value>Кабинет</value>
+  </data>
+  <data name="Auth_ZonePortal" xml:space="preserve">
+    <value>ЛИЧНЫЙ КАБИНЕТ</value>
+  </data>
+  <data name="Auth_ZonePanel" xml:space="preserve">
+    <value>ПАНЕЛЬ УПРАВЛЕНИЯ</value>
+  </data>
+  <data name="Auth_SecureLogin" xml:space="preserve">
+    <value>БЕЗОПАСНЫЙ ВХОД</value>
+  </data>
+  <data name="Auth_Online" xml:space="preserve">
+    <value>СИСТЕМА ОНЛАЙН</value>
+  </data>
+  <data name="Auth_TitlePortal" xml:space="preserve">
+    <value>личный кабинет tahsinERP</value>
+  </data>
+  <data name="Auth_TitlePanel" xml:space="preserve">
+    <value>панель tahsinERP</value>
+  </data>
+  <data name="Auth_ProtectedArea" xml:space="preserve">
+    <value>Защищённая зона</value>
+  </data>
+  <data name="Auth_OnlyClients" xml:space="preserve">
+    <value>Только для уполномоченных клиентов.</value>
+  </data>
+  <data name="Auth_OnlyStaff" xml:space="preserve">
+    <value>Только для уполномоченных сотрудников.</value>
+  </data>
+  <data name="Auth_TwoStep" xml:space="preserve">
+    <value>Личность подтверждается в два этапа.</value>
+  </data>
+  <data name="Auth_FeatOtp" xml:space="preserve">
+    <value>Одноразовый код — Telegram, SMS или email</value>
+  </data>
+  <data name="Auth_FeatHttps" xml:space="preserve">
+    <value>Зашифрованное соединение (HTTPS)</value>
+  </data>
+  <data name="Auth_FeatLockout" xml:space="preserve">
+    <value>После нескольких неудачных попыток учётная запись блокируется</value>
+  </data>
+  <data name="Auth_FeatTotp" xml:space="preserve">
+    <value>Двухэтапная проверка (TOTP)</value>
+  </data>
+  <data name="Auth_FeatAudit" xml:space="preserve">
+    <value>Каждый вход записывается в журнал аудита</value>
+  </data>
+  <data name="Auth_Footer" xml:space="preserve">
+    <value>Несанкционированный доступ запрещён. Все попытки регистрируются.</value>
+  </data>
+</root>

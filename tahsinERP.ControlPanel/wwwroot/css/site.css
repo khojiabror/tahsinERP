@@ -129,6 +129,16 @@ body.app { display: block; }
 .tb-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
 .tb-secure { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px 4px 8px; border-radius: 20px; font-size: 12px; font-weight: 600; color: var(--ok); background: var(--ok-soft); border: 1px solid var(--ok-line); }
 .tb-secure svg.i { width: 15px; height: 15px; }
+/* Til tanlagichi (_LangSwitch): UZ / ЎЗ / RU */
+.lang-switch { display: inline-flex; border: 1px solid var(--line); border-radius: 9px; overflow: hidden; background: var(--surface); }
+.lang-switch a { padding: 6px 9px; font-size: 12px; font-weight: 600; color: var(--muted); line-height: 1; }
+.lang-switch a + a { border-left: 1px solid var(--line); }
+.lang-switch a:hover { color: var(--text); background: var(--surface-2); text-decoration: none; }
+.lang-switch a.active { color: var(--accent); background: var(--accent-soft); }
+.auth-top .lang-switch { background: transparent; border-color: rgba(255, 255, 255, .18); }
+.auth-top .lang-switch a { color: var(--a-text, #cbd5e1); }
+.auth-top .lang-switch a + a { border-left-color: rgba(255, 255, 255, .18); }
+.auth-top .lang-switch a.active { color: #fff; background: rgba(255, 255, 255, .12); }
 .icon-btn {
     display: inline-grid; place-items: center; width: 34px; height: 34px; padding: 0; border-radius: 9px; cursor: pointer;
     border: 1px solid var(--line); background: var(--surface); color: var(--text-2); transition: background .15s, color .15s, border-color .15s;
