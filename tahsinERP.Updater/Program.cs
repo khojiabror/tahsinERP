@@ -62,7 +62,9 @@ switch (command)
             {
                 JobId = id, Action = UpdateAction.CreateInstance, App = ReleaseApps.Erp, Slug = slug, DbName = db, Version = UpdateExecutor.LegacyVersion,
             }, "", rep, CancellationToken.None);
+            rep.Finish(r.Outcome, r.Error, r.InstalledVersion);
             Console.WriteLine(rep.Log);
+            Console.WriteLine(r.Outcome == UpdateOutcome.Succeeded ? $"[ok] {slug}: alohida instance tayyor" : $"[XATO] {slug}: {r.Error} (o'zgarishlar qaytarildi)");
             if (r.Outcome != UpdateOutcome.Succeeded) failed++;
         }
         return failed == 0 ? 0 : 1;

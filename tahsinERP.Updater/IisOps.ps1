@@ -3,13 +3,15 @@
     tahsinERP.Updater uchun IIS amallari (faqat ASCII - Windows PowerShell 5.1). Updater (LocalSystem) chaqiradi.
 
 .DESCRIPTION
+    EnsureErpPool  - faqat pool (env bilan). IIS APPPOOL\<pool> Windows hisobi shundan keyin paydo bo'ladi - SQL login
+                     undan oldin yaratilmaydi, shuning uchun Updater avval shu buyruqni chaqiradi.
     EnsureErpSite  - firma ERP instance'i: pool (env umumiy ERP pool'idan nusxa), sayt (https <slug>.<domen>, SNI,
                      umumiy saytning sertifikati), papka huquqlari. Qayta chaqirish xavfsiz.
     RemoveErpSite  - sayt va pool'ni o'chiradi (papka va baza qoladi).
     HTTP (80) so'rovlarni umumiy wildcard sayt HTTPS'ga yo'naltiradi - firma saytiga faqat https binding kerak.
 #>
 param(
-    [Parameter(Mandatory)] [ValidateSet('EnsureErpSite', 'RemoveErpSite')] [string] $Command,
+    [Parameter(Mandatory)] [ValidateSet('EnsureErpPool', 'EnsureErpSite', 'RemoveErpSite')] [string] $Command,
     [Parameter(Mandatory)] [ValidatePattern('^[A-Za-z0-9._-]+$')] [string] $Name,
     [string] $PhysicalPath,
     [ValidatePattern('^[a-z0-9.-]+$')] [string] $HostName,
@@ -28,8 +30,10 @@ if ($Command -eq 'RemoveErpSite') {
     exit 0
 }
 
-if (-not $PhysicalPath -or -not $HostName) { throw 'PhysicalPath va HostName majburiy.' }
-if (-not (Test-Path $PhysicalPath)) { throw "Papka yo'q: $PhysicalPath" }
+if ($Command -eq 'EnsureErpSite') {
+    if (-not $PhysicalPath -or -not $HostName) { throw 'PhysicalPath va HostName majburiy.' }
+    if (-not (Test-Path $PhysicalPath)) { throw "Papka yo'q: $PhysicalPath" }
+}
 $shared = Get-Website -Name $SharedSite
 if (-not $shared) { throw "Umumiy ERP sayti topilmadi: $SharedSite" }
 $sharedPool = $shared.applicationPool
@@ -59,6 +63,7 @@ foreach ($v in @($src)) {
     $count++
 }
 Write-Host "pool env: $count ta o'zgaruvchi $sharedPool dan"
+if ($Command -eq 'EnsureErpPool') { exit 0 }
 
 # --- Sayt va https binding (SNI) + umumiy saytning sertifikati
 if (-not (Get-Website -Name $Name)) {
