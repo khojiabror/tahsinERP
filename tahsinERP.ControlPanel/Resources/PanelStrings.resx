@@ -3345,4 +3345,10 @@ Siz so'ramagan bo'lsangiz — bu xatga e'tibor bermang, parolingiz o'zgarmaydi.<
   <data name="Ptl_BotInfo" xml:space="preserve">
     <value>tahsinERP bot. Bu chat ID: {0}. Portalga bog'lash uchun portaldagi havoladan foydalaning.</value>
   </data>
+  <data name="Pnl_NavUpdates" xml:space="preserve">
+    <value>Yangilanishlar</value>
+  </data>
+  <data name="Pnl_Acc_SessionExpired" xml:space="preserve">
+    <value>Seans {0} daqiqa harakatsizlik sababli yopildi. Qayta kiring.</value>
+  </data>
 </root>

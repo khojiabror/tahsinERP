@@ -3345,4 +3345,10 @@ tahsinERP портал: код входа {1}. Действует {2} мин.
   <data name="Ptl_BotInfo" xml:space="preserve">
     <value>Бот tahsinERP. ID этого чата: {0}. Для привязки к кабинету воспользуйтесь ссылкой в кабинете.</value>
   </data>
+  <data name="Pnl_NavUpdates" xml:space="preserve">
+    <value>Обновления</value>
+  </data>
+  <data name="Pnl_Acc_SessionExpired" xml:space="preserve">
+    <value>Сеанс закрыт из-за бездействия в течение {0} мин. Войдите снова.</value>
+  </data>
 </root>

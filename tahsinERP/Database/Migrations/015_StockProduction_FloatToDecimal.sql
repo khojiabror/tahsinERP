@@ -6,6 +6,9 @@
    Hisoblangan: INCOME_PRODUCTS/EXPENSE_PRODUCTS.TotalPrice, PRODUCT_PRODUCTION/PRODUCTPLANS_DAILY.Total.
    Katta jadvalda ALTER COLUMN qulf oladi — prod'da texnik oynada.
    ===================================================================== */
+-- Tuzatish: #F2D ustunlari COLLATE DATABASE_DEFAULT (server collation'i bazanikidan farq qilsa c.name = x.Col xato berardi).
+-- Mazmun o'zgarmadi — oldingi tahrir bilan qo'llangan bazalar uchun:
+-- @supersedes-checksum: db9ef32fb83e6b5938bb6d93909848a631367ee17b06d012a047525e24abe9c0
 SET QUOTED_IDENTIFIER ON;
 SET ANSI_NULLS ON;
 SET XACT_ABORT ON;
@@ -161,7 +164,7 @@ END
 GO
 
 IF OBJECT_ID('tempdb..#F2D') IS NOT NULL DROP TABLE #F2D;
-CREATE TABLE #F2D (Tbl sysname, Col sysname, Prec int, Scale int);
+CREATE TABLE #F2D (Tbl sysname COLLATE DATABASE_DEFAULT, Col sysname COLLATE DATABASE_DEFAULT, Prec int, Scale int);
 INSERT #F2D VALUES
     ('INCOMES',            'Amount',            18, 6),
     ('INCOMES',            'TotalPrice',        19, 4),

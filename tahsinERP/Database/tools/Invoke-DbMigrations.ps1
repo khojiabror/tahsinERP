@@ -9,6 +9,8 @@
       1. Schema/000_Baseline.sql  — faqat bo'sh bazada (jadval yo'q) avtomatik.
                                      Mavjud (eski) bazada: -BaselineExisting bilan "qo'llangan" deb belgilanadi.
       2. Migrations/NNN_*.sql     — tartib raqami bo'yicha; qo'llanganlari checksum bilan tekshiriladi.
+                                     Mazmunni o'zgartirmaydigan tuzatishdan keyin faylga "-- @supersedes-checksum: <eski sha256>"
+                                     qatori yoziladi — eski checksum bilan qo'llangan bazalar xato bermaydi.
       3. Seed/*.sql               — faqat -Seed bilan (idempotent; checksum o'zgarsa qayta ishlaydi).
       4. -ExtraScripts            — qo'shimcha skriptlar (masalan Demo), Seed kabi kuzatiladi.
 
@@ -150,6 +152,7 @@ function Get-Plan {
         $text = Get-ScriptText $p.Path
         $p | Add-Member -NotePropertyName Text -NotePropertyValue $text
         $p | Add-Member -NotePropertyName Checksum -NotePropertyValue (Get-Checksum $text)
+        $p | Add-Member -NotePropertyName Supersedes -NotePropertyValue @([regex]::Matches($text, '(?m)^--\s*@supersedes-checksum:\s*([0-9a-f]{64})\s*$') | ForEach-Object { $_.Groups[1].Value })
     }
     return $plan
 }
@@ -185,6 +188,7 @@ function Invoke-OneDatabase([string]$Label, [string]$ConnStr, $Plan) {
                 if ($old.Checksum -ne $p.Checksum) {
                     if ($p.Kind -in @('seed', 'extra')) { $todo.Add($p); continue }   # idempotent — qayta ishlaydi
                     if ($p.Kind -eq 'baseline') { continue }                           # baseline faqat yangi bazalar uchun; qayta generatsiya normal
+                    if ($p.Supersedes -contains $old.Checksum) { Write-Log 'INFO' "[$Label] $($p.Name): oldingi tahrir bilan qo'llangan (@supersedes-checksum) — o'tkazildi"; continue }
                     $msg = "[$Label] $($p.Name) qo'llanganidan keyin o'zgargan (checksum farq). Qo'llangan migratsiyani tahrir qilmang — yangi NNN fayl yozing."
                     if ($AllowChecksumMismatch) { Write-Log 'WARN' $msg } else { $result.status = 'checksum-mismatch'; $result.exitCode = $EXIT_CHECKSUM; $result.error = $msg; Write-Log 'ERROR' $msg; return $result }
                 }

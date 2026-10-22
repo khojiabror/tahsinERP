@@ -5,6 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0">
     <title>@ViewData["Title"] - Admin Panel</title>
+    <script src="@tahsinERP.Helpers.AssetVersion.Url("~/assets/js/theme.js")"></script>
     <link rel="apple-touch-icon" href="~/app-assets/images/ico/apple-touch-icon.png">
     <link rel="shortcut icon" type="image/x-icon" href="~/app-assets/images/ico/favicon.ico">
     <link href="https://fonts.googleapis.com/css?family=Rubik:300,400,500,600%7CIBM+Plex+Sans:300,400,500,600,700" rel="stylesheet">
@@ -23,6 +24,11 @@
     <link rel="stylesheet" type="text/css" href="~/app-assets/css/themes/semi-dark-layout.css">
     <link rel="stylesheet" type="text/css" href="~/app-assets/css/core/menu/menu-types/vertical-menu.css">
     <link rel="stylesheet" type="text/css" href="~/assets/css/style.css">
+    @* Asosiy rang va kunduzgi/tungi rejim — _Layout bilan bir xil (BrandingService, assets/css/theme*.css) *@
+    <style id="brand-vars">@Html.Raw(tahsinERP.Services.Common.BrandingService.RenderCssVariables(tahsinERP.Services.Common.BrandingService.Current().Tokens))</style>
+    <link rel="stylesheet" type="text/css" href="@tahsinERP.Helpers.AssetVersion.Url("~/assets/css/theme-accent.css")" />
+    <link rel="stylesheet" type="text/css" href="@tahsinERP.Helpers.AssetVersion.Url("~/assets/css/theme-dark.css")" />
+    <link rel="stylesheet" type="text/css" href="@tahsinERP.Helpers.AssetVersion.Url("~/assets/css/theme.css")" />
 </head>
 <body class="vertical-layout vertical-menu-modern semi-dark-layout 2-columns navbar-sticky footer-static" data-open="click" data-menu="vertical-menu-modern" data-layout="semi-dark-layout" data-col="2-columns">
     @if (RoleHelper.IsViewPermitted(User.Identity.Name, "AdminPanel"))
@@ -52,6 +58,7 @@
                             <li class="nav-item d-none d-lg-block">
                                 <a class="nav-link nav-link-expand"><i class="ficon bx bx-fullscreen"></i></a>
                             </li>
+                            @Html.Partial("~/Views/Shared/_ThemeSwitch.cshtml")
                             <li class="dropdown dropdown-user nav-item">
                                 <a class="dropdown-toggle nav-link dropdown-user-link" href="#" data-toggle="dropdown">
                                     @Html.Partial("_HeaderUserName")

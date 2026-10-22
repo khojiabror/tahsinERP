@@ -7,6 +7,10 @@ Manbalar: `00_SERVER_PLAN.md`, `Docs/ControlPanel/04–08`, `Docs/Distribution/0
 
 Domen — **`tahsinerp.uz`** (sotib olingan, 2026-10-21). **Lightsail "SQL Server 2022 Express" blueprint'ida SQL standart nom bilan o'rnatilgan — ulanishda `.` ishlating** (qo'llanmadagi `.\SQLEXPRESS` o'rniga; xizmat `MSSQL$SQLEXPRESS` bo'lgan serverlarda — `.\SQLEXPRESS`). SQL — `.\SQLEXPRESS`.
 
+> **Yangilash (2026-10-22 dan):** birinchi o'rnatishdan keyin barcha yangilanishlar — **panel → Yangilanishlar** tugmasi bilan
+> (CI imzolagan GitHub relizi, serverdagi Updater xizmati, avtomatik zaxira va rollback). ERP har firma uchun alohida IIS instance'ida
+> (`erp-<slug>`), versiya firma bo'yicha. To'liq: **`03_AUTO_UPDATE.md`**. Quyidagi qo'lda yangilash yo'llari — faqat favqulodda holat uchun.
+
 ---
 
 ## 0. Boshlashdan oldin qaror va tayyorgarlik
@@ -127,6 +131,10 @@ Bazalar: har firma — `DB_<slug>`; markaziy — `tahsin_control` (panel), `tahs
 > 3-bo'limdagi ERP/agent SQL login'larini bitta qadamda bajaradi. ERP SQL'ga **Windows auth** bilan (`IIS APPPOOL\tahsinERP`, parolsiz)
 > ulanadi; `database\` → `C:\tahsinERP\Database` (veb-papkadan tashqarida). Yangilash: `-KeepSecrets`.
 > Quyidagi qo'lda qadamlar — skript nima qilishini tushunish uchun.
+>
+> **Firma instance'lari (`03_AUTO_UPDATE.md`):** `Install-Erp.ps1` yaratgan umumiy `tahsinERP` sayti (`*.<domen>`) fallback va HTTP→HTTPS
+> uchun qoladi; har firma `tahsinERP.Updater.exe split-erp` yoki panel "Instance yaratish" bilan o'z saytiga (`erp-<slug>`, https `<slug>.<domen>`)
+> o'tadi — IIS'da aniq host binding wildcard'dan ustun. Keyingi ERP relizlari firma bo'yicha paneldan o'rnatiladi.
 
 ### 4.1 Build (ishlab chiquvchi kompyuterida)
 
@@ -232,6 +240,32 @@ curl.exe -s "https://api.telegram.org/bot<TOKEN>/setWebhook" -d "url=https://my.
 
 ## 6. Provisioning agenti (Windows Service)
 
+### 6.1 Skript bilan (prod'da 2026-10-22, `lightsail-fra-1` shunday o'rnatildi)
+
+1. Paket (lokal): `dotnet publish tahsinERP.ProvisioningAgent -c Release -r win-x64 --self-contained false -o agent-pkg\app`
+   + `tools\deploy\Install-Agent.ps1` → `agent-pkg.zip`. Serverda `C:\tahsinERP` ga ochiladi (`C:\tahsinERP\agent-pkg`).
+2. `C:\tahsinERP\Database` **to'liq** bo'lishi kerak: `tools\New-TenantDb.ps1`, `Migrations\` (ERP relizi bilan bir xil), `Demo\`
+   (demo tenant uchun). Tuzatish fayllarini **ustiga yozing** (`robocopy <manba> C:\tahsinERP\Database /E`), papkani almashtirmang —
+   aks holda job "Skript topilmadi" bilan yiqiladi. Papka yangidan ochilsa:
+   `icacls C:\tahsinERP\Database /grant "NT AUTHORITY\NETWORK SERVICE:(OI)(CI)RX"`.
+3. Panelda: **Serverlar → server → "Agent kalitini chiqarish"** (Owner; kalit bir marta ko'rsatiladi) — Server ID va kalit.
+4. Kalit Notepad'da `C:\tahsinERP\s.txt` ga: 1-qator kalit, 2-qator demo foydalanuvchi paroli (ixtiyoriy; bo'sh — `demo2026`).
+   Brauzer-RDP'da yashirin maydonga joylash 1 belgi beradi — shuning uchun fayl; skript o'qigach o'chiradi.
+5. Administrator PowerShell (Server ID — raqam, burchak qavslarsiz):
+
+```powershell
+cd C:\tahsinERP\agent-pkg
+Set-ExecutionPolicy -Scope Process Bypass -Force
+.\Install-Agent.ps1 -Domain tahsinerp.uz -ServerId 1 -SecretsFile C:\tahsinERP\s.txt
+# yangilash: .\Install-Agent.ps1 -Domain tahsinerp.uz -ServerId 1 -KeepSecrets
+```
+
+   Skript 6.2 dagi hamma qadamni bajaradi (fayllar → `C:\tahsinERP\Agent`, `appsettings.json`, huquqlar, xizmat, sirlar registry'da).
+6. Tekshirish: `Get-Service tahsinERP.ProvisioningAgent` → Running; panelda server "oxirgi aloqa" yangilanadi. Job loglari —
+   `C:\ProgramData\tahsinERP\Agent\logs\job-<id>.log` (Event log'ga faqat ogohlantirish/xatolar yoziladi).
+
+### 6.2 Qo'lda (skriptsiz)
+
 1. Panelda: **Serverlar → + Server → "Agent kalitini chiqarish"** (Owner; kalit bir marta ko'rsatiladi) — `ServerId` va sirni yozib oling.
 2. O'rnatish:
 
@@ -248,9 +282,32 @@ New-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Services\tahsinERP.Provisi
    `Paths:DatabaseRoot=C:\tahsinERP\Database`, `Paths:BaseDomain=tahsinerp.uz`, `Paths:BackupDir=C:\ProgramData\tahsinERP\Backups`.
 4. Huquqlar: `NETWORK SERVICE` → `C:\ProgramData\tahsinERP` (yozish), `C:\tahsinERP\Database` (o'qish); SQL `dbcreator` — `Install-Erp.ps1` beradi.
 5. Sinov: `C:\tahsinERP\Agent\tahsinERP.ProvisioningAgent.exe --once`, keyin `Start-Service tahsinERP.ProvisioningAgent`.
-6. Birinchi firma: panelda tenant (masalan `demo`, KORP, uzoq muddat) → **"Bazani yaratish"** → agent `DB_demo` yaratadi, `tenants.json` ga yozadi,
-   litsenziya ro'yxat tokenini qo'yadi. Demo har kecha 03:00–06:00 da tiklanadi. `https://demo.tahsinerp.uz` ochilishini tekshiring.
-7. ERP'da: **Litsenziya → "Panelga ulash"** (ro'yxat tokeni 7 kun amal qiladi) → "Hozir tekshirish".
+### 6.3 Demo tenant (`demo.tahsinerp.uz`)
+
+1. Panelda **Firmalar → Sinov**: slug `demo` (= `Provisioning:DemoSlug`), server, "Namuna ma'lumotlar" ✓ → bir yo'la TRIAL obuna va
+   "Bazani yaratish" job. `admin` vaqtinchalik paroli **bir marta** ko'rinadi (birinchi kirishda almashtiriladi).
+2. Job: `DB_demo` (baseline + migratsiya + seed + `Database\Demo`), ERP SQL login'iga db_owner, `LICENSE_STATE.RegToken`, `tenants.json`.
+   Demo tenantda namuna foydalanuvchisi `demo` faol qoladi (boshqa sinov firmalarida o'chiriladi): `demo` / `demo2026` yoki `s.txt` dagi parol.
+3. ERP → Litsenziya: agent tokenni yozib qo'ygan ("Token saqlangan") — **"Hozir tekshirish"** bosiladi (bo'sh maydon bilan
+   "Panelga ulash" — "token yaroqsiz"). Boshqa firmalarda ham shunday (token 7 kun amal qiladi).
+4. Har kecha 03:00–06:00 (Toshkent) agent o'zi Reset rejalashtiradi: birinchi safar `Database\Demo` dan
+   `C:\ProgramData\tahsinERP\Backups\DB_DEMO_TEMPLATE.bak` yasaladi, keyin shundan RESTORE → migratsiyalar → `demo` foydalanuvchi →
+   yangi RegToken (ERP o'zi qayta ro'yxatdan o'tadi). Demo skriptlari o'zgarsa — `tahsinERP.ProvisioningAgent.exe build-demo-template`.
+5. TRIAL 14 kun — muddat tugashidan oldin demo'ga uzoq muddatli obuna (KORP) qo'lda qo'shing, aks holda demo to'xtatiladi.
+
+### 6.4 Birinchi o'rnatishda topilgan va tuzatilgan (2026-10-22)
+
+| Muammo | Tuzatish |
+|---|---|
+| Lightsail SQL Express blueprint collation'i `SQL_Latin1_General_CP1_CI_AS`, firma bazasi `Cyrillic_General_CI_AS` — `#temp` jadvallar tempdb collation'ini oladi, 014 migratsiya "collation conflict" bilan yiqildi (lokal SQL Cyrillic bo'lgani uchun testlarda chiqmagan) | 014/015/017 va Demo skriptlarida `#temp` matn ustunlari `COLLATE DATABASE_DEFAULT`; runner `-- @supersedes-checksum: <sha>` — oldingi tahrir bilan qo'llangan bazalar (masalan `DB_ipack`) checksum xatosi bermaydi. Test: baza collation'i serverdan farqli. **Yangi migratsiyalarda `#temp` matn ustuniga doim `COLLATE DATABASE_DEFAULT`** |
+| Demo tenant Create'da namuna `demo` foydalanuvchisi o'chirib qo'yilardi (birinchi kechagacha demo kirishi yo'q) | Demo tenantda Create ham Reset kabi `demo` ni faol qoldiradi |
+| Tuzatish ZIP'i ochilganda `Database\tools` papkasi almashtirildi → "Skript topilmadi" | 6.1-2: ustiga yozish / `robocopy /E` |
+| `-ServerId <ID>` burchak qavslari bilan joylandi → PowerShell parse xatosi | Misolda haqiqiy raqam |
+
+### 6.5 Updater
+
+**Updater** (avto-yangilash, LocalSystem): `tools\deploy\Install-Updater.ps1 -Domain tahsinerp.uz` (paket `app\` = `updater.zip`).
+   Agent `Updates:*` sozlamalari standart qiymatlar bilan ishlaydi. Tafsilot — `03_AUTO_UPDATE.md` (3-bo'lim).
 
 Qo'lda (agentsiz) firma bazasi kerak bo'lsa:
 `.\Database\tools\New-TenantDb.ps1 -Server .\SQLEXPRESS -DbName DB_firma1 -CompanyName '"Firma 1" MChJ'` (oxirgi qatorda `RESULT {...}` — vaqtinchalik admin paroli),
@@ -330,6 +387,8 @@ Firmaning o'z domeni (`firma1.uz`) — keyingi bosqich (Caddy on-demand TLS yoki
 | Agent siri | xizmat muhiti |
 | Har firma bot tokeni | `Bot.dll tenant add` (bazada shifrlanadi) |
 | Cloudflare API tokeni | win-acme |
+| Reliz imzo kaliti (ECDSA, private) | faqat GitHub secret `RELEASE_SIGNING_KEY` (environment `release`); nusxa — parol menejeri |
+| GitHub token (read-only, reliz o'qish) | panel pool env `ControlPanel__Updates__GitHubToken` |
 
 ---
 
@@ -347,8 +406,11 @@ Get-ChildItem C:\ProgramData\tahsinERP\Backups\daily -Directory | ? CreationTime
    (Express'da `COMPRESSION` qo'llanmasa — olib tashlang.) **Serverdan tashqariga nusxa** (provayder object storage yoki boshqa server) va provayder snapshot'i.
    Eng muhimi `tahsin_control` — to'lov tarixi shu yerda.
 2. **Kuzatuv**: UptimeRobot (bepul) — `https://admin.tahsinerp.uz/health`, `https://bot.tahsinerp.uz/health`, `https://demo.sayt.tahsinerp.uz/health`, `https://demo.tahsinerp.uz/Account/Login`.
-3. **Relizlar** 19:00 dan keyin, zaxiradan so'ng: ERP fayllarini almashtirish (serverdagi `Web.config` machineKey'ni saqlab) → `Invoke-DbMigrations -AllTenants -Seed` → pool recycle;
-   panel uchun `Install-PanelIis.ps1 -KeepSecrets`; bot/sayt uchun `dotnet publish` → pool recycle (sozlamalar pool muhitida, o'chmaydi).
+3. **Relizlar** — panel → **Yangilanishlar** (`03_AUTO_UPDATE.md`): ish vaqtidan tashqarida, avval `demo`, keyin boshqa firmalar.
+   Updater o'zi zaxira oladi (fayllar + firma bazasi `.bak`), migratsiya + seed qiladi, `/health` tekshiradi va xatoda qaytaradi.
+   Favqulodda qo'lda yo'l (Updater ishlamasa): ERP fayllarini almashtirish (serverdagi `Web.config` machineKey'ni saqlab) →
+   `Invoke-DbMigrations -Database <db> -Seed` → pool recycle; panel — `Install-PanelIis.ps1 -KeepSecrets`; bot/sayt — `Install-BotSite.ps1 -KeepSecrets`.
+4. **Kuzatuv**ga firma instance'lari: `https://<slug>.tahsinerp.uz/health` (200 — ilova va baza ishlayapti).
 
 ---
 
@@ -357,7 +419,7 @@ Get-ChildItem C:\ProgramData\tahsinERP\Backups\daily -Directory | ? CreationTime
 - [ ] `https://demo.tahsinerp.uz` — login, bosh sahifa, bir nechta modul (UAT hujjati bo'yicha)
 - [ ] `http://` → `https://` yo'naltiriladi; noma'lum firma nomi → 404
 - [ ] `admin.tahsinerp.uz` — 2FA bilan kirish; `my.tahsinerp.uz` — mijoz kirishi (Telegram kodi)
-- [ ] Panelda yangi firma → "Bazani yaratish" → agent bajardi → yangi subdomen ochiladi
+- [x] Panelda yangi firma → "Bazani yaratish" → agent bajardi → yangi subdomen ochiladi (2026-10-22, `demo`)
 - [ ] Panel bergan litsenziya kaliti ERP'da qabul qilinadi (k2 kaliti ERP'ga qo'yilgan)
 - [ ] Bot: `/start`, Mini App ochiladi, buyurtma ERP'ga tushadi; selfi/foto ERP'da ko'rinadi ("Bot ochiq manzili")
 - [ ] Distributsiya UAT (`Docs/Distribution/UAT/`, 135 test) asosiy ssenariylari real Telegram bilan
@@ -382,6 +444,6 @@ Get-ChildItem C:\ProgramData\tahsinERP\Backups\daily -Directory | ? CreationTime
 
 ## 12. Hali real serverda sinalmagan (birinchi o'rnatishda e'tibor bering)
 
-`Install-PanelIis.ps1` (faqat sintaksis tekshirilgan), agent Windows Service sifatida, admin/my ikki host va `__Host-` cookie'lar,
+`Install-PanelIis.ps1` (faqat sintaksis tekshirilgan), admin/my ikki host va `__Host-` cookie'lar,
 bot va Mini App real Telegram'da, sayt real domenda, ERP sahifalari HTTPS ostida, Didox/Eskiz/SMTP. Zaxiradan arxivni tiklash amali
 panelda yo'q (qo'lda `RESTORE DATABASE`).

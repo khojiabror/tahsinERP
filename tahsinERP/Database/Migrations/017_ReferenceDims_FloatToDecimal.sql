@@ -4,6 +4,9 @@
    IPACK'da 5 xonali og'irliklar bor), F_TRANSPORT_TYPES (o'lcham va yuk ko'tarish decimal(18,4)).
    Katta jadvalda ALTER COLUMN qulf oladi — prod'da texnik oynada.
    ===================================================================== */
+-- Tuzatish: #F2D ustunlari COLLATE DATABASE_DEFAULT (server collation'i bazanikidan farq qilsa c.name = x.Col xato berardi).
+-- Mazmun o'zgarmadi — oldingi tahrir bilan qo'llangan bazalar uchun:
+-- @supersedes-checksum: 8131c5fdbb60a2ad6c89194b68e620a1e142a1f5f3d087ec888955982396bcce
 SET QUOTED_IDENTIFIER ON;
 SET ANSI_NULLS ON;
 SET XACT_ABORT ON;
@@ -159,7 +162,7 @@ END
 GO
 
 IF OBJECT_ID('tempdb..#F2D') IS NOT NULL DROP TABLE #F2D;
-CREATE TABLE #F2D (Tbl sysname, Col sysname, Prec int, Scale int);
+CREATE TABLE #F2D (Tbl sysname COLLATE DATABASE_DEFAULT, Col sysname COLLATE DATABASE_DEFAULT, Prec int, Scale int);
 INSERT #F2D VALUES
     ('PRODUCTS',          'Length',            18, 4),
     ('PRODUCTS',          'Width',             18, 4),

@@ -14109,4 +14109,79 @@
   <data name="Task_TasksSlash" xml:space="preserve">
     <value>Задачи</value>
   </data>
+  <data name="Theme_Title" xml:space="preserve">
+    <value>Тема: светлая / тёмная</value>
+  </data>
+  <data name="Theme_Label" xml:space="preserve">
+    <value>Тема</value>
+  </data>
+  <data name="Theme_Light" xml:space="preserve">
+    <value>Светлая</value>
+  </data>
+  <data name="Theme_Dark" xml:space="preserve">
+    <value>Тёмная</value>
+  </data>
+  <data name="Theme_Auto" xml:space="preserve">
+    <value>Как в системе</value>
+  </data>
+  <data name="Theme_BrandColor" xml:space="preserve">
+    <value>Цвет системы</value>
+  </data>
+  <data name="Theme_Presets" xml:space="preserve">
+    <value>Готовые цвета</value>
+  </data>
+  <data name="Theme_Preset_0" xml:space="preserve">
+    <value>Индиго (по умолчанию)</value>
+  </data>
+  <data name="Theme_Preset_1" xml:space="preserve">
+    <value>Зелёный</value>
+  </data>
+  <data name="Theme_Preset_2" xml:space="preserve">
+    <value>Синий</value>
+  </data>
+  <data name="Theme_Preset_3" xml:space="preserve">
+    <value>Бирюзовый</value>
+  </data>
+  <data name="Theme_Preset_4" xml:space="preserve">
+    <value>Фиолетовый</value>
+  </data>
+  <data name="Theme_Preset_5" xml:space="preserve">
+    <value>Красный</value>
+  </data>
+  <data name="Theme_Preset_6" xml:space="preserve">
+    <value>Оранжевый</value>
+  </data>
+  <data name="Theme_Preset_7" xml:space="preserve">
+    <value>Графит</value>
+  </data>
+  <data name="Theme_PickColor" xml:space="preserve">
+    <value>Выбрать цвет</value>
+  </data>
+  <data name="Theme_HexColor" xml:space="preserve">
+    <value>Цвет HEX (#RRGGBB)</value>
+  </data>
+  <data name="Theme_DefaultColor" xml:space="preserve">
+    <value>Цвет по умолчанию</value>
+  </data>
+  <data name="Theme_BrandHint" xml:space="preserve">
+    <value>В этом цвете будут меню, кнопки, ссылки, бейджи и заголовки таблиц. Изменение сразу видно на этой странице; для остальных применяется после «Сохранить».</value>
+  </data>
+  <data name="Theme_BrandError" xml:space="preserve">
+    <value>Цвет должен быть в формате #RRGGBB (например, #198754).</value>
+  </data>
+  <data name="Theme_SampleNew" xml:space="preserve">
+    <value>Новый</value>
+  </data>
+  <data name="Theme_SampleInProgress" xml:space="preserve">
+    <value>В работе</value>
+  </data>
+  <data name="Theme_SampleLink" xml:space="preserve">
+    <value>Пример ссылки</value>
+  </data>
+  <data name="Theme_SampleHeading" xml:space="preserve">
+    <value>Текст заголовка</value>
+  </data>
+  <data name="Theme_SampleFocus" xml:space="preserve">
+    <value>Поле в фокусе</value>
+  </data>
 </root>

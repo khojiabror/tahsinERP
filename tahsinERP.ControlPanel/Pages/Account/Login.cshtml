@@ -7,6 +7,10 @@
     <p class="hud-sub">@L.T("Pnl_Acc_LoginIntro")</p>
     @if (Model.TotpRequired) { <ol class="steps"><li class="on">@L.T("Password")</li><li>@L.T("Pnl_Acc_2faCode")</li><li>@L.T("Login")</li></ol> }
     else { <ol class="steps"><li class="on">@L.T("Password")</li><li>@L.T("Login")</li></ol> }
+    @if (Model.Expired)
+    {
+        <div class="flash info">@L.T("Pnl_Acc_SessionExpired", Model.IdleMinutes)</div>
+    }
     <form method="post" class="stack">
         <div asp-validation-summary="All"></div>
         <div>

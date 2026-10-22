@@ -14,6 +14,8 @@ STRINGS = {
     "Pnl_NavLicenses": ("Kalitlar", "Ключи"),
     "Pnl_NavProvisioning": ("Provisioning", "Развёртывание"),
     "Pnl_NavServers": ("Serverlar", "Серверы"),
+    "Pnl_NavUpdates": ("Yangilanishlar", "Обновления"),
+    "Pnl_Acc_SessionExpired": ("Seans {0} daqiqa harakatsizlik sababli yopildi. Qayta kiring.", "Сеанс закрыт из-за бездействия в течение {0} мин. Войдите снова."),
     "Pnl_NavAnalytics": ("Tahlil", "Аналитика"),
     "Pnl_NavTraction": ("Traction", "Динамика"),
     "Pnl_NavNotifications": ("Eslatmalar", "Напоминания"),

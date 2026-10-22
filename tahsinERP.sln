@@ -27,6 +27,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "tahsinERP.Site.Tests", "tah
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "tahsinERP.Localization", "tahsinERP.Localization\tahsinERP.Localization.csproj", "{B7D3E9A1-5C42-4F8E-9B16-3A0C7E2D4F51}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "tahsinERP.ReleaseTool", "tahsinERP.ReleaseTool\tahsinERP.ReleaseTool.csproj", "{EB5F6CA7-36DC-42EA-A950-00A5ACA2CE01}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "tahsinERP.Updater", "tahsinERP.Updater\tahsinERP.Updater.csproj", "{4FBA2991-714E-419E-9DC9-E022308B8A92}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -181,6 +185,30 @@ Global
 		{B7D3E9A1-5C42-4F8E-9B16-3A0C7E2D4F51}.Release|x64.Build.0 = Release|Any CPU
 		{B7D3E9A1-5C42-4F8E-9B16-3A0C7E2D4F51}.Release|x86.ActiveCfg = Release|Any CPU
 		{B7D3E9A1-5C42-4F8E-9B16-3A0C7E2D4F51}.Release|x86.Build.0 = Release|Any CPU
+		{EB5F6CA7-36DC-42EA-A950-00A5ACA2CE01}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EB5F6CA7-36DC-42EA-A950-00A5ACA2CE01}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EB5F6CA7-36DC-42EA-A950-00A5ACA2CE01}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{EB5F6CA7-36DC-42EA-A950-00A5ACA2CE01}.Debug|x64.Build.0 = Debug|Any CPU
+		{EB5F6CA7-36DC-42EA-A950-00A5ACA2CE01}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{EB5F6CA7-36DC-42EA-A950-00A5ACA2CE01}.Debug|x86.Build.0 = Debug|Any CPU
+		{EB5F6CA7-36DC-42EA-A950-00A5ACA2CE01}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EB5F6CA7-36DC-42EA-A950-00A5ACA2CE01}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EB5F6CA7-36DC-42EA-A950-00A5ACA2CE01}.Release|x64.ActiveCfg = Release|Any CPU
+		{EB5F6CA7-36DC-42EA-A950-00A5ACA2CE01}.Release|x64.Build.0 = Release|Any CPU
+		{EB5F6CA7-36DC-42EA-A950-00A5ACA2CE01}.Release|x86.ActiveCfg = Release|Any CPU
+		{EB5F6CA7-36DC-42EA-A950-00A5ACA2CE01}.Release|x86.Build.0 = Release|Any CPU
+		{4FBA2991-714E-419E-9DC9-E022308B8A92}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4FBA2991-714E-419E-9DC9-E022308B8A92}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4FBA2991-714E-419E-9DC9-E022308B8A92}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{4FBA2991-714E-419E-9DC9-E022308B8A92}.Debug|x64.Build.0 = Debug|Any CPU
+		{4FBA2991-714E-419E-9DC9-E022308B8A92}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{4FBA2991-714E-419E-9DC9-E022308B8A92}.Debug|x86.Build.0 = Debug|Any CPU
+		{4FBA2991-714E-419E-9DC9-E022308B8A92}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4FBA2991-714E-419E-9DC9-E022308B8A92}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4FBA2991-714E-419E-9DC9-E022308B8A92}.Release|x64.ActiveCfg = Release|Any CPU
+		{4FBA2991-714E-419E-9DC9-E022308B8A92}.Release|x64.Build.0 = Release|Any CPU
+		{4FBA2991-714E-419E-9DC9-E022308B8A92}.Release|x86.ActiveCfg = Release|Any CPU
+		{4FBA2991-714E-419E-9DC9-E022308B8A92}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

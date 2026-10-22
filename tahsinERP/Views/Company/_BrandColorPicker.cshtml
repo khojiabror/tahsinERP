@@ -1,0 +1,107 @@
+@model tahsinERP.Services.Common.BrandInfo
+@using tahsinERP.Services.Common
+@*
+    Tizim rangi (COMPANIES.BrandColor): tayyor palitra + ixtiyoriy HEX. Tanlov butun sahifaga darhol qo'llanadi
+    (Branding/Vars — server hosilalarni hisoblaydi), saqlanmaguncha faqat shu brauzerda ko'rinadi.
+*@
+<div class="form-group brand-picker" id="brandPicker"
+     data-vars-url="@Url.Action("Vars", "Branding", new { area = "" })"
+     data-default="@BrandingService.DefaultColor">
+    <label class="d-block">@L.T("Theme_BrandColor")</label>
+    <input type="hidden" name="BrandColor" id="BrandColor" value="@Model.Primary" />
+    <div class="brand-swatches" role="radiogroup" aria-label="@L.T("Theme_Presets")">
+        @for (int pi = 0; pi < BrandingService.Presets.Count; pi++)
+        {
+            var p = BrandingService.Presets[pi];
+            string presetName = L.T("Theme_Preset_" + pi);
+            <button type="button" class="brand-swatch" role="radio" data-color="@p.Hex" title="@presetName (@p.Hex)"
+                    aria-label="@presetName" style="--sw:@p.Hex">
+                <i class="bx bx-check"></i>
+            </button>
+        }
+    </div>
+    <div class="d-flex flex-wrap align-items-center mt-1">
+        <div class="input-group brand-hex mr-1 mb-50">
+            <div class="input-group-prepend">
+                <span class="input-group-text p-0 overflow-hidden"><input type="color" id="BrandColorPick" value="@Model.Primary" aria-label="@L.T("Theme_PickColor")" /></span>
+            </div>
+            <input type="text" id="BrandColorHex" class="form-control" value="@Model.Primary.ToUpperInvariant()" maxlength="7"
+                   spellcheck="false" autocomplete="off" aria-label="@L.T("Theme_HexColor")" />
+        </div>
+        <button type="button" class="btn btn-sm btn-outline-secondary mb-50" id="BrandColorReset">@L.T("Theme_DefaultColor")</button>
+    </div>
+    <small class="text-muted d-block" id="BrandColorHint">@L.T("Theme_BrandHint")</small>
+    <small class="text-danger d-none" id="BrandColorError">@L.T("Theme_BrandError")</small>
+
+    <div class="brand-preview mt-1" aria-hidden="true">
+        <div class="brand-preview-menu">
+            <span class="brand-preview-brand">@Model.CompanyName</span>
+            <span class="brand-preview-item active"><i class="bx bx-home"></i> @L.T("Home")</span>
+            <span class="brand-preview-item"><i class="bx bx-cart"></i> @L.T("Menu_Sales")</span>
+        </div>
+        <div class="brand-preview-body">
+            <div class="mb-75">
+                <span class="btn btn-primary btn-sm mr-50">@L.T("Save")</span>
+                <span class="btn btn-outline-primary btn-sm mr-50">@L.T("Cancel")</span>
+                <span class="badge badge-primary mr-50">@L.T("Theme_SampleNew")</span>
+                <span class="badge badge-light-primary">@L.T("Theme_SampleInProgress")</span>
+            </div>
+            <div class="mb-75"><a href="#" onclick="return false;">@L.T("Theme_SampleLink")</a> &middot; <span class="text-primary">@L.T("Theme_SampleHeading")</span></div>
+            <input type="text" class="form-control form-control-sm brand-preview-focus" value="@L.T("Theme_SampleFocus")" readonly tabindex="-1" />
+        </div>
+    </div>
+</div>
+<script>
+    (function () {
+        var root = document.getElementById('brandPicker');
+        if (!root) return;
+        var hidden = document.getElementById('BrandColor'), hex = document.getElementById('BrandColorHex'),
+            pick = document.getElementById('BrandColorPick'), err = document.getElementById('BrandColorError'),
+            vars = document.getElementById('brand-vars'), url = root.getAttribute('data-vars-url'),
+            swatches = root.querySelectorAll('.brand-swatch'), timer = null, seq = 0;
+        var valid = function (v) { return /^#[0-9a-f]{6}$/i.test(v); };
+
+        function mark(v) {
+            for (var i = 0; i < swatches.length; i++) {
+                var on = swatches[i].getAttribute('data-color').toLowerCase() === v.toLowerCase();
+                swatches[i].classList.toggle('selected', on);
+                swatches[i].setAttribute('aria-checked', on ? 'true' : 'false');
+            }
+        }
+
+        // Hosilalarni server hisoblaydi (BrandingService.BuildTokens) — JS'da formulani takrorlamaslik uchun
+        function preview(v) {
+            var my = ++seq;
+            clearTimeout(timer);
+            timer = setTimeout(function () {
+                fetch(url + '?color=' + encodeURIComponent(v), { credentials: 'same-origin' })
+                    .then(function (r) { return r.ok ? r.text() : null; })
+                    .then(function (css) { if (css && vars && my === seq) vars.textContent = css; })
+                    .catch(function () { });
+            }, 120);
+        }
+
+        function set(v, from) {
+            if (!valid(v)) { err.classList.remove('d-none'); return; }
+            err.classList.add('d-none');
+            v = v.toLowerCase();
+            hidden.value = v;
+            if (from !== 'hex') hex.value = v.toUpperCase();
+            if (from !== 'pick') pick.value = v;
+            mark(v);
+            preview(v);
+        }
+
+        for (var i = 0; i < swatches.length; i++)
+            swatches[i].addEventListener('click', function () { set(this.getAttribute('data-color'), 'swatch'); });
+        pick.addEventListener('input', function () { set(pick.value, 'pick'); });
+        hex.addEventListener('input', function () {
+            var v = hex.value.trim();
+            if (v && v.charAt(0) !== '#') v = '#' + v;
+            if (v.length === 7) set(v, 'hex'); else err.classList.add('d-none');
+        });
+        hex.addEventListener('blur', function () { if (!valid(hidden.value) || hex.value.trim().length !== 7) hex.value = hidden.value.toUpperCase(); });
+        document.getElementById('BrandColorReset').addEventListener('click', function () { set(root.getAttribute('data-default'), 'reset'); });
+        mark(hidden.value);
+    })();
+</script>

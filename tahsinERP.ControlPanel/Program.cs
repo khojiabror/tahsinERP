@@ -39,6 +39,7 @@ services.Configure<DidoxOptions>(config.GetSection("ControlPanel:Didox"));
 services.Configure<EskizOptions>(config.GetSection("ControlPanel:Eskiz"));
 services.Configure<SmtpOptions>(config.GetSection("ControlPanel:Smtp"));
 services.Configure<AppsOptions>(config.GetSection("ControlPanel:Apps"));
+services.Configure<UpdatesOptions>(config.GetSection("ControlPanel:Updates"));
 PanelFontResolver.ExtraFontsDir = config["ControlPanel:Pdf:FontsDir"];
 
 services.AddDbContext<ControlDbContext>(o => o.UseSqlServer(
@@ -89,10 +90,15 @@ services.AddSingleton<InvoicePdfRenderer>();
 services.AddHttpClient<ITelegramSender, TelegramSender>(c => c.Timeout = TimeSpan.FromSeconds(15));
 services.AddHttpClient<IAppsClient, AppsHttpClient>(c => c.Timeout = TimeSpan.FromSeconds(30));
 services.AddScoped<TenantAppsService>();
+// Avto-yangilash: GitHub relizlari (token faqat pool env'da), navbat, agent API (Docs/Deploy/03_AUTO_UPDATE.md)
+services.AddSingleton<ReleaseTrust>();
+services.AddHttpClient<IReleaseSource, GitHubReleaseSource>(c => c.Timeout = TimeSpan.FromMinutes(30));
+services.AddScoped<UpdatesService>();
 if (config.GetValue("ControlPanel:Panel:EnableDailyJob", true))
 {
     services.AddHostedService<DailyJobHostedService>();
     services.AddHostedService<DidoxRefreshHostedService>();
+    services.AddHostedService<ReleaseRefreshHostedService>();
 }
 
 // Cookie/antiforgery kalitlari: serverda doimiy papkada (aks holda IIS qayta ishga tushganda xodimlar qayta kiradi).
@@ -106,7 +112,8 @@ if (config["ControlPanel:DataProtection:KeysDir"] is { Length: > 0 } keysDir)
 }
 
 bool isDev = builder.Environment.IsDevelopment();
-int portalSessionHours = Math.Clamp(config.GetValue("ControlPanel:Portal:SessionHours", 4), 1, 24);
+int staffIdleMinutes = (config.GetSection("ControlPanel:Security").Get<SecurityOptions>() ?? new()).EffectiveStaffIdleMinutes;
+int portalSessionHours =Math.Clamp(config.GetValue("ControlPanel:Portal:SessionHours", 4), 1, 24);
 services.AddAuthentication(PortalSchemes.Zone)
     // HttpContext.User — shu host zonasining foydalanuvchisi (admin.* → xodim, my.* → mijoz). Avtorizatsiya siyosatlari
     // baribir o'z sxemasini aniq ko'rsatadi: xodim cookie'si portalda va mijoz cookie'si panelda hech narsa ochmaydi.
@@ -121,8 +128,10 @@ services.AddAuthentication(PortalSchemes.Zone)
         o.LoginPath = "/Account/Login";
         o.LogoutPath = "/Account/Logout";
         o.AccessDeniedPath = "/Account/Denied";
-        o.ExpireTimeSpan = TimeSpan.FromHours(8);
+        // Harakatsizlik taymauti: cookie har so'rovda yangilanadi (standart sliding faqat yarmidan keyin yangilaydi).
+        o.ExpireTimeSpan = TimeSpan.FromMinutes(staffIdleMinutes);
         o.SlidingExpiration = true;
+        o.Events.OnCheckSlidingExpiration = ctx => { ctx.ShouldRenew = true; return Task.CompletedTask; };
         o.Events.OnValidatePrincipal = StaffAuthService.ValidatePrincipalAsync;
     })
     .AddCookie(AuthSchemes.TwoFactor, o =>
@@ -194,6 +203,7 @@ services.AddRazorPages(o =>
     o.Conventions.AuthorizeFolder(ZonePageRouteConvention.PortalFolder, Policies.Portal);
     o.Conventions.AuthorizeFolder("/Staff", Policies.Owner);
     o.Conventions.AuthorizeFolder("/Servers", Policies.Owner);
+    o.Conventions.AuthorizeFolder("/Updates", Policies.Owner);
     o.Conventions.AuthorizeFolder("/Audit", Policies.Owner);
     o.Conventions.AuthorizeFolder("/Bank", Policies.Sales); // to'lov belgilash huquqi (00_PLAN.md 5.2)
 });
@@ -243,6 +253,8 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapGet("/health", () => Results.Text("ok")).AllowAnonymous();
+// Brauzer faol foydalanuvchi seansini yangilab turadi (app.js); xodim cookie'si shu so'rovda uzaytiriladi.
+app.MapGet("/Account/KeepAlive", (HttpContext ctx) => { ctx.Response.Headers.CacheControl = "no-store"; return Results.NoContent(); });
 LicenseApi.Map(app);
 AgentApi.Map(app);
 TelegramWebhook.Map(app);

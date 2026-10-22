@@ -1,0 +1,215 @@
+@page
+@model tahsinERP.ControlPanel.Pages.Updates.IndexModel
+@using tahsinERP.ControlPanel.Pages.Updates
+@using tahsinERP.Provisioning.Contracts
+@{ ViewData["Title"] = "Yangilanishlar"; var inv = Model.Inventory; }
+<h1>Yangilanishlar</h1>
+<div asp-validation-summary="ModelOnly"></div>
+
+<div class="actions">
+    @if (Model.Servers.Count > 1)
+    {
+        <form method="get" class="inline">
+            <select name="ServerId">
+                @foreach (var s in Model.Servers) { <option value="@s.Id" selected="@(s.Id == Model.ServerId)">@s.Name</option> }
+            </select>
+            <button type="submit" class="secondary">Tanlash</button>
+        </form>
+    }
+    <form method="post" asp-page-handler="Refresh" class="inline">
+        <input type="hidden" name="ServerId" value="@Model.ServerId" />
+        <button type="submit" class="secondary" disabled="@(!Model.SourceConfigured)">Relizlarni hozir tekshirish</button>
+    </form>
+    @if (!Model.SourceConfigured)
+    {
+        <span class="badge warn">GitHub token sozlanmagan</span>
+    }
+</div>
+
+@if (Model.Server is null)
+{
+    <div class="empty">Agenti ulangan server yo'q (Serverlar → Agent kalitini chiqarish, Install-Agent.ps1).</div>
+    return;
+}
+
+<div class="card">
+    <dl class="props">
+        <dt>Server</dt><dd>@Model.Server.Name <span class="hint">@Model.Server.Host</span></dd>
+        <dt>Agent</dt><dd>@(Model.Server.AgentVersion ?? "—") · oxirgi aloqa @Model.Server.AgentLastSeenUtc?.ToString("dd.MM.yyyy HH:mm") UTC</dd>
+        <dt>Updater</dt>
+        <dd>
+            @if (inv?.UpdaterVersion is { } uv) { <span class="badge ok">@uv</span> }
+            else { <span class="badge bad">o'rnatilmagan</span> <span class="hint">Install-Updater.ps1 (bir martalik, qo'lda)</span> }
+            @if (Model.InventoryAtUtc is { } at) { <span class="hint">inventar: @at.ToString("dd.MM.yyyy HH:mm") UTC</span> }
+        </dd>
+    </dl>
+</div>
+
+<h2>Server ilovalari</h2>
+<table>
+    <tr><th>Ilova</th><th>O'rnatilgan</th><th>Mavjud</th><th>O'zgarishlar</th><th></th></tr>
+    @foreach (var a in Model.Apps)
+    {
+        <tr>
+            <td><b>@ReleaseApps.Title(a.App)</b></td>
+            <td class="mono">@UpdateLabels.Version(a.Installed?.Version)<br /><span class="hint">@a.Installed?.InstalledAtUtc?.ToString("dd.MM.yyyy HH:mm")</span></td>
+            <td>
+                @if (a.Offer is not null) { <span class="badge info">@a.Offer.Version</span> }
+                else if (a.Newer.Count > 0) { <span class="hint">@a.Newer[0].Version (o'zgarishsiz)</span> }
+                else { <span class="badge ok">eng yangisi</span> }
+            </td>
+            <td>
+                @foreach (var r in a.Newer.Where(r => UpdatesService.ChangedIn(r, a.App)).Take(10))
+                {
+                    <details><summary>@r.Version · @r.PublishedAtUtc.ToString("dd.MM.yyyy")</summary><pre class="log">@IndexModel.NotesFor(r, a.App)</pre></details>
+                }
+            </td>
+            <td>
+                @if (a.Active is not null)
+                {
+                    <a class="badge @UpdateLabels.Badge(a.Active.Status)" href="/Updates/Job/@a.Active.Id">@UpdateLabels.Of(a.Active.Status)</a>
+                }
+                else
+                {
+                    @if (a.Newer.Count > 0)
+                    {
+                        var target = a.Offer ?? a.Newer[0];
+                        <form method="post" asp-page-handler="Install" class="inline"
+                              data-confirm="@ReleaseApps.Title(a.App) @target.Version o'rnatilsinmi? Ilova 30–60 soniya to'xtaydi.">
+                            <input type="hidden" name="ServerId" value="@Model.ServerId" />
+                            <input type="hidden" name="app" value="@a.App" />
+                            <input type="hidden" name="version" value="@target.Version" />
+                            <button type="submit">O'rnatish @target.Version</button>
+                        </form>
+                    }
+                    @if (a.Installed?.CanRollback == true)
+                    {
+                        <form method="post" asp-page-handler="Rollback" class="inline"
+                              data-confirm="@ReleaseApps.Title(a.App) @UpdateLabels.Version(a.Installed.PreviousVersion) versiyasiga qaytarilsinmi?">
+                            <input type="hidden" name="ServerId" value="@Model.ServerId" />
+                            <input type="hidden" name="app" value="@a.App" />
+                            <button type="submit" class="secondary">Rollback</button>
+                        </form>
+                    }
+                }
+            </td>
+        </tr>
+    }
+</table>
+
+<h2>Firmalar ERP'si</h2>
+<p class="hint">Har firma o'z IIS instance'ida (sayt erp-&lt;slug&gt;) ishlaydi — versiyani firma bo'yicha alohida yangilang (avval demo, keyin boshqalar).
+Yangilashda zaxira (fayllar + baza .bak) olinadi, xato bo'lsa avtomatik qaytariladi.</p>
+<table>
+    <tr><th>Firma</th><th>ERP versiyasi</th><th>Baza sxemasi</th><th>Mavjud</th><th></th></tr>
+    @foreach (var t in Model.Tenants)
+    {
+        var i = t.Instance;
+        <tr>
+            <td><a href="/Tenants/Details/@t.Tenant.Id">@t.Tenant.Slug</a><br /><span class="hint">@t.Tenant.DbName</span></td>
+            <td class="mono">
+                @if (i is null) { <span class="badge muted">umumiy sayt</span> }
+                else { @UpdateLabels.Version(i.Version) <br /><span class="hint">@i.InstalledAtUtc?.ToString("dd.MM.yyyy HH:mm")</span> }
+            </td>
+            <td class="mono">@i?.SchemaVersion</td>
+            <td>
+                @if (t.Offer is not null) { <span class="badge info">@t.Offer.Version</span> }
+                else if (i is not null) { <span class="badge ok">eng yangisi</span> }
+            </td>
+            <td>
+                @if (t.Active is not null)
+                {
+                    <a class="badge @UpdateLabels.Badge(t.Active.Status)" href="/Updates/Job/@t.Active.Id">@UpdateLabels.Of(t.Active.Status)</a>
+                }
+                else if (i is null)
+                {
+                    @if (t.Newer.Count > 0)
+                    {
+                        <form method="post" asp-page-handler="Tenant" class="inline"
+                              data-confirm="@t.Tenant.Slug uchun alohida ERP instance yaratilsinmi? Firma umumiy saytdan yangi instance'ga o'tadi.">
+                            <input type="hidden" name="ServerId" value="@Model.ServerId" />
+                            <input type="hidden" name="tenantId" value="@t.Tenant.Id" />
+                            <input type="hidden" name="action" value="@UpdateAction.CreateInstance" />
+                            <select name="version">@foreach (var r in t.Newer) { <option value="@r.Version">@r.Version</option> }</select>
+                            <button type="submit">Instance yaratish</button>
+                        </form>
+                    }
+                    else { <span class="hint">ERP relizi yo'q</span> }
+                }
+                else
+                {
+                    @if (t.Newer.Count > 0)
+                    {
+                        <form method="post" asp-page-handler="Tenant" class="inline"
+                              data-confirm="@t.Tenant.Slug ERP'si yangilansinmi? Firma bir necha daqiqa ishlamaydi, bazasi migratsiya qilinadi.">
+                            <input type="hidden" name="ServerId" value="@Model.ServerId" />
+                            <input type="hidden" name="tenantId" value="@t.Tenant.Id" />
+                            <input type="hidden" name="action" value="@UpdateAction.InstallTenant" />
+                            <select name="version">@foreach (var r in t.Newer) { <option value="@r.Version">@r.Version</option> }</select>
+                            <button type="submit">Yangilash</button>
+                        </form>
+                    }
+                    <details>
+                        <summary>Boshqa amallar</summary>
+                        @if (i.CanRollback)
+                        {
+                            <form method="post" asp-page-handler="Tenant"
+                                  data-confirm="@t.Tenant.Slug ERP'si @UpdateLabels.Version(i.PreviousVersion) versiyasiga qaytarilsinmi?">
+                                <input type="hidden" name="ServerId" value="@Model.ServerId" />
+                                <input type="hidden" name="tenantId" value="@t.Tenant.Id" />
+                                <input type="hidden" name="action" value="@UpdateAction.RollbackTenant" />
+                                @if (i.HasDatabaseBackup)
+                                {
+                                    <label><input type="checkbox" name="restoreDatabase" value="true" /> Bazani ham zaxiradan tiklash
+                                        <span class="badge bad">zaxiradan keyin kiritilgan ma'lumotlar yo'qoladi</span></label>
+                                }
+                                <button type="submit" class="secondary">Rollback</button>
+                            </form>
+                        }
+                        <form method="post" asp-page-handler="Tenant" data-confirm="@t.Tenant.Slug bazasiga migratsiyalar qayta qo'llansinmi?">
+                            <input type="hidden" name="ServerId" value="@Model.ServerId" />
+                            <input type="hidden" name="tenantId" value="@t.Tenant.Id" />
+                            <input type="hidden" name="action" value="@UpdateAction.MigrateTenant" />
+                            <button type="submit" class="secondary">Bazani migratsiya qilish</button>
+                        </form>
+                    </details>
+                }
+            </td>
+        </tr>
+    }
+</table>
+@if (Model.Tenants.Count == 0) { <div class="empty">Bu serverda bazasi yaratilgan firma yo'q.</div> }
+
+<h2>So'nggi yangilashlar</h2>
+<table>
+    <tr><th>#</th><th>Amal</th><th>Ilova / firma</th><th>Versiya</th><th>Holat</th><th>Yaratilgan (UTC)</th><th>Xato</th></tr>
+    @foreach (var j in Model.Jobs)
+    {
+        <tr>
+            <td><a href="/Updates/Job/@j.Id">@j.Id</a></td>
+            <td>@UpdateLabels.Of(j.Action)</td>
+            <td>@(j.Slug ?? ReleaseApps.Title(j.App))</td>
+            <td class="mono">@UpdateLabels.Version(j.FromVersion) → @(j.Version ?? j.InstalledVersion ?? "zaxira")</td>
+            <td><span class="badge @UpdateLabels.Badge(j.Status)">@UpdateLabels.Of(j.Status)</span> <span class="hint">@j.Stage</span></td>
+            <td>@j.CreatedAtUtc.ToString("dd.MM.yyyy HH:mm")</td>
+            <td class="mono">@j.Error</td>
+        </tr>
+    }
+</table>
+@if (Model.Jobs.Count == 0) { <div class="empty">Hali yangilash bo'lmagan.</div> }
+
+<h2>Relizlar</h2>
+<table>
+    <tr><th>Versiya</th><th>Sana (UTC)</th><th>Commit</th><th>Imzo</th><th>Ilovalar (* — o'zgargan)</th></tr>
+    @foreach (var r in Model.Releases)
+    {
+        <tr>
+            <td class="mono">@r.Version @if (r.Prerelease) { <span class="badge warn">sinov</span> }</td>
+            <td>@r.PublishedAtUtc.ToString("dd.MM.yyyy HH:mm")</td>
+            <td class="mono">@r.Commit?[..Math.Min(8, r.Commit.Length)]</td>
+            <td>@if (r.SignatureValid) { <span class="badge ok">OK</span> } else { <span class="badge bad" title="@r.VerifyError">yaroqsiz</span> }</td>
+            <td class="mono">@r.Apps</td>
+        </tr>
+    }
+</table>
+@if (Model.Releases.Count == 0) { <div class="empty">Relizlar hali o'qilmagan.</div> }

@@ -1,0 +1,1156 @@
+/* ==========================================================================
+   tahsinERP — interfeys mavzusi (avval _Layout ichida edi).
+   Asosiy rang o'zgaruvchilari (--accent, --accent-2, --accent-hover, --accent-active,
+   --accent-contrast, --accent-soft, --accent-ring, --accent-text*, --accent-table-link*)
+   _Layout <head> da BrandingService.RenderCssVariables bilan beriladi (COMPANIES.BrandColor).
+   Tungi rejim: theme-dark.css (html[data-theme="dark"]).
+   ========================================================================== */
+
+/* Menyu sarlavhasi (tahsinERP yozuvi) - asosiy rang */
+.main-menu .navbar-header .navbar-brand .brand-text {
+    color: var(--accent-text) !important;
+}
+
+/* Active menu item text color - asosiy rang */
+.main-menu.menu-light .navigation > li.active:not(.sidebar-group-active) > a {
+    color: var(--accent-text) !important;
+}
+
+.main-menu.menu-light .navigation > li ul .active > a {
+    color: var(--accent-text) !important;
+}
+
+    /* Active menu item icon rangi - asosiy rang */
+    .main-menu.menu-light .navigation > li.active:not(.sidebar-group-active) > a i,
+    .main-menu.menu-light .navigation > li.active:not(.sidebar-group-active) > a .menu-livicon,
+    .main-menu.menu-light .navigation > li ul .active > a i,
+    .main-menu.menu-light .navigation > li ul .active > a .menu-livicon {
+        color: var(--accent-text) !important;
+    }
+
+/* Active menu item background */
+.main-menu.menu-light .navigation > li.active:not(.sidebar-group-active) > a {
+    background: var(--accent-soft) !important;
+}
+
+.main-menu.menu-light .navigation > li ul .active {
+    background: var(--accent-soft) !important;
+}
+
+/* Buttonlar - asosiy rang (--accent) va gradient */
+.btn-primary,
+button.btn-primary,
+input[type="submit"].btn-primary,
+input[type="button"].btn-primary {
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%) !important;
+    border: none !important;
+    color: var(--accent-contrast) !important;
+    font-weight: 500 !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+    transition: all 0.3s ease !important;
+}
+
+    .btn-primary:hover,
+    .btn-primary.hover,
+    button.btn-primary:hover,
+    input[type="submit"].btn-primary:hover,
+    .btn-primary:hover *,
+    button.btn-primary:hover *,
+    input[type="submit"].btn-primary:hover * {
+        background: linear-gradient(135deg, var(--accent-hover) 0%, var(--accent) 100%) !important;
+        border: none !important;
+        color: var(--accent-contrast) !important;
+        transform: translateY(-2px) !important;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15) !important;
+    }
+
+        .btn-primary:hover i,
+        .btn-primary:hover svg,
+        .btn-primary:hover span,
+        button.btn-primary:hover i,
+        button.btn-primary:hover svg,
+        button.btn-primary:hover span {
+            color: var(--accent-contrast) !important;
+        }
+
+    .btn-primary:focus,
+    .btn-primary:active,
+    .btn-primary.active,
+    button.btn-primary:focus,
+    button.btn-primary:active {
+        background: linear-gradient(135deg, var(--accent-active) 0%, var(--accent-hover) 100%) !important;
+        border: none !important;
+        color: var(--accent-contrast) !important;
+        transform: translateY(0) !important;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+    }
+
+/* Outline buttons */
+.btn-outline-primary {
+    border: 2px solid var(--accent) !important;
+    color: var(--accent-text) !important;
+    background: transparent !important;
+    font-weight: 500 !important;
+    transition: all 0.3s ease !important;
+}
+
+.btn-outline-success {
+    border: 2px solid #28a745 !important;
+    color: #28a745 !important;
+    background: transparent !important;
+    font-weight: 500 !important;
+    transition: all 0.3s ease !important;
+}
+
+.btn-outline-warning {
+    border: 2px solid #ffc107 !important;
+    color: #ffc107 !important;
+    background: transparent !important;
+    font-weight: 500 !important;
+    transition: all 0.3s ease !important;
+}
+
+.btn-outline-danger {
+    border: 2px solid #dc3545 !important;
+    color: #dc3545 !important;
+    background: transparent !important;
+    font-weight: 500 !important;
+    transition: all 0.3s ease !important;
+}
+
+.btn-outline-info {
+    border: 2px solid #17a2b8 !important;
+    color: #17a2b8 !important;
+    background: transparent !important;
+    font-weight: 500 !important;
+    transition: all 0.3s ease !important;
+}
+
+.btn-outline-secondary {
+    border: 2px solid #6c757d !important;
+    color: #6c757d !important;
+    background: transparent !important;
+    font-weight: 500 !important;
+    transition: all 0.3s ease !important;
+}
+
+/* Primary color classes */
+.primary,
+.text-primary {
+    color: var(--accent-text) !important;
+}
+
+.bg-primary,
+.bg-rgba-primary {
+    background-color: var(--accent) !important;
+}
+
+.bg-rgba-primary {
+    background: var(--accent-soft) !important;
+}
+
+/* Badges */
+.badge-primary,
+.badge.badge-primary {
+    background-color: var(--accent) !important;
+}
+
+.badge-light-primary,
+.badge.badge-light-primary {
+    background-color: var(--accent-soft) !important;
+    color: var(--accent-text) !important;
+}
+
+.user-alert-dot {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    width: 10px;
+    height: 10px;
+    background: #dc3545;
+    border-radius: 50%;
+    border: 2px solid #fff;
+}
+
+/* Borders */
+.border-primary {
+    border-color: var(--accent) !important;
+}
+
+/* Active page elements */
+.card-header.bg-primary,
+.card-footer.bg-primary {
+    background-color: var(--accent) !important;
+}
+
+/* Summary boxes va boshqa primary elementlar */
+.bg-primary-light,
+.bg-light-primary {
+    background-color: var(--accent-soft) !important;
+    color: var(--accent-text) !important;
+}
+
+/* Progress bars */
+.progress-bar.bg-primary {
+    background-color: var(--accent) !important;
+}
+
+/* Links */
+a.primary,
+a.text-primary {
+    color: var(--accent-text) !important;
+}
+
+    a.primary:hover,
+    a.text-primary:hover {
+        color: var(--accent-text-hover) !important;
+    }
+
+/* Breadcrumb - Page Name (Rasmiy Maktublar va boshqalar) */
+.breadcrumb.breadcrumb-divider .breadcrumb-item.active {
+    background-color: var(--accent) !important;
+    color: #FFFFFF !important;
+}
+
+.breadcrumb .breadcrumb-item.active {
+    color: var(--accent-text) !important;
+}
+
+/* Breadcrumb link hover */
+.breadcrumb-wrapper .breadcrumb .breadcrumb-item a:hover,
+.breadcrumb-wrapper .breadcrumb .breadcrumb-item a i:hover {
+    color: var(--accent-text) !important;
+}
+
+/* Breadcrumb rounded pill active */
+.breadcrumb.rounded-pill.breadcrumb-divider .breadcrumb-item.active {
+    background-color: var(--accent) !important;
+    color: #FFFFFF !important;
+}
+
+/* Barcha linklar (a tag) - asosiy rang */
+a:not(.btn):not(.breadcrumb-item.active):not(.nav-link.active):not(.dropdown-item.active) {
+    color: var(--accent-text) !important;
+}
+
+    /* Link hover state */
+    a:not(.btn):not(.breadcrumb-item.active):not(.nav-link.active):not(.dropdown-item.active):hover {
+        color: var(--accent-text-hover) !important;
+    }
+
+    /* Link visited state */
+    a:not(.btn):not(.breadcrumb-item.active):not(.nav-link.active):not(.dropdown-item.active):visited {
+        color: var(--accent-text-visited) !important;
+    }
+
+/* Table ichidagi linklar - umumiy (DataTable bo'lmagan jadvallar) */
+table:not(.dataTable) a,
+.table:not(.dataTable) a {
+    color: var(--accent-text) !important;
+}
+
+    table:not(.dataTable) a:hover,
+    .table:not(.dataTable) a:hover {
+        color: var(--accent-text-hover) !important;
+    }
+
+/* DataTable ichidagi linklar - asosiy rang va bold */
+.dataTable a,
+table.dataTable a,
+.dataTable tbody a,
+table.dataTable tbody a,
+.dataTable tbody td a,
+table.dataTable tbody td a {
+    color: var(--accent-table-link) !important;
+    font-weight: bold !important;
+}
+
+    .dataTable a:hover,
+    table.dataTable a:hover,
+    .dataTable tbody a:hover,
+    table.dataTable tbody a:hover,
+    .dataTable tbody td a:hover,
+    table.dataTable tbody td a:hover {
+        color: var(--accent-table-link-hover) !important;
+        font-weight: bold !important;
+    }
+
+/* DataTable first column center alignment */
+.dataTable thead th:first-child,
+table.dataTable thead th:first-child,
+.dataTable tbody td:first-child,
+table.dataTable tbody td:first-child {
+    text-align: center !important;
+}
+
+/* DataTable ichidagi action button'lar - default holatda background yo'q */
+.dataTable .btn,
+table.dataTable .btn,
+.dataTable tbody .btn,
+table.dataTable tbody .btn,
+.dataTable tbody td .btn,
+table.dataTable tbody td .btn,
+.dataTable button,
+table.dataTable button,
+.dataTable tbody button,
+table.dataTable tbody button,
+.dataTable tbody td button,
+table.dataTable tbody td button,
+.dataTable a.btn,
+table.dataTable a.btn,
+.dataTable tbody a.btn,
+table.dataTable tbody a.btn,
+/* DataTable ichidagi oddiy link'lar (btn class'i bo'lmagan) */
+.dataTable tbody td a[href*="Action"],
+table.dataTable tbody td a[href*="Action"],
+.dataTable tbody td a[href*="Edit"],
+table.dataTable tbody td a[href*="Edit"],
+.dataTable tbody td a[href*="Delete"],
+table.dataTable tbody td a[href*="Delete"],
+.dataTable tbody td a[href*="Details"],
+table.dataTable tbody td a[href*="Details"] {
+    background: transparent !important;
+    border: 2px solid !important;
+    font-weight: 500 !important;
+    transition: all 0.3s ease !important;
+    box-shadow: none !important;
+    display: inline-block !important;
+    padding: 0.25rem 0.5rem !important;
+    border-radius: 0.25rem !important;
+    text-decoration: none !important;
+}
+
+    /* DataTable ichidagi oddiy link'lar uchun icon'lar */
+    .dataTable tbody td a[href*="Action"] i,
+    .dataTable tbody td a[href*="Edit"] i,
+    .dataTable tbody td a[href*="Delete"] i,
+    .dataTable tbody td a[href*="Details"] i {
+        font-size: 1rem !important;
+    }
+
+/* DataTable ichidagi solid button'larni outline qilish */
+.dataTable .btn-primary:not(.btn-outline-primary),
+table.dataTable .btn-primary:not(.btn-outline-primary),
+.dataTable .btn-success:not(.btn-outline-success),
+table.dataTable .btn-success:not(.btn-outline-success),
+.dataTable .btn-danger:not(.btn-outline-danger),
+table.dataTable .btn-danger:not(.btn-outline-danger),
+.dataTable .btn-warning:not(.btn-outline-warning),
+table.dataTable .btn-warning:not(.btn-outline-warning),
+.dataTable .btn-info:not(.btn-outline-info),
+table.dataTable .btn-info:not(.btn-outline-info),
+.dataTable .btn-secondary:not(.btn-outline-secondary),
+table.dataTable .btn-secondary:not(.btn-outline-secondary) {
+    background: transparent !important;
+}
+
+/* DataTable ichidagi primary button'lar */
+.dataTable .btn-primary,
+table.dataTable .btn-primary,
+.dataTable .btn-info,
+table.dataTable .btn-info {
+    border-color: var(--accent) !important;
+    color: var(--accent-text) !important;
+    background: transparent !important;
+}
+
+    .dataTable .btn-primary:hover,
+    table.dataTable .btn-primary:hover,
+    .dataTable .btn-info:hover,
+    table.dataTable .btn-info:hover,
+    .dataTable .btn-primary:hover i,
+    .dataTable .btn-primary:hover svg,
+    .dataTable .btn-info:hover i,
+    .dataTable .btn-info:hover svg {
+        background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%) !important;
+        border: none !important;
+        color: #fff !important;
+        transform: translateY(-2px) !important;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15) !important;
+    }
+
+/* DataTable ichidagi success button'lar */
+.dataTable .btn-success,
+table.dataTable .btn-success {
+    border-color: #28a745 !important;
+    color: #28a745 !important;
+    background: transparent !important;
+}
+
+    .dataTable .btn-success:hover,
+    table.dataTable .btn-success:hover,
+    .dataTable .btn-success:hover i,
+    .dataTable .btn-success:hover svg {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%) !important;
+        border: none !important;
+        color: #fff !important;
+        transform: translateY(-2px) !important;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15) !important;
+    }
+
+/* DataTable ichidagi warning button'lar */
+.dataTable .btn-warning,
+table.dataTable .btn-warning {
+    border-color: #ffc107 !important;
+    color: #ffc107 !important;
+    background: transparent !important;
+}
+
+    .dataTable .btn-warning:hover,
+    table.dataTable .btn-warning:hover,
+    .dataTable .btn-warning:hover i,
+    .dataTable .btn-warning:hover svg {
+        background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%) !important;
+        border: none !important;
+        color: #fff !important;
+        transform: translateY(-2px) !important;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15) !important;
+    }
+
+/* DataTable ichidagi danger button'lar */
+.dataTable .btn-danger,
+table.dataTable .btn-danger {
+    border-color: #dc3545 !important;
+    color: #dc3545 !important;
+    background: transparent !important;
+}
+
+    .dataTable .btn-danger:hover,
+    table.dataTable .btn-danger:hover,
+    .dataTable .btn-danger:hover i,
+    .dataTable .btn-danger:hover svg {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%) !important;
+        border: none !important;
+        color: #fff !important;
+        transform: translateY(-2px) !important;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15) !important;
+    }
+
+/* DataTable ichidagi secondary button'lar */
+.dataTable .btn-secondary,
+table.dataTable .btn-secondary {
+    border-color: #6c757d !important;
+    color: #6c757d !important;
+    background: transparent !important;
+}
+
+    .dataTable .btn-secondary:hover,
+    table.dataTable .btn-secondary:hover,
+    .dataTable .btn-secondary:hover i,
+    .dataTable .btn-secondary:hover svg {
+        background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%) !important;
+        border: none !important;
+        color: #fff !important;
+        transform: translateY(-2px) !important;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15) !important;
+    }
+
+/* DataTable ichidagi outline button'lar ham shu qoidaga bo'ysunadi */
+.dataTable .btn-outline-primary,
+.dataTable .btn-outline-success,
+.dataTable .btn-outline-warning,
+.dataTable .btn-outline-danger,
+.dataTable .btn-outline-info,
+.dataTable .btn-outline-secondary,
+table.dataTable .btn-outline-primary,
+table.dataTable .btn-outline-success,
+table.dataTable .btn-outline-warning,
+table.dataTable .btn-outline-danger,
+table.dataTable .btn-outline-info,
+table.dataTable .btn-outline-secondary {
+    background: transparent !important;
+}
+
+/* DataTable ichidagi oddiy link'lar uchun ranglar (icon rangiga qarab) */
+.dataTable tbody td a[href*="Details"],
+table.dataTable tbody td a[href*="Details"],
+.dataTable tbody td a[href*="Details"] i {
+    border-color: var(--accent) !important;
+    color: var(--accent-text) !important;
+}
+
+    .dataTable tbody td a[href*="Details"]:hover,
+    table.dataTable tbody td a[href*="Details"]:hover,
+    .dataTable tbody td a[href*="Details"]:hover i {
+        background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%) !important;
+        border: none !important;
+        color: #fff !important;
+        transform: translateY(-2px) !important;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15) !important;
+    }
+
+.dataTable tbody td a[href*="Edit"],
+table.dataTable tbody td a[href*="Edit"],
+.dataTable tbody td a[href*="Edit"] i {
+    border-color: #28a745 !important;
+    color: #28a745 !important;
+}
+
+    .dataTable tbody td a[href*="Edit"]:hover,
+    table.dataTable tbody td a[href*="Edit"]:hover,
+    .dataTable tbody td a[href*="Edit"]:hover i {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%) !important;
+        border: none !important;
+        color: #fff !important;
+        transform: translateY(-2px) !important;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15) !important;
+    }
+
+.dataTable tbody td a[href*="Delete"],
+table.dataTable tbody td a[href*="Delete"],
+.dataTable tbody td a[href*="Delete"] i,
+.dataTable tbody td a.text-danger,
+table.dataTable tbody td a.text-danger {
+    border-color: #dc3545 !important;
+    color: #dc3545 !important;
+}
+
+    .dataTable tbody td a[href*="Delete"]:hover,
+    table.dataTable tbody td a[href*="Delete"]:hover,
+    .dataTable tbody td a[href*="Delete"]:hover i,
+    .dataTable tbody td a.text-danger:hover,
+    table.dataTable tbody td a.text-danger:hover {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%) !important;
+        border: none !important;
+        color: #fff !important;
+        transform: translateY(-2px) !important;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15) !important;
+    }
+
+/* DataTable ichidagi barcha action link'lar uchun umumiy hover effekt */
+.dataTable tbody td a[href*="Action"]:hover,
+table.dataTable tbody td a[href*="Action"]:hover,
+.dataTable tbody td a[href*="Action"]:hover i {
+    color: #fff !important;
+}
+
+/* Barcha button'lar uchun gradient effekt */
+.btn-success,
+button.btn-success,
+input[type="submit"].btn-success,
+input[type="button"].btn-success {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%) !important;
+    border: none !important;
+    color: #fff !important;
+    font-weight: 500 !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+    transition: all 0.3s ease !important;
+}
+
+    .btn-success:hover,
+    button.btn-success:hover,
+    input[type="submit"].btn-success:hover,
+    .btn-success:hover i,
+    .btn-success:hover svg,
+    .btn-success:hover span,
+    button.btn-success:hover i,
+    button.btn-success:hover svg,
+    button.btn-success:hover span {
+        background: linear-gradient(135deg, #218838 0%, #28a745 100%) !important;
+        border: none !important;
+        color: #fff !important;
+        transform: translateY(-2px) !important;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15) !important;
+    }
+
+    .btn-success:focus,
+    .btn-success:active,
+    .btn-success.active,
+    button.btn-success:focus,
+    button.btn-success:active {
+        background: linear-gradient(135deg, #1e7e34 0%, #218838 100%) !important;
+        border: none !important;
+        color: #fff !important;
+        transform: translateY(0) !important;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+    }
+
+.btn-warning,
+button.btn-warning,
+input[type="submit"].btn-warning,
+input[type="button"].btn-warning {
+    background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%) !important;
+    border: none !important;
+    color: #fff !important;
+    font-weight: 500 !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+    transition: all 0.3s ease !important;
+}
+
+    .btn-warning:hover,
+    button.btn-warning:hover,
+    input[type="submit"].btn-warning:hover,
+    .btn-warning:hover i,
+    .btn-warning:hover svg,
+    .btn-warning:hover span,
+    button.btn-warning:hover i,
+    button.btn-warning:hover svg,
+    button.btn-warning:hover span {
+        background: linear-gradient(135deg, #e0a800 0%, #ffc107 100%) !important;
+        border: none !important;
+        color: #fff !important;
+        transform: translateY(-2px) !important;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15) !important;
+    }
+
+    .btn-warning:focus,
+    .btn-warning:active,
+    .btn-warning.active,
+    button.btn-warning:focus,
+    button.btn-warning:active {
+        background: linear-gradient(135deg, #d39e00 0%, #e0a800 100%) !important;
+        border: none !important;
+        color: #fff !important;
+        transform: translateY(0) !important;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+    }
+
+.btn-danger,
+button.btn-danger,
+input[type="submit"].btn-danger,
+input[type="button"].btn-danger {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%) !important;
+    border: none !important;
+    color: #fff !important;
+    font-weight: 500 !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+    transition: all 0.3s ease !important;
+}
+
+    .btn-danger:hover,
+    button.btn-danger:hover,
+    input[type="submit"].btn-danger:hover,
+    .btn-danger:hover i,
+    .btn-danger:hover svg,
+    .btn-danger:hover span,
+    button.btn-danger:hover i,
+    button.btn-danger:hover svg,
+    button.btn-danger:hover span {
+        background: linear-gradient(135deg, #c82333 0%, #bd2130 100%) !important;
+        border: none !important;
+        color: #fff !important;
+        transform: translateY(-2px) !important;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15) !important;
+    }
+
+    .btn-danger:focus,
+    .btn-danger:active,
+    .btn-danger.active,
+    button.btn-danger:focus,
+    button.btn-danger:active {
+        background: linear-gradient(135deg, #bd2130 0%, #b21f2d 100%) !important;
+        border: none !important;
+        color: #fff !important;
+        transform: translateY(0) !important;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+    }
+
+.btn-info,
+button.btn-info,
+input[type="submit"].btn-info,
+input[type="button"].btn-info {
+    background: linear-gradient(135deg, #17a2b8 0%, #00cfdd 100%) !important;
+    border: none !important;
+    color: #fff !important;
+    font-weight: 500 !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+    transition: all 0.3s ease !important;
+}
+
+    .btn-info:hover,
+    button.btn-info:hover,
+    input[type="submit"].btn-info:hover,
+    .btn-info:hover i,
+    .btn-info:hover svg,
+    .btn-info:hover span,
+    button.btn-info:hover i,
+    button.btn-info:hover svg,
+    button.btn-info:hover span {
+        background: linear-gradient(135deg, #138496 0%, #17a2b8 100%) !important;
+        border: none !important;
+        color: #fff !important;
+        transform: translateY(-2px) !important;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15) !important;
+    }
+
+    .btn-info:focus,
+    .btn-info:active,
+    .btn-info.active,
+    button.btn-info:focus,
+    button.btn-info:active {
+        background: linear-gradient(135deg, #117a8b 0%, #138496 100%) !important;
+        border: none !important;
+        color: #fff !important;
+        transform: translateY(0) !important;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+    }
+
+.btn-secondary,
+button.btn-secondary,
+input[type="submit"].btn-secondary,
+input[type="button"].btn-secondary {
+    background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%) !important;
+    border: none !important;
+    color: #fff !important;
+    font-weight: 500 !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+    transition: all 0.3s ease !important;
+}
+
+    .btn-secondary:hover,
+    button.btn-secondary:hover,
+    input[type="submit"].btn-secondary:hover,
+    .btn-secondary:hover i,
+    .btn-secondary:hover svg,
+    .btn-secondary:hover span,
+    button.btn-secondary:hover i,
+    button.btn-secondary:hover svg,
+    button.btn-secondary:hover span {
+        background: linear-gradient(135deg, #5a6268 0%, #545b62 100%) !important;
+        border: none !important;
+        color: #fff !important;
+        transform: translateY(-2px) !important;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15) !important;
+    }
+
+    .btn-secondary:focus,
+    .btn-secondary:active,
+    .btn-secondary.active,
+    button.btn-secondary:focus,
+    button.btn-secondary:active {
+        background: linear-gradient(135deg, #545b62 0%, #4e555b 100%) !important;
+        border: none !important;
+        color: #fff !important;
+        transform: translateY(0) !important;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+    }
+
+/* Outline button'lar uchun ham hover'da gradient */
+.btn-outline-primary:hover,
+.btn-outline-primary:hover i,
+.btn-outline-primary:hover svg,
+.btn-outline-primary:hover span {
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%) !important;
+    border: none !important;
+    color: #fff !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15) !important;
+}
+
+.btn-outline-success:hover,
+.btn-outline-success:hover i,
+.btn-outline-success:hover svg,
+.btn-outline-success:hover span {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%) !important;
+    border: none !important;
+    color: #fff !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15) !important;
+}
+
+.btn-outline-warning:hover,
+.btn-outline-warning:hover i,
+.btn-outline-warning:hover svg,
+.btn-outline-warning:hover span {
+    background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%) !important;
+    border: none !important;
+    color: #fff !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15) !important;
+}
+
+.btn-outline-danger:hover,
+.btn-outline-danger:hover i,
+.btn-outline-danger:hover svg,
+.btn-outline-danger:hover span {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%) !important;
+    border: none !important;
+    color: #fff !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15) !important;
+}
+
+.btn-outline-info:hover,
+.btn-outline-info:hover i,
+.btn-outline-info:hover svg,
+.btn-outline-info:hover span {
+    background: linear-gradient(135deg, #17a2b8 0%, #00cfdd 100%) !important;
+    border: none !important;
+    color: #fff !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15) !important;
+}
+
+.btn-outline-secondary:hover,
+.btn-outline-secondary:hover i,
+.btn-outline-secondary:hover svg,
+.btn-outline-secondary:hover span {
+    background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%) !important;
+    border: none !important;
+    color: #fff !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15) !important;
+}
+
+/* Barcha button'larda hover holatida text va icon'lar oq bo'lishi */
+.btn:hover,
+button:hover,
+input[type="submit"]:hover,
+input[type="button"]:hover,
+.btn:hover *,
+button:hover *,
+input[type="submit"]:hover *,
+input[type="button"]:hover * {
+    color: #fff !important;
+}
+
+    .btn:hover i,
+    .btn:hover svg,
+    .btn:hover span,
+    button:hover i,
+    button:hover svg,
+    button:hover span,
+    input[type="submit"]:hover i,
+    input[type="submit"]:hover svg,
+    input[type="submit"]:hover span,
+    input[type="button"]:hover i,
+    input[type="button"]:hover svg,
+    input[type="button"]:hover span {
+        color: #fff !important;
+    }
+
+/* Card ichidagi linklar */
+.card a:not(.btn) {
+    color: var(--accent-text) !important;
+}
+
+    .card a:not(.btn):hover {
+        color: var(--accent-text-hover) !important;
+    }
+
+/* Navigation linklar (menu ichida emas) */
+.content-body a:not(.btn):not(.breadcrumb-item):not(.nav-link) {
+    color: var(--accent-text) !important;
+}
+
+    .content-body a:not(.btn):not(.breadcrumb-item):not(.nav-link):hover {
+        color: var(--accent-text-hover) !important;
+    }
+
+/* Tizim rangi tanlagichi (Sozlamalar -> Korxona ma'lumotlari, Views/Company/_BrandColorPicker) */
+.brand-swatches { display: flex; flex-wrap: wrap; gap: 10px; }
+.brand-swatch {
+    position: relative; width: 36px; height: 36px; padding: 0; border-radius: 50%; cursor: pointer;
+    border: 2px solid transparent; background: var(--sw) !important; box-shadow: 0 0 0 1px rgba(0, 0, 0, .12) inset;
+    transition: transform .15s ease;
+}
+.brand-swatch:hover { transform: scale(1.08); }
+.brand-swatch:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.brand-swatch i { display: none; color: #fff !important; font-size: 20px; line-height: 32px; }
+.brand-swatch.selected { box-shadow: 0 0 0 2px #fff inset, 0 0 0 2px var(--sw); }
+.brand-swatch.selected i { display: inline-block; }
+.brand-hex { width: 190px; }
+.brand-hex input[type="color"] { width: 40px; height: 36px; border: 0; padding: 0; background: transparent; cursor: pointer; }
+.brand-hex .form-control { font-family: Consolas, "Cascadia Mono", monospace; text-transform: uppercase; }
+.brand-preview { display: flex; border: 1px solid #dfe3e7; border-radius: .5rem; overflow: hidden; max-width: 560px; }
+.brand-preview-menu { width: 170px; flex: none; padding: 12px 10px; background: #fff; border-right: 1px solid #dfe3e7; }
+.brand-preview-brand { display: block; font-weight: 600; margin-bottom: 10px; color: var(--accent-text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.brand-preview-item { display: block; padding: 6px 8px; border-radius: 4px; font-size: .9rem; color: #475f7b; }
+.brand-preview-item.active { background: var(--accent-soft); color: var(--accent-text); }
+.brand-preview-body { flex: 1; padding: 12px 14px; background: #f2f4f4; }
+.brand-preview-body .btn { pointer-events: none; }
+.brand-preview-focus { border-color: var(--accent) !important; box-shadow: 0 0 0 .2rem var(--accent-ring) !important; max-width: 240px; }
+html[data-theme="dark"] .brand-preview { border-color: #3a4466; }
+html[data-theme="dark"] .brand-preview-menu { background: #272e48; border-color: #3a4466; }
+html[data-theme="dark"] .brand-preview-item { color: #a9b6cf; }
+html[data-theme="dark"] .brand-preview-body { background: #1a233a; }
+html[data-theme="dark"] .brand-swatch.selected { box-shadow: 0 0 0 2px #1a233a inset, 0 0 0 2px var(--sw); }
+
+/* Faol sahifa raqami: umumiy "a" qoidasi matnni fon rangiga bo'yab qo'ymasin */
+html body .pagination .page-item.active a.page-link:not(.btn):not(.breadcrumb-item.active):not(.nav-link.active):not(.dropdown-item.active),
+html body .pagination .page-item.active .page-link { color: var(--accent-contrast) !important; }
+
+/* Faol tab/pill: fon — asosiy rang, matn — kontrast (".card a" qoidasi uni fon rangiga bo'yamasin) */
+html body .nav-tabs .nav-link.active,
+html body .nav-tabs .nav-item.show .nav-link,
+html body .nav-pills .nav-link.active,
+html body .nav-pills .show > .nav-link { background-color: var(--accent) !important; color: var(--accent-contrast) !important; }
+html body .nav-tabs .nav-link.active i,
+html body .nav-pills .nav-link.active i { color: var(--accent-contrast) !important; }
+
+/* theme.js: rejim almashayotganda transition'larsiz */
+html.theme-switching *, html.theme-switching *::before, html.theme-switching *::after { transition: none !important; }
+
+/* Mavzu tanlagich (yuqori panel) */
+.dropdown-theme .dropdown-item.active,
+.dropdown-theme .dropdown-item.active i { background-color: var(--accent-soft); color: var(--accent-text) !important; }
+
+/* ==========================================================================
+   Tungi rejim — ERP qoidalari (html[data-theme="dark"]).
+   Asos: theme-dark.css (Frest dark-layout); bu yerda shablon qamramagan joylar:
+   ERP ning yorug' fonli komponentlari, view'lardagi qattiq yozilgan oq/pastel fonlar, vendorlar.
+   ========================================================================== */
+html[data-theme="dark"] {
+    color-scheme: dark;
+    --dk-bg: #1a233a;
+    --dk-surface: #272e48;
+    --dk-raised: #2f3754;
+    --dk-line: #3a4466;
+    --dk-text: #a9b6cf;
+    --dk-text-hi: #dce4f2;
+    --dk-muted: #8592ab;
+}
+
+html[data-theme="dark"] body { background-color: var(--dk-bg); color: var(--dk-text); }
+html[data-theme="dark"] body .text-muted { color: var(--dk-muted) !important; }
+html[data-theme="dark"] body label { color: var(--dk-text); }
+html[data-theme="dark"] body .card-title,
+html[data-theme="dark"] body .content-header-title { color: var(--dk-text-hi); }
+
+/* Yuqori panel: Frest app.js inline oq fon yozadi (aylantirganda — soya bilan) */
+html[data-theme="dark"] body.navbar-sticky .main-header-navbar { background-color: var(--dk-bg) !important; }
+html[data-theme="dark"] body.navbar-sticky .main-header-navbar[style*="rgba(25, 42, 70"] {
+    background-color: var(--dk-surface) !important;
+    box-shadow: 0 8px 18px rgba(0, 0, 0, .35) !important;
+}
+html[data-theme="dark"] body .header-navbar .user-name { color: var(--dk-text-hi); }
+
+/* Chap menyu (menu-light sinfi bilan) */
+html[data-theme="dark"] body .main-menu.menu-light,
+html[data-theme="dark"] body .main-menu.menu-light .navbar-header,
+html[data-theme="dark"] body .main-menu.menu-light .navigation,
+html[data-theme="dark"] body .main-menu.menu-light .navigation li ul { background-color: var(--dk-surface) !important; }
+html[data-theme="dark"] body .main-menu.menu-light .shadow-bottom { background: linear-gradient(180deg, rgba(39, 46, 72, .95) 44%, rgba(39, 46, 72, .5) 73%, rgba(39, 46, 72, 0)); }
+html[data-theme="dark"] body .main-menu.menu-light .navigation > li.open,
+html[data-theme="dark"] body .main-menu.menu-light .navigation > li.sidebar-group-active,
+html[data-theme="dark"] body .main-menu.menu-light .navigation li.open > ul { background-color: rgba(255, 255, 255, .02) !important; }
+html[data-theme="dark"] body .main-menu.menu-light .navigation li a { color: var(--dk-text) !important; }
+html[data-theme="dark"] body .main-menu.menu-light .navigation li a:hover { color: var(--dk-text-hi) !important; background-color: rgba(255, 255, 255, .04); }
+html[data-theme="dark"] body .main-menu.menu-light .navigation > li.active:not(.sidebar-group-active) > a,
+html[data-theme="dark"] body .main-menu.menu-light .navigation > li.active:not(.sidebar-group-active) > a i,
+html[data-theme="dark"] body .main-menu.menu-light .navigation > li ul .active > a,
+html[data-theme="dark"] body .main-menu.menu-light .navigation > li ul .active > a i { color: var(--accent-text) !important; }
+html[data-theme="dark"] body .main-menu.menu-light .navigation .navigation-header { color: var(--dk-muted); }
+
+/* Kartalar, modallar, dropdown */
+html[data-theme="dark"] body .card,
+html[data-theme="dark"] body .modal-content,
+html[data-theme="dark"] body .dropdown-menu,
+html[data-theme="dark"] body .popover,
+html[data-theme="dark"] body .list-group-item { background-color: var(--dk-surface); color: var(--dk-text); border-color: var(--dk-line); }
+html[data-theme="dark"] body .modal-header,
+html[data-theme="dark"] body .modal-footer,
+html[data-theme="dark"] body .card-header,
+html[data-theme="dark"] body .card-footer { border-color: var(--dk-line); }
+html[data-theme="dark"] body .modal-title { color: var(--dk-text-hi); }
+html[data-theme="dark"] body .dropdown-item { color: var(--dk-text); }
+html[data-theme="dark"] body .dropdown-item:hover,
+html[data-theme="dark"] body .dropdown-item:focus { background-color: var(--dk-raised); color: var(--dk-text-hi); }
+html[data-theme="dark"] body .dropdown-item.active,
+html[data-theme="dark"] body .dropdown-item:active { background-color: var(--accent-soft); color: var(--accent-text); }
+html[data-theme="dark"] body .close { color: var(--dk-text-hi) !important; opacity: .8; }
+html[data-theme="dark"] body .modal .modal-header .close { background: var(--dk-raised) !important; box-shadow: none !important; opacity: 1; }
+
+/* Badge'lar: Frest dark jadval matn rangini badge'larga ham yuqtiradi */
+html[data-theme="dark"] body .badge:not([class*="badge-light"]):not(.badge-secondary):not(.badge-dark) { color: #fff; }
+html[data-theme="dark"] body .badge.badge-warning,
+html[data-theme="dark"] body .badge.badge-info,
+html[data-theme="dark"] body .badge.badge-success { color: #10162a !important; }
+html[data-theme="dark"] body .badge.badge-danger:not([style*="background"]) { background-color: #d93d3e !important; color: #fff !important; }
+html[data-theme="dark"] body .badge.badge-light-success { background-color: rgba(57, 218, 138, .18) !important; color: #6ee8ad !important; }
+html[data-theme="dark"] body .badge.badge-light-danger { background-color: rgba(255, 91, 92, .18) !important; color: #ff9293 !important; }
+html[data-theme="dark"] body .badge.badge-light-warning { background-color: rgba(253, 172, 65, .18) !important; color: #fdc278 !important; }
+html[data-theme="dark"] body .badge.badge-light-info { background-color: rgba(0, 207, 221, .16) !important; color: #5fe6f0 !important; }
+html[data-theme="dark"] body .badge.badge-light-secondary,
+html[data-theme="dark"] body .badge.badge-light-dark { background-color: rgba(255, 255, 255, .08) !important; color: var(--dk-text-hi) !important; }
+html[data-theme="dark"] body .alert-light a { color: var(--accent-text) !important; }
+/* View'lardagi o'ziga xos kulrang matnlar */
+html[data-theme="dark"] body .kanban-item-title { color: var(--dk-text-hi) !important; }
+html[data-theme="dark"] body .kanban-item-description,
+html[data-theme="dark"] body .kanban-item-meta,
+html[data-theme="dark"] body .kanban-item-project { color: var(--dk-text) !important; }
+html[data-theme="dark"] body .badge.badge-light-primary { background-color: var(--accent-soft) !important; color: var(--accent-text) !important; }
+html[data-theme="dark"] body .badge-secondary,
+html[data-theme="dark"] body .badge-light { background-color: var(--dk-raised); color: var(--dk-text-hi); }
+
+/* Jadvallar (oddiy va DataTables) */
+html[data-theme="dark"] body .table,
+html[data-theme="dark"] body table.dataTable { color: var(--dk-text); background-color: transparent; }
+html[data-theme="dark"] body .table thead th,
+html[data-theme="dark"] body .table thead td,
+html[data-theme="dark"] body table.dataTable thead th { background-color: var(--dk-raised) !important; color: var(--dk-text-hi) !important; border-color: var(--dk-line) !important; }
+html[data-theme="dark"] body .table td,
+html[data-theme="dark"] body .table th,
+html[data-theme="dark"] body table.dataTable td { border-color: var(--dk-line) !important; }
+html[data-theme="dark"] body .table tfoot td,
+html[data-theme="dark"] body .table tfoot th { background-color: var(--dk-raised); color: var(--dk-text-hi); }
+html[data-theme="dark"] body .table-striped tbody tr:nth-of-type(odd) { background-color: rgba(255, 255, 255, .025); }
+html[data-theme="dark"] body .table-hover tbody tr:hover,
+html[data-theme="dark"] body table.dataTable.hover tbody tr:hover { background-color: rgba(255, 255, 255, .05) !important; color: var(--dk-text-hi); }
+html[data-theme="dark"] body .table-bordered,
+html[data-theme="dark"] body .table-bordered td,
+html[data-theme="dark"] body .table-bordered th { border-color: var(--dk-line) !important; }
+html[data-theme="dark"] body .table-primary,
+html[data-theme="dark"] body .table-primary > td,
+html[data-theme="dark"] body .table-primary > th { background-color: var(--accent-soft) !important; color: var(--dk-text-hi); }
+html[data-theme="dark"] body .table-success,
+html[data-theme="dark"] body .table-success > td,
+html[data-theme="dark"] body .table-success > th { background-color: rgba(57, 218, 138, .14) !important; color: var(--dk-text-hi); }
+html[data-theme="dark"] body .table-warning,
+html[data-theme="dark"] body .table-warning > td,
+html[data-theme="dark"] body .table-warning > th { background-color: rgba(253, 172, 65, .16) !important; color: var(--dk-text-hi); }
+html[data-theme="dark"] body .table-danger,
+html[data-theme="dark"] body .table-danger > td,
+html[data-theme="dark"] body .table-danger > th { background-color: rgba(255, 91, 92, .16) !important; color: var(--dk-text-hi); }
+html[data-theme="dark"] body .table-info,
+html[data-theme="dark"] body .table-info > td,
+html[data-theme="dark"] body .table-info > th { background-color: rgba(0, 207, 221, .14) !important; color: var(--dk-text-hi); }
+html[data-theme="dark"] body .table-active,
+html[data-theme="dark"] body .table-active > td,
+html[data-theme="dark"] body .table-light,
+html[data-theme="dark"] body .table-light > td,
+html[data-theme="dark"] body .table-light > th,
+html[data-theme="dark"] body .thead-light th { background-color: var(--dk-raised) !important; color: var(--dk-text-hi) !important; }
+html[data-theme="dark"] body .dataTables_wrapper .dataTables_info,
+html[data-theme="dark"] body .dataTables_wrapper .dataTables_length,
+html[data-theme="dark"] body .dataTables_wrapper .dataTables_filter,
+html[data-theme="dark"] body .dataTables_wrapper label { color: var(--dk-text); }
+html[data-theme="dark"] body table.dataTable td.dataTables_empty { background-color: var(--dk-surface) !important; color: var(--dk-text) !important; }
+html[data-theme="dark"] body .dataTables_wrapper .dataTables_processing { background: var(--dk-raised); color: var(--dk-text-hi); }
+html[data-theme="dark"] body table.dataTable tbody tr,
+html[data-theme="dark"] body table.dataTable tbody tr.even,
+html[data-theme="dark"] body table.dataTable tbody tr.odd { background-color: transparent; }
+html[data-theme="dark"] body table.dataTable tbody tr.selected { background-color: var(--accent-soft) !important; }
+html[data-theme="dark"] body .page-item .page-link,
+html[data-theme="dark"] body .pagination .page-item:not(.active) .page-link { background-color: var(--dk-surface) !important; border-color: var(--dk-line) !important; color: var(--dk-text) !important; }
+html[data-theme="dark"] body .page-item.active .page-link { background-color: var(--accent) !important; border-color: var(--accent) !important; color: var(--accent-contrast) !important; }
+html[data-theme="dark"] body .page-item.disabled .page-link { color: var(--dk-muted); }
+html[data-theme="dark"] body div.dt-button-collection { background: var(--dk-surface); }
+
+/* Formalar */
+html[data-theme="dark"] body .form-control,
+html[data-theme="dark"] body .custom-select,
+html[data-theme="dark"] body .custom-file-label,
+html[data-theme="dark"] body .input-group-text { background-color: var(--dk-bg); border-color: var(--dk-line); color: var(--dk-text-hi); }
+html[data-theme="dark"] body .form-control:focus,
+html[data-theme="dark"] body .custom-select:focus { border-color: var(--accent); box-shadow: 0 0 0 .2rem var(--accent-ring); background-color: var(--dk-bg); color: var(--dk-text-hi); }
+html[data-theme="dark"] body .form-control:disabled,
+html[data-theme="dark"] body .form-control[readonly] { background-color: var(--dk-raised); color: var(--dk-text); }
+html[data-theme="dark"] body .form-control::placeholder { color: var(--dk-muted); }
+html[data-theme="dark"] body .custom-control-label::before { background-color: var(--dk-bg); border-color: var(--dk-line); }
+html[data-theme="dark"] body .custom-control-input:checked ~ .custom-control-label::before { background-color: var(--accent); border-color: var(--accent); }
+html[data-theme="dark"] body .custom-control-label { color: var(--dk-text); }
+html[data-theme="dark"] body input::-webkit-calendar-picker-indicator { filter: invert(.8); }
+
+/* Select2 */
+html[data-theme="dark"] body .select2-container--default .select2-selection--single,
+html[data-theme="dark"] body .select2-container--default .select2-selection--multiple,
+html[data-theme="dark"] body .select2-dropdown { background-color: var(--dk-bg); border-color: var(--dk-line); color: var(--dk-text-hi); }
+html[data-theme="dark"] body .select2-container--default .select2-selection--single .select2-selection__rendered { color: var(--dk-text-hi); }
+html[data-theme="dark"] body .select2-container--default .select2-search__field { background-color: var(--dk-surface); border-color: var(--dk-line); color: var(--dk-text-hi); }
+html[data-theme="dark"] body .select2-container--default .select2-results__option { color: var(--dk-text); }
+html[data-theme="dark"] body .select2-container--default .select2-results__option[aria-selected="true"] { background-color: var(--dk-raised); }
+html[data-theme="dark"] body .select2-container--default .select2-results__option--highlighted[aria-selected] { background-color: var(--accent) !important; color: var(--accent-contrast) !important; }
+html[data-theme="dark"] body .select2-container--default .select2-selection--multiple .select2-selection__choice { background-color: var(--accent) !important; border-color: var(--accent) !important; color: var(--accent-contrast) !important; }
+
+/* Flatpickr */
+html[data-theme="dark"] body .flatpickr-calendar { background: var(--dk-surface); box-shadow: 0 6px 24px rgba(0, 0, 0, .5); }
+html[data-theme="dark"] body .flatpickr-calendar.arrowTop:after { border-bottom-color: var(--dk-surface); }
+html[data-theme="dark"] body .flatpickr-calendar.arrowBottom:after { border-top-color: var(--dk-surface); }
+html[data-theme="dark"] body .flatpickr-months .flatpickr-month,
+html[data-theme="dark"] body .flatpickr-current-month .flatpickr-monthDropdown-months,
+html[data-theme="dark"] body .flatpickr-current-month input.cur-year,
+html[data-theme="dark"] body span.flatpickr-weekday,
+html[data-theme="dark"] body .flatpickr-day,
+html[data-theme="dark"] body .flatpickr-time input { color: var(--dk-text-hi); fill: var(--dk-text-hi); background: transparent; }
+html[data-theme="dark"] body .flatpickr-months .flatpickr-prev-month svg,
+html[data-theme="dark"] body .flatpickr-months .flatpickr-next-month svg { fill: var(--dk-text-hi); }
+html[data-theme="dark"] body .flatpickr-day:hover { background: var(--dk-raised); border-color: var(--dk-raised); }
+html[data-theme="dark"] body .flatpickr-day.prevMonthDay,
+html[data-theme="dark"] body .flatpickr-day.nextMonthDay,
+html[data-theme="dark"] body .flatpickr-day.flatpickr-disabled { color: var(--dk-muted); }
+html[data-theme="dark"] body .flatpickr-day.today { border-color: var(--accent); }
+html[data-theme="dark"] body .flatpickr-day.selected,
+html[data-theme="dark"] body .flatpickr-day.selected:hover { background: var(--accent); border-color: var(--accent); color: var(--accent-contrast); }
+
+/* SweetAlert2 */
+html[data-theme="dark"] body .swal2-popup { background: var(--dk-surface); color: var(--dk-text); }
+html[data-theme="dark"] body .swal2-title { color: var(--dk-text-hi); }
+html[data-theme="dark"] body .swal2-html-container,
+html[data-theme="dark"] body .swal2-content { color: var(--dk-text); }
+
+/* Nav tabs / pills, breadcrumb */
+html[data-theme="dark"] body .nav-tabs { border-color: var(--dk-line); }
+html[data-theme="dark"] body .nav-tabs .nav-link,
+html[data-theme="dark"] body .nav-pills .nav-link { color: var(--dk-text); }
+
+html[data-theme="dark"] body .breadcrumb { background-color: var(--dk-surface); }
+html[data-theme="dark"] body .dash-aging { background: var(--dk-raised) !important; }
+
+/* Bootstrap yordamchi sinflari va view'lardagi qattiq yozilgan yorug' fonlar (inline style) */
+html[data-theme="dark"] body .bg-white,
+html[data-theme="dark"] body .bg-light,
+html[data-theme="dark"] body [style*="background: #fff;"],
+html[data-theme="dark"] body [style*="background:#fff;"],
+html[data-theme="dark"] body [style*="background-color: #fff;"],
+html[data-theme="dark"] body [style*="background-color:#fff;"],
+html[data-theme="dark"] body [style*="background: white"],
+html[data-theme="dark"] body [style*="background:white"],
+html[data-theme="dark"] body [style*="background-color: white"],
+html[data-theme="dark"] body [style*="#ffffff"],
+html[data-theme="dark"] body [style*="#FFFFFF"],
+html[data-theme="dark"] body [style*="#f8f9fa"],
+html[data-theme="dark"] body [style*="#F8F9FA"],
+html[data-theme="dark"] body [style*="#f5f5f5"],
+html[data-theme="dark"] body [style*="#f4f4f4"],
+html[data-theme="dark"] body [style*="#f2f4f4"],
+html[data-theme="dark"] body [style*="#f8fafc"],
+html[data-theme="dark"] body [style*="#f8f8f8"],
+html[data-theme="dark"] body [style*="#f6f6f6"] {
+    background-color: var(--dk-raised) !important;
+    color: var(--dk-text-hi) !important;
+    border-color: var(--dk-line) !important;
+}
+html[data-theme="dark"] body [style*="#fff3cd"],
+html[data-theme="dark"] body [style*="#ffeaa7"],
+html[data-theme="dark"] body [style*="#fff7d6"],
+html[data-theme="dark"] body [style*="#ffe5cc"] { background-color: rgba(253, 172, 65, .16) !important; color: var(--dk-text-hi) !important; }
+html[data-theme="dark"] body [style*="#e3f2fd"] { background-color: rgba(90, 141, 238, .16) !important; color: var(--dk-text-hi) !important; }
+html[data-theme="dark"] body [style*="#ffebee"] { background-color: rgba(255, 91, 92, .16) !important; color: var(--dk-text-hi) !important; }
+html[data-theme="dark"] body [style*="#e8f5e9"],
+html[data-theme="dark"] body [style*="#f3f8f3"],
+html[data-theme="dark"] body [style*="#f8fff8"] { background-color: rgba(57, 218, 138, .14) !important; color: var(--dk-text-hi) !important; }
+html[data-theme="dark"] body .text-dark { color: var(--dk-text-hi) !important; }
+html[data-theme="dark"] body .text-body { color: var(--dk-text) !important; }
+html[data-theme="dark"] body .border,
+html[data-theme="dark"] body .border-top,
+html[data-theme="dark"] body .border-bottom,
+html[data-theme="dark"] body hr { border-color: var(--dk-line) !important; }
+html[data-theme="dark"] body .alert-light,
+html[data-theme="dark"] body .alert-secondary { background-color: var(--dk-raised) !important; color: var(--dk-text-hi) !important; border-color: var(--dk-line) !important; }
+html[data-theme="dark"] body .text-secondary { color: #a3afbd !important; }
+/* Ogohlantirishlar: to'q fonda yorqin to'liq rang o'rniga yarim shaffof fon + rangli matn */
+html[data-theme="dark"] body .alert-warning { background-color: rgba(253, 172, 65, .16) !important; border-color: rgba(253, 172, 65, .35) !important; color: #fdc278 !important; }
+html[data-theme="dark"] body .alert-danger { background-color: rgba(255, 91, 92, .16) !important; border-color: rgba(255, 91, 92, .35) !important; color: #ff9293 !important; }
+html[data-theme="dark"] body .alert-success { background-color: rgba(57, 218, 138, .14) !important; border-color: rgba(57, 218, 138, .3) !important; color: #6ee8ad !important; }
+html[data-theme="dark"] body .alert-info { background-color: rgba(0, 207, 221, .14) !important; border-color: rgba(0, 207, 221, .3) !important; color: #5fe6f0 !important; }
+html[data-theme="dark"] body .alert-primary { background-color: var(--accent-soft) !important; border-color: var(--accent-ring) !important; color: var(--accent-text) !important; }
+html[data-theme="dark"] body .alert .alert-heading,
+html[data-theme="dark"] body .alert strong { color: inherit; }
+/* Hisobotlardagi "Jami" qatorlari (view ichidagi .total-row) */
+html[data-theme="dark"] body tr.total-row,
+html[data-theme="dark"] body tr.total-row > td,
+html[data-theme="dark"] body tr.total-row > th { background-color: var(--dk-raised) !important; color: var(--dk-text-hi) !important; }
+
+/* Tugmalar */
+html[data-theme="dark"] body .btn-light,
+html[data-theme="dark"] body .btn-white { background-color: var(--dk-raised) !important; border-color: var(--dk-line) !important; color: var(--dk-text-hi) !important; }
+html[data-theme="dark"] body .btn-outline-secondary { border-color: #8592ab !important; color: #c3cbdb !important; }
+
+/* ApexCharts menyu va izohlar */
+html[data-theme="dark"] body .apexcharts-menu { background: var(--dk-surface); border-color: var(--dk-line); }
+html[data-theme="dark"] body .apexcharts-menu-item:hover { background: var(--dk-raised); }
+html[data-theme="dark"] body .apexcharts-tooltip.apexcharts-theme-light { background: var(--dk-surface); border-color: var(--dk-line); color: var(--dk-text-hi); }
+html[data-theme="dark"] body .apexcharts-tooltip.apexcharts-theme-light .apexcharts-tooltip-title { background: var(--dk-raised); border-color: var(--dk-line); }
+html[data-theme="dark"] body .apexcharts-xaxistooltip,
+html[data-theme="dark"] body .apexcharts-yaxistooltip { background: var(--dk-surface); border-color: var(--dk-line); color: var(--dk-text-hi); }

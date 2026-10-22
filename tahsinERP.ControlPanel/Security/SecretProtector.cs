@@ -19,6 +19,14 @@ public class SecurityOptions
     /// Egasi qarori bilan o'chirilsa — panel kuchli parol va (ixtiyoriy) IP cheklovi bilan himoyalansin.
     /// </summary>
     public bool RequireStaffTotp { get; set; } = true;
+
+    /// <summary>
+    /// Xodim seansi shuncha daqiqa harakatsizlikdan keyin yopiladi (cookie har so'rovda yangilanadi; brauzerda
+    /// 1 daqiqa oldin ogohlantirish va avtomatik chiqish). Standart — 15, oraliq 5–480.
+    /// </summary>
+    public int StaffIdleMinutes { get; set; } = 15;
+
+    public int EffectiveStaffIdleMinutes => Math.Clamp(StaffIdleMinutes, 5, 480);
 }
 
 /// <summary>AES-256-GCM: "v1." + Base64(nonce[12] | tag[16] | shifrmatn). AAD — maqsad nomi (bir maqsad uchun shifrlangan sirni boshqasiga qo'yib bo'lmaydi).</summary>

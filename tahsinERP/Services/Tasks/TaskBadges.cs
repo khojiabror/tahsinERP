@@ -126,7 +126,9 @@ namespace tahsinERP.Services.Tasks
 
         private static string ColorStyle(string color)
         {
-            return "background-color: " + color + " !important; border-color: " + color + " !important;";
+            // Och rang (masalan NORMAL #FFCCCC) ustida oq matn o'qilmaydi — matn rangi fonga qarab
+            string text = Common.BrandingService.Contrast("#ffffff", color) >= 3.0 ? "#fff" : "#1b2333";
+            return "background-color: " + color + " !important; border-color: " + color + " !important; color: " + text + " !important;";
         }
 
         private static IHtmlString Badge(string cssClass, string style, string text, string extraClass)

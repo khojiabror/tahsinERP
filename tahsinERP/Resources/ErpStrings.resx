@@ -14109,4 +14109,79 @@
   <data name="Task_TasksSlash" xml:space="preserve">
     <value>Tasks / Vazifalar</value>
   </data>
+  <data name="Theme_Title" xml:space="preserve">
+    <value>Mavzu: kunduzgi / tungi</value>
+  </data>
+  <data name="Theme_Label" xml:space="preserve">
+    <value>Mavzu</value>
+  </data>
+  <data name="Theme_Light" xml:space="preserve">
+    <value>Kunduzgi</value>
+  </data>
+  <data name="Theme_Dark" xml:space="preserve">
+    <value>Tungi</value>
+  </data>
+  <data name="Theme_Auto" xml:space="preserve">
+    <value>Tizim sozlamasi</value>
+  </data>
+  <data name="Theme_BrandColor" xml:space="preserve">
+    <value>Tizim rangi</value>
+  </data>
+  <data name="Theme_Presets" xml:space="preserve">
+    <value>Tayyor ranglar</value>
+  </data>
+  <data name="Theme_Preset_0" xml:space="preserve">
+    <value>Indigo (standart)</value>
+  </data>
+  <data name="Theme_Preset_1" xml:space="preserve">
+    <value>Yashil</value>
+  </data>
+  <data name="Theme_Preset_2" xml:space="preserve">
+    <value>Ko'k</value>
+  </data>
+  <data name="Theme_Preset_3" xml:space="preserve">
+    <value>Moviy</value>
+  </data>
+  <data name="Theme_Preset_4" xml:space="preserve">
+    <value>Binafsha</value>
+  </data>
+  <data name="Theme_Preset_5" xml:space="preserve">
+    <value>Qizil</value>
+  </data>
+  <data name="Theme_Preset_6" xml:space="preserve">
+    <value>To'q sariq</value>
+  </data>
+  <data name="Theme_Preset_7" xml:space="preserve">
+    <value>Grafit</value>
+  </data>
+  <data name="Theme_PickColor" xml:space="preserve">
+    <value>Rang tanlash</value>
+  </data>
+  <data name="Theme_HexColor" xml:space="preserve">
+    <value>HEX rang (#RRGGBB)</value>
+  </data>
+  <data name="Theme_DefaultColor" xml:space="preserve">
+    <value>Standart rang</value>
+  </data>
+  <data name="Theme_BrandHint" xml:space="preserve">
+    <value>Menyu, tugmalar, havolalar, badge'lar va jadval sarlavhalari shu rangda bo'ladi. O'zgarish darhol shu sahifada ko'rinadi; boshqalar uchun "Saqlash"dan keyin qo'llanadi.</value>
+  </data>
+  <data name="Theme_BrandError" xml:space="preserve">
+    <value>Rang #RRGGBB ko'rinishida bo'lishi kerak (masalan #198754).</value>
+  </data>
+  <data name="Theme_SampleNew" xml:space="preserve">
+    <value>Yangi</value>
+  </data>
+  <data name="Theme_SampleInProgress" xml:space="preserve">
+    <value>Jarayonda</value>
+  </data>
+  <data name="Theme_SampleLink" xml:space="preserve">
+    <value>Havola namunasi</value>
+  </data>
+  <data name="Theme_SampleHeading" xml:space="preserve">
+    <value>Sarlavha matni</value>
+  </data>
+  <data name="Theme_SampleFocus" xml:space="preserve">
+    <value>Fokusdagi maydon</value>
+  </data>
 </root>

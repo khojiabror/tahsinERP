@@ -42,6 +42,8 @@ public class LoginModel(StaffAuthService auth, IOptions<SecurityOptions> securit
     [BindProperty, Required(ErrorMessageResourceType = typeof(PnlVal), ErrorMessageResourceName = nameof(PnlVal.PasswordRequired)), DataType(DataType.Password)] public string Password { get; set; } = "";
     [BindProperty(SupportsGet = true)] public string? ReturnUrl { get; set; }
     public bool TotpRequired => security.Value.RequireStaffTotp;
+    public int IdleMinutes => security.Value.EffectiveStaffIdleMinutes;
+    [BindProperty(SupportsGet = true)] public bool Expired { get; set; }
 
     public void OnGet() { }
 
