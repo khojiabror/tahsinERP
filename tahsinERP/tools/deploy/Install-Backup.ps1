@@ -14,14 +14,14 @@
 #>
 [CmdletBinding()]
 param(
-    [Parameter(Mandatory)] [string] $Bucket,
+    [string] $Bucket,            # bo'sh - faqat lokal zaxira (bepul, lekin server yo'qolsa nusxa ham yo'qoladi)
     [string] $Region = 'eu-central-1',
     [string] $Prefix = 'sql',
     [string] $SecretsFile,
     [string] $At = '01:30',
     [int] $KeepDays = 14,
     [int] $KeepMonthlyDays = 180,
-    [int] $LocalKeepDays = 2,
+    [int] $LocalKeepDays = 0,    # 0 - avtomatik: bucket bo'lsa 2 kun, faqat lokal bo'lsa 7 kun
     [string] $SqlServer = '.',
     [string] $InstallDir = 'C:\tahsinERP\Backup',
     [string] $LocalDir = 'C:\tahsinERP\Backups',
@@ -46,8 +46,10 @@ function Lock-Dir([string]$path, [string[]]$extra) {
 
 $principal = [Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()
 if (-not $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) { throw 'Administrator sifatida ishga tushiring.' }
-$Bucket = $Bucket.Trim().ToLowerInvariant()
-if ($Bucket -notmatch '^[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]$') { throw "Bucket nomi noto'g'ri: $Bucket" }
+$Bucket = ([string]$Bucket).Trim().ToLowerInvariant()
+$useS3 = [bool]$Bucket
+if ($useS3 -and $Bucket -notmatch '^[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]$') { throw "Bucket nomi noto'g'ri: $Bucket" }
+if ($LocalKeepDays -le 0) { $LocalKeepDays = if ($useS3) { 2 } else { 7 } }
 if ($At -notmatch '^\d{1,2}:\d{2}$') { throw "-At HH:mm ko'rinishida bo'lsin" }
 $src = Join-Path $PSScriptRoot 'Backup-Databases.ps1'
 if (-not (Test-Path $src)) { throw "Topilmadi: $src" }
@@ -71,7 +73,8 @@ $cfg = [ordered]@{
     LocalDir = $LocalDir; DataDir = $DataDir; KeepDays = $KeepDays; KeepMonthlyDays = $KeepMonthlyDays; LocalKeepDays = $LocalKeepDays
 }
 $cfg | ConvertTo-Json | Set-Content -Path (Join-Path $ConfigDir 'config.json') -Encoding ASCII
-Ok "s3://$Bucket/$($cfg.Prefix)/ ($Region); bucket'da $KeepDays kun (oyning 1-kuni $KeepMonthlyDays kun), serverda $LocalKeepDays kun"
+if ($useS3) { Ok "s3://$Bucket/$($cfg.Prefix)/ ($Region); bucket'da $KeepDays kun (oyning 1-kuni $KeepMonthlyDays kun), serverda $LocalKeepDays kun" }
+else { Ok "faqat lokal: $LocalDir, $LocalKeepDays kun (server yo'qolsa nusxa ham yo'qoladi - vaqti-vaqti bilan o'z kompyuteringizga ko'chiring)" }
 
 # ---------------------------------------------------------------------------------------------------------------
 Step '3/5 Bucket kaliti'
@@ -86,7 +89,8 @@ if ($SecretsFile) {
     $plain = [Text.Encoding]::UTF8.GetBytes($lines[0] + "`n" + $lines[1])
     [IO.File]::WriteAllBytes($keyFile, [Security.Cryptography.ProtectedData]::Protect($plain, $null, 'LocalMachine'))
     Ok "kalit shifrlab yozildi (ID uzunligi $($lines[0].Length), secret $($lines[1].Length)); $SecretsFile o'chirildi"
-} elseif (Test-Path $keyFile) { Skip 'mavjud kalit saqlandi' }
+} elseif (-not $useS3) { Skip 'bucket yo''q - kalit kerak emas' }
+elseif (Test-Path $keyFile) { Skip 'mavjud kalit saqlandi' }
 else { throw '-SecretsFile kerak (birinchi o''rnatish).' }
 
 # ---------------------------------------------------------------------------------------------------------------
@@ -94,9 +98,11 @@ Step '4/5 Imzo va bucket tekshiruvi'
 $script = Join-Path $InstallDir 'Backup-Databases.ps1'
 & powershell -NoProfile -ExecutionPolicy Bypass -File $script -SelfTest
 if ($LASTEXITCODE -ne 0) { throw 'SigV4 o''z-o''zini tekshirish o''tmadi.' }
-& powershell -NoProfile -ExecutionPolicy Bypass -File $script -List -ConfigDir $ConfigDir | Out-Null
-if ($LASTEXITCODE -ne 0) { throw "Bucket'ga ulanib bo'lmadi: nom, hudud ($Region) va kalitni tekshiring." }
-Ok "bucket'ga ulanildi"
+if ($useS3) {
+    & powershell -NoProfile -ExecutionPolicy Bypass -File $script -List -ConfigDir $ConfigDir | Out-Null
+    if ($LASTEXITCODE -ne 0) { throw "Bucket'ga ulanib bo'lmadi: nom, hudud ($Region) va kalitni tekshiring." }
+    Ok "bucket'ga ulanildi"
+} else { Skip 'bucket tekshiruvi yo''q (faqat lokal)' }
 
 # ---------------------------------------------------------------------------------------------------------------
 Step '5/5 Task Scheduler'
@@ -112,7 +118,7 @@ if ($RunNow) {
     Start-ScheduledTask -TaskName $TaskName
     do { Start-Sleep -Seconds 5 } while ((Get-ScheduledTask -TaskName $TaskName).State -eq 'Running')
     $last = Get-Content (Join-Path $ConfigDir 'last.json') -Raw | ConvertFrom-Json
-    if ($last.Ok) { Ok ("zaxira tayyor: s3://$Bucket/" + $last.Folder + " (" + @($last.Uploaded).Count + " fayl)") }
+    if ($last.Ok) { Ok ("zaxira tayyor: " + $last.Folder + " (" + @($last.Files).Count + " fayl)") }
     else { Write-Host '  [!] xatolar:' -ForegroundColor Red; $last.Errors | ForEach-Object { Write-Host "      $_" } }
 }
 Write-Host @"

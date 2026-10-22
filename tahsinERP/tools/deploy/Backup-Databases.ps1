@@ -88,9 +88,14 @@ if ($SelfTest) {
 $cfgPath = Join-Path $ConfigDir 'config.json'
 if (-not (Test-Path $cfgPath)) { throw "Sozlama topilmadi: $cfgPath (avval Install-Backup.ps1)" }
 $cfg = Get-Content $cfgPath -Raw | ConvertFrom-Json
-$keyBytes = [Security.Cryptography.ProtectedData]::Unprotect([IO.File]::ReadAllBytes((Join-Path $ConfigDir 's3.key')), $null, 'LocalMachine')
-$keyParts = [Text.Encoding]::UTF8.GetString($keyBytes).Split("`n")
-$accessKey = $keyParts[0].Trim(); $secretKey = $keyParts[1].Trim()
+# Bucket bo'sh - faqat lokal zaxira (tashqi saqlash yo'q)
+$useS3 = -not [string]::IsNullOrWhiteSpace([string]$cfg.Bucket)
+if (-not $useS3 -and ($List -or $Download)) { throw "Bucket sozlanmagan (faqat lokal zaxira): nusxalar $($cfg.LocalDir) da." }
+if ($useS3) {
+    $keyBytes = [Security.Cryptography.ProtectedData]::Unprotect([IO.File]::ReadAllBytes((Join-Path $ConfigDir 's3.key')), $null, 'LocalMachine')
+    $keyParts = [Text.Encoding]::UTF8.GetString($keyBytes).Split("`n")
+    $accessKey = $keyParts[0].Trim(); $secretKey = $keyParts[1].Trim()
+}
 # Endpoint (ixtiyoriy, faqat sinov): S3 bilan mos lokal server, path-style (http://127.0.0.1:9000 -> /<bucket>/<kalit>)
 $endpoint = [string]$cfg.Endpoint
 if ($endpoint) { $endpointUri = [Uri]$endpoint; $s3Host = $endpointUri.Authority; $base = $endpoint.TrimEnd('/'); $pathPrefix = '/' + $cfg.Bucket }
@@ -180,13 +185,12 @@ function Get-Md5Hex([string]$path) {
     try { Get-Hex $m.ComputeHash($f) } finally { $f.Dispose(); $m.Dispose() }
 }
 
-$errors = @(); $uploaded = @()
+$errors = @(); $uploaded = @(); $files = @()
 try {
-    Log "=== zaxira boshlandi -> s3://$($cfg.Bucket)/$prefix/$stamp/"
+    Log ("=== zaxira boshlandi -> " + $(if ($useS3) { "s3://$($cfg.Bucket)/$prefix/$stamp/" } else { "$work (faqat lokal)" }))
     $dbs = Invoke-Sql "SELECT name FROM sys.databases WHERE database_id > 4 AND state_desc = 'ONLINE' AND source_database_id IS NULL ORDER BY name"
     if ($cfg.Databases) { $only = @($cfg.Databases); $dbs = @($dbs | Where-Object { $only -contains $_ }) }   # ixtiyoriy: faqat shular
     Log ("bazalar: " + ($dbs -join ', '))
-    $files = @()
     foreach ($db in $dbs) {
         try {
             $bak = Join-Path $work "$db.bak"
@@ -226,7 +230,7 @@ try {
     } catch { $errors += "config : $($_.Exception.Message)"; Log "[!] config : $($_.Exception.Message)" }
 
     # Bucket'ga yuklash (bitta PUT, ETag = MD5 bilan tekshiriladi)
-    foreach ($f in $files) {
+    foreach ($f in $(if ($useS3) { $files } else { @() })) {
         $key = "$prefix/$stamp/" + [IO.Path]::GetFileName($f)
         try {
             $r = Invoke-S3 'PUT' $key -InFile $f
@@ -238,7 +242,8 @@ try {
     }
 
     # Bucket'da eski nusxalar: kunlik > KeepDays, oyning 1-kuni > KeepMonthlyDays
-    if ($uploaded.Count -gt 0 -and $errors.Count -eq 0) {
+    if (-not $useS3) { }
+    elseif ($uploaded.Count -gt 0 -and $errors.Count -eq 0) {
         try {
             $today = $started.Date; $removed = 0
             foreach ($o in Get-S3Keys "$prefix/") {
@@ -265,7 +270,7 @@ try {
 
 $status = [ordered]@{
     Ok = ($errors.Count -eq 0); StartedAt = $started.ToString('s'); FinishedAt = (Get-Date).ToString('s')
-    Bucket = $cfg.Bucket; Folder = "$prefix/$stamp"; Uploaded = $uploaded; Errors = $errors
+    Bucket = $cfg.Bucket; Folder = $(if ($useS3) { "$prefix/$stamp" } else { $work }); Files = @($files | ForEach-Object { [IO.Path]::GetFileName($_) }); Uploaded = $uploaded; Errors = $errors
 }
 $status | ConvertTo-Json -Depth 4 | Set-Content -Path (Join-Path $ConfigDir 'last.json') -Encoding ASCII
 if ($errors.Count -gt 0) {
@@ -276,5 +281,5 @@ if ($errors.Count -gt 0) {
     Log "=== tugadi: $($errors.Count) ta xato"
     exit 1
 }
-Log "=== tugadi: $($uploaded.Count) ta fayl yuklandi"
+Log ("=== tugadi: " + $(if ($useS3) { "$($uploaded.Count) ta fayl yuklandi" } else { "$($files.Count) ta fayl $work da" }))
 exit 0

@@ -14,9 +14,20 @@ Tashqi dastur (AWS CLI) kerak emas — S3 so'rovlari skript ichida AWS Signature
 
 > ⚠️ `config.zip` ichida sirlar bor (pool sozlamalari, bot kalitlari). Bucket **faqat private** bo'lsin, kalit faqat shu bucket'ga.
 
+**Bepul variant — faqat lokal** (`-Bucket` berilmasa): xuddi shu zaxira har kecha `C:\tahsinERP\Backups\` da, 7 kun.
+Xato yangilanish, o'chirilgan ma'lumot yoki buzilgan bazadan himoya qiladi, lekin **server yo'qolsa nusxalar ham yo'qoladi** —
+vaqti-vaqti bilan (masalan haftada bir) eng oxirgi papkani o'z kompyuteringizga ko'chiring. Keyin bucket qo'shish:
+`Install-Backup.ps1` ni `-Bucket ... -SecretsFile ...` bilan qayta ishga tushirish kifoya.
+
+```powershell
+.\Install-Backup.ps1 -RunNow                 # faqat lokal, 7 kun
+```
+
 ## 4.1 Bucket va kalit (Lightsail konsoli, bir marta)
 
-1. Lightsail → **Object storage** → **Create bucket**: hudud — serverniki (Frankfurt, `eu-central-1`), reja — eng kichigi
+Lightsail chap menyusida **Storage** → **Create bucket** (instance sahifasidagi "Storage" yorlig'i emas — u disklar uchun).
+
+1. **Create bucket**: hudud — serverniki (Frankfurt, `eu-central-1`), reja — eng kichigi
    (5 GB, ~$1/oy), nom — masalan `tahsinerp-backup-<tasodifiy>` (nom butun dunyoda yagona bo'lishi kerak).
 2. Bucket → **Permissions**: "Bucket access" — **All objects are private**.
 3. Bucket → **Permissions → Access keys → Create access key**. Ikki qiymat chiqadi (secret faqat bir marta ko'rinadi).
