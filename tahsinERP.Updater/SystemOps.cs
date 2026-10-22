@@ -37,6 +37,8 @@ public interface ISystemOps
     string? SchemaVersion(string db);
     /// <summary>IIS APPPOOL\&lt;pool&gt; login'i va bazada db_owner.</summary>
     Task GrantDbAccessAsync(string pool, string db, CancellationToken ct);
+    /// <summary>Faqat pool (env bilan) — IIS APPPOOL\&lt;pool&gt; hisobi paydo bo'ladi (SQL login shundan keyin).</summary>
+    Task EnsureErpPoolAsync(ErpSiteSpec spec, CancellationToken ct);
     Task EnsureErpSiteAsync(ErpSiteSpec spec, CancellationToken ct);
     Task RemoveErpSiteAsync(string name, CancellationToken ct);
 }
@@ -256,13 +258,17 @@ public sealed class WindowsSystemOps(UpdaterOptions options, ILogger<WindowsSyst
 
     private string IisOpsScript => Path.Combine(AppContext.BaseDirectory, "IisOps.ps1");
 
-    public async Task EnsureErpSiteAsync(ErpSiteSpec s, CancellationToken ct)
+    public Task EnsureErpPoolAsync(ErpSiteSpec s, CancellationToken ct) => IisErpAsync("EnsureErpPool", s, ct);
+
+    public Task EnsureErpSiteAsync(ErpSiteSpec s, CancellationToken ct) => IisErpAsync("EnsureErpSite", s, ct);
+
+    private async Task IisErpAsync(string command, ErpSiteSpec s, CancellationToken ct)
     {
         var r = await RunAsync(options.PowerShellExe,
-            ["-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-File", IisOpsScript, "-Command", "EnsureErpSite",
+            ["-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-File", IisOpsScript, "-Command", command,
              "-Name", s.Name, "-PhysicalPath", s.Path, "-HostName", s.HostName, "-SharedSite", s.SharedSite,
              "-IdleMinutes", s.IdleMinutes.ToString(System.Globalization.CultureInfo.InvariantCulture), "-DataDir", s.DataDir], null, null, ct);
-        if (r.ExitCode != 0) throw new InvalidOperationException($"IIS sayt {s.Name}: {Tail(r.Output)}");
+        if (r.ExitCode != 0) throw new InvalidOperationException($"IIS {command} {s.Name}: {Tail(r.Output)}");
     }
 
     public async Task RemoveErpSiteAsync(string name, CancellationToken ct)

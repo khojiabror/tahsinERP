@@ -265,6 +265,13 @@ public sealed class UpdateExecutor(UpdaterOptions o, ISystemOps sys, StateStore 
             WebConfigMerger.Apply(Path.Combine(path, "Web.config"), preserved);
             rep.Line(preserved.HasMachineKey ? "Web.config: machineKey umumiy saytdan (kirgan foydalanuvchilar chiqib ketmaydi)" : "Web.config: yangi machineKey");
 
+            // Pool avval: IIS APPPOOL\<pool> hisobi pool yaratilgandan keyingina mavjud (SQL login undan oldin xato beradi).
+            // Pool'ga sayt hali bog'lanmagan — trafik umumiy saytda qoladi.
+            var spec = new ErpSiteSpec(pool, path, o.InstanceHost(slug), o.Erp.SharedSite, o.Erp.IdleTimeoutMinutes, o.Paths.DataDir);
+            rep.Stage("IIS: pool " + pool);
+            siteCreated = true; // rollback: sayt/pool o'chiriladi
+            await sys.EnsureErpPoolAsync(spec, ct);
+
             if (db != null)
             {
                 rep.Stage("SQL huquqi: IIS APPPOOL\\" + pool);
@@ -281,8 +288,7 @@ public sealed class UpdateExecutor(UpdaterOptions o, ISystemOps sys, StateStore 
 
             // Sayt yaratilishi bilan https://<slug>.<domen> umumiy saytdan shu instance'ga o'tadi — eng oxirida
             rep.Stage("IIS: sayt va pool " + pool);
-            siteCreated = true;
-            await sys.EnsureErpSiteAsync(new ErpSiteSpec(pool, path, o.InstanceHost(slug), o.Erp.SharedSite, o.Erp.IdleTimeoutMinutes, o.Paths.DataDir), ct);
+            await sys.EnsureErpSiteAsync(spec, ct);
             await sys.StartAsync(target, ct);
             rep.Stage("Health");
             if (!await WaitHealthyAsync(ErpHealthUrl(slug), target, s => legacy ? s < 500 : s == 200, rep, ct))
@@ -294,7 +300,7 @@ public sealed class UpdateExecutor(UpdaterOptions o, ISystemOps sys, StateStore 
             {
                 if (siteCreated)
                 {
-                    rep.Line("Sayt o'chirilmoqda — firma umumiy saytga qaytadi");
+                    rep.Line("Sayt va pool o'chirilmoqda — firma umumiy saytda qoladi");
                     await sys.RemoveErpSiteAsync(pool, ct);
                 }
                 if (migrated && db != null && dbBackup != null)
