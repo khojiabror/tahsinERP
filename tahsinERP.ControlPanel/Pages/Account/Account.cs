@@ -41,6 +41,8 @@ public class LoginModel(StaffAuthService auth, IOptions<SecurityOptions> securit
     [BindProperty, Required(ErrorMessage = "Parol kiriting"), DataType(DataType.Password)] public string Password { get; set; } = "";
     [BindProperty(SupportsGet = true)] public string? ReturnUrl { get; set; }
     public bool TotpRequired => security.Value.RequireStaffTotp;
+    public int IdleMinutes => security.Value.EffectiveStaffIdleMinutes;
+    [BindProperty(SupportsGet = true)] public bool Expired { get; set; }
 
     public void OnGet() { }
 

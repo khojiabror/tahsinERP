@@ -111,7 +111,8 @@ if (config["ControlPanel:DataProtection:KeysDir"] is { Length: > 0 } keysDir)
 }
 
 bool isDev = builder.Environment.IsDevelopment();
-int portalSessionHours = Math.Clamp(config.GetValue("ControlPanel:Portal:SessionHours", 4), 1, 24);
+int staffIdleMinutes = (config.GetSection("ControlPanel:Security").Get<SecurityOptions>() ?? new()).EffectiveStaffIdleMinutes;
+int portalSessionHours =Math.Clamp(config.GetValue("ControlPanel:Portal:SessionHours", 4), 1, 24);
 services.AddAuthentication(PortalSchemes.Zone)
     // HttpContext.User — shu host zonasining foydalanuvchisi (admin.* → xodim, my.* → mijoz). Avtorizatsiya siyosatlari
     // baribir o'z sxemasini aniq ko'rsatadi: xodim cookie'si portalda va mijoz cookie'si panelda hech narsa ochmaydi.
@@ -126,8 +127,10 @@ services.AddAuthentication(PortalSchemes.Zone)
         o.LoginPath = "/Account/Login";
         o.LogoutPath = "/Account/Logout";
         o.AccessDeniedPath = "/Account/Denied";
-        o.ExpireTimeSpan = TimeSpan.FromHours(8);
+        // Harakatsizlik taymauti: cookie har so'rovda yangilanadi (standart sliding faqat yarmidan keyin yangilaydi).
+        o.ExpireTimeSpan = TimeSpan.FromMinutes(staffIdleMinutes);
         o.SlidingExpiration = true;
+        o.Events.OnCheckSlidingExpiration = ctx => { ctx.ShouldRenew = true; return Task.CompletedTask; };
         o.Events.OnValidatePrincipal = StaffAuthService.ValidatePrincipalAsync;
     })
     .AddCookie(AuthSchemes.TwoFactor, o =>
@@ -248,6 +251,8 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapGet("/health", () => Results.Text("ok")).AllowAnonymous();
+// Brauzer faol foydalanuvchi seansini yangilab turadi (app.js); xodim cookie'si shu so'rovda uzaytiriladi.
+app.MapGet("/Account/KeepAlive", (HttpContext ctx) => { ctx.Response.Headers.CacheControl = "no-store"; return Results.NoContent(); });
 LicenseApi.Map(app);
 AgentApi.Map(app);
 TelegramWebhook.Map(app);

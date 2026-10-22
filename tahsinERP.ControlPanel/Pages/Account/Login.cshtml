@@ -7,6 +7,10 @@
     <p class="hud-sub">Xodim hisob ma'lumotlarini kiriting.</p>
     @if (Model.TotpRequired) { <ol class="steps"><li class="on">Parol</li><li>2FA kod</li><li>Kirish</li></ol> }
     else { <ol class="steps"><li class="on">Parol</li><li>Kirish</li></ol> }
+    @if (Model.Expired)
+    {
+        <div class="flash info">Seans @Model.IdleMinutes daqiqa harakatsizlik sababli yopildi. Qayta kiring.</div>
+    }
     <form method="post" class="stack">
         <div asp-validation-summary="All"></div>
         <div>

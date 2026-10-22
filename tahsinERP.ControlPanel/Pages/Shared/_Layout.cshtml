@@ -1,4 +1,5 @@
 @inject ControlDbContext LayoutDb
+@inject Microsoft.Extensions.Options.IOptions<tahsinERP.ControlPanel.Security.SecurityOptions> Security
 @{
     bool signedIn = User.Identity?.IsAuthenticated == true && User.Identity.AuthenticationType == AuthSchemes.Staff;
     bool owner = User.IsInRole(nameof(StaffRole.Owner));
@@ -25,12 +26,15 @@ else
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>@ViewData["Title"] — tahsinERP panel</title>
+    <title>@ViewData["Title"] · tahsinERP Admin</title>
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <meta name="theme-color" content="#0a0f1d" />
     <script src="~/js/theme.js" asp-append-version="true"></script>
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     @if (ViewData["AutoRefresh"] is int refreshSeconds) { <meta http-equiv="refresh" content="@refreshSeconds" /> }
 </head>
-<body class="app">
+<body class="app" data-idle-minutes="@Security.Value.EffectiveStaffIdleMinutes">
 <partial name="_Icons" />
 <aside class="sidebar" id="sidebar">
     <a class="sb-brand" href="/">
@@ -67,7 +71,7 @@ else
             <a class="@Nav("/Audit")" href="/Audit"><svg class="i"><use href="#i-shield" /></svg>Audit</a>
         }
     </nav>
-    <form method="post" action="/Account/Logout" class="sb-user">
+    <form method="post" action="/Account/Logout" class="sb-user" data-logout-form>
         <span class="avatar">@initials</span>
         <span class="sb-user-t"><b>@userName</b><small>@role</small></span>
         <a href="/Account/ChangePassword" class="icon-btn" title="Parolni almashtirish"><svg class="i"><use href="#i-lock" /></svg></a>
