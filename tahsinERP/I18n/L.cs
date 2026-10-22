@@ -27,6 +27,20 @@ namespace tahsinERP.I18n
         /// <summary>JavaScript satri ichiga (qo'shtirnoqsiz): <c>'@L.Js("Key")'</c>.</summary>
         public static IHtmlString Js(string key) => new HtmlString(HttpUtility.JavaScriptStringEncode(T(key)));
 
+        /// <summary>
+        /// JS uchun matnlar (window.erpI18n.t): "Js_" va "Dt_" kalitlari joriy tilda, JSON (&lt;/script&gt; xavfsiz).
+        /// Sahifa skriptlari: erpT("Js_Key") yoki erpT("Js_Key", [arg0]).
+        /// </summary>
+        public static IHtmlString JsBundle()
+        {
+            var dict = new System.Collections.Generic.SortedDictionary<string, string>(System.StringComparer.Ordinal);
+            foreach (var prefix in new[] { "Js_", "Dt_" })
+                foreach (var key in Translator.Keys(prefix))
+                    dict[key] = T(key);
+            return new HtmlString(Newtonsoft.Json.JsonConvert.SerializeObject(dict,
+                new Newtonsoft.Json.JsonSerializerSettings { StringEscapeHandling = Newtonsoft.Json.StringEscapeHandling.EscapeHtml }));
+        }
+
         /// <summary>Joriy til kodi: uz / oz / ru.</summary>
         public static string Lang => Languages.Current;
 

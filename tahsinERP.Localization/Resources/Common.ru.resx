@@ -405,4 +405,10 @@
   <data name="Dt_Last" xml:space="preserve">
     <value>Последняя</value>
   </data>
+  <data name="Dt_Next" xml:space="preserve">
+    <value>Следующая</value>
+  </data>
+  <data name="Dt_Previous" xml:space="preserve">
+    <value>Предыдущая</value>
+  </data>
 </root>

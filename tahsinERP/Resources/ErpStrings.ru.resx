@@ -18,4 +18,532 @@
   <data name="Lang_Choose" xml:space="preserve">
     <value>Язык интерфейса</value>
   </data>
+  <data name="Hdr_ProfileSettings" xml:space="preserve">
+    <value>Настройки профиля</value>
+  </data>
+  <data name="Hdr_License" xml:space="preserve">
+    <value>Лицензия</value>
+  </data>
+  <data name="Hdr_Tasks" xml:space="preserve">
+    <value>Поручения</value>
+  </data>
+  <data name="Hdr_WarehouseIncome" xml:space="preserve">
+    <value>Приход на склад</value>
+  </data>
+  <data name="Hdr_Logout" xml:space="preserve">
+    <value>Выйти из системы</value>
+  </data>
+  <data name="Menu_Dashboard" xml:space="preserve">
+    <value>Дашборд</value>
+  </data>
+  <data name="Menu_DashGeneral" xml:space="preserve">
+    <value>Общий дашборд</value>
+  </data>
+  <data name="Menu_DashFinance" xml:space="preserve">
+    <value>Финансовый дашборд</value>
+  </data>
+  <data name="Menu_Overview" xml:space="preserve">
+    <value>Общий обзор</value>
+  </data>
+  <data name="Menu_CashFlow" xml:space="preserve">
+    <value>Движение денежных средств</value>
+  </data>
+  <data name="Menu_CategoryAnalysis" xml:space="preserve">
+    <value>Анализ по категориям</value>
+  </data>
+  <data name="Menu_AccountAnalysis" xml:space="preserve">
+    <value>Анализ по счетам</value>
+  </data>
+  <data name="Menu_ExpenseAnalysis" xml:space="preserve">
+    <value>Анализ расходов</value>
+  </data>
+  <data name="Menu_IncomeAnalysis" xml:space="preserve">
+    <value>Анализ поступлений</value>
+  </data>
+  <data name="Menu_AccountBalances" xml:space="preserve">
+    <value>Остатки на счетах</value>
+  </data>
+  <data name="Menu_ProfitLoss" xml:space="preserve">
+    <value>Прибыли и убытки</value>
+  </data>
+  <data name="Menu_Ebitda" xml:space="preserve">
+    <value>EBITDA</value>
+  </data>
+  <data name="Menu_Balance" xml:space="preserve">
+    <value>Баланс</value>
+  </data>
+  <data name="Menu_DashObligations" xml:space="preserve">
+    <value>Дашборд обязательств</value>
+  </data>
+  <data name="Menu_CoreFinReport" xml:space="preserve">
+    <value>Основной финансовый отчёт</value>
+  </data>
+  <data name="Menu_DashCost" xml:space="preserve">
+    <value>Дашборд себестоимости</value>
+  </data>
+  <data name="Menu_DashCrm" xml:space="preserve">
+    <value>CRM дашборд</value>
+  </data>
+  <data name="Menu_DashLogistics" xml:space="preserve">
+    <value>Дашборд логистики</value>
+  </data>
+  <data name="Menu_DashHr" xml:space="preserve">
+    <value>HR дашборд</value>
+  </data>
+  <data name="Menu_DashMes" xml:space="preserve">
+    <value>MES дашборд</value>
+  </data>
+  <data name="Menu_DashSrm" xml:space="preserve">
+    <value>SRM дашборд</value>
+  </data>
+  <data name="Menu_DashWarehouse" xml:space="preserve">
+    <value>Дашборд склада</value>
+  </data>
+  <data name="Menu_DashTasks" xml:space="preserve">
+    <value>Дашборд задач</value>
+  </data>
+  <data name="Menu_DashDoh" xml:space="preserve">
+    <value>DOH дашборд</value>
+  </data>
+  <data name="Menu_Srm" xml:space="preserve">
+    <value>Снабжение (SRM)</value>
+  </data>
+  <data name="Menu_Coverage" xml:space="preserve">
+    <value>Покрытие</value>
+  </data>
+  <data name="Menu_SafetyStock" xml:space="preserve">
+    <value>Страховой запас</value>
+  </data>
+  <data name="Menu_Suppliers" xml:space="preserve">
+    <value>Поставщики</value>
+  </data>
+  <data name="Menu_Directory" xml:space="preserve">
+    <value>Справочник</value>
+  </data>
+  <data name="Menu_PurchaseProcess" xml:space="preserve">
+    <value>Процесс закупки</value>
+  </data>
+  <data name="Menu_PurchaseRequests" xml:space="preserve">
+    <value>Заявки на закупку</value>
+  </data>
+  <data name="Menu_PurchaseContracts" xml:space="preserve">
+    <value>Договоры закупки</value>
+  </data>
+  <data name="Menu_PurchaseOrders" xml:space="preserve">
+    <value>Заказы на закупку</value>
+  </data>
+  <data name="Menu_PurchaseInvoices" xml:space="preserve">
+    <value>Инвойсы закупки</value>
+  </data>
+  <data name="Menu_TrackingTender" xml:space="preserve">
+    <value>Отслеживание и тендер</value>
+  </data>
+  <data name="Menu_OrderTracking" xml:space="preserve">
+    <value>Отслеживание заказов</value>
+  </data>
+  <data name="Menu_TenderCompare" xml:space="preserve">
+    <value>Сравнение тендеров</value>
+  </data>
+  <data name="Menu_Logistics" xml:space="preserve">
+    <value>Логистика</value>
+  </data>
+  <data name="Menu_Freight" xml:space="preserve">
+    <value>Грузоперевозки</value>
+  </data>
+  <data name="Menu_DirectoryContracts" xml:space="preserve">
+    <value>Справочники и договоры</value>
+  </data>
+  <data name="Menu_Carriers" xml:space="preserve">
+    <value>Перевозчики</value>
+  </data>
+  <data name="Menu_Contracts" xml:space="preserve">
+    <value>Договоры</value>
+  </data>
+  <data name="Menu_Tariffs" xml:space="preserve">
+    <value>Тарифы</value>
+  </data>
+  <data name="Menu_TransportTypes" xml:space="preserve">
+    <value>Виды транспорта</value>
+  </data>
+  <data name="Menu_Operations" xml:space="preserve">
+    <value>Операции</value>
+  </data>
+  <data name="Menu_Waybills" xml:space="preserve">
+    <value>Путевые листы</value>
+  </data>
+  <data name="Menu_Payments" xml:space="preserve">
+    <value>Платежи</value>
+  </data>
+  <data name="Menu_LoadSimulation" xml:space="preserve">
+    <value>Симуляция загрузки</value>
+  </data>
+  <data name="Menu_MonthlyReport" xml:space="preserve">
+    <value>Ежемесячный отчёт</value>
+  </data>
+  <data name="Menu_WarehouseModule" xml:space="preserve">
+    <value>Склад</value>
+  </data>
+  <data name="Menu_Warehouse" xml:space="preserve">
+    <value>Склад</value>
+  </data>
+  <data name="Menu_Stock" xml:space="preserve">
+    <value>Остатки</value>
+  </data>
+  <data name="Menu_Incomes" xml:space="preserve">
+    <value>Поступления</value>
+  </data>
+  <data name="Menu_StockIssues" xml:space="preserve">
+    <value>Расход</value>
+  </data>
+  <data name="Menu_ProdToSales" xml:space="preserve">
+    <value>Из производства в продажу</value>
+  </data>
+  <data name="Menu_Warehouses" xml:space="preserve">
+    <value>Склады</value>
+  </data>
+  <data name="Menu_Dloc" xml:space="preserve">
+    <value>DLOC (ячейки)</value>
+  </data>
+  <data name="Menu_Purchase" xml:space="preserve">
+    <value>Закупка</value>
+  </data>
+  <data name="Menu_Purchases" xml:space="preserve">
+    <value>Закупки</value>
+  </data>
+  <data name="Menu_Orders" xml:space="preserve">
+    <value>Заказы</value>
+  </data>
+  <data name="Menu_ProductBase" xml:space="preserve">
+    <value>База продуктов</value>
+  </data>
+  <data name="Menu_Finance" xml:space="preserve">
+    <value>Финансы</value>
+  </data>
+  <data name="Menu_Management" xml:space="preserve">
+    <value>Управление</value>
+  </data>
+  <data name="Menu_Accounts" xml:space="preserve">
+    <value>Счета</value>
+  </data>
+  <data name="Menu_Transactions" xml:space="preserve">
+    <value>Транзакции</value>
+  </data>
+  <data name="Menu_Categories" xml:space="preserve">
+    <value>Категории</value>
+  </data>
+  <data name="Menu_BalanceCategories" xml:space="preserve">
+    <value>Категории баланса</value>
+  </data>
+  <data name="Menu_OpeningBalance" xml:space="preserve">
+    <value>Начальный баланс</value>
+  </data>
+  <data name="Menu_PlItems" xml:space="preserve">
+    <value>Статьи P&amp;L</value>
+  </data>
+  <data name="Menu_PlPlans" xml:space="preserve">
+    <value>Планы P&amp;L</value>
+  </data>
+  <data name="Menu_RecurringExpenses" xml:space="preserve">
+    <value>Постоянные расходы</value>
+  </data>
+  <data name="Menu_Shareholders" xml:space="preserve">
+    <value>Акционеры</value>
+  </data>
+  <data name="Menu_List" xml:space="preserve">
+    <value>Список</value>
+  </data>
+  <data name="Menu_CompanyValue" xml:space="preserve">
+    <value>Стоимость компании</value>
+  </data>
+  <data name="Menu_Engineering" xml:space="preserve">
+    <value>Инжиниринг</value>
+  </data>
+  <data name="Menu_EngineeringSub" xml:space="preserve">
+    <value>Инженерия</value>
+  </data>
+  <data name="Menu_BomNorm" xml:space="preserve">
+    <value>BOM и нормы</value>
+  </data>
+  <data name="Menu_Norms" xml:space="preserve">
+    <value>Нормы расхода</value>
+  </data>
+  <data name="Menu_Products" xml:space="preserve">
+    <value>Продукты</value>
+  </data>
+  <data name="Menu_AllProducts" xml:space="preserve">
+    <value>Все</value>
+  </data>
+  <data name="Menu_FinishedGoods" xml:space="preserve">
+    <value>Готовая продукция</value>
+  </data>
+  <data name="Menu_SemiFinished" xml:space="preserve">
+    <value>Полуфабрикаты</value>
+  </data>
+  <data name="Menu_RawMaterials" xml:space="preserve">
+    <value>Сырьё</value>
+  </data>
+  <data name="Menu_ProductTypes" xml:space="preserve">
+    <value>Виды продуктов</value>
+  </data>
+  <data name="Menu_Cost" xml:space="preserve">
+    <value>Себестоимость</value>
+  </data>
+  <data name="Menu_Report" xml:space="preserve">
+    <value>Отчёт</value>
+  </data>
+  <data name="Menu_Mes" xml:space="preserve">
+    <value>MES - Производство</value>
+  </data>
+  <data name="Menu_Production" xml:space="preserve">
+    <value>Производство</value>
+  </data>
+  <data name="Menu_ProductionPlan" xml:space="preserve">
+    <value>План производства</value>
+  </data>
+  <data name="Menu_DailyProduction" xml:space="preserve">
+    <value>Ежедневное производство</value>
+  </data>
+  <data name="Menu_QualityControl" xml:space="preserve">
+    <value>Контроль качества</value>
+  </data>
+  <data name="Menu_DefectTypes" xml:space="preserve">
+    <value>Виды дефектов</value>
+  </data>
+  <data name="Menu_MonthlyReports" xml:space="preserve">
+    <value>Ежемесячные отчёты</value>
+  </data>
+  <data name="Menu_ProductionMonthly" xml:space="preserve">
+    <value>Производство за месяц</value>
+  </data>
+  <data name="Menu_QualityMonthly" xml:space="preserve">
+    <value>Качество за месяц</value>
+  </data>
+  <data name="Menu_Crm" xml:space="preserve">
+    <value>Продажи (CRM)</value>
+  </data>
+  <data name="Menu_Sales" xml:space="preserve">
+    <value>Продажи</value>
+  </data>
+  <data name="Menu_Customers" xml:space="preserve">
+    <value>Покупатели</value>
+  </data>
+  <data name="Menu_Invoices" xml:space="preserve">
+    <value>Инвойсы</value>
+  </data>
+  <data name="Menu_AllReports" xml:space="preserve">
+    <value>Все отчёты</value>
+  </data>
+  <data name="Menu_MonthlySalesReport" xml:space="preserve">
+    <value>Ежемесячный отчёт по продажам</value>
+  </data>
+  <data name="Menu_SalesByCustomer" xml:space="preserve">
+    <value>Продажи по клиентам</value>
+  </data>
+  <data name="Menu_SalesByProduct" xml:space="preserve">
+    <value>Продажи по продуктам</value>
+  </data>
+  <data name="Menu_SalesInvoice" xml:space="preserve">
+    <value>Счёт-фактура</value>
+  </data>
+  <data name="Menu_Ttnk" xml:space="preserve">
+    <value>ТТНК</value>
+  </data>
+  <data name="Menu_Hr" xml:space="preserve">
+    <value>Кадры (HR)</value>
+  </data>
+  <data name="Menu_HrManagement" xml:space="preserve">
+    <value>Управление кадрами</value>
+  </data>
+  <data name="Menu_OrgStructure" xml:space="preserve">
+    <value>Организационная структура</value>
+  </data>
+  <data name="Menu_Positions" xml:space="preserve">
+    <value>Должности</value>
+  </data>
+  <data name="Menu_Employees" xml:space="preserve">
+    <value>Сотрудники</value>
+  </data>
+  <data name="Menu_EmployeeSeniority" xml:space="preserve">
+    <value>Стаж сотрудников</value>
+  </data>
+  <data name="Menu_StaffingPlan" xml:space="preserve">
+    <value>Штатное расписание</value>
+  </data>
+  <data name="Menu_Timesheet" xml:space="preserve">
+    <value>Табель</value>
+  </data>
+  <data name="Menu_HourlyTimesheet" xml:space="preserve">
+    <value>Почасовой табель</value>
+  </data>
+  <data name="Menu_PieceTimesheet" xml:space="preserve">
+    <value>Сдельный табель</value>
+  </data>
+  <data name="Menu_PieceTariffs" xml:space="preserve">
+    <value>Сдельные тарифы</value>
+  </data>
+  <data name="Menu_Payroll" xml:space="preserve">
+    <value>Заработная плата</value>
+  </data>
+  <data name="Menu_TasksModule" xml:space="preserve">
+    <value>Задачи</value>
+  </data>
+  <data name="Menu_Tasks" xml:space="preserve">
+    <value>Задачи</value>
+  </data>
+  <data name="Menu_Kanban" xml:space="preserve">
+    <value>Канбан</value>
+  </data>
+  <data name="Menu_TaskSettings" xml:space="preserve">
+    <value>Настройки задач</value>
+  </data>
+  <data name="Menu_Statuses" xml:space="preserve">
+    <value>Статусы</value>
+  </data>
+  <data name="Menu_Priorities" xml:space="preserve">
+    <value>Приоритеты</value>
+  </data>
+  <data name="Menu_Projects" xml:space="preserve">
+    <value>Проекты</value>
+  </data>
+  <data name="Menu_Documents" xml:space="preserve">
+    <value>Документы</value>
+  </data>
+  <data name="Menu_DocManagement" xml:space="preserve">
+    <value>Управление документами</value>
+  </data>
+  <data name="Menu_CompanyOrders" xml:space="preserve">
+    <value>Приказы компании</value>
+  </data>
+  <data name="Menu_OfficialLetters" xml:space="preserve">
+    <value>Официальные письма</value>
+  </data>
+  <data name="Menu_CompanyStandards" xml:space="preserve">
+    <value>Стандарты предприятия</value>
+  </data>
+  <data name="Menu_JobDescriptions" xml:space="preserve">
+    <value>Должностные инструкции</value>
+  </data>
+  <data name="Menu_Manual" xml:space="preserve">
+    <value>Руководство</value>
+  </data>
+  <data name="Menu_Company" xml:space="preserve">
+    <value>Предприятие</value>
+  </data>
+  <data name="Menu_Units" xml:space="preserve">
+    <value>Единицы измерения</value>
+  </data>
+  <data name="Menu_HsCodes" xml:space="preserve">
+    <value>Коды ТН ВЭД</value>
+  </data>
+  <data name="Menu_Currencies" xml:space="preserve">
+    <value>Валюты</value>
+  </data>
+  <data name="Menu_MyProfile" xml:space="preserve">
+    <value>Мой профиль</value>
+  </data>
+  <data name="Menu_AdminPanel" xml:space="preserve">
+    <value>Админ-панель</value>
+  </data>
+  <data name="Js_ConfirmDelete" xml:space="preserve">
+    <value>Подтвердите удаление?</value>
+  </data>
+  <data name="Js_ExcelTitle" xml:space="preserve">
+    <value>Выгрузить в Excel</value>
+  </data>
+  <data name="Js_PdfTitle" xml:space="preserve">
+    <value>Выгрузить в PDF</value>
+  </data>
+  <data name="Js_SearchLabel" xml:space="preserve">
+    <value>Поиск:</value>
+  </data>
+  <data name="Js_Loading" xml:space="preserve">
+    <value>Загрузка...</value>
+  </data>
+  <data name="Js_ErrorGeneric" xml:space="preserve">
+    <value>Произошла ошибка.</value>
+  </data>
+  <data name="Js_Saved" xml:space="preserve">
+    <value>Сохранено</value>
+  </data>
+  <data name="Js_Deleted" xml:space="preserve">
+    <value>Удалено</value>
+  </data>
+  <data name="Js_Yes" xml:space="preserve">
+    <value>Да</value>
+  </data>
+  <data name="Js_No" xml:space="preserve">
+    <value>Нет</value>
+  </data>
+  <data name="Js_Cancel" xml:space="preserve">
+    <value>Отмена</value>
+  </data>
+  <data name="Js_Ok" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="Js_Select" xml:space="preserve">
+    <value>Выберите</value>
+  </data>
+  <data name="Js_NoResults" xml:space="preserve">
+    <value>Ничего не найдено</value>
+  </data>
+  <data name="Js_ConfirmTitle" xml:space="preserve">
+    <value>Вы уверены?</value>
+  </data>
+  <data name="Js_Val_Required" xml:space="preserve">
+    <value>Обязательное поле.</value>
+  </data>
+  <data name="Js_Val_Number" xml:space="preserve">
+    <value>Введите число.</value>
+  </data>
+  <data name="Js_Val_Date" xml:space="preserve">
+    <value>Введите правильную дату.</value>
+  </data>
+  <data name="Js_Val_Email" xml:space="preserve">
+    <value>Введите правильный адрес эл. почты.</value>
+  </data>
+  <data name="Js_Val_MaxLength" xml:space="preserve">
+    <value>Не более {0} символов.</value>
+  </data>
+  <data name="Js_Val_MinLength" xml:space="preserve">
+    <value>Не менее {0} символов.</value>
+  </data>
+  <data name="Js_Val_Min" xml:space="preserve">
+    <value>Значение не меньше {0}.</value>
+  </data>
+  <data name="Js_Val_Max" xml:space="preserve">
+    <value>Значение не больше {0}.</value>
+  </data>
+  <data name="Js_Val_Range" xml:space="preserve">
+    <value>Значение от {0} до {1}.</value>
+  </data>
+  <data name="Adm_BackToMain" xml:space="preserve">
+    <value>На главную</value>
+  </data>
+  <data name="Adm_Users" xml:space="preserve">
+    <value>Пользователи</value>
+  </data>
+  <data name="Adm_Licenses" xml:space="preserve">
+    <value>Лицензии</value>
+  </data>
+  <data name="Adm_Permissions" xml:space="preserve">
+    <value>Права доступа</value>
+  </data>
+  <data name="Adm_Roles" xml:space="preserve">
+    <value>Роли</value>
+  </data>
+  <data name="Adm_Modules" xml:space="preserve">
+    <value>Модули</value>
+  </data>
+  <data name="Adm_Monitoring" xml:space="preserve">
+    <value>Мониторинг</value>
+  </data>
+  <data name="Adm_SystemLogs" xml:space="preserve">
+    <value>Системные журналы</value>
+  </data>
+  <data name="Adm_UserEntries" xml:space="preserve">
+    <value>Входы в систему</value>
+  </data>
+  <data name="Adm_Deleted" xml:space="preserve">
+    <value>Удалённые</value>
+  </data>
 </root>

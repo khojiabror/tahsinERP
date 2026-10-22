@@ -17,6 +17,14 @@ namespace tahsinERP
             RouteConfig.RegisterRoutes(RouteTable.Routes);
             ControllerBuilder.Current.SetControllerFactory(new TahsinControllerFactory()); // ReadOnly sessiya + TempData keshda (CORE-P05)
             BundleConfig.RegisterBundles(BundleTable.Bundles);
+            // Ko'p tillilik: [Display]/validatsiya xabarlari resx kaliti bo'lsa joriy tilda (I18n/LocalizedModelProviders.cs);
+            // model binder va raqam/sana xabarlari — App_GlobalResources/MvcMessages*.resx
+            ModelMetadataProviders.Current = new tahsinERP.I18n.LocalizedMetadataProvider();
+            var dataAnnotations = System.Linq.Enumerable.FirstOrDefault(System.Linq.Enumerable.OfType<DataAnnotationsModelValidatorProvider>(ModelValidatorProviders.Providers));
+            if (dataAnnotations != null) ModelValidatorProviders.Providers.Remove(dataAnnotations);
+            ModelValidatorProviders.Providers.Add(new tahsinERP.I18n.LocalizedValidatorProvider());
+            ClientDataTypeModelValidatorProvider.ResourceClassKey = "MvcMessages";
+            DefaultModelBinder.ResourceClassKey = "MvcMessages";
             tahsinERP.Services.LicenseSync.LicenseSyncService.Start(); // panel URL bo'sh bo'lsa (on-prem offline) hech narsa qilmaydi
         }
 

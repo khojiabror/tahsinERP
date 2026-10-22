@@ -405,4 +405,10 @@
   <data name="Dt_Last" xml:space="preserve">
     <value>Oxirgi</value>
   </data>
+  <data name="Dt_Next" xml:space="preserve">
+    <value>Keyingi</value>
+  </data>
+  <data name="Dt_Previous" xml:space="preserve">
+    <value>Oldingi</value>
+  </data>
 </root>

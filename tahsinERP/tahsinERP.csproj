@@ -274,6 +274,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="I18n\LocalizedModelProviders.cs" />
     <Compile Include="App_Start\BundleConfig.cs" />
     <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\TahsinControllerFactory.cs" />
@@ -1187,6 +1188,10 @@
     <Compile Include="ViewModels\AdminDashboardViewModel.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="App_GlobalResources\MvcMessages.uz-Cyrl.resx" />
+    <Content Include="App_GlobalResources\MvcMessages.ru.resx" />
+    <Content Include="App_GlobalResources\MvcMessages.resx" />
+    <Content Include="Views\Shared\_I18nScript.cshtml" />
     <Content Include="app-assets\css-rtl\bootstrap-extended.css" />
     <Content Include="app-assets\css-rtl\bootstrap-extended.min.css" />
     <Content Include="app-assets\css-rtl\bootstrap.css" />

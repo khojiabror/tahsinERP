@@ -18,4 +18,532 @@
   <data name="Lang_Choose" xml:space="preserve">
     <value>Interfeys tili</value>
   </data>
+  <data name="Hdr_ProfileSettings" xml:space="preserve">
+    <value>Profil sozlamalari</value>
+  </data>
+  <data name="Hdr_License" xml:space="preserve">
+    <value>Litsenziya</value>
+  </data>
+  <data name="Hdr_Tasks" xml:space="preserve">
+    <value>Topshiriqlar</value>
+  </data>
+  <data name="Hdr_WarehouseIncome" xml:space="preserve">
+    <value>Omborga kirim</value>
+  </data>
+  <data name="Hdr_Logout" xml:space="preserve">
+    <value>Tizimdan chiqish</value>
+  </data>
+  <data name="Menu_Dashboard" xml:space="preserve">
+    <value>Dashboard</value>
+  </data>
+  <data name="Menu_DashGeneral" xml:space="preserve">
+    <value>Umumiy Dashboard</value>
+  </data>
+  <data name="Menu_DashFinance" xml:space="preserve">
+    <value>Moliya Dashboard</value>
+  </data>
+  <data name="Menu_Overview" xml:space="preserve">
+    <value>Umumiy ko'rinish</value>
+  </data>
+  <data name="Menu_CashFlow" xml:space="preserve">
+    <value>Kassa oqimi</value>
+  </data>
+  <data name="Menu_CategoryAnalysis" xml:space="preserve">
+    <value>Kategoriyalar tahlili</value>
+  </data>
+  <data name="Menu_AccountAnalysis" xml:space="preserve">
+    <value>Hisoblar tahlili</value>
+  </data>
+  <data name="Menu_ExpenseAnalysis" xml:space="preserve">
+    <value>Chiqimlar tahlili</value>
+  </data>
+  <data name="Menu_IncomeAnalysis" xml:space="preserve">
+    <value>Kirimlar tahlili</value>
+  </data>
+  <data name="Menu_AccountBalances" xml:space="preserve">
+    <value>Hisoblardagi qoldiq</value>
+  </data>
+  <data name="Menu_ProfitLoss" xml:space="preserve">
+    <value>Foyda va zarar</value>
+  </data>
+  <data name="Menu_Ebitda" xml:space="preserve">
+    <value>EBITDA</value>
+  </data>
+  <data name="Menu_Balance" xml:space="preserve">
+    <value>Balans</value>
+  </data>
+  <data name="Menu_DashObligations" xml:space="preserve">
+    <value>Majburiyatlar dashboard</value>
+  </data>
+  <data name="Menu_CoreFinReport" xml:space="preserve">
+    <value>Yadro moliyaviy hisobot</value>
+  </data>
+  <data name="Menu_DashCost" xml:space="preserve">
+    <value>Tannarx Dashboard</value>
+  </data>
+  <data name="Menu_DashCrm" xml:space="preserve">
+    <value>CRM Dashboard</value>
+  </data>
+  <data name="Menu_DashLogistics" xml:space="preserve">
+    <value>Logistika Dashboard</value>
+  </data>
+  <data name="Menu_DashHr" xml:space="preserve">
+    <value>HR Dashboard</value>
+  </data>
+  <data name="Menu_DashMes" xml:space="preserve">
+    <value>MES Dashboard</value>
+  </data>
+  <data name="Menu_DashSrm" xml:space="preserve">
+    <value>SRM Dashboard</value>
+  </data>
+  <data name="Menu_DashWarehouse" xml:space="preserve">
+    <value>Ombor Dashboard</value>
+  </data>
+  <data name="Menu_DashTasks" xml:space="preserve">
+    <value>Vazifalar Dashboard</value>
+  </data>
+  <data name="Menu_DashDoh" xml:space="preserve">
+    <value>DOH Dashboard</value>
+  </data>
+  <data name="Menu_Srm" xml:space="preserve">
+    <value>Ta'minot (SRM)</value>
+  </data>
+  <data name="Menu_Coverage" xml:space="preserve">
+    <value>Coverage</value>
+  </data>
+  <data name="Menu_SafetyStock" xml:space="preserve">
+    <value>Xavfsiz zahira</value>
+  </data>
+  <data name="Menu_Suppliers" xml:space="preserve">
+    <value>Ta'minotchilar</value>
+  </data>
+  <data name="Menu_Directory" xml:space="preserve">
+    <value>Ma'lumotnoma</value>
+  </data>
+  <data name="Menu_PurchaseProcess" xml:space="preserve">
+    <value>Xarid jarayoni</value>
+  </data>
+  <data name="Menu_PurchaseRequests" xml:space="preserve">
+    <value>Xarid arizalari</value>
+  </data>
+  <data name="Menu_PurchaseContracts" xml:space="preserve">
+    <value>Xarid shartnomalari</value>
+  </data>
+  <data name="Menu_PurchaseOrders" xml:space="preserve">
+    <value>Xarid buyurtmalari</value>
+  </data>
+  <data name="Menu_PurchaseInvoices" xml:space="preserve">
+    <value>Xarid invoyslari</value>
+  </data>
+  <data name="Menu_TrackingTender" xml:space="preserve">
+    <value>Kuzatuv va tender</value>
+  </data>
+  <data name="Menu_OrderTracking" xml:space="preserve">
+    <value>Buyurtma kuzatuv</value>
+  </data>
+  <data name="Menu_TenderCompare" xml:space="preserve">
+    <value>Tender taqqoslash</value>
+  </data>
+  <data name="Menu_Logistics" xml:space="preserve">
+    <value>Logistika</value>
+  </data>
+  <data name="Menu_Freight" xml:space="preserve">
+    <value>Yuk tashish</value>
+  </data>
+  <data name="Menu_DirectoryContracts" xml:space="preserve">
+    <value>Ma'lumotnoma va shartnomalar</value>
+  </data>
+  <data name="Menu_Carriers" xml:space="preserve">
+    <value>Tashuvchi kompaniyalar</value>
+  </data>
+  <data name="Menu_Contracts" xml:space="preserve">
+    <value>Shartnomalar</value>
+  </data>
+  <data name="Menu_Tariffs" xml:space="preserve">
+    <value>Tariflar</value>
+  </data>
+  <data name="Menu_TransportTypes" xml:space="preserve">
+    <value>Transport turlari</value>
+  </data>
+  <data name="Menu_Operations" xml:space="preserve">
+    <value>Operatsiyalar</value>
+  </data>
+  <data name="Menu_Waybills" xml:space="preserve">
+    <value>Yo'l varaqalari</value>
+  </data>
+  <data name="Menu_Payments" xml:space="preserve">
+    <value>To'lovlar</value>
+  </data>
+  <data name="Menu_LoadSimulation" xml:space="preserve">
+    <value>Yuklash simulyatsiyasi</value>
+  </data>
+  <data name="Menu_MonthlyReport" xml:space="preserve">
+    <value>Oylik hisobot</value>
+  </data>
+  <data name="Menu_WarehouseModule" xml:space="preserve">
+    <value>Omborxona</value>
+  </data>
+  <data name="Menu_Warehouse" xml:space="preserve">
+    <value>Ombor</value>
+  </data>
+  <data name="Menu_Stock" xml:space="preserve">
+    <value>Qoldiqlar</value>
+  </data>
+  <data name="Menu_Incomes" xml:space="preserve">
+    <value>Kirimlar</value>
+  </data>
+  <data name="Menu_StockIssues" xml:space="preserve">
+    <value>Chiqimlar</value>
+  </data>
+  <data name="Menu_ProdToSales" xml:space="preserve">
+    <value>Ishlab chiqarishdan sotuvga</value>
+  </data>
+  <data name="Menu_Warehouses" xml:space="preserve">
+    <value>Omborlar</value>
+  </data>
+  <data name="Menu_Dloc" xml:space="preserve">
+    <value>DLOC (joylashuvlar)</value>
+  </data>
+  <data name="Menu_Purchase" xml:space="preserve">
+    <value>Xarid</value>
+  </data>
+  <data name="Menu_Purchases" xml:space="preserve">
+    <value>Xaridlar</value>
+  </data>
+  <data name="Menu_Orders" xml:space="preserve">
+    <value>Buyurtmalar</value>
+  </data>
+  <data name="Menu_ProductBase" xml:space="preserve">
+    <value>Maxsulotlar bazasi</value>
+  </data>
+  <data name="Menu_Finance" xml:space="preserve">
+    <value>Moliya</value>
+  </data>
+  <data name="Menu_Management" xml:space="preserve">
+    <value>Boshqaruv</value>
+  </data>
+  <data name="Menu_Accounts" xml:space="preserve">
+    <value>Hisoblar</value>
+  </data>
+  <data name="Menu_Transactions" xml:space="preserve">
+    <value>Tranzaksiyalar</value>
+  </data>
+  <data name="Menu_Categories" xml:space="preserve">
+    <value>Kategoriyalar</value>
+  </data>
+  <data name="Menu_BalanceCategories" xml:space="preserve">
+    <value>Balans kategoriyalari</value>
+  </data>
+  <data name="Menu_OpeningBalance" xml:space="preserve">
+    <value>Boshlang'ich balans</value>
+  </data>
+  <data name="Menu_PlItems" xml:space="preserve">
+    <value>P&amp;L elementlar</value>
+  </data>
+  <data name="Menu_PlPlans" xml:space="preserve">
+    <value>P&amp;L rejalar</value>
+  </data>
+  <data name="Menu_RecurringExpenses" xml:space="preserve">
+    <value>Doimiy harajatlar</value>
+  </data>
+  <data name="Menu_Shareholders" xml:space="preserve">
+    <value>Aksiyadorlar</value>
+  </data>
+  <data name="Menu_List" xml:space="preserve">
+    <value>Ro'yxat</value>
+  </data>
+  <data name="Menu_CompanyValue" xml:space="preserve">
+    <value>Kompaniya qiymati</value>
+  </data>
+  <data name="Menu_Engineering" xml:space="preserve">
+    <value>Engineering</value>
+  </data>
+  <data name="Menu_EngineeringSub" xml:space="preserve">
+    <value>Muhandislik</value>
+  </data>
+  <data name="Menu_BomNorm" xml:space="preserve">
+    <value>BOM va norma</value>
+  </data>
+  <data name="Menu_Norms" xml:space="preserve">
+    <value>Norma-sarf</value>
+  </data>
+  <data name="Menu_Products" xml:space="preserve">
+    <value>Maxsulotlar</value>
+  </data>
+  <data name="Menu_AllProducts" xml:space="preserve">
+    <value>Barcha</value>
+  </data>
+  <data name="Menu_FinishedGoods" xml:space="preserve">
+    <value>Tayyor maxsulot</value>
+  </data>
+  <data name="Menu_SemiFinished" xml:space="preserve">
+    <value>Yarim tayyor</value>
+  </data>
+  <data name="Menu_RawMaterials" xml:space="preserve">
+    <value>Xomashyo</value>
+  </data>
+  <data name="Menu_ProductTypes" xml:space="preserve">
+    <value>Maxsulot turlari</value>
+  </data>
+  <data name="Menu_Cost" xml:space="preserve">
+    <value>Tannarx</value>
+  </data>
+  <data name="Menu_Report" xml:space="preserve">
+    <value>Hisobot</value>
+  </data>
+  <data name="Menu_Mes" xml:space="preserve">
+    <value>MES - Ishlab chiqarish</value>
+  </data>
+  <data name="Menu_Production" xml:space="preserve">
+    <value>Ishlab chiqarish</value>
+  </data>
+  <data name="Menu_ProductionPlan" xml:space="preserve">
+    <value>Ishlab chiqarish rejasi</value>
+  </data>
+  <data name="Menu_DailyProduction" xml:space="preserve">
+    <value>Kunlik ishlab chiqarish</value>
+  </data>
+  <data name="Menu_QualityControl" xml:space="preserve">
+    <value>Sifat nazorati</value>
+  </data>
+  <data name="Menu_DefectTypes" xml:space="preserve">
+    <value>Nuqson turlari</value>
+  </data>
+  <data name="Menu_MonthlyReports" xml:space="preserve">
+    <value>Oylik hisobotlar</value>
+  </data>
+  <data name="Menu_ProductionMonthly" xml:space="preserve">
+    <value>Ishlab chiqarish oylik</value>
+  </data>
+  <data name="Menu_QualityMonthly" xml:space="preserve">
+    <value>Sifat oylik</value>
+  </data>
+  <data name="Menu_Crm" xml:space="preserve">
+    <value>Sotuvlar (CRM)</value>
+  </data>
+  <data name="Menu_Sales" xml:space="preserve">
+    <value>Sotuvlar</value>
+  </data>
+  <data name="Menu_Customers" xml:space="preserve">
+    <value>Xaridorlar</value>
+  </data>
+  <data name="Menu_Invoices" xml:space="preserve">
+    <value>Invoyslar</value>
+  </data>
+  <data name="Menu_AllReports" xml:space="preserve">
+    <value>Barcha hisobotlar</value>
+  </data>
+  <data name="Menu_MonthlySalesReport" xml:space="preserve">
+    <value>Oylik savdo hisoboti</value>
+  </data>
+  <data name="Menu_SalesByCustomer" xml:space="preserve">
+    <value>Mijoz bo'yicha sotuv</value>
+  </data>
+  <data name="Menu_SalesByProduct" xml:space="preserve">
+    <value>Mahsulot bo'yicha sotuv</value>
+  </data>
+  <data name="Menu_SalesInvoice" xml:space="preserve">
+    <value>Hisob-faktura</value>
+  </data>
+  <data name="Menu_Ttnk" xml:space="preserve">
+    <value>TTNK</value>
+  </data>
+  <data name="Menu_Hr" xml:space="preserve">
+    <value>Kadrlar (HR)</value>
+  </data>
+  <data name="Menu_HrManagement" xml:space="preserve">
+    <value>Kadrlar boshqaruvi</value>
+  </data>
+  <data name="Menu_OrgStructure" xml:space="preserve">
+    <value>Tashkiliy struktura</value>
+  </data>
+  <data name="Menu_Positions" xml:space="preserve">
+    <value>Lavozimlar</value>
+  </data>
+  <data name="Menu_Employees" xml:space="preserve">
+    <value>Xodimlar</value>
+  </data>
+  <data name="Menu_EmployeeSeniority" xml:space="preserve">
+    <value>Xodimlar staji</value>
+  </data>
+  <data name="Menu_StaffingPlan" xml:space="preserve">
+    <value>Shtat jadvali</value>
+  </data>
+  <data name="Menu_Timesheet" xml:space="preserve">
+    <value>Tabel</value>
+  </data>
+  <data name="Menu_HourlyTimesheet" xml:space="preserve">
+    <value>Soatbay tabel</value>
+  </data>
+  <data name="Menu_PieceTimesheet" xml:space="preserve">
+    <value>Ishbay tabel</value>
+  </data>
+  <data name="Menu_PieceTariffs" xml:space="preserve">
+    <value>Ishbay tariflari</value>
+  </data>
+  <data name="Menu_Payroll" xml:space="preserve">
+    <value>Ish haqi</value>
+  </data>
+  <data name="Menu_TasksModule" xml:space="preserve">
+    <value>Vazifalar</value>
+  </data>
+  <data name="Menu_Tasks" xml:space="preserve">
+    <value>Vazifalar</value>
+  </data>
+  <data name="Menu_Kanban" xml:space="preserve">
+    <value>Kanban</value>
+  </data>
+  <data name="Menu_TaskSettings" xml:space="preserve">
+    <value>Vazifa sozlamalari</value>
+  </data>
+  <data name="Menu_Statuses" xml:space="preserve">
+    <value>Statuslar</value>
+  </data>
+  <data name="Menu_Priorities" xml:space="preserve">
+    <value>Prioritetlar</value>
+  </data>
+  <data name="Menu_Projects" xml:space="preserve">
+    <value>Loyihalar</value>
+  </data>
+  <data name="Menu_Documents" xml:space="preserve">
+    <value>Hujjatlar</value>
+  </data>
+  <data name="Menu_DocManagement" xml:space="preserve">
+    <value>Hujjatlar boshqaruvi</value>
+  </data>
+  <data name="Menu_CompanyOrders" xml:space="preserve">
+    <value>Kompaniya buyruqlari</value>
+  </data>
+  <data name="Menu_OfficialLetters" xml:space="preserve">
+    <value>Rasmiy maktublar</value>
+  </data>
+  <data name="Menu_CompanyStandards" xml:space="preserve">
+    <value>Korxona standartlari</value>
+  </data>
+  <data name="Menu_JobDescriptions" xml:space="preserve">
+    <value>Lavozim yo'riqnomalari</value>
+  </data>
+  <data name="Menu_Manual" xml:space="preserve">
+    <value>Qo'llanma</value>
+  </data>
+  <data name="Menu_Company" xml:space="preserve">
+    <value>Korxona</value>
+  </data>
+  <data name="Menu_Units" xml:space="preserve">
+    <value>O'lchov birliklari</value>
+  </data>
+  <data name="Menu_HsCodes" xml:space="preserve">
+    <value>TN VED kodlari</value>
+  </data>
+  <data name="Menu_Currencies" xml:space="preserve">
+    <value>Valyutalar</value>
+  </data>
+  <data name="Menu_MyProfile" xml:space="preserve">
+    <value>Mening profilim</value>
+  </data>
+  <data name="Menu_AdminPanel" xml:space="preserve">
+    <value>Admin panel</value>
+  </data>
+  <data name="Js_ConfirmDelete" xml:space="preserve">
+    <value>O'chirishni tasdiqlaysizmi?</value>
+  </data>
+  <data name="Js_ExcelTitle" xml:space="preserve">
+    <value>Excel'ga yuklash</value>
+  </data>
+  <data name="Js_PdfTitle" xml:space="preserve">
+    <value>PDF'ga yuklash</value>
+  </data>
+  <data name="Js_SearchLabel" xml:space="preserve">
+    <value>Qidirish:</value>
+  </data>
+  <data name="Js_Loading" xml:space="preserve">
+    <value>Yuklanmoqda...</value>
+  </data>
+  <data name="Js_ErrorGeneric" xml:space="preserve">
+    <value>Xatolik yuz berdi.</value>
+  </data>
+  <data name="Js_Saved" xml:space="preserve">
+    <value>Saqlandi</value>
+  </data>
+  <data name="Js_Deleted" xml:space="preserve">
+    <value>O'chirildi</value>
+  </data>
+  <data name="Js_Yes" xml:space="preserve">
+    <value>Ha</value>
+  </data>
+  <data name="Js_No" xml:space="preserve">
+    <value>Yo'q</value>
+  </data>
+  <data name="Js_Cancel" xml:space="preserve">
+    <value>Bekor qilish</value>
+  </data>
+  <data name="Js_Ok" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="Js_Select" xml:space="preserve">
+    <value>Tanlang</value>
+  </data>
+  <data name="Js_NoResults" xml:space="preserve">
+    <value>Natija topilmadi</value>
+  </data>
+  <data name="Js_ConfirmTitle" xml:space="preserve">
+    <value>Ishonchingiz komilmi?</value>
+  </data>
+  <data name="Js_Val_Required" xml:space="preserve">
+    <value>To'ldirilishi shart.</value>
+  </data>
+  <data name="Js_Val_Number" xml:space="preserve">
+    <value>Son kiriting.</value>
+  </data>
+  <data name="Js_Val_Date" xml:space="preserve">
+    <value>To'g'ri sana kiriting.</value>
+  </data>
+  <data name="Js_Val_Email" xml:space="preserve">
+    <value>To'g'ri e-pochta kiriting.</value>
+  </data>
+  <data name="Js_Val_MaxLength" xml:space="preserve">
+    <value>{0} belgidan oshmasin.</value>
+  </data>
+  <data name="Js_Val_MinLength" xml:space="preserve">
+    <value>Kamida {0} belgi.</value>
+  </data>
+  <data name="Js_Val_Min" xml:space="preserve">
+    <value>{0} dan kichik bo'lmasin.</value>
+  </data>
+  <data name="Js_Val_Max" xml:space="preserve">
+    <value>{0} dan katta bo'lmasin.</value>
+  </data>
+  <data name="Js_Val_Range" xml:space="preserve">
+    <value>{0} va {1} oralig'ida bo'lsin.</value>
+  </data>
+  <data name="Adm_BackToMain" xml:space="preserve">
+    <value>Asosiy sahifaga</value>
+  </data>
+  <data name="Adm_Users" xml:space="preserve">
+    <value>Foydalanuvchilar</value>
+  </data>
+  <data name="Adm_Licenses" xml:space="preserve">
+    <value>Litsenziyalar</value>
+  </data>
+  <data name="Adm_Permissions" xml:space="preserve">
+    <value>Huquqlar</value>
+  </data>
+  <data name="Adm_Roles" xml:space="preserve">
+    <value>Rollar</value>
+  </data>
+  <data name="Adm_Modules" xml:space="preserve">
+    <value>Modullar</value>
+  </data>
+  <data name="Adm_Monitoring" xml:space="preserve">
+    <value>Monitoring</value>
+  </data>
+  <data name="Adm_SystemLogs" xml:space="preserve">
+    <value>Tizim loglari</value>
+  </data>
+  <data name="Adm_UserEntries" xml:space="preserve">
+    <value>Tizimga kirishlar</value>
+  </data>
+  <data name="Adm_Deleted" xml:space="preserve">
+    <value>O'chirilganlar</value>
+  </data>
 </root>

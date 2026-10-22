@@ -1,0 +1,35 @@
+@* JS matnlari va kutubxonalar tili (ikkala layout'da jQuery'dan keyin, sahifa skriptlaridan oldin).
+   Sahifa skriptlarida: erpT("Js_Key") yoki erpT("Js_Key", [qiymat]) — {0}, {1} o'rniga. *@
+<script>
+    window.erpI18n = { lang: '@L.Lang', t: @L.JsBundle() };
+    window.erpT = function (key, args) {
+        var t = window.erpI18n.t, s = Object.prototype.hasOwnProperty.call(t, key) ? t[key] : key;
+        if (args) { for (var i = 0; i < args.length; i++) { s = s.split('{' + i + '}').join(args[i]); } }
+        return s;
+    };
+    (function ($) {
+        if (!$) { return; }
+        $(function () {
+            if ($.validator && $.validator.messages) {
+                $.extend($.validator.messages, {
+                    required: erpT('Js_Val_Required'),
+                    number: erpT('Js_Val_Number'),
+                    digits: erpT('Js_Val_Number'),
+                    date: erpT('Js_Val_Date'),
+                    email: erpT('Js_Val_Email'),
+                    maxlength: function (p) { return erpT('Js_Val_MaxLength', [p]); },
+                    minlength: function (p) { return erpT('Js_Val_MinLength', [p]); },
+                    min: function (p) { return erpT('Js_Val_Min', [p]); },
+                    max: function (p) { return erpT('Js_Val_Max', [p]); },
+                    range: function (p) { return erpT('Js_Val_Range', p); }
+                });
+            }
+            if ($.fn.select2 && $.fn.select2.defaults) {
+                $.fn.select2.defaults.set('language', {
+                    noResults: function () { return erpT('Js_NoResults'); },
+                    searching: function () { return erpT('Js_Loading'); }
+                });
+            }
+        });
+    })(window.jQuery);
+</script>

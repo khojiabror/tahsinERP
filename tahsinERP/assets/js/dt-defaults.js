@@ -11,7 +11,7 @@
         return;
     }
 
-    var language = $.extend({}, window.erpDataTable ? window.erpDataTable.language : {}, { processing: "Yuklanmoqda..." });
+    var language = $.extend({}, window.erpDataTable ? window.erpDataTable.language : {}, { processing: window.erpT ? window.erpT("Js_Loading") : "Yuklanmoqda..." });
     $.extend(true, $.fn.dataTable.defaults, { language: language });
 
     var buttons = $.fn.dataTable.ext.buttons;

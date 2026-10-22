@@ -24,6 +24,11 @@
 
     function pad(n) { return String(n).padStart(2, '0'); }
 
+    function tr(key, fallback) {
+        var t = window.erpI18n && window.erpI18n.t;
+        return t && Object.prototype.hasOwnProperty.call(t, key) ? t[key] : fallback;
+    }
+
     /** yyyyMMdd_HHmmss — fayl nomlari uchun. */
     function stamp() {
         var now = new Date();
@@ -51,14 +56,14 @@
         var excel = {
             extend: 'excelHtml5',
             text: '<i class="bx bxs-file-excel"></i> Excel',
-            titleAttr: 'Excelga yuklash',
+            titleAttr: tr('Js_ExcelTitle', 'Excelga yuklash'),
             className: 'btn btn-success' + size + ' mr-1',
             exportOptions: exportOptions
         };
         var pdf = {
             extend: 'pdfHtml5',
             text: '<i class="bx bxs-file-pdf"></i> PDF',
-            titleAttr: 'PDFga yuklash',
+            titleAttr: tr('Js_PdfTitle', 'PDFga yuklash'),
             className: 'btn btn-danger' + size,
             pageSize: 'A4',
             exportOptions: exportOptions
@@ -88,14 +93,15 @@
 
     window.erpDataTable = {
         // dt-defaults.js shu matnlarni DataTables standarti qiladi (sahifalarga berish shart emas)
+        // matnlar joriy tilda (_I18nScript.cshtml: window.erpT); u yuklanmagan bo'lsa — o'zbekcha
         language: {
-            search: 'Qidirish:',
-            lengthMenu: "_MENU_ ta ko'rsatish",
-            info: '_TOTAL_ ta yozuvdan _START_ dan _END_ gacha',
-            infoEmpty: "Yozuvlar yo'q",
-            infoFiltered: '(jami _MAX_ ta yozuvdan filtrlangan)',
-            paginate: { first: 'Birinchi', last: 'Oxirgi', next: 'Keyingi', previous: 'Oldingi' },
-            zeroRecords: "Ma'lumot topilmadi"
+            search: tr('Js_SearchLabel', 'Qidirish:'),
+            lengthMenu: tr('Dt_LengthMenu', "_MENU_ ta ko'rsatish"),
+            info: tr('Dt_Info', '_TOTAL_ ta yozuvdan _START_ dan _END_ gacha'),
+            infoEmpty: tr('Dt_InfoEmpty', "Yozuvlar yo'q"),
+            infoFiltered: tr('Dt_InfoFiltered', '(jami _MAX_ ta yozuvdan filtrlangan)'),
+            paginate: { first: tr('Dt_First', 'Birinchi'), last: tr('Dt_Last', 'Oxirgi'), next: tr('Dt_Next', 'Keyingi'), previous: tr('Dt_Previous', 'Oldingi') },
+            zeroRecords: tr('Dt_ZeroRecords', "Ma'lumot topilmadi")
         },
         stamp: stamp,
         stripHtml: stripHtml,

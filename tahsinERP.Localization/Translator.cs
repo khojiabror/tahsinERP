@@ -99,6 +99,22 @@ namespace tahsinERP.Localization
             catch (FormatException) { return text; }
         }
 
+        /// <summary>Prefiks bilan boshlanadigan barcha kalitlar (JS to'plami uchun: "Js_", "Dt_").</summary>
+        public IReadOnlyList<string> Keys(string prefix)
+        {
+            var keys = new SortedSet<string>(StringComparer.Ordinal);
+            foreach (var rm in _managers)
+            {
+                ResourceSet set;
+                try { set = rm.GetResourceSet(CultureInfo.InvariantCulture, true, true); }
+                catch (MissingManifestResourceException) { continue; }
+                if (set == null) continue;
+                foreach (System.Collections.DictionaryEntry e in set)
+                    if (e.Key is string k && k.StartsWith(prefix, StringComparison.Ordinal)) keys.Add(k);
+            }
+            return new List<string>(keys);
+        }
+
         /// <summary>Barcha kalitlar (testlar: har kalitning ruscha tarjimasi borligini tekshirish uchun).</summary>
         public static IEnumerable<KeyValuePair<string, string>> Entries(ResourceManager rm, CultureInfo culture)
         {

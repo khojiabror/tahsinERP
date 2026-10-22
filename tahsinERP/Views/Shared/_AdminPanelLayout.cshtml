@@ -1,6 +1,6 @@
 @using tahsinERP.Models;
 <!DOCTYPE html>
-<html lang="uz">
+<html lang="@tahsinERP.Localization.Languages.HtmlLang(L.Lang)">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0">
@@ -42,12 +42,13 @@
                             <ul class="nav navbar-nav">
                                 <li>
                                     <a href="~/Home" class="btn btn-sm btn-outline-light">
-                                        <i class="bx bx-arrow-back"></i> Asosiy sahifaga
+                                        <i class="bx bx-arrow-back"></i> @L.T("Adm_BackToMain")
                                     </a>
                                 </li>
                             </ul>
                         </div>
                         <ul class="nav navbar-nav float-right">
+                            @Html.Partial("_LanguageSwitch")
                             <li class="nav-item d-none d-lg-block">
                                 <a class="nav-link nav-link-expand"><i class="ficon bx bx-fullscreen"></i></a>
                             </li>
@@ -58,11 +59,11 @@
                                 </a>
                                 <div class="dropdown-menu dropdown-menu-right pb-0">
                                     <a class="dropdown-item" href="@Url.Action("Settings", "Account", new { area = "" })">
-                                        <i class="bx bx-user mr-50"></i> Profil sozlamalari
+                                        <i class="bx bx-user mr-50"></i> @L.T("Hdr_ProfileSettings")
                                     </a>
                                     <div class="dropdown-divider mb-0"></div>
                                     <a class="dropdown-item" href="~/Account/Logout">
-                                        <i class="bx bx-power-off mr-50"></i> Tizimdan chiqish
+                                        <i class="bx bx-power-off mr-50"></i> @L.T("Hdr_Logout")
                                     </a>
                                 </div>
                             </li>
@@ -79,7 +80,7 @@
                     <li class="nav-item mr-auto">
                         <a class="navbar-brand" href="/AdminPanel">
                             <div class="brand-logo"><img class="logo" src="~/app-assets/images/logo/logo-32x32.png.png" /></div>
-                            <h6 style="color:white; margin-left:10px;">Admin Panel</h6>
+                            <h6 style="color:white; margin-left:10px;">@L.T("Menu_AdminPanel")</h6>
                         </a>
                     </li>
                     <li class="nav-item nav-toggle">
@@ -94,34 +95,34 @@
             <div class="main-menu-content">
                 <ul class="navigation navigation-main" id="main-menu-navigation" data-menu="menu-navigation">
                     <li class="nav-item">
-                        <a href="~/AdminPanel"><i class="bx bx-home"></i><span class="menu-title">Bosh sahifa</span></a>
+                        <a href="~/AdminPanel"><i class="bx bx-home"></i><span class="menu-title">@L.T("Home")</span></a>
                     </li>
 
-                    <li class="navigation-header"><span>Foydalanuvchilar</span></li>
+                    <li class="navigation-header"><span>@L.T("Adm_Users")</span></li>
                     <li class="nav-item">
-                        <a href="~/User"><i class="bx bx-user"></i><span class="menu-title">Foydalanuvchilar</span></a>
+                        <a href="~/User"><i class="bx bx-user"></i><span class="menu-title">@L.T("Adm_Users")</span></a>
                     </li>
                     <li class="nav-item">
-                        <a href="~/License"><i class="bx bx-key"></i><span class="menu-title">Litsenziyalar</span></a>
-                    </li>
-
-                    <li class="navigation-header"><span>Huquqlar</span></li>
-                    <li class="nav-item">
-                        <a href="~/Role"><i class="bx bx-shield"></i><span class="menu-title">Rollar</span></a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="~/PModule"><i class="bx bx-list-check"></i><span class="menu-title">Modullar</span></a>
+                        <a href="~/License"><i class="bx bx-key"></i><span class="menu-title">@L.T("Adm_Licenses")</span></a>
                     </li>
 
-                    <li class="navigation-header"><span>Monitoring</span></li>
+                    <li class="navigation-header"><span>@L.T("Adm_Permissions")</span></li>
                     <li class="nav-item">
-                        <a href="~/Log"><i class="bx bx-file"></i><span class="menu-title">Tizim loglari</span></a>
+                        <a href="~/Role"><i class="bx bx-shield"></i><span class="menu-title">@L.T("Adm_Roles")</span></a>
                     </li>
                     <li class="nav-item">
-                        <a href="~/UserEntries"><i class="bx bxs-file-doc"></i><span class="menu-title">Tizimga kirishlar</span></a>
+                        <a href="~/PModule"><i class="bx bx-list-check"></i><span class="menu-title">@L.T("Adm_Modules")</span></a>
+                    </li>
+
+                    <li class="navigation-header"><span>@L.T("Adm_Monitoring")</span></li>
+                    <li class="nav-item">
+                        <a href="~/Log"><i class="bx bx-file"></i><span class="menu-title">@L.T("Adm_SystemLogs")</span></a>
                     </li>
                     <li class="nav-item">
-                        <a href="~/DeletedRecords"><i class="bx bx-undo"></i><span class="menu-title">O'chirilganlar</span></a>
+                        <a href="~/UserEntries"><i class="bx bxs-file-doc"></i><span class="menu-title">@L.T("Adm_UserEntries")</span></a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="~/DeletedRecords"><i class="bx bx-undo"></i><span class="menu-title">@L.T("Adm_Deleted")</span></a>
                     </li>
                 </ul>
             </div>
@@ -146,6 +147,7 @@
 
         <!-- Vendor JS -->
         <script src="~/app-assets/vendors/js/vendors.min.js"></script>
+        @Html.Partial("_I18nScript")
         <script>
             // LivIcons (261 KB) ishlatilmaydi; app-menu.js chaqiradigan metodlar uchun bo'sh stublar
             (function ($) {

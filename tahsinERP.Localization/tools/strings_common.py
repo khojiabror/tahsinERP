@@ -131,4 +131,6 @@ STRINGS = {
     "Dt_ZeroRecords": ("Mos yozuv topilmadi", "Совпадений не найдено"),
     "Dt_First": ("Birinchi", "Первая"),
     "Dt_Last": ("Oxirgi", "Последняя"),
+    "Dt_Next": ("Keyingi", "Следующая"),
+    "Dt_Previous": ("Oldingi", "Предыдущая"),
 }
