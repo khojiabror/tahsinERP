@@ -41,13 +41,12 @@ Updater (LocalSystem) ── tarmoqqa chiqmaydi, sir saqlamaydi
 
 ## 3. Bir martalik sozlash
 
-1. **Imzo kaliti** (ishlab chiquvchi kompyuterida, bir marta). Kalit allaqachon yaratilgan: `C:\Users\khoji\.tahsinERP-release\release-r1.private.pem`
-   (public qismi `ReleaseKeys["r1"]` da). GitHub'ga yuklang va faylni xavfsiz joyga (parol menejeri) oling:
-   ```
-   gh secret set RELEASE_SIGNING_KEY --env release < C:\Users\khoji\.tahsinERP-release\release-r1.private.pem
-   ```
-   GitHub → Settings → Environments → `release`: *Deployment branches* = `main`. Yangi kalit kerak bo'lsa:
-   `dotnet run --project tahsinERP.ReleaseTool -- keygen --out <papka> --key-id r2` va `ReleaseKeys` ga `r2` qo'shing.
+1. **Imzo kaliti — BAJARILGAN (2026-10-22).** `r1` kaliti GitHub secret `RELEASE_SIGNING_KEY` ga (environment `release`,
+   *Deployment branches* = faqat `main`) yuklangan, lokal nusxasi o'chirilgan — private kalit faqat GitHub'da (u yerdan o'qib bo'lmaydi).
+   Birinchi imzolangan reliz `v2026.10.22.4` lokal `ReleaseTool verify` bilan tasdiqlangan.
+   Kalitni almashtirish (secret yo'qolsa/oshkor bo'lsa): `dotnet run --project tahsinERP.ReleaseTool -- keygen --out <papka> --key-id r2`,
+   `ReleaseKeys` ga `r2` qo'shing (r1 ni olib tashlang — oshkor bo'lgan bo'lsa), Updater/agent/panelni yangilang, keyin
+   `gh secret set RELEASE_SIGNING_KEY --env release < <papka>\release-r2.private.pem` va workflow'da `--key-id r2`; faylni o'chiring.
 2. **GitHub token panelga**: github.com → Settings → Developer settings → Fine-grained tokens → repo `tahsinERP`, *Contents: Read-only*.
    Serverda (Administrator PowerShell; token chatga/skriptga yozilmaydi — Notepad'da vaqtinchalik faylga):
    ```
