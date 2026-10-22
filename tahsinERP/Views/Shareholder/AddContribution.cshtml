@@ -1,7 +1,7 @@
 @model tahsinERP.Models.SHAREHOLDER_CONTRIBUTIONS
 
 @{
-    ViewBag.Title = "Hissa qo'shish";
+    ViewBag.Title = L.T("Fin_AddContribution");
     Layout = "~/Views/Shared/_Layout.cshtml";
     var shareholder = ViewBag.Shareholder as tahsinERP.Models.SHAREHOLDER;
 }
@@ -17,9 +17,9 @@
                             <div class="breadcrumb-wrapper col-12">
                                 <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                     <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
-                                    <li class="breadcrumb-item"><a href="~/Shareholder">Aksiyadorlar</a></li>
+                                    <li class="breadcrumb-item"><a href="~/Shareholder">@L.T("Fin_Shareholders")</a></li>
                                     <li class="breadcrumb-item"><a href="@Url.Action("Details", new { id = shareholder.ID })">@shareholder.FullName</a></li>
-                                    <li class="breadcrumb-item active">Hissa qo'shish</li>
+                                    <li class="breadcrumb-item active">@L.T("Fin_AddContribution")</li>
                                 </ol>
                             </div>
                         </div>
@@ -31,7 +31,7 @@
                     <div class="col-md-8">
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">Hissa qo'shish: @shareholder.FullName</h4>
+                                <h4 class="card-title">@L.T("Fin_AddContribution"): @shareholder.FullName</h4>
                             </div>
                             <div class="card-content">
                                 <div class="card-body">
@@ -42,41 +42,41 @@
                                         @Html.ValidationSummary(true, "", new { @class = "text-danger" })
                                         
                                         <div class="form-group">
-                                            @Html.LabelFor(m => m.ContributionDate, "Sana *", new { @class = "control-label" })
+                                            @Html.LabelFor(m => m.ContributionDate, L.T("Date") + " *", new { @class = "control-label" })
                                             @Html.TextBoxFor(m => m.ContributionDate, new { @class = "form-control", type = "date", required = "required", @Value = Model.ContributionDate.ToString("yyyy-MM-dd") })
                                             @Html.ValidationMessageFor(m => m.ContributionDate, "", new { @class = "text-danger" })
                                         </div>
                                         
                                         <div class="form-group">
-                                            @Html.LabelFor(m => m.Amount, "Summa *", new { @class = "control-label" })
+                                            @Html.LabelFor(m => m.Amount, L.T("Amount") + " *", new { @class = "control-label" })
                                             @Html.TextBoxFor(m => m.Amount, new { @class = "form-control", type = "number", step = "0.01", required = "required" })
                                             @Html.ValidationMessageFor(m => m.Amount, "", new { @class = "text-danger" })
                                         </div>
                                         
                                         <div class="form-group">
-                                            @Html.LabelFor(m => m.CurrencyID, "Valyuta *", new { @class = "control-label" })
-                                            @Html.DropDownListFor(m => m.CurrencyID, ViewBag.CurrencyID as SelectList, "Tanlang...", new { @class = "form-control", required = "required" })
+                                            @Html.LabelFor(m => m.CurrencyID, L.T("Currency") + " *", new { @class = "control-label" })
+                                            @Html.DropDownListFor(m => m.CurrencyID, ViewBag.CurrencyID as SelectList, L.T("Fin_SelectDots"), new { @class = "form-control", required = "required" })
                                             @Html.ValidationMessageFor(m => m.CurrencyID, "", new { @class = "text-danger" })
                                         </div>
                                         
                                         <div class="form-group">
-                                            @Html.LabelFor(m => m.ContributionType, "Hissa turi *", new { @class = "control-label" })
-                                            @Html.DropDownListFor(m => m.ContributionType, ViewBag.ContributionTypeList as SelectList, "Tanlang...", new { @class = "form-control", required = "required" })
+                                            @Html.LabelFor(m => m.ContributionType, L.T("Fin_ContributionType") + " *", new { @class = "control-label" })
+                                            @Html.DropDownListFor(m => m.ContributionType, ViewBag.ContributionTypeList as SelectList, L.T("Fin_SelectDots"), new { @class = "form-control", required = "required" })
                                             @Html.ValidationMessageFor(m => m.ContributionType, "", new { @class = "text-danger" })
                                         </div>
                                         
                                         <div class="form-group">
-                                            @Html.LabelFor(m => m.Description, "Tavsif", new { @class = "control-label" })
+                                            @Html.LabelFor(m => m.Description, L.T("Description"), new { @class = "control-label" })
                                             @Html.TextAreaFor(m => m.Description, new { @class = "form-control", rows = 3 })
                                         </div>
                                         
                                         <div class="alert alert-info">
-                                            <i class="bx bx-info-circle"></i> Naqd pul hissasi uchun avtomatik moliya tranzaksiyasi yaratiladi.
+                                            <i class="bx bx-info-circle"></i> @L.T("Fin_CashContributionHint")
                                         </div>
                                         
                                         <div class="form-actions">
-                                            <button type="submit" class="btn btn-primary">Saqlash</button>
-                                            <a href="@Url.Action("Details", new { id = shareholder.ID })" class="btn btn-secondary">Bekor qilish</a>
+                                            <button type="submit" class="btn btn-primary">@L.T("Save")</button>
+                                            <a href="@Url.Action("Details", new { id = shareholder.ID })" class="btn btn-secondary">@L.T("Cancel")</a>
                                         </div>
                                     }
                                 </div>

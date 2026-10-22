@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
+using tahsinERP.I18n;
 using tahsinERP.Models;
 
 namespace tahsinERP.Services
@@ -87,7 +88,7 @@ namespace tahsinERP.Services
                     Total = pp.Total,
                     AcceptedQty = pp.Total,
                     RemainingAmount = remaining,
-                    DisplayText = $"Lot {pp.ID} ({pp.Date:dd.MM.yyyy}) — qoldiq: {remaining:N2}"
+                    DisplayText = L.T("Mes_Prod_LotDisplay", pp.ID, pp.Date.ToString("dd.MM.yyyy"), remaining.ToString("N2"))
                 });
             }
             return result;
@@ -125,8 +126,8 @@ namespace tahsinERP.Services
                 if (totalAcceptedForLot <= 0 || wouldBeTransferred > (totalAcceptedForLot + 0.0001m))
                 {
                     var prodDate = db.PRODUCT_PRODUCTION.Where(p => p.ID == a.ProductionID).Select(p => (DateTime?)p.Date).FirstOrDefault();
-                    errorMessage = $"Lot (Ishlab chiqarish #{a.ProductionID}, {(prodDate?.ToString("dd.MM.yyyy") ?? "")}) uchun qabul qilingan miqdor yetarli emas. " +
-                        $"Qabul qilingan jami: {totalAcceptedForLot:N2}, avval o'tkazilgan: {alreadyTransferredFromLot:N2}, hozir so'ralgan: {a.Quantity:N2}.";
+                    errorMessage = L.T("Mes_Prod_LotInsufficientAccepted", a.ProductionID, prodDate?.ToString("dd.MM.yyyy") ?? "",
+                        totalAcceptedForLot.ToString("N2"), alreadyTransferredFromLot.ToString("N2"), a.Quantity.ToString("N2"));
                     return false;
                 }
             }

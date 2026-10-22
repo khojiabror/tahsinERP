@@ -10,6 +10,7 @@ using tahsinERP.Models;
 using tahsinERP.ViewModels;
 using tahsinERP.Controllers;
 using tahsinERP.Helpers;
+using tahsinERP.I18n;
 
 namespace tahsinERP.Controllers.MES
 {
@@ -86,9 +87,9 @@ namespace tahsinERP.Controllers.MES
                     productID
                 );
                 ViewBag.StatusCodes = new SelectList(new[] {
-                    new { Value = "DRAFT", Text = "Qoralama" },
-                    new { Value = "APPROVED", Text = "Tasdiqlangan" },
-                    new { Value = "REJECTED", Text = "Rad etilgan" }
+                    new { Value = "DRAFT", Text = L.T("Mes_Qi_Status_DRAFT") },
+                    new { Value = "APPROVED", Text = L.T("Mes_Qi_Status_APPROVED") },
+                    new { Value = "REJECTED", Text = L.T("Mes_Qi_Status_REJECTED") }
                 }, "Value", "Text", statusCode);
                 ViewBag.FromDate = effectiveFrom;
                 ViewBag.ToDate = toDate ?? DateTime.Now;
@@ -181,7 +182,7 @@ namespace tahsinERP.Controllers.MES
             }
             if (viewModel == null)
             {
-                ModelState.AddModelError("", "Ma'lumotlar topilmadi");
+                ModelState.AddModelError("", L.T("Mes_DataNotFound"));
             }
 
             if (ModelState.IsValid)
@@ -212,7 +213,7 @@ namespace tahsinERP.Controllers.MES
                             // GET ro'yxat bilan bir xil: IsDeleted == null ham faol yozuv
                             if (!productions.TryGetValue(item.ProductionID, out var production))
                             {
-                                ModelState.AddModelError("", $"Ishlab chiqarish topilmadi: ID {item.ProductionID}");
+                                ModelState.AddModelError("", L.T("Mes_Qi_ProductionNotFoundId", item.ProductionID));
                                 continue;
                             }
 
@@ -271,7 +272,7 @@ namespace tahsinERP.Controllers.MES
 
                         if (createdCount == 0)
                         {
-                            ModelState.AddModelError("", "Tekshiruv uchun miqdor kiritilmadi");
+                            ModelState.AddModelError("", L.T("Mes_Qi_NoQtyEntered"));
                             SetDefectTypesViewBag(db);
                             return View(viewModel);
                         }
@@ -281,7 +282,7 @@ namespace tahsinERP.Controllers.MES
                         LogHelper.LogToDatabase(User.Identity.Name, "QualityInspectionController",
                             $"Sifat nazorati yaratildi: Sana {viewModel.InspectionDate:yyyy-MM-dd}, {createdCount} ta yozuv");
 
-                        TempData["Success"] = "Sifat nazorati muvaffaqiyatli yaratildi";
+                        TempData["Success"] = L.T("Mes_Qi_Created");
                         return RedirectToAction("Index");
                     }
                     catch (Exception ex)
@@ -375,7 +376,7 @@ namespace tahsinERP.Controllers.MES
 
                 if (inspection.StatusCode == "APPROVED")
                 {
-                    TempData["ErrorMessage"] = "Bu sifat nazorati allaqachon tasdiqlangan";
+                    TempData["ErrorMessage"] = L.T("Mes_Qi_AlreadyApproved");
                     return RedirectToAction("Index");
                 }
 
@@ -415,7 +416,7 @@ namespace tahsinERP.Controllers.MES
 
                 LogHelper.LogToDatabase(User.Identity.Name, "QualityInspectionController", $"Sifat nazorati tasdiqlandi: ID {id}");
 
-                TempData["Success"] = "Sifat nazorati muvaffaqiyatli tasdiqlandi";
+                TempData["Success"] = L.T("Mes_Qi_ApprovedOk");
                 return RedirectToAction("Index");
             }
         }
@@ -441,7 +442,7 @@ namespace tahsinERP.Controllers.MES
                 // Prevent deleting agar approved
                 if (inspection.StatusCode == "APPROVED")
                 {
-                    TempData["ErrorMessage"] = "Tasdiqlangan sifat nazoratini o'chirish mumkin emas";
+                    TempData["ErrorMessage"] = L.T("Mes_Qi_CannotDeleteApproved");
                     return RedirectToAction("Index");
                 }
 
@@ -451,7 +452,7 @@ namespace tahsinERP.Controllers.MES
 
                 LogHelper.LogToDatabase(User.Identity.Name, "QualityInspectionController", $"Sifat nazorati o'chirildi: ID {id}");
 
-                TempData["Success"] = "Sifat nazorati muvaffaqiyatli o'chirildi";
+                TempData["Success"] = L.T("Mes_Qi_DeletedOk");
                 return RedirectToAction("Index");
             }
         }

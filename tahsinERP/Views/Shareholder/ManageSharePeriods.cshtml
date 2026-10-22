@@ -1,5 +1,5 @@
 @{
-    ViewBag.Title = "Ulushlarni boshqarish";
+    ViewBag.Title = L.T("Fin_ManageShares");
     Layout = "~/Views/Shared/_Layout.cshtml";
     var shareholder = ViewBag.Shareholder as tahsinERP.Models.SHAREHOLDER;
     var periods = ViewBag.Periods as List<tahsinERP.Models.SHAREHOLDER_SHARE_PERIODS> ?? new List<tahsinERP.Models.SHAREHOLDER_SHARE_PERIODS>();
@@ -16,9 +16,9 @@
                             <div class="breadcrumb-wrapper col-12">
                                 <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                     <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
-                                    <li class="breadcrumb-item"><a href="~/Shareholder">Aksiyadorlar</a></li>
+                                    <li class="breadcrumb-item"><a href="~/Shareholder">@L.T("Fin_Shareholders")</a></li>
                                     <li class="breadcrumb-item"><a href="@Url.Action("Details", new { id = shareholder.ID })">@shareholder.FullName</a></li>
-                                    <li class="breadcrumb-item active">Ulushlarni boshqarish</li>
+                                    <li class="breadcrumb-item active">@L.T("Fin_ManageShares")</li>
                                 </ol>
                             </div>
                         </div>
@@ -38,18 +38,18 @@
                     <div class="col-md-10">
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">Ulushlarni boshqarish: @shareholder.FullName</h4>
+                                <h4 class="card-title">@L.T("Fin_ManageShares"): @shareholder.FullName</h4>
                             </div>
                             <div class="card-content">
                                 <div class="card-body">
-                                    <h5>Mavjud ulush davrlari:</h5>
+                                    <h5>@L.T("Fin_ExistingSharePeriods"):</h5>
                                     <div class="table-responsive mb-3">
                                         <table class="table table-striped">
                                             <thead>
                                                 <tr>
-                                                    <th>Dan</th>
-                                                    <th>Gacha</th>
-                                                    <th>Ulush %</th>
+                                                    <th>@L.T("Fin_From")</th>
+                                                    <th>@L.T("Fin_To")</th>
+                                                    <th>@L.T("Fin_SharePct")</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -57,7 +57,7 @@
                                                 {
                                                     <tr>
                                                         <td>@period.FromDate.ToString("dd.MM.yyyy")</td>
-                                                        <td>@(period.ToDate?.ToString("dd.MM.yyyy") ?? "Hozirgacha")</td>
+                                                        <td>@(period.ToDate?.ToString("dd.MM.yyyy") ?? L.T("Fin_UntilNow"))</td>
                                                         <td><strong>@period.SharePercent%</strong></td>
                                                     </tr>
                                                 }
@@ -65,7 +65,7 @@
                                         </table>
                                     </div>
                                     
-                                    <h5>Yangi ulush davri qo'shish:</h5>
+                                    <h5>@L.T("Fin_AddSharePeriod"):</h5>
                                     @using (Html.BeginForm("AddSharePeriod", "Shareholder", FormMethod.Post, new { @class = "form" }))
                                     {
                                         @Html.AntiForgeryToken()
@@ -74,34 +74,34 @@
                                         <div class="row">
                                             <div class="col-md-3">
                                                 <div class="form-group">
-                                                    <label class="control-label">Dan sana *</label>
+                                                    <label class="control-label">@L.T("Fin_DateFrom") *</label>
                                                     <input type="date" name="fromDate" class="form-control" required />
                                                 </div>
                                             </div>
                                             <div class="col-md-3">
                                                 <div class="form-group">
-                                                    <label class="control-label">Gacha sana</label>
+                                                    <label class="control-label">@L.T("Fin_DateTo")</label>
                                                     <input type="date" name="toDate" class="form-control" />
-                                                    <small class="text-muted">Bo'sh qoldirilsa, hozirgacha</small>
+                                                    <small class="text-muted">@L.T("Fin_EmptyMeansNow")</small>
                                                 </div>
                                             </div>
                                             <div class="col-md-3">
                                                 <div class="form-group">
-                                                    <label class="control-label">Ulush % *</label>
+                                                    <label class="control-label">@L.T("Fin_SharePct") *</label>
                                                     <input type="number" name="sharePercent" class="form-control" step="0.01" min="0" max="100" required />
                                                 </div>
                                             </div>
                                             <div class="col-md-3">
                                                 <div class="form-group">
                                                     <label class="control-label">&nbsp;</label>
-                                                    <button type="submit" class="btn btn-primary btn-block">Qo'shish</button>
+                                                    <button type="submit" class="btn btn-primary btn-block">@L.T("Add")</button>
                                                 </div>
                                             </div>
                                         </div>
                                     }
                                     
                                     <div class="mt-3">
-                                        <a href="@Url.Action("Details", new { id = shareholder.ID })" class="btn btn-secondary">Orqaga</a>
+                                        <a href="@Url.Action("Details", new { id = shareholder.ID })" class="btn btn-secondary">@L.T("Back")</a>
                                     </div>
                                 </div>
                             </div>

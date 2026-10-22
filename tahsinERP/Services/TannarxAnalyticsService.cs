@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
+using tahsinERP.I18n;
 using tahsinERP.Models;
 using tahsinERP.Services.Tannarx;
 using tahsinERP.ViewModels.Tannarx;
@@ -27,7 +28,7 @@ namespace tahsinERP.Services
             {
                 if (!year.HasValue || !month.HasValue)
                 {
-                    throw new Exception("Fakt xarajatlarni yangilash uchun yil va oy majburiy.");
+                    throw new Exception(L.T("Mes_TanA_Err_YearMonthRequired"));
                 }
 
                 _db.Database.CommandTimeout = 180;
@@ -38,7 +39,7 @@ namespace tahsinERP.Services
             }
             catch (Exception ex)
             {
-                throw new Exception($"Actual costs yangilashda xatolik: {ex.Message}", ex);
+                throw new Exception(L.T("Mes_TanA_Err_UpdateActual", ex.Message), ex);
             }
         }
 
@@ -505,64 +506,64 @@ namespace tahsinERP.Services
                 vm.MaterialPathCounts[g.Key] = g.Count();
                 vm.Elements.Add(new TannarxCostElementSourceRow
                 {
-                    Element = "Material",
+                    Element = L.T("Mes_Materials"),
                     Source = MaterialPathTitle(g.Key),
                     SourceTotal = g.Sum(p => p.Material.SourceAmount),
                     AllocatedTotal = g.Sum(p => p.Material.UnitCost * p.ProducedQty),
-                    Note = $"{g.Count()} ta mahsulot"
+                    Note = L.T("Mes_TanA_ProductsCount", g.Count())
                 });
             }
             vm.Elements.Add(new TannarxCostElementSourceRow
             {
-                Element = "Material",
-                Source = "Finance 'Material' xarajatlari (PATH3 havzasi)",
+                Element = L.T("Mes_Materials"),
+                Source = L.T("Mes_TanA_Src_FinanceMaterialPool"),
                 SourceTotal = m.Finance.Material,
                 AllocatedTotal = produced.Where(p => p.Material.Path == "PATH3").Sum(p => p.Material.SourceAmount),
-                Note = "Qoldiq — boshqa algoritm (ombor/PI) bilan hisoblangan mahsulotlar ulushi; ular materialini o'z manbasidan oladi"
+                Note = L.T("Mes_TanA_Note_FinanceMaterialRest")
             });
             vm.Elements.Add(new TannarxCostElementSourceRow
             {
-                Element = "Material tashuvi",
-                Source = $"Kirim yo'l varaqalari (shu oy, sotuvga bog'lanmagan): {m.MaterialWaybillNos.Count} ta",
+                Element = L.T("Mes_TanA_El_MaterialTransport"),
+                Source = L.T("Mes_TanA_Src_IncomingWaybills", m.MaterialWaybillNos.Count),
                 SourceTotal = m.MaterialTransportPool,
                 AllocatedTotal = Allocated(p => p.MaterialTransportPerUnit),
-                Note = m.MaterialTransportByQtyShare ? "Miqdor ulushida (material summasi yo'q)" : "Material summasi ulushida"
+                Note = m.MaterialTransportByQtyShare ? L.T("Mes_TanA_Note_ByQtyShare") : L.T("Mes_TanA_Note_ByMaterialShare")
             });
             vm.Elements.Add(new TannarxCostElementSourceRow
             {
-                Element = "A — Ish haqi",
-                Source = "Ishbay ish yozuvlari × tarif",
+                Element = L.T("Mes_TanA_El_Labor"),
+                Source = L.T("Mes_TanA_Src_PieceRate"),
                 SourceTotal = m.PieceRateLaborTotal,
                 AllocatedTotal = Allocated(p => p.LaborPerUnit)
             });
             vm.Elements.Add(new TannarxCostElementSourceRow
             {
-                Element = "B — Soliq va bank",
+                Element = L.T("Mes_Tan_Bucket_TaxBank"),
                 Source = "Finance",
                 SourceTotal = m.Finance.TaxBank,
                 AllocatedTotal = Allocated(p => p.TaxBankPerUnit),
-                Note = "Oy jami / barcha ishlab chiqarilgan miqdor"
+                Note = L.T("Mes_TanA_Note_MonthPerAllQty")
             });
             vm.Elements.Add(new TannarxCostElementSourceRow
             {
-                Element = "C — Administrativ",
-                Source = "Soatbay ish haqi (HR oylik, tasdiqlangan; bo'lmasa tabel)",
+                Element = L.T("Mes_TanA_El_Admin"),
+                Source = L.T("Mes_TanA_Src_HourlyPay"),
                 SourceTotal = m.AdminTotal,
                 AllocatedTotal = Allocated(p => p.AdminPerUnit),
-                Note = "Oy jami / barcha ishlab chiqarilgan miqdor"
+                Note = L.T("Mes_TanA_Note_MonthPerAllQty")
             });
             vm.Elements.Add(new TannarxCostElementSourceRow
             {
-                Element = "D — Boshqa",
-                Source = "Finance (boshqa + aniqlanmagan xarajatlar)",
+                Element = L.T("Mes_Tan_Bucket_Other"),
+                Source = L.T("Mes_TanA_Src_FinanceOther"),
                 SourceTotal = m.Finance.Other,
                 AllocatedTotal = Allocated(p => p.OtherPerUnit),
-                Note = "Oy jami / barcha ishlab chiqarilgan miqdor"
+                Note = L.T("Mes_TanA_Note_MonthPerAllQty")
             });
             vm.Elements.Add(new TannarxCostElementSourceRow
             {
-                Element = "Tayyor mahsulot tashuvi (CIP)",
-                Source = "Yo'l varaqalari (sotuv invoysiga bog'langan, shu oy)",
+                Element = L.T("Mes_TanA_El_FinishedTransport"),
+                Source = L.T("Mes_TanA_Src_SalesWaybills"),
                 AllocatedTotal = Allocated(p => p.FinishedTransportPerUnit)
             });
 
@@ -598,21 +599,19 @@ namespace tahsinERP.Services
 
             var forced = produced.Count(p => p.Material.Path == "PLAN");
             if (forced > 0)
-                warnings.Add($"{forced} ta mahsulotda material uchun hech bir manba (ombordan chiqim, xarid invoysi, Finance) topilmadi — REJA narxi olindi. " +
-                             "Ishlab chiqarish uchun ombordan chiqim hujjatlarini yoki SO → PO bog'lanishini tekshiring.");
+                warnings.Add(L.T("Mes_TanA_Warn_PlanPriceUsed", forced));
             var partial = produced.Count(p => p.Material.MethodCode == "WAREHOUSE_ISSUE_FIFO_PARTIAL");
             if (partial > 0)
-                warnings.Add($"{partial} ta mahsulotda ishlab chiqarishning bir qismi uchun ombordan chiqim hujjati yo'q — birlik narx hujjatli qism bo'yicha olindi.");
+                warnings.Add(L.T("Mes_TanA_Warn_PartialIssue", partial));
             var zeroPriceIssues = produced.Where(p => p.WarehouseIssue != null && p.WarehouseIssue.ZeroPriceLineCount > 0).ToList();
             if (zeroPriceIssues.Any())
-                warnings.Add($"{zeroPriceIssues.Count} ta mahsulotning ombordan chiqimida narxsiz (0) qatorlar bor ({zeroPriceIssues.Sum(p => p.WarehouseIssue.ZeroPriceLineCount)} qator) — kirim narxi kiritilmagan materiallar, material narxi past chiqadi.");
+                warnings.Add(L.T("Mes_TanA_Warn_ZeroPriceLines", zeroPriceIssues.Count, zeroPriceIssues.Sum(p => p.WarehouseIssue.ZeroPriceLineCount)));
             if (m.ProducedWithoutTannarx.Any())
-                warnings.Add($"Shu oyda {m.ProducedWithoutTannarx.Count} ta mahsulot ({m.ProducedWithoutTannarx.Values.Sum():N2} dona) ishlab chiqarilgan, lekin ular uchun tannarx qatori yo'q — " +
-                             "B/C/D xarajatlarining ularga tegishli ulushi hech qaysi tannarxga yozilmaydi. Tannarx sahifasida shu oy uchun qator yarating.");
+                warnings.Add(L.T("Mes_TanA_Warn_ProducedWithoutTannarx", m.ProducedWithoutTannarx.Count, m.ProducedWithoutTannarx.Values.Sum()));
             if (m.Finance.BaseCurrencyCode == null)
-                warnings.Add("CURRENCIES da 'UZS' topilmadi — Finance summalari barcha valyutalarda konvertatsiyasiz qo'shildi.");
+                warnings.Add(L.T("Mes_TanA_Warn_NoUzs"));
             if (m.Finance.SkippedForeignCount > 0)
-                warnings.Add($"Boshqa valyutadagi {m.Finance.SkippedForeignCount} ta Finance tranzaksiyasi hisobga olinmadi ({string.Join(", ", m.Finance.SkippedForeignByCurrency.Select(kv => $"{kv.Key}: {kv.Value:N2}"))}).");
+                warnings.Add(L.T("Mes_TanA_Warn_SkippedForeign", m.Finance.SkippedForeignCount, string.Join(", ", m.Finance.SkippedForeignByCurrency.Select(kv => $"{kv.Key}: {kv.Value:N2}"))));
             return warnings;
         }
 
@@ -675,7 +674,7 @@ namespace tahsinERP.Services
                 if (!expenseIds.Contains(kv.Key) || string.IsNullOrWhiteSpace(kv.Value))
                     continue;
                 if (!int.TryParse(kv.Value, out var v) || v < 0 || v > 3)
-                    throw new ArgumentException($"Noto'g'ri guruh qiymati: {kv.Value}");
+                    throw new ArgumentException(L.T("Mes_TanA_Err_InvalidBucket", kv.Value));
                 map[kv.Key] = (TannarxFinanceBucket)v;
             }
 
@@ -686,11 +685,11 @@ namespace tahsinERP.Services
         {
             switch (path)
             {
-                case "PATH0": return "PATH0 — ombordan ishlab chiqarishga chiqim (FIFO narx)";
-                case "PATH1": return "PATH1 — SO → PO → xarid invoysi";
-                case "PATH2": return "PATH2 — SO → PO → invoys → ombor kirimi";
-                case "PATH3": return "PATH3 — Finance 'Material' (reja ulushida)";
-                case "PLAN": return "Reja narxi (manba topilmadi)";
+                case "PATH0": return L.T("Mes_TanA_Path0");
+                case "PATH1": return L.T("Mes_TanA_Path1");
+                case "PATH2": return L.T("Mes_TanA_Path2");
+                case "PATH3": return L.T("Mes_TanA_Path3");
+                case "PLAN": return L.T("Mes_TanA_PathPlan");
                 default: return path;
             }
         }
@@ -716,21 +715,21 @@ namespace tahsinERP.Services
                 report.ActualOverheadCalculationNote = BuildOverheadNote(month, r);
 
                 if (r.ProducedQty > 0 && r.Material.Path == "PLAN")
-                    report.ActualMaterialWarning = "Diqqat: bu mahsulot uchun material manbasi (ombordan chiqim, xarid invoysi, Finance) topilmadi — fakt material o'rniga REJA narxi olingan.";
+                    report.ActualMaterialWarning = L.T("Mes_TanA_MatWarn_Plan");
                 else if (r.Material.MethodCode == "WAREHOUSE_ISSUE_FIFO_PARTIAL")
-                    report.ActualMaterialWarning = $"Diqqat: ishlab chiqarishning faqat {r.Material.CoveragePercent:P0} qismi uchun ombordan chiqim hujjati bor — birlik narx shu qism bo'yicha olingan.";
+                    report.ActualMaterialWarning = L.T("Mes_TanA_MatWarn_Partial", r.Material.CoveragePercent);
                 else if (r.WarehouseIssue != null && r.WarehouseIssue.ZeroPriceLineCount > 0 && r.Material.Path == "PATH0")
-                    report.ActualMaterialWarning = $"Diqqat: ombordan chiqimda {r.WarehouseIssue.ZeroPriceLineCount} ta narxsiz (0) qator bor — material narxi past chiqishi mumkin.";
+                    report.ActualMaterialWarning = L.T("Mes_TanA_MatWarn_ZeroPrice", r.WarehouseIssue.ZeroPriceLineCount);
             }
             catch (Exception ex)
             {
-                report.ActualMaterialCalculationNote = $"Fakt hisob izohini tuzishda xatolik: {ex.Message}";
+                report.ActualMaterialCalculationNote = L.T("Mes_TanA_Err_BuildNote", ex.Message);
             }
         }
 
         private static string PeriodLine(int year, int month)
         {
-            return $"Period: 01.{month:D2}.{year} - {DateTime.DaysInMonth(year, month):D2}.{month:D2}.{year}";
+            return L.T("Mes_TanA_N_Period", $"01.{month:D2}.{year} - {DateTime.DaysInMonth(year, month):D2}.{month:D2}.{year}");
         }
 
         private static string JoinOrDash(IEnumerable<string> values)
@@ -745,53 +744,52 @@ namespace tahsinERP.Services
             var lines = new List<string>
             {
                 PeriodLine(month.Year, month.Month),
-                $"Ishlab chiqarilgan maxsulot(shu product) soni: {r.ProducedQty:N2} ta",
-                $"Hisoblanish qoidasi: {d.Path} ({d.MethodCode})",
-                $"Tanlash sababi kodi: {d.ReasonCode}"
+                L.T("Mes_TanA_N_ProducedQty", r.ProducedQty),
+                L.T("Mes_TanA_N_Rule", $"{d.Path} ({d.MethodCode})"),
+                L.T("Mes_TanA_N_ReasonCode", d.ReasonCode)
             };
             if (r.ProducedQty <= 0)
             {
-                lines.Add("Shu oyda ishlab chiqarish yo'q — fakt xarajat hisoblanmaydi.");
+                lines.Add(L.T("Mes_TanA_N_NoProduction"));
                 return string.Join(Environment.NewLine, lines);
             }
 
-            lines.Add($"Algoritmlar (tartib bilan): {string.Join("; ", r.PathAttempts)}");
+            lines.Add(L.T("Mes_TanA_N_Algorithms", string.Join("; ", r.PathAttempts)));
             var issue = r.WarehouseIssue;
             if (issue != null)
             {
-                lines.Add($"PATH0 — ombordan chiqim: {issue.ExpenseCount} hujjat, {issue.LineCount} qator, summa {issue.Amount:N2}; " +
-                          $"ishlab chiqarish yozuvlari {issue.CoveredProductionCount}/{issue.ProductionCount}, qamrab olingan miqdor {issue.CoveredQty:N2}" +
-                          (issue.ZeroPriceLineCount > 0 ? $"; narxsiz (0) qatorlar: {issue.ZeroPriceLineCount}" : ""));
+                lines.Add(L.T("Mes_TanA_N_Path0Issue", issue.ExpenseCount, issue.LineCount, issue.Amount, issue.CoveredProductionCount, issue.ProductionCount, issue.CoveredQty) +
+                          (issue.ZeroPriceLineCount > 0 ? L.T("Mes_TanA_N_ZeroPriceLines", issue.ZeroPriceLineCount) : ""));
             }
             else
             {
-                lines.Add("PATH0 — ombordan chiqim: shu oy ishlab chiqarishiga bog'langan chiqim hujjati yo'q");
+                lines.Add(L.T("Mes_TanA_N_Path0None"));
             }
-            lines.Add($"BOM komponentlar soni: {r.BomComponentCount}");
-            lines.Add($"Savdo buyurtmasi: {JoinOrDash(r.SalesOrderNos)}");
-            lines.Add($"Unga bog'langan Xarid buyurtmasi: {JoinOrDash(r.PurchaseOrderNos)}");
-            lines.Add($"Xarid buyurtmasiga bog'langan Invoice (shu oy): {JoinOrDash(r.PurchaseInvoiceNos)}");
-            lines.Add($"PI Header jami summasi (QQS bilan bo'lishi mumkin, hisobda ishlatilmaydi): {r.PiHeaderAmount:N2}");
-            lines.Add($"PI line jami summasi: {r.PiLinesAmount:N2}");
-            lines.Add($"Bu maxsulot BOMiga mos material summasi: {r.PiMatchedAmount:N2}");
-            lines.Add($"BOMga kirmaydigan line summasi (hisobga olinmadi): {(r.PiLinesAmount - r.PiMatchedAmount):N2}");
+            lines.Add(L.T("Mes_TanA_N_BomComponents", r.BomComponentCount));
+            lines.Add(L.T("Mes_TanA_N_SalesOrders", JoinOrDash(r.SalesOrderNos)));
+            lines.Add(L.T("Mes_TanA_N_PurchaseOrders", JoinOrDash(r.PurchaseOrderNos)));
+            lines.Add(L.T("Mes_TanA_N_PurchaseInvoices", JoinOrDash(r.PurchaseInvoiceNos)));
+            lines.Add(L.T("Mes_TanA_N_PiHeader", r.PiHeaderAmount));
+            lines.Add(L.T("Mes_TanA_N_PiLines", r.PiLinesAmount));
+            lines.Add(L.T("Mes_TanA_N_PiMatched", r.PiMatchedAmount));
+            lines.Add(L.T("Mes_TanA_N_PiNotInBom", r.PiLinesAmount - r.PiMatchedAmount));
             if (r.PiSharedLineCount > 0)
             {
-                lines.Add($"Boshqa mahsulotlar bilan umumiy PI qatorlari: {r.PiSharedLineCount} ta — ishlab chiqarilgan miqdor ulushida bo'lindi; shu mahsulotga: {r.PiMatchedAllocatedAmount:N2}");
+                lines.Add(L.T("Mes_TanA_N_PiShared", r.PiSharedLineCount, r.PiMatchedAllocatedAmount));
             }
             lines.Add($"Coverage: {d.CoveragePercent:P2}");
             lines.Add($"Reconcile delta: {d.ReconcileDelta:P2}");
             if (d.Path == "PATH3")
             {
-                lines.Add($"Finance 'Material' xarajatlari (oy jami, {month.Finance.BaseCurrencyCode ?? "barcha valyuta"}): {month.Finance.Material:N2}; kategoriyalar: {JoinOrDash(month.Finance.MaterialCategories)}");
-                lines.Add("Taqsimlash: reja material narxi × ishlab chiqarilgan miqdor ulushida.");
+                lines.Add(L.T("Mes_TanA_N_FinanceMaterial", month.Finance.BaseCurrencyCode ?? L.T("Mes_TanA_N_AllCurrencies"), month.Finance.Material, JoinOrDash(month.Finance.MaterialCategories)));
+                lines.Add(L.T("Mes_TanA_N_AllocPlanShare"));
             }
-            lines.Add($"Formula: Fakt material (1 dona) = {d.SourceAmount:N2} / {d.DenominatorQty:N2}");
-            lines.Add($"Fakt material narxi (1 dona): {d.UnitCost:N2} so'm");
+            lines.Add(L.T("Mes_TanA_N_FormulaMaterial", d.SourceAmount, d.DenominatorQty));
+            lines.Add(L.T("Mes_TanA_N_MaterialUnitCost", d.UnitCost, L.Sum));
 
             if (d.MethodCode != null && d.MethodCode.Contains("FORCED"))
             {
-                lines.Add("Izoh: PATH0/PATH1/PATH2/PATH3 manbasi yetarli bo'lmagani uchun policy bo'yicha majburiy fallback qo'llandi (NONE yo'q).");
+                lines.Add(L.T("Mes_TanA_N_ForcedFallback"));
             }
 
             return string.Join(Environment.NewLine, lines);
@@ -802,15 +800,15 @@ namespace tahsinERP.Services
             return string.Join(Environment.NewLine, new[]
             {
                 PeriodLine(month.Year, month.Month),
-                $"Ishlab chiqarilgan maxsulot(shu product) soni: {r.ProducedQty:N2} ta",
-                "Hisoblanish qoidasi: PATH1 (SalesInvoice -> Waybill, V1/V2/V3)",
-                $"Shu product bor SalesInvoice lar soni: {r.SalesInvoiceNos.Count}",
-                $"SalesInvoice lar: {JoinOrDash(r.SalesInvoiceNos)}",
-                $"Ulangan Waybill lar (shu oy, ichki emas): {JoinOrDash(r.FinishedWaybillNos)}",
-                $"Waybill jami summasi: {r.FinishedWaybillAmount:N2} so'm",
-                $"Shu mahsulotga ajratilgan: {r.FinishedTransportAllocated:N2} so'm",
-                $"Formula: Fakt tayyor maxsulot tashuvi (1 dona) = ajratilgan tashuv summasi / {r.ProducedQty:N2}",
-                $"Natija: {r.FinishedTransportPerUnit:N2} so'm"
+                L.T("Mes_TanA_N_ProducedQty", r.ProducedQty),
+                L.T("Mes_TanA_N_Rule", "PATH1 (SalesInvoice -> Waybill, V1/V2/V3)"),
+                L.T("Mes_TanA_N_SalesInvoiceCount", r.SalesInvoiceNos.Count),
+                L.T("Mes_TanA_N_SalesInvoices", JoinOrDash(r.SalesInvoiceNos)),
+                L.T("Mes_TanA_N_LinkedWaybills", JoinOrDash(r.FinishedWaybillNos)),
+                L.T("Mes_TanA_N_WaybillTotal", r.FinishedWaybillAmount, L.Sum),
+                L.T("Mes_TanA_N_AllocatedToProduct", r.FinishedTransportAllocated, L.Sum),
+                L.T("Mes_TanA_N_FormulaFinished", r.ProducedQty),
+                L.T("Mes_TanA_N_Result", r.FinishedTransportPerUnit, L.Sum)
             });
         }
 
@@ -819,16 +817,16 @@ namespace tahsinERP.Services
             return string.Join(Environment.NewLine, new[]
             {
                 PeriodLine(month.Year, month.Month),
-                $"Ishlab chiqarilgan maxsulot(shu product) soni: {r.ProducedQty:N2} ta",
-                "Hisoblanish qoidasi: shu oyda berilgan barcha kirim yo'l varaqalari (sotuvga bog'lanmagan, ichki emas) jami ->",
-                month.MaterialTransportByQtyShare
-                    ? "    ishlab chiqarilgan mahsulotlarga miqdor ulushida (material summasi yo'q)"
-                    : "    ishlab chiqarilgan mahsulotlarga material summasi (1 dona material × miqdor) ulushida",
-                $"Yo'l varaqalari: {JoinOrDash(month.MaterialWaybillNos)}",
-                $"Oy jami kirim tashuvi: {month.MaterialTransportPool:N2} so'm",
-                $"Shu mahsulot ulushi: {r.MaterialTransportShare:P2}; ajratilgan: {r.MaterialTransportAllocated:N2} so'm",
-                $"Formula: Fakt material tashuvi (1 dona) = {r.MaterialTransportAllocated:N2} / {r.ProducedQty:N2}",
-                $"Natija: {r.MaterialTransportPerUnit:N2} so'm"
+                L.T("Mes_TanA_N_ProducedQty", r.ProducedQty),
+                L.T("Mes_TanA_N_Rule", L.T("Mes_TanA_N_RuleMatTransport")),
+                "    " + (month.MaterialTransportByQtyShare
+                    ? L.T("Mes_TanA_N_MatTransportByQty")
+                    : L.T("Mes_TanA_N_MatTransportByAmount")),
+                L.T("Mes_TanA_N_Waybills", JoinOrDash(month.MaterialWaybillNos)),
+                L.T("Mes_TanA_N_MatTransportPool", month.MaterialTransportPool, L.Sum),
+                L.T("Mes_TanA_N_MatTransportShare", r.MaterialTransportShare, r.MaterialTransportAllocated, L.Sum),
+                L.T("Mes_TanA_N_FormulaMatTransport", r.MaterialTransportAllocated, r.ProducedQty),
+                L.T("Mes_TanA_N_Result", r.MaterialTransportPerUnit, L.Sum)
             });
         }
 
@@ -838,20 +836,20 @@ namespace tahsinERP.Services
             var lines = new List<string>
             {
                 PeriodLine(month.Year, month.Month),
-                "Manba: Finance tranzaksiyalari (chiqim − shu kategoriyaga qaytgan kirim); xarid/sotuv invoysi hisoblash yozuvlari olinmaydi.",
-                $"Valyuta: {(fin.BaseCurrencyCode != null ? "faqat " + fin.BaseCurrencyCode : "UZS topilmadi — barcha valyutalar qo'shildi")}",
-                $"Oy bo'yicha jami ishlab chiqarilgan (barcha mahsulotlar): {month.MonthProducedQty:N2} ta",
-                $"B — Soliq va bank: {fin.TaxBank:N2}; kategoriyalar: {JoinOrDash(fin.TaxBankCategories)}",
-                $"    1 donaga: {r.TaxBankPerUnit:N2}",
-                $"D — Boshqa: {fin.Other:N2}; kategoriyalar: {JoinOrDash(fin.OtherCategories)}",
-                $"    1 donaga: {r.OtherPerUnit:N2}",
-                $"C — Administrativ (soatbay ish haqi): {month.AdminTotal:N2}; 1 donaga: {r.AdminPerUnit:N2}",
-                $"A — Ish haqi (ishbay, tarif × miqdor): {r.LaborAmount:N2}; 1 donaga: {r.LaborPerUnit:N2}",
-                "Taqsimlash: B, C, D — oy jami / barcha mahsulotlar ishlab chiqarilgan miqdori (1 donaga teng)."
+                L.T("Mes_TanA_N_OverheadSource"),
+                L.T("Mes_TanA_N_Currency", fin.BaseCurrencyCode != null ? L.T("Mes_TanA_N_OnlyCurrency", fin.BaseCurrencyCode) : L.T("Mes_TanA_N_NoUzsAllAdded")),
+                L.T("Mes_TanA_N_MonthProducedQty", month.MonthProducedQty),
+                L.T("Mes_TanA_N_TaxBank", fin.TaxBank, JoinOrDash(fin.TaxBankCategories)),
+                "    " + L.T("Mes_TanA_N_PerUnit", r.TaxBankPerUnit),
+                L.T("Mes_TanA_N_Other", fin.Other, JoinOrDash(fin.OtherCategories)),
+                "    " + L.T("Mes_TanA_N_PerUnit", r.OtherPerUnit),
+                L.T("Mes_TanA_N_Admin", month.AdminTotal, r.AdminPerUnit),
+                L.T("Mes_TanA_N_Labor", r.LaborAmount, r.LaborPerUnit),
+                L.T("Mes_TanA_N_AllocBcd")
             };
             if (fin.SkippedForeignCount > 0)
             {
-                lines.Add($"Hisobga olinmagan boshqa valyutadagi tranzaksiyalar: {fin.SkippedForeignCount} ta ({string.Join(", ", fin.SkippedForeignByCurrency.Select(kv => $"{kv.Key}: {kv.Value:N2}"))}) — konvertatsiya qilinmaydi.");
+                lines.Add(L.T("Mes_TanA_N_SkippedForeign", fin.SkippedForeignCount, string.Join(", ", fin.SkippedForeignByCurrency.Select(kv => $"{kv.Key}: {kv.Value:N2}"))));
             }
             return string.Join(Environment.NewLine, lines);
         }

@@ -1,7 +1,7 @@
 @model tahsinERP.ViewModels.ProductPlanViewModel
 @using System.Web.Helpers
 @{
-    ViewBag.Title = "Ishlab Chiqarish Rejasi Ma'lumotlari";
+    ViewBag.Title = L.T("Mes_Plan_DetailsTitle");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -22,9 +22,9 @@
                                         <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                     </li>
                                     <li class="breadcrumb-item">
-                                        <a href="~/ProductPlan/Index">Ishlab Chiqarish Rejasi</a>
+                                        <a href="~/ProductPlan/Index">@L.T("Mes_Plan_Title")</a>
                                     </li>
-                                    <li class="breadcrumb-item active">Ma'lumotlar</li>
+                                    <li class="breadcrumb-item active">@L.T("Mes_Info")</li>
                                 </ol>
                             </div>
                         </div>
@@ -40,17 +40,17 @@
                                     <div class="card-body pb-0 mx-25">
                                         <div class="row invoice-info">
                                             <div class="col-lg-12 col-md-12 mt-25">
-                                                <h4 class="text-primary">Ishlab Chiqarish Rejasi Ma'lumotlari</h4>
+                                                <h4 class="text-primary">@L.T("Mes_Plan_DetailsTitle")</h4>
                                                 <hr />
                                                 <div class="row">
                                                     <div class="col-md-6">
-                                                        <p><strong>Mahsulot:</strong> @(Model.Product?.PNo ?? Model.ProductID.ToString()) - @(Model.Product?.Name ?? "")</p>
-                                                        <p><strong>Reja miqdori:</strong> <span class="text-primary"><strong>@Model.TotalQty.ToString("N2")</strong></span></p>
-                                                        <p><strong>Boshlanish sanasi:</strong> @Model.StartDate.ToString("dd.MM.yyyy")</p>
-                                                        <p><strong>Tugash sanasi:</strong> @Model.EndDate.ToString("dd.MM.yyyy")</p>
-                                                        <p><strong>Kunlar soni:</strong> @((Model.EndDate - Model.StartDate).Days + 1)</p>
+                                                        <p><strong>@L.T("Mes_Product"):</strong> @(Model.Product?.PNo ?? Model.ProductID.ToString()) - @(Model.Product?.Name ?? "")</p>
+                                                        <p><strong>@L.T("Mes_Plan_PlanQty"):</strong> <span class="text-primary"><strong>@Model.TotalQty.ToString("N2")</strong></span></p>
+                                                        <p><strong>@L.T("Mes_Plan_StartDate"):</strong> @Model.StartDate.ToString("dd.MM.yyyy")</p>
+                                                        <p><strong>@L.T("Mes_Plan_EndDate"):</strong> @Model.EndDate.ToString("dd.MM.yyyy")</p>
+                                                        <p><strong>@L.T("Mes_Plan_DaysCount"):</strong> @((Model.EndDate - Model.StartDate).Days + 1)</p>
                                                         <p>
-                                                            <strong>Savdo buyurtmasi:</strong>
+                                                            <strong>@L.T("Mes_Plan_SalesOrder"):</strong>
                                                             @if (Model.SalesOrderID.HasValue && !string.IsNullOrWhiteSpace(Model.SalesOrderNo))
                                                             {
                                                                 <a href="@Url.Action("Details", "SOrder", new { id = Model.SalesOrderID.Value })">@Model.SalesOrderNo</a>
@@ -64,15 +64,15 @@
                                                     <div class="col-md-6">
                                                         @if (Model.LinkedDeliverySchedules != null && Model.LinkedDeliverySchedules.Any())
                                                         {
-                                                            <p><strong>Bog'langan yetkazib berish jadvallari:</strong></p>
+                                                            <p><strong>@L.T("Mes_Plan_LinkedSchedules"):</strong></p>
                                                             <ul>
                                                                 @foreach (var schedule in Model.LinkedDeliverySchedules)
                                                                 {
                                                                     <li>
                                                                         <a href="@Url.Action("Details", "SOrder", new { id = schedule.SOrderID })">
-                                                                            Buyurtma: @(schedule.S_ORDERS?.OrderNo ?? schedule.SOrderID.ToString()) - 
+                                                                            @L.T("Mes_Order"): @(schedule.S_ORDERS?.OrderNo ?? schedule.SOrderID.ToString()) - 
                                                                             @schedule.DeliveryDate.ToString("dd.MM.yyyy") - 
-                                                                            Reja: @schedule.QtyPlanned.ToString("N2")
+                                                                            @L.T("Mes_Plan"): @schedule.QtyPlanned.ToString("N2")
                                                                         </a>
                                                                     </li>
                                                                 }
@@ -85,7 +85,7 @@
                                                 <!-- Daily Grid with Inline Editing -->
                                                 <div class="row mt-3">
                                                     <div class="col-12">
-                                                        <h5 class="text-primary mb-3">Kunlik Reja (Inline Tahrirlash)</h5>
+                                                        <h5 class="text-primary mb-3">@L.T("Mes_Plan_DailyPlanInline")</h5>
                                                         <div id="dailyGridContainer">
                                                             @if (Model.DailyPlans != null && Model.DailyPlans.Any())
                                                             {
@@ -93,7 +93,7 @@
                                                             }
                                                             else
                                                             {
-                                                                <div class="alert alert-info">Kunlik reja ma'lumotlari mavjud emas</div>
+                                                                <div class="alert alert-info">@L.T("Mes_Plan_NoDailyData")</div>
                                                             }
                                                         </div>
                                                     </div>
@@ -102,7 +102,7 @@
                                                 <!-- Plan vs Actual Chart -->
                                                 <div class="row mt-4">
                                                     <div class="col-12">
-                                                        <h5 class="text-primary mb-3">Reja vs Fakt (Kunlik)</h5>
+                                                        <h5 class="text-primary mb-3">@L.T("Mes_Plan_PlanVsActualDaily")</h5>
                                                         <canvas id="planVsActualChart" height="100"></canvas>
                                                     </div>
                                                 </div>
@@ -111,15 +111,15 @@
                                                 <div class="row mt-3">
                                                     <div class="col-12">
                                                         <a href="@Url.Action("Index")" class="btn btn-secondary">
-                                                            <i class="bx bx-arrow-back"></i> Orqaga
+                                                            <i class="bx bx-arrow-back"></i> @L.T("Back")
                                                         </a>
                                                         @if (changePermit)
                                                         {
                                                             <a href="@Url.Action("Edit", new { id = Model.ID })" class="btn btn-warning">
-                                                                <i class="bx bx-edit"></i> Tahrirlash
+                                                                <i class="bx bx-edit"></i> @L.T("Edit")
                                                             </a>
                                                             <a href="@Url.Action("Delete", new { id = Model.ID })" class="btn btn-danger">
-                                                                <i class="bx bx-trash"></i> O'chirish
+                                                                <i class="bx bx-trash"></i> @L.T("Delete")
                                                             </a>
                                                         }
                                                     </div>
@@ -155,13 +155,13 @@
                     var chartData = {
                         labels: labels,
                         datasets: [{
-                            label: 'Reja',
+                            label: '@L.Js("Mes_Plan")',
                             data: planData,
                             borderColor: 'rgb(75, 192, 192)',
                             backgroundColor: 'rgba(75, 192, 192, 0.2)',
                             tension: 0.1
                         }, {
-                            label: 'Fakt',
+                            label: '@L.Js("Mes_Actual")',
                             data: actualData,
                             borderColor: 'rgb(255, 99, 132)',
                             backgroundColor: 'rgba(255, 99, 132, 0.2)',

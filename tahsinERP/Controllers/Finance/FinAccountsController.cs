@@ -6,6 +6,7 @@ using System.Web.Mvc;
 using tahsinERP.Models;
 using tahsinERP.Filters;
 using tahsinERP.Controllers;
+using tahsinERP.I18n;
 
 namespace tahsinERP.Controllers.Finance
 {
@@ -71,10 +72,10 @@ namespace tahsinERP.Controllers.Finance
                 // ViewBag uchun filters
                 ViewBag.CurrencyList = new SelectList(db.CURRENCIES.AsNoTracking().ToList(), "ID", "Shortname", currencyID);
                 ViewBag.AccountTypeList = new SelectList(new[] {
-                    new { Value = "", Text = "Barcha" },
-                    new { Value = "Cash", Text = "Naqd pul" },
-                    new { Value = "Bank", Text = "Bank" },
-                    new { Value = "Other", Text = "Boshqa" }
+                    new { Value = "", Text = L.T("Fin_AllOption") },
+                    new { Value = "Cash", Text = L.T("Fin_Cash") },
+                    new { Value = "Bank", Text = L.T("Fin_Bank") },
+                    new { Value = "Other", Text = L.T("Fin_Other") }
                 }, "Value", "Text", accountType);
                 ViewBag.SearchTerm = searchTerm;
                 ViewBag.SortOrder = sortOrder;
@@ -137,7 +138,7 @@ namespace tahsinERP.Controllers.Finance
                 // Tekshirish code uniqueness
                 if (db.FIN_ACCOUNTS.Any(a => a.Code == account.Code && a.IsActive))
                 {
-                    ModelState.AddModelError("Code", "Bu kod bilan hisob allaqachon mavjud.");
+                    ModelState.AddModelError("Code", L.T("Fin_AccountCodeExists"));
                 }
 
                 if (ModelState.IsValid)
@@ -202,7 +203,7 @@ namespace tahsinERP.Controllers.Finance
                 // Tekshirish code uniqueness (excluding current record)
                 if (db.FIN_ACCOUNTS.Any(a => a.Code == account.Code && a.ID != account.ID && a.IsActive))
                 {
-                    ModelState.AddModelError("Code", "Bu kod bilan hisob allaqachon mavjud.");
+                    ModelState.AddModelError("Code", L.T("Fin_AccountCodeExists"));
                 }
 
                 if (ModelState.IsValid)

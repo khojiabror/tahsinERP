@@ -1,6 +1,6 @@
 @model tahsinERP.ViewModels.QualityInspectionDailyViewModel
 @{
-    ViewBag.Title = "Yangi Sifat Nazorati";
+    ViewBag.Title = L.T("Mes_Qi_New");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -20,9 +20,9 @@
                                             <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                         </li>
                                         <li class="breadcrumb-item">
-                                            <a href="~/QualityInspection/Index">Sifat Nazorati</a>
+                                            <a href="~/QualityInspection/Index">@L.T("Mes_Qi_Title")</a>
                                         </li>
-                                        <li class="breadcrumb-item active">Yangi Sifat Nazorati</li>
+                                        <li class="breadcrumb-item active">@L.T("Mes_Qi_New")</li>
                                     </ol>
                                 </div>
                             </div>
@@ -43,15 +43,15 @@
 
                                                     <div class="row mb-1">
                                                         <div class="col-md-6">
-                                                            <h6 class="invoice-to">Fakt ishlab chiqarish sanasi</h6>
+                                                            <h6 class="invoice-to">@L.T("Mes_FactProductionDate")</h6>
                                                             @Html.TextBoxFor(model => model.InspectionDate, "{0:yyyy-MM-dd}", new { @class = "form-control", @type = "date", @readonly = "readonly" })
                                                         </div>
                                                         <div class="col-md-6">
-                                                            <h6 class="invoice-to">Sanani tanlang va yuklash</h6>
+                                                            <h6 class="invoice-to">@L.T("Mes_Qi_PickDateAndLoad")</h6>
                                                             <div class="d-flex">
                                                                 <input type="date" id="inspection-date-picker" class="form-control" value="@Model.InspectionDate.ToString("yyyy-MM-dd")" />
                                                                 <button type="button" id="inspection-date-load" class="btn btn-outline-primary ml-1">
-                                                                    <i class="bx bx-refresh"></i> Yuklash
+                                                                    <i class="bx bx-refresh"></i> @L.T("Mes_Load")
                                                                 </button>
                                                             </div>
                                                         </div>
@@ -62,11 +62,11 @@
                                                         <div class="alert alert-warning">
                                                             @if (Model.ProductionRowCountForDay > 0)
                                                             {
-                                                                <span>Bu kunda fakt ishlab chiqarish yozuvlari bor, lekin tekshiruv uchun qoldiq yo'q (limit faqat <strong>Product Production</strong> miqdori bo'yicha; reja hisobga olinmaydi).</span>
+                                                                <span>@Html.Raw(L.T("Mes_Qi_NoRemainingForDay"))</span>
                                                             }
                                                             else
                                                             {
-                                                                <span>Tanlangan kalendar kuni uchun fakt ishlab chiqarish (ProductProduction) yozuvlari topilmadi yoki tugallangan mahsulot (IsFinishedGood) emas.</span>
+                                                                <span>@L.T("Mes_Qi_NoProductionForDay")</span>
                                                             }
                                                         </div>
                                                     }
@@ -76,14 +76,14 @@
                                                             <table class="table table-striped">
                                                                 <thead>
                                                                     <tr>
-                                                                        <th>Mahsulot</th>
-                                                                        <th>Ishlab chiqarildi</th>
-                                                                        <th>Tekshirildi</th>
-                                                                        <th>Qoldiq</th>
-                                                                        <th>Qabul</th>
-                                                                        <th>Rad</th>
-                                                                        <th>Nuqson turi</th>
-                                                                        <th>Izoh</th>
+                                                                        <th>@L.T("Mes_Product")</th>
+                                                                        <th>@L.T("Mes_Qi_Produced")</th>
+                                                                        <th>@L.T("Mes_Qi_Inspected")</th>
+                                                                        <th>@L.T("Mes_Qi_Remaining")</th>
+                                                                        <th>@L.T("Mes_Qi_AcceptShort")</th>
+                                                                        <th>@L.T("Mes_Qi_RejectShort")</th>
+                                                                        <th>@L.T("Mes_Dt_Name")</th>
+                                                                        <th>@L.T("Comment")</th>
                                                                         <th></th>
                                                                     </tr>
                                                                 </thead>
@@ -103,19 +103,19 @@
                                                                             <td>@Model.Items[i].RemainingQty</td>
                                                                             <td>
                                                                                 @Html.TextBoxFor(m => m.Items[i].QtyAccepted, new { @class = "form-control qty-accepted", @type = "number", @step = "0.001", @min = "0", data_remaining = Model.Items[i].RemainingQty })
-                                                                                <small class="text-muted">Qoldiq: @Model.Items[i].RemainingQty</small>
+                                                                                <small class="text-muted">@L.T("Mes_Qi_RemainingWithValue", Model.Items[i].RemainingQty)</small>
                                                                             </td>
                                                                             <td>
                                                                                 @Html.TextBoxFor(m => m.Items[i].QtyRejected, new { @class = "form-control qty-rejected", @type = "number", @step = "0.001", @min = "0" })
                                                                             </td>
                                                                             <td>
-                                                                                @Html.DropDownListFor(m => m.Items[i].DefectTypeID, ViewBag.DefectTypes as SelectList, "Tanlang", new { @class = "form-control" })
+                                                                                @Html.DropDownListFor(m => m.Items[i].DefectTypeID, ViewBag.DefectTypes as SelectList, L.T("Select"), new { @class = "form-control" })
                                                                             </td>
                                                                             <td>
                                                                                 @Html.TextBoxFor(m => m.Items[i].Notes, new { @class = "form-control" })
                                                                             </td>
                                                                             <td class="text-nowrap">
-                                                                                <button type="button" class="btn btn-sm btn-outline-danger js-remove-row" title="Olib tashlash">
+                                                                                <button type="button" class="btn btn-sm btn-outline-danger js-remove-row" title="@L.T("Mes_Qi_RemoveRow")">
                                                                                     <i class="bx bx-x"></i>
                                                                                 </button>
                                                                             </td>
@@ -136,10 +136,10 @@
                             <div class="row">
                                 <div class="col-12">
                                     <button type="submit" class="btn btn-primary mr-1">
-                                        <i class="bx bx-save"></i> Saqlash
+                                        <i class="bx bx-save"></i> @L.T("Save")
                                     </button>
                                     <a href="@Url.Action("Index")" class="btn btn-secondary">
-                                        <i class="bx bx-x"></i> Bekor qilish
+                                        <i class="bx bx-x"></i> @L.T("Cancel")
                                     </a>
                                 </div>
                             </div>

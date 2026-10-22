@@ -1,5 +1,5 @@
 @{
-    ViewBag.Title = "Kompaniya qiymati";
+    ViewBag.Title = L.T("Fin_CompanyValue");
     Layout = "~/Views/Shared/_Layout.cshtml";
     var shareholderValues = ViewBag.ShareholderValues as List<tahsinERP.ViewModels.Finance.ShareholderValueData> ?? new List<tahsinERP.ViewModels.Finance.ShareholderValueData>();
     var method = (ViewBag.Method as string) ?? "ebitda";
@@ -19,8 +19,8 @@
                             <div class="breadcrumb-wrapper col-12">
                                 <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                     <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
-                                    <li class="breadcrumb-item">Moliya</li>
-                                    <li class="breadcrumb-item active">Kompaniya qiymati</li>
+                                    <li class="breadcrumb-item">@L.T("Menu_Finance")</li>
+                                    <li class="breadcrumb-item active">@L.T("Fin_CompanyValue")</li>
                                 </ol>
                             </div>
                         </div>
@@ -33,39 +33,39 @@
                     <div class="col-12">
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">Kompaniya qiymati - @(((DateTime)ViewBag.AsOfDate).ToString("dd.MM.yyyy"))</h4>
+                                <h4 class="card-title">@L.T("Fin_CompanyValue") - @(((DateTime)ViewBag.AsOfDate).ToString("dd.MM.yyyy"))</h4>
                             </div>
                             <div class="card-content">
                                 <div class="card-body">
                                     <form method="get" action="@Url.Action("ShareholderValue")" class="mb-3">
                                         <div class="row align-items-end">
                                             <div class="col-md-3">
-                                                <label class="control-label">Hisoblash uslubi:</label>
+                                                <label class="control-label">@L.T("Fin_CalcMethod"):</label>
                                                 <select name="method" class="form-control" onchange="this.form.submit()">
-                                                    <option value="ebitda" @(method == "ebitda" ? "selected" : "")>EBITDA bilan</option>
-                                                    <option value="dcf" @(method == "dcf" ? "selected" : "")>DCF bilan</option>
+                                                    <option value="ebitda" @(method == "ebitda" ? "selected" : "")>@L.T("Fin_WithEbitda")</option>
+                                                    <option value="dcf" @(method == "dcf" ? "selected" : "")>@L.T("Fin_WithDcf")</option>
                                                 </select>
                                             </div>
                                             <div class="col-md-3">
-                                                <label class="control-label">Sana:</label>
+                                                <label class="control-label">@L.T("Date"):</label>
                                                 <input type="date" name="asOfDate" class="form-control" value="@(ViewBag.AsOfDate?.ToString("yyyy-MM-dd"))" />
                                             </div>
                                             @if (method == "ebitda")
                                             {
                                                 <div class="col-md-3">
-                                                    <label class="control-label">EBITDA multiplikatori (3-6x):</label>
+                                                    <label class="control-label">@L.T("Fin_EbitdaMultiple"):</label>
                                                     <input type="number" name="ebitdaMultiple" min="1" max="10" step="0.1" class="form-control" value="@multiple.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture)" />
                                                 </div>
                                             }
                                             else
                                             {
                                                 <div class="col-md-3">
-                                                    <label class="control-label">Loyihalash yili (2-5):</label>
+                                                    <label class="control-label">@L.T("Fin_ProjectionYears"):</label>
                                                     <input type="number" name="dcfYears" min="1" max="10" step="1" class="form-control" value="@years" />
                                                 </div>
                                             }
                                             <div class="col-md-2">
-                                                <button type="submit" class="btn btn-primary btn-block">Ko'rsatish</button>
+                                                <button type="submit" class="btn btn-primary btn-block">@L.T("Fin_Show")</button>
                                             </div>
                                         </div>
                                     </form>
@@ -74,7 +74,7 @@
                                         <div class="col-md-12">
                                             <div class="card bg-primary text-white">
                                                 <div class="card-body text-center">
-                                                    <h3 style="color:white;">Jami kompaniya qiymati (@(method == "dcf" ? "DCF uslubi" : "EBITDA uslubi"))</h3>
+                                                    <h3 style="color:white;">@L.T("Fin_TotalCompanyValue") (@(method == "dcf" ? L.T("Fin_DcfMethod") : L.T("Fin_EbitdaMethod")))</h3>
                                                     <h2 style="color:white;">@ViewBag.CompanyValue.ToString("N2")</h2>
                                                 </div>
                                             </div>
@@ -87,23 +87,23 @@
                                             <table class="table table-bordered mb-0">
                                                 <tbody>
                                                     <tr>
-                                                        <td>Operatsion daromad (oxirgi 12 oy)</td>
+                                                        <td>@L.T("Fin_OperatingIncome12m")</td>
                                                         <td class="text-right">@breakdown.Ebitda.OperatingIncome.ToString("N2")</td>
                                                     </tr>
                                                     <tr>
-                                                        <td>Operatsion xarajatlar</td>
+                                                        <td>@L.T("Fin_OperatingExpenses")</td>
                                                         <td class="text-right">-@breakdown.Ebitda.OperatingExpenses.ToString("N2")</td>
                                                     </tr>
                                                     <tr>
-                                                        <td>Qaytarib qo'shiladi: soliqlar</td>
+                                                        <td>@L.T("Fin_AddBackTaxesShort")</td>
                                                         <td class="text-right">+@breakdown.Ebitda.TaxExpense.ToString("N2")</td>
                                                     </tr>
                                                     <tr>
-                                                        <td>Qaytarib qo'shiladi: foiz/kredit xarajatlari</td>
+                                                        <td>@L.T("Fin_AddBackInterestShort")</td>
                                                         <td class="text-right">+@breakdown.Ebitda.InterestExpense.ToString("N2")</td>
                                                     </tr>
                                                     <tr>
-                                                        <td>Qaytarib qo'shiladi: amortizatsiya</td>
+                                                        <td>@L.T("Fin_AddBackDepreciationShort")</td>
                                                         <td class="text-right">+@breakdown.Ebitda.DepreciationExpense.ToString("N2")</td>
                                                     </tr>
                                                     <tr class="font-weight-bold">
@@ -111,7 +111,7 @@
                                                         <td class="text-right">@breakdown.Ebitda.Ebitda.ToString("N2")</td>
                                                     </tr>
                                                     <tr class="font-weight-bold">
-                                                        <td>Kompaniya qiymati = EBITDA × @multiple.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture)</td>
+                                                        <td>@L.T("Fin_CompanyValue") = EBITDA × @multiple.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture)</td>
                                                         <td class="text-right">@breakdown.CompanyValue.ToString("N2")</td>
                                                     </tr>
                                                 </tbody>
@@ -124,35 +124,35 @@
                                             <table class="table table-bordered mb-0">
                                                 <tbody>
                                                     <tr>
-                                                        <td>Jami aktivlar</td>
+                                                        <td>@L.T("Fin_TotalAssets")</td>
                                                         <td class="text-right">@breakdown.TotalAssets.ToString("N2")</td>
                                                     </tr>
                                                     <tr>
-                                                        <td>Jami passivlar (majburiyatlar)</td>
+                                                        <td>@L.T("Fin_TotalLiabilitiesObl")</td>
                                                         <td class="text-right">-@breakdown.TotalLiabilities.ToString("N2")</td>
                                                     </tr>
                                                     <tr class="font-weight-bold">
-                                                        <td>Sof aktivlar</td>
+                                                        <td>@L.T("Fin_NetAssets")</td>
                                                         <td class="text-right">@breakdown.NetAssets.ToString("N2")</td>
                                                     </tr>
                                                     <tr>
-                                                        <td>Yillik daromad (oxirgi 12 oy)</td>
+                                                        <td>@L.T("Fin_AnnualIncome12m")</td>
                                                         <td class="text-right">@breakdown.AnnualRevenue.ToString("N2")</td>
                                                     </tr>
                                                     <tr>
-                                                        <td>Tannarx modulidagi o'rtacha margin</td>
+                                                        <td>@L.T("Fin_AvgMarginCost")</td>
                                                         <td class="text-right">@breakdown.AvgMarginPercent.ToString("N2")%</td>
                                                     </tr>
                                                     <tr>
-                                                        <td>Yillik foyda = daromad × margin</td>
+                                                        <td>@L.T("Fin_AnnualProfitFormula")</td>
                                                         <td class="text-right">@breakdown.AnnualProfit.ToString("N2")</td>
                                                     </tr>
                                                     <tr>
-                                                        <td>Kelajak foydasi = yillik foyda × @breakdown.DcfYears yil</td>
+                                                        <td>@L.T("Fin_FutureProfitFormula", breakdown.DcfYears)</td>
                                                         <td class="text-right">+@breakdown.FutureProfit.ToString("N2")</td>
                                                     </tr>
                                                     <tr class="font-weight-bold">
-                                                        <td>Kompaniya qiymati = Sof aktivlar + Kelajak foydasi</td>
+                                                        <td>@L.T("Fin_DcfValueFormula")</td>
                                                         <td class="text-right">@breakdown.CompanyValue.ToString("N2")</td>
                                                     </tr>
                                                 </tbody>
@@ -164,9 +164,9 @@
                                         <table class="table table-striped table-bordered">
                                             <thead>
                                                 <tr>
-                                                    <th>Aksiyador</th>
-                                                    <th class="text-right">Ulush %</th>
-                                                    <th class="text-right">Qiymati</th>
+                                                    <th>@L.T("Fin_Shareholder")</th>
+                                                    <th class="text-right">@L.T("Fin_SharePct")</th>
+                                                    <th class="text-right">@L.T("Fin_ValueOf")</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -181,7 +181,7 @@
                                             </tbody>
                                             <tfoot>
                                                 <tr>
-                                                    <th>Jami:</th>
+                                                    <th>@L.T("Total"):</th>
                                                     <th class="text-right">@shareholderValues.Sum(s => s.SharePercent)%</th>
                                                     <th class="text-right">@shareholderValues.Sum(s => s.Value).ToString("N2")</th>
                                                 </tr>

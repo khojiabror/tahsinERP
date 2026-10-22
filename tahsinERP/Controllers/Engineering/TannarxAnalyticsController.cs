@@ -7,6 +7,7 @@ using tahsinERP.Models;
 using tahsinERP.Services;
 using tahsinERP.ViewModels.Tannarx;
 using tahsinERP.Helpers;
+using tahsinERP.I18n;
 
 namespace tahsinERP.Controllers.Engineering
 {
@@ -99,7 +100,7 @@ namespace tahsinERP.Controllers.Engineering
 
             if (!year.HasValue || !month.HasValue)
             {
-                TempData["Error"] = "Fakt xarajatlarni yangilash uchun yil va oy tanlanishi shart.";
+                TempData["Error"] = L.T("Mes_TanA_Err_YearMonthRequired");
                 if (string.Equals(returnTo, "Report", System.StringComparison.OrdinalIgnoreCase))
                     return RedirectToAction("Report", new { year = year, month = month, productID = productID });
                 return RedirectToAction("Dashboard", new { year = year, month = month, productID = productID });
@@ -112,7 +113,7 @@ namespace tahsinERP.Controllers.Engineering
                 LogHelper.LogToDatabase(User.Identity.Name, "TannarxAnalytics", 
                     $"Actual costs yangilandi - Year: {year}, Month: {month}, Records: {recordsUpdated}");
                 
-                TempData["Success"] = $"{recordsUpdated} ta tannarx yozuvi uchun fakt xarajatlar yangilandi.";
+                TempData["Success"] = L.T("Mes_TanA_ActualUpdated", recordsUpdated);
                 if (_analyticsService.LastUpdateWarnings.Any())
                     TempData["Warning"] = string.Join("\n", _analyticsService.LastUpdateWarnings);
             }
@@ -120,7 +121,7 @@ namespace tahsinERP.Controllers.Engineering
             {
                 LogHelper.LogToDatabase(User.Identity.Name, "TannarxAnalytics", 
                     $"Actual costs yangilashda xatolik: {ex.Message}");
-                TempData["Error"] = $"Fakt xarajatlarni yangilashda xatolik: {ex.Message}";
+                TempData["Error"] = L.T("Mes_TanA_Err_UpdateActual", ex.Message);
             }
 
             if (string.Equals(returnTo, "Report", System.StringComparison.OrdinalIgnoreCase))
@@ -151,7 +152,7 @@ namespace tahsinERP.Controllers.Engineering
             {
                 LogHelper.LogToDatabase(User.Identity.Name, "TannarxAnalytics",
                     $"MonthSources xatolik: Year={y}, Month={m}, Error={ex.Message}");
-                TempData["Error"] = $"Oy manbalarini hisoblashda xatolik: {ex.Message}";
+                TempData["Error"] = L.T("Mes_TanA_Err_MonthSources", ex.Message);
                 return RedirectToAction("Dashboard", new { year = y, month = m });
             }
         }
@@ -192,12 +193,12 @@ namespace tahsinERP.Controllers.Engineering
                 await _analyticsService.SaveFinanceCategoryMapAsync(selection, RoleHelper.GetUserId(User.Identity.Name));
                 LogHelper.LogToDatabase(User.Identity.Name, "TannarxAnalytics",
                     $"Finance kategoriya guruhlari saqlandi: {selection.Count(kv => !string.IsNullOrWhiteSpace(kv.Value))} ta qo'lda belgilangan");
-                TempData["Success"] = "Kategoriya guruhlari saqlandi. Tannarxga ta'sir qilishi uchun oy bo'yicha \"Fakt xarajatlarni yangilash\" ni bosing.";
+                TempData["Success"] = L.T("Mes_TanA_CategoriesSaved");
             }
             catch (Exception ex)
             {
                 LogHelper.LogToDatabase(User.Identity.Name, "TannarxAnalytics", $"Finance kategoriya guruhlarini saqlashda xatolik: {ex.Message}");
-                TempData["Error"] = $"Saqlashda xatolik: {ex.Message}";
+                TempData["Error"] = L.T("Mes_TanA_Err_Save", ex.Message);
             }
 
             return RedirectToAction("FinanceCategories", new { year, month });
@@ -216,7 +217,7 @@ namespace tahsinERP.Controllers.Engineering
 
                 if (productReport == null)
                 {
-                    TempData["Error"] = "Ma'lumot topilmadi.";
+                    TempData["Error"] = L.T("Mes_TanA_DataNotFound");
                     return RedirectToAction("Report");
                 }
 
@@ -226,7 +227,7 @@ namespace tahsinERP.Controllers.Engineering
             {
                 LogHelper.LogToDatabase(User.Identity.Name, "TannarxAnalytics",
                     $"ProductDetails xatolik: ProductID={productID}, Year={year}, Month={month}, Error={ex.Message}");
-                TempData["Error"] = $"ProductDetails ochishda xatolik: {ex.Message}";
+                TempData["Error"] = L.T("Mes_TanA_Err_ProductDetails", ex.Message);
                 return RedirectToAction("Report", new { year, month, productID });
             }
         }

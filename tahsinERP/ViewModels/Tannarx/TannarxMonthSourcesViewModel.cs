@@ -67,14 +67,15 @@ namespace tahsinERP.ViewModels.Tannarx
     {
         public bool TableExists { get; set; }
         public List<TannarxFinanceCategoryMapRow> Rows { get; set; } = new List<TannarxFinanceCategoryMapRow>();
-        /// <summary>Tanlov qiymatlari: "" = avtomatik, 0 = chiqarilsin, 1 = Material, 2 = Soliq va bank, 3 = Boshqa.</summary>
+        /// <summary>Tanlov qiymatlari: "" = avtomatik, 0 = chiqarilsin, 1 = Material, 2 = Soliq va bank, 3 = Boshqa.
+        /// Value — resx kaliti (view L.T bilan ko'rsatadi).</summary>
         public static readonly IReadOnlyList<KeyValuePair<string, string>> Options = new List<KeyValuePair<string, string>>
         {
-            new KeyValuePair<string, string>("", "Avtomatik (nom bo'yicha)"),
-            new KeyValuePair<string, string>("1", "Material (PATH3)"),
-            new KeyValuePair<string, string>("2", "B — Soliq va bank"),
-            new KeyValuePair<string, string>("3", "D — Boshqa"),
-            new KeyValuePair<string, string>("0", "Tannarxga kirmaydi")
+            new KeyValuePair<string, string>("", "Mes_TanA_Opt_Auto"),
+            new KeyValuePair<string, string>("1", "Mes_Tan_Bucket_Material"),
+            new KeyValuePair<string, string>("2", "Mes_Tan_Bucket_TaxBank"),
+            new KeyValuePair<string, string>("3", "Mes_Tan_Bucket_Other"),
+            new KeyValuePair<string, string>("0", "Mes_TanA_Opt_NotInCost")
         };
     }
 

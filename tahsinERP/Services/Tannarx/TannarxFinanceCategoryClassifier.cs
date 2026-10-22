@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using tahsinERP.I18n;
 using tahsinERP.Services.Common;
 
 namespace tahsinERP.Services.Tannarx
@@ -43,16 +44,16 @@ namespace tahsinERP.Services.Tannarx
     {
         internal const byte ExpenseCategoryType = 2;
 
-        /// <summary>Tannarxdan chiqariladigan guruhlar va sababi.</summary>
+        /// <summary>Tannarxdan chiqariladigan guruhlar va sababi (resx kaliti; ko'rsatishda joriy tilga o'giriladi).</summary>
         private static readonly Dictionary<string, string> ExclusionReasons = new Dictionary<string, string>
         {
-            [SystemCodes.FinAnalyticsGroup.Financing] = "Moliyaviy harakat (kredit/o'tkazma/naqd/qarz)",
-            [SystemCodes.FinAnalyticsGroup.Dividend] = "Foydani taqsimlash (dividend/aksiyador)",
-            [SystemCodes.FinAnalyticsGroup.Vat] = "QQS — tannarx emas",
-            [SystemCodes.FinAnalyticsGroup.Capex] = "Kapital xarajat (asosiy vosita/uskuna/qurilish)",
-            [SystemCodes.FinAnalyticsGroup.Logistics] = "Transport — yo'l varaqalari orqali hisoblanadi",
-            [SystemCodes.FinAnalyticsGroup.Payroll] = "Ish haqi — HR ish haqi orqali hisoblanadi",
-            [SystemCodes.FinAnalyticsGroup.Purchase] = "Xarid — material ombor/PI orqali hisoblanadi"
+            [SystemCodes.FinAnalyticsGroup.Financing] = "Mes_Tan_Excl_Financing",
+            [SystemCodes.FinAnalyticsGroup.Dividend] = "Mes_Tan_Excl_Dividend",
+            [SystemCodes.FinAnalyticsGroup.Vat] = "Mes_Tan_Excl_Vat",
+            [SystemCodes.FinAnalyticsGroup.Capex] = "Mes_Tan_Excl_Capex",
+            [SystemCodes.FinAnalyticsGroup.Logistics] = "Mes_Tan_Excl_Logistics",
+            [SystemCodes.FinAnalyticsGroup.Payroll] = "Mes_Tan_Excl_Payroll",
+            [SystemCodes.FinAnalyticsGroup.Purchase] = "Mes_Tan_Excl_Purchase"
         };
 
         internal class CategoryRow
@@ -71,17 +72,17 @@ namespace tahsinERP.Services.Tannarx
         {
             if (string.IsNullOrEmpty(analyticsGroup))
                 return null;
-            if (ExclusionReasons.TryGetValue(analyticsGroup, out var reason))
-                return new TannarxFinanceClass { Bucket = TannarxFinanceBucket.Excluded, Reason = reason };
+            if (ExclusionReasons.TryGetValue(analyticsGroup, out var reasonKey))
+                return new TannarxFinanceClass { Bucket = TannarxFinanceBucket.Excluded, Reason = L.T(reasonKey) };
             switch (analyticsGroup)
             {
                 case SystemCodes.FinAnalyticsGroup.Material:
-                    return new TannarxFinanceClass { Bucket = TannarxFinanceBucket.Material, Reason = "Material" };
+                    return new TannarxFinanceClass { Bucket = TannarxFinanceBucket.Material, Reason = L.T("Mes_Materials") };
                 case SystemCodes.FinAnalyticsGroup.Tax:
                 case SystemCodes.FinAnalyticsGroup.Bank:
-                    return new TannarxFinanceClass { Bucket = TannarxFinanceBucket.TaxBank, Reason = "Soliq va bank" };
+                    return new TannarxFinanceClass { Bucket = TannarxFinanceBucket.TaxBank, Reason = L.T("Mes_Tan_Reason_TaxBank") };
                 case SystemCodes.FinAnalyticsGroup.Other:
-                    return new TannarxFinanceClass { Bucket = TannarxFinanceBucket.Other, Reason = "Boshqa" };
+                    return new TannarxFinanceClass { Bucket = TannarxFinanceBucket.Other, Reason = L.T("Mes_Tan_Reason_Other") };
                 default:
                     return null; // INTEREST, DEPRECIATION — tannarx uchun alohida guruh yo'q
             }
@@ -91,11 +92,11 @@ namespace tahsinERP.Services.Tannarx
         {
             switch (bucket)
             {
-                case TannarxFinanceBucket.Material: return "Material (PATH3)";
-                case TannarxFinanceBucket.TaxBank: return "B — Soliq va bank";
-                case TannarxFinanceBucket.Other: return "D — Boshqa";
-                case TannarxFinanceBucket.OtherAuto: return "D — Boshqa (avtomatik)";
-                default: return "Chiqarilsin";
+                case TannarxFinanceBucket.Material: return L.T("Mes_Tan_Bucket_Material");
+                case TannarxFinanceBucket.TaxBank: return L.T("Mes_Tan_Bucket_TaxBank");
+                case TannarxFinanceBucket.Other: return L.T("Mes_Tan_Bucket_Other");
+                case TannarxFinanceBucket.OtherAuto: return L.T("Mes_Tan_Bucket_OtherAuto");
+                default: return L.T("Mes_Tan_Bucket_Exclude");
             }
         }
 
@@ -113,7 +114,7 @@ namespace tahsinERP.Services.Tannarx
                     return new TannarxFinanceClass
                     {
                         Bucket = bucket,
-                        Reason = bucket == TannarxFinanceBucket.Excluded ? "Qo'lda: tannarxga kirmaydi" : "Qo'lda belgilangan",
+                        Reason = bucket == TannarxFinanceBucket.Excluded ? L.T("Mes_Tan_Reason_ManualExcluded") : L.T("Mes_Tan_Reason_Manual"),
                         IsManual = true
                     };
                 }
@@ -141,7 +142,7 @@ namespace tahsinERP.Services.Tannarx
                 result[cat.ID] = resolved ?? new TannarxFinanceClass
                 {
                     Bucket = TannarxFinanceBucket.OtherAuto,
-                    Reason = "Aniqlanmagan xarajat → Boshqa"
+                    Reason = L.T("Mes_Tan_Reason_Undefined")
                 };
             }
 

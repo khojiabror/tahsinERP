@@ -1,6 +1,6 @@
 @model tahsinERP.Models.DEFECT_TYPES
 @{
-    ViewBag.Title = "Tahrirlash";
+    ViewBag.Title = L.T("Edit");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -22,10 +22,10 @@
                                             <a href="~/Home/Index"><i class="bx bx-home-alt"></i></a>
                                         </li>
                                         <li class="breadcrumb-item">
-                                            <a href="~/DefectType">Nuqson turlari</a>
+                                            <a href="~/DefectType">@L.T("Mes_Dt_Title")</a>
                                         </li>
                                         <li class="breadcrumb-item active">
-                                            Nuqson turini tahrirlash
+                                            @L.T("Mes_Dt_Edit")
                                         </li>
                                     </ol>
                                 </div>
@@ -47,21 +47,21 @@
                                                     @Html.AntiForgeryToken()
                                                     @Html.ValidationSummary(true, "", new { @class = "text-danger" })
                                                     <hr>
-                                                    <h6 class="invoice-to">Nuqson turi</h6>
+                                                    <h6 class="invoice-to">@L.T("Mes_Dt_Name")</h6>
                                                     <fieldset class="invoice-address form-group">
-                                                        @Html.TextBoxFor(model => model.DefectType, new { @class = "form-control", @placeholder = "Nuqson turi" })
+                                                        @Html.TextBoxFor(model => model.DefectType, new { @class = "form-control", @placeholder = L.T("Mes_Dt_Name") })
                                                         @Html.ValidationMessageFor(model => model.DefectType, "", new { @class = "text-danger" })
                                                     </fieldset>
-                                                    <h6 class="invoice-to">Batafsil</h6>
+                                                    <h6 class="invoice-to">@L.T("Mes_DescriptionField")</h6>
                                                     <fieldset class="invoice-address form-group">
-                                                        @Html.TextAreaFor(model => model.Description, new { @class = "form-control", @placeholder = "Batafsil" })
+                                                        @Html.TextAreaFor(model => model.Description, new { @class = "form-control", @placeholder = L.T("Mes_DescriptionField") })
                                                         @Html.ValidationMessageFor(model => model.Description, "", new { @class = "text-danger" })
                                                     </fieldset>
                                                     <ul class="list-group list-group-flush">
                                                         <li class="list-group-item border-0 pb-0">
                                                             <button class="btn btn-primary btn-block subtotal-preview-btn" name="edit" type="submit" value="Edit">
                                                                 <i class='bx bx-save'></i>
-                                                                Saqlash
+                                                                @L.T("Save")
                                                             </button>
                                                         </li>
                                                     </ul>

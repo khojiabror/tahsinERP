@@ -5,6 +5,7 @@ using System.Linq;
 using ClosedXML.Excel;
 using tahsinERP.Helpers;
 using tahsinERP.Models;
+using tahsinERP.I18n;
 
 namespace tahsinERP.Services.Finance
 {
@@ -51,13 +52,14 @@ namespace tahsinERP.Services.Finance
         {
             using (var workbook = new XLWorkbook())
             {
-                var worksheet = workbook.Worksheets.Add("Tranzaksiyalar");
+                var worksheet = workbook.Worksheets.Add(L.T("Fin_Transactions"));
                 var headers = new[]
                 {
-                    "Sana (DD.MM.YYYY)", "Vaqt (HH:mm)", "Hisob kodi", "Kategoriya nomi", "Yo'nalish (1=Kirim, 2=Chiqim)", "Summa",
-                    $"Valyuta qisqa nomi (masalan: {DefaultCurrencyShortname(db)})",
-                    "Kontragent nomi (ixtiyoriy)", "Maqsad (ixtiyoriy)", "Shartnoma raqami (ixtiyoriy)", "Izoh (ixtiyoriy)",
-                    "Miqdor (ixtiyoriy)", "Narx birligi (ixtiyoriy)"
+                    L.T("Fin_ColDate"), L.T("Fin_ColTime"), L.T("Fin_AccountCode"), L.T("Fin_CategoryName"),
+                    L.T("Fin_ColDirection", L.T("Fin_Inflow"), L.T("Fin_Expense")), L.T("Amount"),
+                    L.T("Fin_CurrencyShortNameHint", DefaultCurrencyShortname(db)),
+                    L.T("Fin_CounterpartyName") + " (" + L.T("Optional") + ")", L.T("Fin_Purpose") + " (" + L.T("Optional") + ")", L.T("Fin_ContractNo") + " (" + L.T("Optional") + ")", L.T("Comment") + " (" + L.T("Optional") + ")",
+                    L.T("Quantity") + " (" + L.T("Optional") + ")", L.T("Fin_UnitPrice") + " (" + L.T("Optional") + ")"
                 };
                 for (int c = 0; c < headers.Length; c++)
                     worksheet.Cell(1, c + 1).Value = headers[c];
@@ -78,23 +80,23 @@ namespace tahsinERP.Services.Finance
                 var currencies = db.CURRENCIES.AsNoTracking().OrderBy(c => c.Shortname)
                     .Select(c => c.Shortname).ToList();
 
-                var accountsSheet = workbook.Worksheets.Add("Hisoblar");
-                accountsSheet.Cell(1, 1).Value = "Kod";
-                accountsSheet.Cell(1, 2).Value = "Nomi";
+                var accountsSheet = workbook.Worksheets.Add(L.T("Fin_Accounts"));
+                accountsSheet.Cell(1, 1).Value = L.T("Code");
+                accountsSheet.Cell(1, 2).Value = L.T("Name");
                 for (int i = 0; i < accounts.Count; i++)
                 {
                     accountsSheet.Cell(i + 2, 1).Value = accounts[i].Code;
                     accountsSheet.Cell(i + 2, 2).Value = accounts[i].Name;
                 }
 
-                var categoriesSheet = workbook.Worksheets.Add("Kategoriyalar");
-                categoriesSheet.Cell(1, 1).Value = "Nomi";
+                var categoriesSheet = workbook.Worksheets.Add(L.T("Fin_Categories"));
+                categoriesSheet.Cell(1, 1).Value = L.T("Name");
                 for (int i = 0; i < categories.Count; i++)
                     categoriesSheet.Cell(i + 2, 1).Value = categories[i];
 
-                var currenciesSheet = workbook.Worksheets.Add("Valyutalar");
-                currenciesSheet.Cell(1, 1).Value = "Qisqa nomi";
-                currenciesSheet.Cell(1, 2).Value = "To'liq nomi";
+                var currenciesSheet = workbook.Worksheets.Add(L.T("Fin_Currencies"));
+                currenciesSheet.Cell(1, 1).Value = L.T("Fin_ShortName");
+                currenciesSheet.Cell(1, 2).Value = L.T("Fin_FullNameOf");
                 for (int i = 0; i < currencies.Count; i++)
                 {
                     currenciesSheet.Cell(i + 2, 1).Value = currencies[i];
@@ -201,7 +203,7 @@ namespace tahsinERP.Services.Finance
                     if (!TryReadDate(worksheet.Cell(row, 1), out var txnDate, out var empty, out var rawDate))
                     {
                         if (empty) continue; // bo'sh qator
-                        result.Errors.Add($"Qator {row}: Sana noto'g'ri format - {rawDate}");
+                        result.Errors.Add(L.T("Fin_Imp_BadDate", row, rawDate));
                         continue;
                     }
                     txnDate = ApplyTime(txnDate, worksheet.Cell(row, 2));
@@ -209,42 +211,42 @@ namespace tahsinERP.Services.Finance
                     var accountCode = worksheet.Cell(row, 3).GetFormattedString()?.Trim();
                     if (string.IsNullOrEmpty(accountCode) || !accounts.TryGetValue(accountCode, out var account))
                     {
-                        result.Errors.Add($"Qator {row}: Hisob kodi topilmadi - {accountCode}");
+                        result.Errors.Add(L.T("Fin_Imp_AccountNotFound", row, accountCode));
                         continue;
                     }
 
                     var categoryName = worksheet.Cell(row, 4).GetFormattedString()?.Trim();
                     if (string.IsNullOrEmpty(categoryName) || !categories.TryGetValue(categoryName, out var categoryId))
                     {
-                        result.Errors.Add($"Qator {row}: Kategoriya topilmadi - {categoryName}");
+                        result.Errors.Add(L.T("Fin_Imp_CategoryNotFound", row, categoryName));
                         continue;
                     }
 
                     var directionStr = worksheet.Cell(row, 5).GetFormattedString()?.Trim();
                     if (!byte.TryParse(directionStr, out var direction) || (direction != 1 && direction != 2))
                     {
-                        result.Errors.Add($"Qator {row}: Yo'nalish noto'g'ri (1 yoki 2 bo'lishi kerak) - {directionStr}");
+                        result.Errors.Add(L.T("Fin_Imp_BadDirection", row, directionStr));
                         continue;
                     }
 
                     var amountStr = worksheet.Cell(row, 6).GetFormattedString()?.Trim();
                     if (!TryDecimal(amountStr, out var amount))
                     {
-                        result.Errors.Add($"Qator {row}: Summa noto'g'ri - {amountStr}");
+                        result.Errors.Add(L.T("Fin_Imp_BadAmount", row, amountStr));
                         continue;
                     }
 
                     var currencyShortname = worksheet.Cell(row, 7).GetFormattedString()?.Trim();
                     if (string.IsNullOrEmpty(currencyShortname) || !currencies.TryGetValue(currencyShortname, out var currencyId))
                     {
-                        result.Errors.Add($"Qator {row}: Valyuta topilmadi - {currencyShortname}");
+                        result.Errors.Add(L.T("Fin_Imp_CurrencyNotFound", row, currencyShortname));
                         continue;
                     }
 
                     // FIN-B23: Create'dagi kabi hisob valyutasi tranzaksiya valyutasiga mos bo'lishi shart
                     if (account.CurrencyID != currencyId)
                     {
-                        result.Errors.Add($"Qator {row}: Hisob ({accountCode}) valyutasi {currencyShortname} emas");
+                        result.Errors.Add(L.T("Fin_Imp_AccountCurrencyMismatch", row, accountCode, currencyShortname));
                         continue;
                     }
 
@@ -270,7 +272,7 @@ namespace tahsinERP.Services.Finance
                     var key = Key(txnDate, account.ID, categoryId, direction, amount, currencyId);
                     if (rowKeys.TryGetValue(key, out var firstRow))
                     {
-                        result.Warnings.Add($"Qator {row}: {firstRow}-qator bilan bir xil (ikkalasi ham import qilinadi)");
+                        result.Warnings.Add(L.T("Fin_Imp_DuplicateRow", row, firstRow));
                     }
                     else
                     {
@@ -280,7 +282,7 @@ namespace tahsinERP.Services.Finance
                 }
                 catch (Exception ex)
                 {
-                    var errorMsg = $"Qator {row}: {ex.Message}";
+                    var errorMsg = L.T("Fin_Imp_RowError", row, ex.Message);
                     if (ex.InnerException != null)
                         errorMsg += $" ({ex.InnerException.Message})";
                     result.Errors.Add(errorMsg);
@@ -294,7 +296,7 @@ namespace tahsinERP.Services.Finance
                 var t = pair.Value;
                 if (existing.Contains(Key(t.TxnDate, t.AccountID, t.CategoryID, t.Direction, t.Amount, t.CurrencyID)))
                 {
-                    result.Errors.Add($"Qator {pair.Key}: Bunday tranzaksiya bazada allaqachon bor (o'tkazib yuborildi)");
+                    result.Errors.Add(L.T("Fin_Imp_AlreadyExists", pair.Key));
                     continue;
                 }
                 result.Transactions.Add(t);

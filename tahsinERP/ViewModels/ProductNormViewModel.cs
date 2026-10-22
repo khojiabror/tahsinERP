@@ -16,29 +16,29 @@ namespace tahsinERP.ViewModels
     {
         public int ProductID { get; set; }
         
-        [Display(Name = "Mahsulot raqami")]
+        [Display(Name = "Mes_ProductNo")]
         public string ProductCode { get; set; }
         
-        [Display(Name = "Mahsulot nomi")]
+        [Display(Name = "Mes_ProductName")]
         public string ProductName { get; set; }
         
-        [Display(Name = "Oy")]
-        [Required(ErrorMessage = "Oyni tanlang")]
+        [Display(Name = "Mes_Month")]
+        [Required(ErrorMessage = "Mes_Norm_SelectMonth")]
         public string Period { get; set; }
         
-        [Display(Name = "Versiya")]
+        [Display(Name = "Mes_Norm_Version")]
         public string Version { get; set; }
         
-        [Display(Name = "Versiya ID")]
+        [Display(Name = "Mes_Norm_VersionId")]
         public int? NormVersionID { get; set; }
         
-        [Display(Name = "Samarali sanadan")]
+        [Display(Name = "Mes_Norm_EffectiveFrom")]
         public DateTime? EffectiveFrom { get; set; }
         
-        [Display(Name = "Samarali sanagacha")]
+        [Display(Name = "Mes_Norm_EffectiveTo")]
         public DateTime? EffectiveTo { get; set; }
         
-        [Display(Name = "Izoh")]
+        [Display(Name = "Comment")]
         public string Comment { get; set; }
         
         public List<NormLineViewModel> CuttingLines { get; set; } = new List<NormLineViewModel>();
@@ -47,13 +47,13 @@ namespace tahsinERP.ViewModels
         public Dictionary<int, MaterialSummaryViewModel> MaterialSummaries { get; set; } = new Dictionary<int, MaterialSummaryViewModel>();
         
         // Overall totals
-        [Display(Name = "Umumiy norma")]
+        [Display(Name = "Mes_Norm_TotalNorm")]
         public decimal TotalNorm { get; set; }
         
-        [Display(Name = "Umumiy chiqindi")]
+        [Display(Name = "Mes_Norm_TotalWaste")]
         public decimal TotalWaste { get; set; }
         
-        [Display(Name = "Umumiy summa")]
+        [Display(Name = "Mes_Norm_TotalAmount")]
         public decimal TotalCost { get; set; }
         
         // Optimization suggestion

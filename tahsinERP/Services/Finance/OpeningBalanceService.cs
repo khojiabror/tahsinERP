@@ -10,6 +10,7 @@ using tahsinERP.Models;
 using tahsinERP.Services.Crm;
 using tahsinERP.ViewModels;
 using tahsinERP.ViewModels.Finance;
+using tahsinERP.I18n;
 
 namespace tahsinERP.Services.Finance
 {
@@ -228,10 +229,10 @@ namespace tahsinERP.Services.Finance
 
             var names = new Dictionary<byte, Dictionary<int, string>>
             {
-                [TypeReceivable] = model.CustomerList.ToDictionary(x => int.Parse(x.Value), x => x.Text ?? "Noma'lum"),
-                [TypePayable] = model.SupplierList.ToDictionary(x => int.Parse(x.Value), x => x.Text ?? "Noma'lum"),
+                [TypeReceivable] = model.CustomerList.ToDictionary(x => int.Parse(x.Value), x => x.Text ?? L.T("Fin_Unknown")),
+                [TypePayable] = model.SupplierList.ToDictionary(x => int.Parse(x.Value), x => x.Text ?? L.T("Fin_Unknown")),
                 [TypePayroll] = model.EmployeeList.ToDictionary(x => int.Parse(x.Value), x => x.Text),
-                [TypeForwarder] = model.ForwarderList.ToDictionary(x => int.Parse(x.Value), x => x.Text ?? "Noma'lum")
+                [TypeForwarder] = model.ForwarderList.ToDictionary(x => int.Parse(x.Value), x => x.Text ?? L.T("Fin_Unknown"))
             };
             var contractNos = ContractNumbers(rows.Where(x => x.ContractID.HasValue).ToList());
 
@@ -254,14 +255,14 @@ namespace tahsinERP.Services.Finance
                     .ToList();
             }
 
-            model.CustomerReceivableLines = ContractLines(TypeReceivable, "Customer");
-            model.SupplierPayableLines = ContractLines(TypePayable, "Supplier");
-            model.ForwarderPayableLines = ContractLines(TypeForwarder, "Ekspeditor");
+            model.CustomerReceivableLines = ContractLines(TypeReceivable, L.T("Fin_CustomerEn"));
+            model.SupplierPayableLines = ContractLines(TypePayable, L.T("Fin_SupplierEn"));
+            model.ForwarderPayableLines = ContractLines(TypeForwarder, L.T("Fin_Forwarder"));
             model.EmployeePayrollLines = rows.Where(x => x.BalanceType == TypePayroll)
                 .Select(x => new OpeningBalancePayrollLineItem
                 {
                     EmployeeID = x.CounterpartyID,
-                    EmployeeName = names[TypePayroll].TryGetValue(x.CounterpartyID, out var n) ? n : $"Xodim #{x.CounterpartyID}",
+                    EmployeeName = names[TypePayroll].TryGetValue(x.CounterpartyID, out var n) ? n : L.T("Fin_Employee") + " #" + x.CounterpartyID,
                     TotalAmount = x.TotalAmount,
                     PaidAmount = x.PaidAmount,
                     Amount = x.Amount,

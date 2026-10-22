@@ -7,6 +7,7 @@ using tahsinERP.Services.DlocFifo;
 using tahsinERP.ViewModels.Finance;
 using tahsinERP.Services.Common;
 using tahsinERP.Services.Stock;
+using tahsinERP.I18n;
 
 namespace tahsinERP.Services.Finance
 {
@@ -36,7 +37,7 @@ namespace tahsinERP.Services.Finance
             {
                 rows.Add(new BalanceSheetInventoryBreakdownRow
                 {
-                    Note = "Ishlab chiqarish ombori topilmadi (Sozlamalar → Omborlar: ombor turi «Ishlab chiqarish» bo'lishi kerak)."
+                    Note = L.T("Fin_Inv_NoProductionWh")
                 });
                 return rows;
             }
@@ -46,7 +47,7 @@ namespace tahsinERP.Services.Finance
             {
                 rows.Add(new BalanceSheetInventoryBreakdownRow
                 {
-                    Note = "Bu omborda tayyor maxsulot (IsFinishedGood) qoldig'i yo'q."
+                    Note = L.T("Fin_Inv_NoFinishedStock")
                 });
                 return rows;
             }
@@ -75,7 +76,7 @@ namespace tahsinERP.Services.Finance
                         Unit = s.UnitShortName ?? "",
                         UnitPrice = null,
                         LineTotal = 0m,
-                        Note = "Sanagacha mos Tannarx topilmadi"
+                        Note = L.T("Fin_Inv_NoCost")
                     });
                     continue;
                 }
@@ -88,7 +89,7 @@ namespace tahsinERP.Services.Finance
                     Unit = s.UnitShortName ?? "",
                     UnitPrice = tx.SalesPriceCIPWithVAT,
                     LineTotal = s.Qty * tx.SalesPriceCIPWithVAT,
-                    Note = $"Tannarx: {tx.Month:00}/{tx.Year}, SalesPriceCIPWithVAT"
+                    Note = L.T("Fin_Inv_CostNote", tx.Month.ToString("00"), tx.Year)
                 });
             }
 
@@ -103,7 +104,7 @@ namespace tahsinERP.Services.Finance
             {
                 rows.Add(new BalanceSheetInventoryBreakdownRow
                 {
-                    Note = "Xomashyo ombori topilmadi (Sozlamalar → Omborlar: ombor turi «Xomashyo (ta'minot)» bo'lishi kerak)."
+                    Note = L.T("Fin_Inv_NoRawWh")
                 });
                 return rows;
             }
@@ -118,7 +119,7 @@ namespace tahsinERP.Services.Finance
             {
                 rows.Add(new BalanceSheetInventoryBreakdownRow
                 {
-                    Note = "Bu omborda xomashyo qoldig'i yo'q."
+                    Note = L.T("Fin_Inv_NoRawStock")
                 });
                 return rows;
             }
@@ -151,7 +152,7 @@ namespace tahsinERP.Services.Finance
                         Unit = s.UnitShortName ?? "",
                         UnitPrice = null,
                         LineTotal = 0m,
-                        Note = "Oxirgi kirim (shu ombor, sanagacha) topilmadi"
+                        Note = L.T("Fin_Inv_NoLastIncome")
                     });
                     continue;
                 }
@@ -167,7 +168,7 @@ namespace tahsinERP.Services.Finance
                         Unit = s.UnitShortName ?? "",
                         UnitPrice = null,
                         LineTotal = 0m,
-                        Note = "Kirim qatorida narx (PiecePrice / TotalPrice) yo'q"
+                        Note = L.T("Fin_Inv_NoPrice")
                     });
                     continue;
                 }
@@ -180,7 +181,7 @@ namespace tahsinERP.Services.Finance
                     Unit = s.UnitShortName ?? "",
                     UnitPrice = unitPrice,
                     LineTotal = s.Qty * unitPrice,
-                    Note = $"Qoldiq × oxirgi kirim narxi: {ip.INCOME.IssueDateTime:dd.MM.yyyy} {ip.INCOME.DocNo}"
+                    Note = L.T("Fin_Inv_LastIncomeNote", ip.INCOME.IssueDateTime.ToString("dd.MM.yyyy"), ip.INCOME.DocNo)
                 });
             }
 

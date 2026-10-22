@@ -9,22 +9,22 @@
 }
 
 <div class="alert alert-info">
-    <h5>Diqqat (majburiy tavsiya)</h5>
-    <p>Material/Oylik/Avans to'lovlarida <strong>Kontragent turi</strong> va <strong>Kontragent</strong> ni to'ldiring. Kontragent ro'yxati tur bo'yicha avtomatik yuklanadi.</p>
+    <h5>@L.T("Fin_AttentionRecommended")</h5>
+    <p>@L.T("Fin_CounterpartyRecommendHint")</p>
 </div>
 
 <div class="row">
     <div class="col-md-6">
         <div class="form-group">
-            @Html.LabelFor(m => m.TxnDate, "Sana *", new { @class = "control-label" })
+            @Html.LabelFor(m => m.TxnDate, L.T("Date") + " *", new { @class = "control-label" })
             @Html.TextBoxFor(m => m.TxnDate, new { @class = "form-control", type = "date", required = "required", @Value = Model.TxnDate.ToString("yyyy-MM-dd") })
             @Html.ValidationMessageFor(m => m.TxnDate, "", new { @class = "text-danger" })
         </div>
     </div>
     <div class="col-md-6">
         <div class="form-group">
-            @Html.LabelFor(m => m.AccountID, "Hisob *", new { @class = "control-label" })
-            @Html.DropDownListFor(m => m.AccountID, ViewBag.AccountsSelectList as SelectList, "Tanlang...", new { @class = selectCss, required = "required" })
+            @Html.LabelFor(m => m.AccountID, L.T("Fin_Account") + " *", new { @class = "control-label" })
+            @Html.DropDownListFor(m => m.AccountID, ViewBag.AccountsSelectList as SelectList, L.T("Fin_SelectDots"), new { @class = selectCss, required = "required" })
             @Html.ValidationMessageFor(m => m.AccountID, "", new { @class = "text-danger" })
         </div>
     </div>
@@ -33,15 +33,15 @@
 <div class="row">
     <div class="col-md-6">
         <div class="form-group">
-            @Html.LabelFor(m => m.CategoryID, "Kategoriya *", new { @class = "control-label" })
-            @Html.DropDownListFor(m => m.CategoryID, ViewBag.CategoriesSelectList as SelectList, "Tanlang...", new { @class = selectCss, required = "required" })
+            @Html.LabelFor(m => m.CategoryID, L.T("Category") + " *", new { @class = "control-label" })
+            @Html.DropDownListFor(m => m.CategoryID, ViewBag.CategoriesSelectList as SelectList, L.T("Fin_SelectDots"), new { @class = selectCss, required = "required" })
             @Html.ValidationMessageFor(m => m.CategoryID, "", new { @class = "text-danger" })
         </div>
     </div>
     <div class="col-md-6">
         <div class="form-group">
-            @Html.LabelFor(m => m.Direction, "Yo'nalish *", new { @class = "control-label" })
-            @Html.DropDownListFor(m => m.Direction, ViewBag.DirectionList as SelectList, "Tanlang...", new { @class = selectCss, required = "required" })
+            @Html.LabelFor(m => m.Direction, L.T("Fin_Direction") + " *", new { @class = "control-label" })
+            @Html.DropDownListFor(m => m.Direction, ViewBag.DirectionList as SelectList, L.T("Fin_SelectDots"), new { @class = selectCss, required = "required" })
             @Html.ValidationMessageFor(m => m.Direction, "", new { @class = "text-danger" })
         </div>
     </div>
@@ -50,15 +50,15 @@
 <div class="row">
     <div class="col-md-6">
         <div class="form-group">
-            @Html.LabelFor(m => m.Amount, "Summa *", new { @class = "control-label" })
+            @Html.LabelFor(m => m.Amount, L.T("Amount") + " *", new { @class = "control-label" })
             @Html.TextBoxFor(m => m.Amount, new { @class = "form-control", type = "number", step = "0.01", required = "required" })
             @Html.ValidationMessageFor(m => m.Amount, "", new { @class = "text-danger" })
         </div>
     </div>
     <div class="col-md-6">
         <div class="form-group">
-            @Html.LabelFor(m => m.CurrencyID, "Valyuta *", new { @class = "control-label" })
-            @Html.DropDownListFor(m => m.CurrencyID, ViewBag.CurrenciesSelectList as SelectList, "Tanlang...", new { @class = selectCss, required = "required" })
+            @Html.LabelFor(m => m.CurrencyID, L.T("Currency") + " *", new { @class = "control-label" })
+            @Html.DropDownListFor(m => m.CurrencyID, ViewBag.CurrenciesSelectList as SelectList, L.T("Fin_SelectDots"), new { @class = selectCss, required = "required" })
             @Html.ValidationMessageFor(m => m.CurrencyID, "", new { @class = "text-danger" })
         </div>
     </div>
@@ -67,19 +67,19 @@
 <div class="row">
     <div class="col-md-6">
         <div class="form-group">
-            @Html.LabelFor(m => m.CounterpartyType, "Kontragent turi", new { @class = "control-label" })
+            @Html.LabelFor(m => m.CounterpartyType, L.T("Fin_CounterpartyType"), new { @class = "control-label" })
             @Html.DropDownListFor(m => m.CounterpartyType, ViewBag.CounterpartyTypeList as SelectList, new { @class = selectCss, id = "CounterpartyType" })
-            <small class="text-muted">Material: Ta'minotchi | Oylik/Avans: Xodim. Tanlaganingizga qarab quyidagi ro'yxatda kontragentlar chiqadi.</small>
+            <small class="text-muted">@L.T("Fin_CounterpartyTypeHint")</small>
         </div>
     </div>
     <div class="col-md-6">
         <div class="form-group">
-            @Html.LabelFor(m => m.CounterpartyID, "Kontragent", new { @class = "control-label" })
+            @Html.LabelFor(m => m.CounterpartyID, L.T("Fin_Counterparty"), new { @class = "control-label" })
             @Html.DropDownListFor(m => m.CounterpartyID,
                 Enumerable.Empty<SelectListItem>(),
-                "Avval kontragent turini tanlang",
+                L.T("Fin_SelectCounterpartyTypeFirst"),
                 new { @class = "form-control", id = "CounterpartyID" })
-            <small class="text-muted">Tur bo'yicha faol (o'chirilmagan) kontragentlar yuklanadi.</small>
+            <small class="text-muted">@L.T("Fin_CounterpartyLoadHint")</small>
         </div>
     </div>
 </div>
@@ -87,17 +87,17 @@
 <div class="row" id="supplierContractRow" style="display: none;">
     <div class="col-md-6">
         <div class="form-group">
-            <label class="control-label" for="contractSelect">Shartnoma (xarid)</label>
+            <label class="control-label" for="contractSelect">@L.T("Fin_ContractPurchase")</label>
             <select id="contractSelect" class="form-control" disabled="disabled">
-                <option value="">---Ta'minotchini tanlang---</option>
+                <option value="">---@L.T("Fin_SelectSupplier")---</option>
             </select>
-            <small class="text-muted">Ta'minotchi tanlanganda PInvoices dagi kabi shartnomalar ro'yxati.</small>
+            <small class="text-muted">@L.T("Fin_ContractListHint")</small>
         </div>
     </div>
     <div class="col-md-6">
         <div class="form-group">
-            @Html.LabelFor(m => m.ContractNo, "Shartnoma raqami", new { @class = "control-label" })
-            @Html.TextBoxFor(m => m.ContractNo, new { @class = "form-control", id = "ContractNo", placeholder = "Shartnomani tanlasangiz avto to'ldiriladi" })
+            @Html.LabelFor(m => m.ContractNo, L.T("Fin_ContractNo"), new { @class = "control-label" })
+            @Html.TextBoxFor(m => m.ContractNo, new { @class = "form-control", id = "ContractNo", placeholder = L.T("Fin_ContractNoPh") })
         </div>
     </div>
 </div>
@@ -105,37 +105,37 @@
 <div class="row">
     <div class="col-md-6">
         <div class="form-group">
-            @Html.LabelFor(m => m.CounterpartyName, "Kontragent nomi", new { @class = "control-label" })
+            @Html.LabelFor(m => m.CounterpartyName, L.T("Fin_CounterpartyName"), new { @class = "control-label" })
             @Html.TextBoxFor(m => m.CounterpartyName, new { @class = "form-control" })
-            <small class="text-muted">Ixtiyoriy</small>
+            <small class="text-muted">@L.T("Fin_OptionalCap")</small>
         </div>
     </div>
     <div class="col-md-6"></div>
 </div>
 
 <div class="form-group">
-    @Html.LabelFor(m => m.Purpose, "Maqsad", new { @class = "control-label" })
+    @Html.LabelFor(m => m.Purpose, L.T("Fin_Purpose"), new { @class = "control-label" })
     @Html.TextBoxFor(m => m.Purpose, new { @class = "form-control" })
 </div>
 
 <div class="row">
     <div class="col-md-6">
         <div class="form-group">
-            <label class="control-label">Manba hujjat turi</label>
+            <label class="control-label">@L.T("Fin_SourceDocType")</label>
             @Html.DropDownList("SourceDocType", ViewBag.SourceDocTypeList as SelectList, new { @class = "form-control" })
-            <small class="text-muted">Ta'minotchiga to'lovda: "Ta'minotchiga to'lov" ni tanlang, Kontragent turi = Ta'minotchi, Kontragent ID = ta'minotchi ID, Manba hujjat ID = xarid invoysi ID (balansda ayrilishi uchun).</small>
+            <small class="text-muted">@L.T("Fin_SupplierPaymentHint")</small>
         </div>
     </div>
     <div class="col-md-6">
         <div class="form-group">
-            @Html.LabelFor(m => m.SourceDocID, "Manba hujjat ID (majburiyat yoki xarid invoysi ID)", new { @class = "control-label" })
+            @Html.LabelFor(m => m.SourceDocID, L.T("Fin_SourceDocIdLong"), new { @class = "control-label" })
             @Html.TextBoxFor(m => m.SourceDocID, new { @class = "form-control", type = "number", min = "0" })
-            <small class="text-muted"><a href="@Url.Action("Index", "FinRecurringObligations")" target="_blank">Doimiy harajatlar</a> sahifasida ID ko'rsatilgan.</small>
+            <small class="text-muted"><a href="@Url.Action("Index", "FinRecurringObligations")" target="_blank">@L.T("Fin_RecurringExpenses")</a> @L.T("Fin_IdShownOnPage")</small>
         </div>
     </div>
 </div>
 
 <div class="form-group">
-    @Html.LabelFor(m => m.Comment, "Izoh", new { @class = "control-label" })
+    @Html.LabelFor(m => m.Comment, L.T("Comment"), new { @class = "control-label" })
     @Html.TextAreaFor(m => m.Comment, new { @class = "form-control", rows = 3 })
 </div>

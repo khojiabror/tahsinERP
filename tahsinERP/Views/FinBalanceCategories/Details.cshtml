@@ -1,7 +1,7 @@
 @model tahsinERP.Models.FIN_BALANCE_CATEGORIES
 
 @{
-    ViewBag.Title = "Balans kategoriyasi tafsilotlari";
+    ViewBag.Title = L.T("Fin_BalanceCategoryDetails");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -20,8 +20,8 @@
                             <div class="breadcrumb-wrapper col-12">
                                 <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                     <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
-                                    <li class="breadcrumb-item"><a href="~/FinBalanceCategories">Balans kategoriyalari</a></li>
-                                    <li class="breadcrumb-item active">Tafsilotlar</li>
+                                    <li class="breadcrumb-item"><a href="~/FinBalanceCategories">@L.T("Fin_BalanceCategories")</a></li>
+                                    <li class="breadcrumb-item active">@L.T("Fin_Details")</li>
                                 </ol>
                             </div>
                         </div>
@@ -33,53 +33,53 @@
                     <div class="col-md-8">
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">Balans kategoriyasi tafsilotlari</h4>
+                                <h4 class="card-title">@L.T("Fin_BalanceCategoryDetails")</h4>
                                 @if (changePermit)
                                 {
                                     <div class="heading-elements">
-                                        <a href="@Url.Action("Edit", new { id = Model.ID })" class="btn btn-sm btn-primary">Tahrirlash</a>
-                                        <a href="@Url.Action("Delete", new { id = Model.ID })" class="btn btn-sm btn-danger">O'chirish</a>
-                                        <a href="@Url.Action("MapCategories", new { id = Model.ID })" class="btn btn-sm btn-info">Kategoriyalarni bog'lash</a>
+                                        <a href="@Url.Action("Edit", new { id = Model.ID })" class="btn btn-sm btn-primary">@L.T("Edit")</a>
+                                        <a href="@Url.Action("Delete", new { id = Model.ID })" class="btn btn-sm btn-danger">@L.T("Delete")</a>
+                                        <a href="@Url.Action("MapCategories", new { id = Model.ID })" class="btn btn-sm btn-info">@L.T("Fin_MapCategories")</a>
                                     </div>
                                 }
                             </div>
                             <div class="card-content">
                                 <div class="card-body">
                                     <dl class="row">
-                                        <dt class="col-sm-4">Nomi:</dt>
+                                        <dt class="col-sm-4">@L.T("Name"):</dt>
                                         <dd class="col-sm-8">@Model.Name</dd>
                                         
-                                        <dt class="col-sm-4">Turi:</dt>
+                                        <dt class="col-sm-4">@L.T("Type"):</dt>
                                         <dd class="col-sm-8">
                                             @if (Model.Type == 1)
-                                            { <span class="badge badge-primary">Aktiv</span> }
+                                            { <span class="badge badge-primary">@L.T("Fin_Asset")</span> }
                                             else if (Model.Type == 2)
-                                            { <span class="badge badge-warning">Passiv</span> }
+                                            { <span class="badge badge-warning">@L.T("Fin_Liability")</span> }
                                             else
-                                            { <span class="badge badge-info">Kapital</span> }
+                                            { <span class="badge badge-info">@L.T("Fin_Equity")</span> }
                                         </dd>
                                         
-                                        <dt class="col-sm-4">Ota kategoriya:</dt>
+                                        <dt class="col-sm-4">@L.T("Fin_ParentCategory"):</dt>
                                         <dd class="col-sm-8">@(Model.FIN_BALANCE_CATEGORIES2?.Name ?? "-")</dd>
                                         
-                                        <dt class="col-sm-4">Tartib raqami:</dt>
+                                        <dt class="col-sm-4">@L.T("Fin_SortOrder"):</dt>
                                         <dd class="col-sm-8">@Model.SortOrder</dd>
                                         
-                                        <dt class="col-sm-4">Holati:</dt>
+                                        <dt class="col-sm-4">@L.T("Fin_State"):</dt>
                                         <dd class="col-sm-8">
                                             @if (Model.IsActive)
-                                            { <span class="badge badge-success">Faol</span> }
+                                            { <span class="badge badge-success">@L.T("Active")</span> }
                                             else
-                                            { <span class="badge badge-danger">Nofaol</span> }
+                                            { <span class="badge badge-danger">@L.T("Inactive")</span> }
                                         </dd>
                                         
-                                        <dt class="col-sm-4">Snapshotlar soni:</dt>
-                                        <dd class="col-sm-8">@ViewBag.SnapshotCount ta</dd>
+                                        <dt class="col-sm-4">@L.T("Fin_SnapshotCount"):</dt>
+                                        <dd class="col-sm-8">@L.T("Fin_CountPcs", ViewBag.SnapshotCount)</dd>
                                     </dl>
                                     
                                     @if (ViewBag.ChildCategories != null && ((List<tahsinERP.Models.FIN_BALANCE_CATEGORIES>)ViewBag.ChildCategories).Any())
                                     {
-                                        <h5 class="mt-3">Kichik kategoriyalar:</h5>
+                                        <h5 class="mt-3">@L.T("Fin_SubCategories"):</h5>
                                         <ul>
                                             @foreach (var child in (List<tahsinERP.Models.FIN_BALANCE_CATEGORIES>)ViewBag.ChildCategories)
                                             {
@@ -90,13 +90,13 @@
                                     
                                     @if (ViewBag.MappedCategories != null && ((List<tahsinERP.Models.FIN_CATEGORIES>)ViewBag.MappedCategories).Any())
                                     {
-                                        <h5 class="mt-3">Bog'langan kategoriyalar:</h5>
+                                        <h5 class="mt-3">@L.T("Fin_MappedCategories"):</h5>
                                         <ul>
                                             @foreach (var category in (List<tahsinERP.Models.FIN_CATEGORIES>)ViewBag.MappedCategories)
                                             {
                                                 <li>@category.Name 
                                                     <span class="badge badge-@(category.Type == 1 ? "success" : category.Type == 2 ? "danger" : "secondary")">
-                                                        @(category.Type == 1 ? "Daromad" : category.Type == 2 ? "Chiqim" : "Boshqa")
+                                                        @(category.Type == 1 ? L.T("Fin_Income") : category.Type == 2 ? L.T("Fin_Expense") : L.T("Fin_Other"))
                                                     </span>
                                                 </li>
                                             }

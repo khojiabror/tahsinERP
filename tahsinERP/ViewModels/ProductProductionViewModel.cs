@@ -9,31 +9,31 @@ namespace tahsinERP.ViewModels
     {
         public int ID { get; set; }
         
-        [Required(ErrorMessage = "Mahsulotni tanlang")]
-        [Display(Name = "Mahsulot")]
+        [Required(ErrorMessage = "Mes_Val_SelectProduct")]
+        [Display(Name = "Mes_Product")]
         public int ProductID { get; set; }
         
-        [Required(ErrorMessage = "Sexni tanlang")]
-        [Display(Name = "Sex")]
+        [Required(ErrorMessage = "Mes_Prod_Val_SelectShop")]
+        [Display(Name = "Mes_Prod_Shop")]
         public int ShopID { get; set; }
         
-        [Required(ErrorMessage = "Sanani kiriting")]
-        [Display(Name = "Sana")]
+        [Required(ErrorMessage = "Mes_Prod_Val_EnterDate")]
+        [Display(Name = "Date")]
         [DataType(DataType.Date)]
         public DateTime Date { get; set; }
         
-        [Display(Name = "Kunduzgi smena")]
-        [Range(0, double.MaxValue, ErrorMessage = "Miqdor 0 yoki undan katta bo'lishi kerak")]
+        [Display(Name = "Mes_DayShift")]
+        [Range(0, double.MaxValue, ErrorMessage = "Mes_Val_QtyNonNegative")]
         public decimal DayShift { get; set; }
         
-        [Display(Name = "Tungi smena")]
-        [Range(0, double.MaxValue, ErrorMessage = "Miqdor 0 yoki undan katta bo'lishi kerak")]
+        [Display(Name = "Mes_NightShift")]
+        [Range(0, double.MaxValue, ErrorMessage = "Mes_Val_QtyNonNegative")]
         public decimal NightShift { get; set; }
         
-        [Display(Name = "Jami")]
+        [Display(Name = "Total")]
         public decimal Total { get; set; }
         
-        [Display(Name = "Izoh")]
+        [Display(Name = "Comment")]
         public string Comment { get; set; }
         
         // Navigation properties
@@ -43,18 +43,18 @@ namespace tahsinERP.ViewModels
     
     public class ProductProductionDailyEntryViewModel
     {
-        [Required(ErrorMessage = "Reja sanasini tanlang")]
-        [Display(Name = "Reja sanasi")]
+        [Required(ErrorMessage = "Mes_Prod_Val_SelectPlanDate")]
+        [Display(Name = "Mes_Prod_PlanDate")]
         [DataType(DataType.Date)]
         public DateTime Date { get; set; }
 
-        [Required(ErrorMessage = "Fakt ishlab chiqarish sanasini tanlang")]
-        [Display(Name = "Fakt ishlab chiqarish sanasi")]
+        [Required(ErrorMessage = "Mes_Prod_Val_SelectProductionDate")]
+        [Display(Name = "Mes_FactProductionDate")]
         [DataType(DataType.Date)]
         public DateTime ProductionDate { get; set; }
         
-        [Required(ErrorMessage = "Sexni tanlang")]
-        [Display(Name = "Sex")]
+        [Required(ErrorMessage = "Mes_Prod_Val_SelectShop")]
+        [Display(Name = "Mes_Prod_Shop")]
         public int ShopID { get; set; }
         
         public List<ProductionEntryItem> ProductionItems { get; set; }

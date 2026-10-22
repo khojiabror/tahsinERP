@@ -1,6 +1,6 @@
 @model tahsinERP.ViewModels.BOM.BomDetailsViewModel
 @{
-    ViewBag.Title = "BOM Tafsilotlari";
+    ViewBag.Title = L.T("Mes_Bom_DetailsTitle");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -17,7 +17,7 @@
                                 <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                     <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
                                     <li class="breadcrumb-item"><a href="~/Bom">BOM</a></li>
-                                    <li class="breadcrumb-item active">Tafsilotlar</li>
+                                    <li class="breadcrumb-item active">@L.T("Details")</li>
                                 </ol>
                             </div>
                         </div>
@@ -51,7 +51,7 @@
                         <div class="col-md-12">
                             <div class="card">
                                 <div class="card-header">
-                                    <h4 class="card-title">Mahsulot ma'lumotlari</h4>
+                                    <h4 class="card-title">@L.T("Mes_ProductInfo")</h4>
                                 </div>
                                 <div class="card-body">
                                     <div class="row">
@@ -63,13 +63,13 @@
                                         }
                                         <div class="@(string.IsNullOrEmpty(Model.ImageUrl) ? "col-md-12" : "col-md-9")">
                                             <dl class="row">
-                                                <dt class="col-sm-3">Mahsulot raqami:</dt>
+                                                <dt class="col-sm-3">@L.T("Mes_ProductNo"):</dt>
                                                 <dd class="col-sm-9"><strong>@Model.ProductPno</strong></dd>
 
-                                                <dt class="col-sm-3">Mahsulot nomi:</dt>
+                                                <dt class="col-sm-3">@L.T("Mes_ProductName"):</dt>
                                                 <dd class="col-sm-9">@Model.ProductName</dd>
 
-                                                <dt class="col-sm-3">Norm versiyasi:</dt>
+                                                <dt class="col-sm-3">@L.T("Mes_Bom_NormVersion"):</dt>
                                                 <dd class="col-sm-9">
                                                     <span class="badge badge-light-info">@Model.NormVersion</span>
                                                 </dd>
@@ -86,7 +86,7 @@
                         <div class="col-md-12">
                             <div class="card">
                                 <div class="card-header">
-                                    <h4 class="card-title">BOM Strukturasi</h4>
+                                    <h4 class="card-title">@L.T("Mes_Bom_Structure")</h4>
                                 </div>
                                 <div class="card-body">
                                     @if (Model.RootNode != null)
@@ -103,7 +103,7 @@
                                     else
                                     {
                                         <div class="alert alert-info">
-                                            <i class="bx bx-info-circle"></i> Bu mahsulot uchun BOM komponentlari topilmadi.
+                                            <i class="bx bx-info-circle"></i> @L.T("Mes_Bom_NoComponents")
                                         </div>
                                     }
                                 </div>
@@ -116,19 +116,19 @@
                         <div class="col-md-12">
                             <div class="card">
                                 <div class="card-header">
-                                    <h4 class="card-title">Materiallar bo'yicha sarf va summa</h4>
+                                    <h4 class="card-title">@L.T("Mes_Bom_MaterialSummary")</h4>
                                 </div>
                                 <div class="card-body">
                                     <div class="table-responsive">
                                         <table class="table table-striped table-bordered table-sm" id="materialSummaryTable">
                                             <thead class="thead-light">
                                                 <tr>
-                                                    <th>Material kodi</th>
-                                                    <th>Material nomi</th>
-                                                    <th class="text-right">Xomashyo sarfi</th>
-                                                    <th>O'lchov birligi</th>
-                                                    <th class="text-right">Narxi</th>
-                                                    <th class="text-right">Xomashyo summasi</th>
+                                                    <th>@L.T("Mes_MaterialCode")</th>
+                                                    <th>@L.T("Mes_MaterialName")</th>
+                                                    <th class="text-right">@L.T("Mes_Bom_MaterialConsumption")</th>
+                                                    <th>@L.T("Mes_UnitOfMeasure")</th>
+                                                    <th class="text-right">@L.T("Price")</th>
+                                                    <th class="text-right">@L.T("Mes_Bom_MaterialAmount")</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -149,7 +149,7 @@
                                                 else
                                                 {
                                                     <tr>
-                                                        <td colspan="6" class="text-center text-muted">Materiallar topilmadi.</td>
+                                                        <td colspan="6" class="text-center text-muted">@L.T("Mes_Bom_NoMaterials")</td>
                                                     </tr>
                                                 }
                                             </tbody>
@@ -157,7 +157,7 @@
                                             {
                                                 <tfoot>
                                                     <tr>
-                                                        <th colspan="5" class="text-right">Jami:</th>
+                                                        <th colspan="5" class="text-right">@L.T("Total"):</th>
                                                         <th class="text-right">@Model.MaterialSummaries.Sum(x => x.TotalAmount).ToString("F2")</th>
                                                     </tr>
                                                 </tfoot>
@@ -173,7 +173,7 @@
                 else
                 {
                     <div class="alert alert-warning">
-                        <i class="bx bx-error"></i> BOM ma'lumotlari topilmadi.
+                        <i class="bx bx-error"></i> @L.T("Mes_Bom_NoData")
                     </div>
                 }
             </div>
@@ -331,7 +331,7 @@
                                 callback();
                             } else if (attempts >= maxAttempts) {
                                 clearInterval(checkInterval);
-                                alert('PDF kutubxonasi yuklanmadi. Iltimos, sahifani yangilang.');
+                                alert('@L.Js("Mes_PdfLibNotLoaded")');
                             }
                         }, 100);
                     }
@@ -342,12 +342,12 @@
                         
                         var btn = $(this);
                         var originalText = btn.html();
-                        btn.prop('disabled', true).html('<i class="bx bx-loader-alt bx-spin"></i> PDF yaratilmoqda...');
+                        btn.prop('disabled', true).html('<i class="bx bx-loader-alt bx-spin"></i> @L.Js("Mes_PdfGenerating")');
 
                         waitForHtml2Pdf(function() {
                             var element = document.getElementById('bomContent');
                             if (!element) {
-                                alert('PDF uchun kontent topilmadi. Element ID: bomContent');
+                                alert('@L.Js("Mes_PdfNoContent")');
                                 btn.prop('disabled', false).html(originalText);
                                 return;
                             }
@@ -384,7 +384,7 @@
                                 btn.prop('disabled', false).html(originalText);
                             }).catch(function(error) {
                                 console.error('PDF yaratishda xatolik:', error);
-                                alert('PDF yaratishda xatolik yuz berdi: ' + (error.message || 'Noma\'lum xatolik'));
+                                alert('@L.Js("Mes_PdfError") ' + (error.message || '@L.Js("Mes_UnknownError")'));
                                 btn.prop('disabled', false).html(originalText);
                             });
                         }, 50);

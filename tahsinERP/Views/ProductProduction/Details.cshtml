@@ -1,7 +1,7 @@
 @model tahsinERP.ViewModels.ProductProductionDetailsViewModel
 @using tahsinERP.Models
 @{
-    ViewBag.Title = "Ishlab Chiqarish Ma'lumotlari";
+    ViewBag.Title = L.T("Mes_Prod_DetailsTitle");
     Layout = "~/Views/Shared/_Layout.cshtml";
     var ModelProduction = Model.Production;
     // Controller: o'zgartirish huquqi bor va yozuv QI/lot transferiga bog'lanmagan
@@ -21,9 +21,9 @@
                                         <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                     </li>
                                     <li class="breadcrumb-item">
-                                        <a href="~/ProductProduction/Index">Ishlab Chiqarish</a>
+                                        <a href="~/ProductProduction/Index">@L.T("Mes_Prod_Title")</a>
                                     </li>
-                                    <li class="breadcrumb-item active">Ma'lumotlar</li>
+                                    <li class="breadcrumb-item active">@L.T("Details")</li>
                                 </ol>
                             </div>
                         </div>
@@ -40,22 +40,22 @@
                                     <div class="card-body pb-0 mx-25">
                                         <div class="row invoice-info">
                                             <div class="col-lg-12 col-md-12 mt-25">
-                                                <h4 class="text-primary">Ishlab Chiqarish Ma'lumotlari</h4>
-                                                <p class="text-muted small mb-0">Hujjat havolasi: #@ModelProduction.ID</p>
+                                                <h4 class="text-primary">@L.T("Mes_Prod_DetailsTitle")</h4>
+                                                <p class="text-muted small mb-0">@L.T("Mes_Prod_DocRef") #@ModelProduction.ID</p>
                                                 <hr />
                                                 <div class="row">
                                                     <div class="col-md-6">
-                                                        <p><strong>Mahsulot:</strong> @(ModelProduction.PRODUCT?.PNo ?? ModelProduction.ProductID.ToString()) - @(ModelProduction.PRODUCT?.Name ?? "")</p>
-                                                        <p><strong>Sana:</strong> @ModelProduction.Date.ToString("dd.MM.yyyy")</p>
-                                                        <p><strong>Sex:</strong> @(ModelProduction.SHOP?.ShopName ?? ModelProduction.ShopID.ToString())</p>
+                                                        <p><strong>@L.T("Mes_Product"):</strong> @(ModelProduction.PRODUCT?.PNo ?? ModelProduction.ProductID.ToString()) - @(ModelProduction.PRODUCT?.Name ?? "")</p>
+                                                        <p><strong>@L.T("Date"):</strong> @ModelProduction.Date.ToString("dd.MM.yyyy")</p>
+                                                        <p><strong>@L.T("Mes_Prod_Shop"):</strong> @(ModelProduction.SHOP?.ShopName ?? ModelProduction.ShopID.ToString())</p>
                                                     </div>
                                                     <div class="col-md-6">
-                                                        <p><strong>Kunduzgi smena:</strong> @ModelProduction.DayShift.ToString("N3")</p>
-                                                        <p><strong>Tungi smena:</strong> @ModelProduction.NightShift.ToString("N3")</p>
-                                                        <p><strong>Jami:</strong> <span class="text-primary"><strong>@ModelProduction.Total.ToString("N3")</strong></span></p>
+                                                        <p><strong>@L.T("Mes_DayShift"):</strong> @ModelProduction.DayShift.ToString("N3")</p>
+                                                        <p><strong>@L.T("Mes_NightShift"):</strong> @ModelProduction.NightShift.ToString("N3")</p>
+                                                        <p><strong>@L.T("Total"):</strong> <span class="text-primary"><strong>@ModelProduction.Total.ToString("N3")</strong></span></p>
                                                         @if (!string.IsNullOrEmpty(ModelProduction.Comment))
                                                         {
-                                                            <p><strong>Izoh:</strong> @ModelProduction.Comment</p>
+                                                            <p><strong>@L.T("Comment"):</strong> @ModelProduction.Comment</p>
                                                         }
                                                     </div>
                                                 </div>
@@ -63,18 +63,18 @@
                                                 <div class="row mt-3">
                                                     <div class="col-12">
                                                         <a href="@Url.Action("Index")" class="btn btn-secondary">
-                                                            <i class="bx bx-arrow-back"></i> Orqaga
+                                                            <i class="bx bx-arrow-back"></i> @L.T("Back")
                                                         </a>
                                                         @if (changePermit)
                                                         {
                                                             <a href="@Url.Action("Edit", new { id = ModelProduction.ID })" class="btn btn-outline-success">
-                                                                <i class="bx bx-edit"></i> Tahrirlash
+                                                                <i class="bx bx-edit"></i> @L.T("Edit")
                                                             </a>
-                                                            using (Html.BeginForm("Delete", "ProductProduction", new { id = ModelProduction.ID }, FormMethod.Post, new { @class = "d-inline", onsubmit = "return confirm('Ishlab chiqarishni oʻchirishni tasdiqlaysizmi? Kirim va xomashyo chiqimi bekor qilinadi.');" }))
+                                                            using (Html.BeginForm("Delete", "ProductProduction", new { id = ModelProduction.ID }, FormMethod.Post, new { @class = "d-inline", onsubmit = "return confirm('" + L.Js("Mes_Prod_DeleteConfirm") + "');" }))
                                                             {
                                                                 @Html.AntiForgeryToken()
                                                                 <button type="submit" class="btn btn-outline-danger">
-                                                                    <i class="bx bx-trash"></i> O'chirish
+                                                                    <i class="bx bx-trash"></i> @L.T("Delete")
                                                                 </button>
                                                             }
                                                         }
@@ -90,26 +90,26 @@
                             <div class="card mt-2">
                                 <div class="card-header">
                                     <h4 class="card-title mb-0">
-                                        <i class="bx bx-list-check"></i> BOM/Norm bo'yicha sarf (xom ashyo talabi)
+                                        <i class="bx bx-list-check"></i> @L.T("Mes_Prod_BomConsumptionTitle")
                                     </h4>
                                 </div>
                                 <div class="card-content">
                                     <div class="card-body">
                                         @if (Model.BomConsumptionLines != null && Model.BomConsumptionLines.Any())
                                         {
-                                            <p class="text-muted small mb-2">Jami <strong>@Model.BomConsumptionLines.Count</strong> ta xom ashyo (BOM/Norm).</p>
+                                            <p class="text-muted small mb-2">@Html.Raw(L.T("Mes_Prod_BomLinesCount", Model.BomConsumptionLines.Count))</p>
                                             <div class="table-responsive">
                                                 <table id="bomSarfTable" class="table table-striped table-bordered table-hover" style="width:100%">
                                                     <thead>
                                                         <tr>
                                                             <th>#</th>
-                                                            <th>Mahsulot kodi</th>
-                                                            <th>Xom ashyo nomi</th>
-                                                            <th>Talab qilingan (dona)</th>
-                                                            <th>Jami sarf</th>
-                                                            <th>O'lchov birligi</th>
-                                                            <th>Dona narxi</th>
-                                                            <th>Summa (pul)</th>
+                                                            <th>@L.T("Mes_ProductCode")</th>
+                                                            <th>@L.T("Mes_Prod_MaterialName")</th>
+                                                            <th>@L.T("Mes_Prod_RequiredPcs")</th>
+                                                            <th>@L.T("Mes_Prod_TotalConsumption")</th>
+                                                            <th>@L.T("Unit")</th>
+                                                            <th>@L.T("Mes_Prod_PiecePrice")</th>
+                                                            <th>@L.T("Mes_Prod_AmountMoney")</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody>
@@ -133,7 +133,7 @@
                                         }
                                         else
                                         {
-                                            <p class="text-muted mb-0">Ushbu mahsulot uchun BOM/Norm topilmadi yoki sarf qatorlari yo'q.</p>
+                                            <p class="text-muted mb-0">@L.T("Mes_Prod_NoBomLines")</p>
                                         }
                                     </div>
                                 </div>
@@ -143,26 +143,26 @@
                             <div class="card mt-2">
                                 <div class="card-header">
                                     <h4 class="card-title mb-0">
-                                        <i class="bx bx-log-out-circle"></i> Chiqim hujjatlari (ishlab chiqarish uchun xomashyo chiqimi)
+                                        <i class="bx bx-log-out-circle"></i> @L.T("Mes_Prod_ExpenseDocsTitle")
                                     </h4>
                                 </div>
                                 <div class="card-content">
                                     <div class="card-body">
-                                        <p class="text-muted small mb-2">Chiqim sahifasi URL: <code>~/Expenses/Details/{id}</code>. Quyidagi jadvalda har bir qator uchun <strong>Chiqim</strong> tugmasi yoki havola orqali chiqim hujjatiga o‘ting.</p>
+                                        <p class="text-muted small mb-2">@L.T("Mes_Prod_ExpensePageUrl") <code>~/Expenses/Details/{id}</code>. @Html.Raw(L.T("Mes_Prod_ExpenseLinkHint"))</p>
                                         @if (Model.ExpenseDocuments != null && Model.ExpenseDocuments.Any())
                                         {
-                                            <p class="text-muted small mb-2">Ushbu ishlab chiqarishga bog‘liq <strong>@Model.ExpenseDocuments.Count</strong> ta chiqim hujjati.</p>
+                                            <p class="text-muted small mb-2">@Html.Raw(L.T("Mes_Prod_ExpenseDocsCount", Model.ExpenseDocuments.Count))</p>
                                             <div class="table-responsive">
                                                 <table id="expenseTable" class="table table-striped table-bordered table-hover" style="width:100%">
                                                     <thead>
                                                         <tr>
-                                                            <th>Hujjat raqami</th>
-                                                            <th>Sana va vaqt</th>
-                                                            <th>Mahsulotlar soni</th>
-                                                            <th>Jami miqdor</th>
-                                                            <th>Summa</th>
-                                                            <th>Chiqim URL</th>
-                                                            <th>Amallar</th>
+                                                            <th>@L.T("Mes_Prod_DocNo")</th>
+                                                            <th>@L.T("Mes_Prod_DateTime")</th>
+                                                            <th>@L.T("Mes_Prod_ProductCount")</th>
+                                                            <th>@L.T("Mes_Prod_TotalQty")</th>
+                                                            <th>@L.T("Amount")</th>
+                                                            <th>@L.T("Mes_Prod_ExpenseUrl")</th>
+                                                            <th>@L.T("Actions")</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody>
@@ -176,8 +176,8 @@
                                                                 <td>@exp.TotalPrice.ToString("N2")</td>
                                                                 <td><a href="@(exp.DetailsUrl ?? Url.Action("Details", "Expenses", new { id = exp.ExpenseID }))" target="_blank">@(exp.DetailsUrl ?? ("/Expenses/Details/" + exp.ExpenseID))</a></td>
                                                                 <td>
-                                                                    <a href="@(exp.DetailsUrl ?? Url.Action("Details", "Expenses", new { id = exp.ExpenseID }))" class="btn btn-sm btn-outline-primary" title="Chiqim hujjatiga o'tish">
-                                                                        <i class="bx bx-link-external"></i> Chiqim
+                                                                    <a href="@(exp.DetailsUrl ?? Url.Action("Details", "Expenses", new { id = exp.ExpenseID }))" class="btn btn-sm btn-outline-primary" title="@L.T("Mes_Prod_GoToExpense")">
+                                                                        <i class="bx bx-link-external"></i> @L.T("Mes_Prod_Expense")
                                                                     </a>
                                                                 </td>
                                                             </tr>
@@ -192,19 +192,19 @@
                                                 <table id="expenseTable" class="table table-striped table-bordered table-hover" style="width:100%">
                                                     <thead>
                                                         <tr>
-                                                            <th>Hujjat raqami</th>
-                                                            <th>Sana va vaqt</th>
-                                                            <th>Mahsulotlar soni</th>
-                                                            <th>Jami miqdor</th>
-                                                            <th>Summa</th>
-                                                            <th>Chiqim URL</th>
-                                                            <th>Amallar</th>
+                                                            <th>@L.T("Mes_Prod_DocNo")</th>
+                                                            <th>@L.T("Mes_Prod_DateTime")</th>
+                                                            <th>@L.T("Mes_Prod_ProductCount")</th>
+                                                            <th>@L.T("Mes_Prod_TotalQty")</th>
+                                                            <th>@L.T("Amount")</th>
+                                                            <th>@L.T("Mes_Prod_ExpenseUrl")</th>
+                                                            <th>@L.T("Actions")</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody>
                                                         <tr>
                                                             <td class="text-muted text-center">
-                                                                Ushbu ishlab chiqarish uchun chiqim hujjati topilmadi (BOM chiqimi bo‘lmagan yoki eski yozuvlar).
+                                                                @L.T("Mes_Prod_NoExpenseDocs")
                                                             </td>
                                                             <td></td>
                                                             <td></td>
@@ -232,20 +232,6 @@
         $(document).ready(function () {
             if ($('#bomSarfTable').length) {
                 $('#bomSarfTable').DataTable({
-                    language: {
-                        search: "Qidirish:",
-                        lengthMenu: "_MENU_ ta ko'rsatish",
-                        info: "_TOTAL_ ta yozuvdan _START_ dan _END_ gacha",
-                        infoEmpty: "Yozuvlar yo'q",
-                        infoFiltered: "(jami _MAX_ ta yozuvdan filtrlangan)",
-                        paginate: {
-                            first: "Birinchi",
-                            last: "Oxirgi",
-                            next: "Keyingi",
-                            previous: "Oldingi"
-                        },
-                        zeroRecords: "Ma'lumot topilmadi"
-                    },
                     paging: true,
                     lengthChange: true,
                     order: [[1, "asc"]],
@@ -255,20 +241,6 @@
 
             if ($('#expenseTable').length) {
                 $('#expenseTable').DataTable({
-                    language: {
-                        search: "Qidirish:",
-                        lengthMenu: "_MENU_ ta ko'rsatish",
-                        info: "_TOTAL_ ta yozuvdan _START_ dan _END_ gacha",
-                        infoEmpty: "Yozuvlar yo'q",
-                        infoFiltered: "(jami _MAX_ ta yozuvdan filtrlangan)",
-                        paginate: {
-                            first: "Birinchi",
-                            last: "Oxirgi",
-                            next: "Keyingi",
-                            previous: "Oldingi"
-                        },
-                        zeroRecords: "Ma'lumot topilmadi"
-                    },
                     paging: true,
                     lengthChange: true,
                     order: [[1, "desc"]],

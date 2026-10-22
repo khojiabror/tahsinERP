@@ -12,6 +12,7 @@ using tahsinERP.Controllers;
 using Newtonsoft.Json;
 using tahsinERP.Filters;
 using tahsinERP.Services.Norm;
+using tahsinERP.I18n;
 
 namespace tahsinERP.Controllers.Engineering
 {
@@ -66,14 +67,14 @@ namespace tahsinERP.Controllers.Engineering
 
             if (!id.HasValue)
             {
-                TempData["Error"] = "Mahsulot ID kiritilmagan.";
+                TempData["Error"] = L.T("Mes_Norm_ProductIdMissing");
                 return RedirectToAction("Index");
             }
 
             var product = await db.PRODUCTS.FindAsync(id.Value);
             if (product == null)
             {
-                TempData["Error"] = "Mahsulot topilmadi.";
+                TempData["Error"] = L.T("Mes_ProductNotFound");
                 return RedirectToAction("Index");
             }
 
@@ -173,7 +174,7 @@ namespace tahsinERP.Controllers.Engineering
 
             if (!normVersionId.HasValue)
             {
-                TempData["Error"] = "Norm versiyasi ID kiritilmagan.";
+                TempData["Error"] = L.T("Mes_Norm_VersionIdMissing");
                 return RedirectToAction("Index");
             }
 
@@ -183,7 +184,7 @@ namespace tahsinERP.Controllers.Engineering
 
             if (normVersion == null)
             {
-                TempData["Error"] = "Norm versiyasi topilmadi.";
+                TempData["Error"] = L.T("Mes_Norm_VersionNotFound");
                 return RedirectToAction("Index");
             }
 
@@ -238,7 +239,7 @@ namespace tahsinERP.Controllers.Engineering
 
             if (!normVersionId.HasValue)
             {
-                TempData["Error"] = "Norm versiyasi ID kiritilmagan.";
+                TempData["Error"] = L.T("Mes_Norm_VersionIdMissing");
                 return RedirectToAction("Index");
             }
 
@@ -252,7 +253,7 @@ namespace tahsinERP.Controllers.Engineering
 
                     if (normVersion == null)
                     {
-                        TempData["Error"] = "Norm versiyasi topilmadi.";
+                        TempData["Error"] = L.T("Mes_Norm_VersionNotFound");
                         return RedirectToAction("Index");
                     }
 
@@ -302,7 +303,7 @@ namespace tahsinERP.Controllers.Engineering
 
                     transaction.Complete();
 
-                    TempData["Success"] = "NORM muvaffaqiyatli o'chirildi." + (string.IsNullOrEmpty(bomNote) ? "" : " " + bomNote);
+                    TempData["Success"] = L.T("Mes_Norm_Deleted") + (string.IsNullOrEmpty(bomNote) ? "" : " " + bomNote);
                     return RedirectToAction("Details", new { id = productId });
                 }
                 catch (Exception ex)
@@ -329,7 +330,7 @@ namespace tahsinERP.Controllers.Engineering
                 var product = await db.PRODUCTS.FindAsync(productId.Value);
                 if (product == null)
                 {
-                    TempData["Error"] = "Mahsulot topilmadi.";
+                    TempData["Error"] = L.T("Mes_ProductNotFound");
                     return RedirectToAction("Index");
                 }
 
@@ -338,7 +339,7 @@ namespace tahsinERP.Controllers.Engineering
                 // Tekshirish agar norm already mavjud uchun this product va period
                 if (await FindNormForPeriodAsync(productId.Value, selectedPeriod, null) != null)
                 {
-                    TempData["Error"] = $"Bu mahsulot uchun {selectedPeriod} oyi uchun norm allaqachon mavjud. Iltimos, mavjud normni tahrirlang yoki boshqa oy tanlang.";
+                    TempData["Error"] = L.T("Mes_Norm_AlreadyExistsForMonth", selectedPeriod);
                     return RedirectToAction("Details", new { id = productId.Value });
                 }
 
@@ -352,13 +353,13 @@ namespace tahsinERP.Controllers.Engineering
                     var loaded = await ApplyTemplateFromNormVersionAsync(viewModel, templateNormVersionId.Value, overrideHeaderFields: true);
                     if (!loaded)
                     {
-                        TempData["Error"] = "Tanlangan oldingi norma topilmadi yoki ushbu mahsulotga tegishli emas.";
+                        TempData["Error"] = L.T("Mes_Norm_TemplateNotFound");
                     }
                 }
             }
             else
             {
-                TempData["Error"] = "Mahsulot ID kiritilmagan.";
+                TempData["Error"] = L.T("Mes_Norm_ProductIdMissing");
                 return RedirectToAction("Index");
             }
 
@@ -380,7 +381,7 @@ namespace tahsinERP.Controllers.Engineering
 
             if (!normVersionId.HasValue)
             {
-                TempData["Error"] = "Norm versiyasi ID kiritilmagan.";
+                TempData["Error"] = L.T("Mes_Norm_VersionIdMissing");
                 return RedirectToAction("Index");
             }
 
@@ -391,7 +392,7 @@ namespace tahsinERP.Controllers.Engineering
 
             if (normVersion == null)
             {
-                TempData["Error"] = "Norm versiyasi topilmadi.";
+                TempData["Error"] = L.T("Mes_Norm_VersionNotFound");
                 return RedirectToAction("Index");
             }
 
@@ -412,7 +413,7 @@ namespace tahsinERP.Controllers.Engineering
                 var loaded = await ApplyTemplateFromNormVersionAsync(viewModel, templateNormVersionId.Value, overrideHeaderFields: true);
                 if (!loaded)
                 {
-                    TempData["Error"] = "Tanlangan oldingi norma topilmadi yoki ushbu mahsulotga tegishli emas.";
+                    TempData["Error"] = L.T("Mes_Norm_TemplateNotFound");
                     var currentPeriod = normVersion.EffectiveFrom?.ToString("yyyy-MM") ?? "";
                     await PopulateCuttingLinesFromPeriodAsync(viewModel, viewModel.ProductID, currentPeriod);
                     await RecalculateTotalsForViewModelAsync(viewModel);
@@ -494,7 +495,7 @@ namespace tahsinERP.Controllers.Engineering
                 var data = await BuildMaterialDataAsync(new[] { materialId });
                 if (data.Count == 0)
                 {
-                    return Json(new { success = false, message = "Material topilmadi" }, JsonRequestBehavior.AllowGet);
+                    return Json(new { success = false, message = L.T("Mes_Norm_MaterialNotFound") }, JsonRequestBehavior.AllowGet);
                 }
 
                 return Json(data[0], JsonRequestBehavior.AllowGet);
@@ -595,7 +596,7 @@ namespace tahsinERP.Controllers.Engineering
         {
             if (!tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, RouteData.Values["controller"].ToString(), RouteData.Values["action"].ToString()))
             {
-                return Json(new { success = false, message = "Ruxsat yo'q" }, JsonRequestBehavior.AllowGet);
+                return Json(new { success = false, message = L.T("Error_NotAuthorized") }, JsonRequestBehavior.AllowGet);
             }
 
             try
@@ -610,7 +611,7 @@ namespace tahsinERP.Controllers.Engineering
 
                 if (string.IsNullOrEmpty(json))
                 {
-                    return Json(new { success = false, message = "JSON ma'lumotlari topilmadi" }, JsonRequestBehavior.AllowGet);
+                    return Json(new { success = false, message = L.T("Mes_Norm_JsonDataNotFound") }, JsonRequestBehavior.AllowGet);
                 }
 
                 try
@@ -621,19 +622,19 @@ namespace tahsinERP.Controllers.Engineering
                 catch (JsonException)
                 {
                     // Xom JSON foydalanuvchiga qaytarilmaydi (MES-B16)
-                    return Json(new { success = false, message = "Ma'lumotlar formati noto'g'ri (JSON)." }, JsonRequestBehavior.AllowGet);
+                    return Json(new { success = false, message = L.T("Mes_Norm_JsonFormatInvalid") }, JsonRequestBehavior.AllowGet);
                 }
                 
                 // Tekshirish agar viewModel is null
                 if (viewModel == null)
                 {
-                    return Json(new { success = false, message = "Model ma'lumotlari topilmadi" }, JsonRequestBehavior.AllowGet);
+                    return Json(new { success = false, message = L.T("Mes_Norm_ModelDataNotFound") }, JsonRequestBehavior.AllowGet);
                 }
 
                 // Tekshirish agar CuttingLines is null yoki empty
                 if (viewModel.CuttingLines == null || viewModel.CuttingLines.Count == 0)
                 {
-                    return Json(new { success = false, message = "Kesish variantlari topilmadi" }, JsonRequestBehavior.AllowGet);
+                    return Json(new { success = false, message = L.T("Mes_Norm_NoCuttingVariantsShort") }, JsonRequestBehavior.AllowGet);
                 }
 
                 // Butun jadval bo'yicha (faqat tanlanganlar emas) — material (xomashyo) bo'yicha guruhlaymiz.
@@ -645,7 +646,7 @@ namespace tahsinERP.Controllers.Engineering
 
                 if (materialGroups.Count == 0)
                 {
-                    return Json(new { success = false, message = "Kesish variantlari topilmadi" }, JsonRequestBehavior.AllowGet);
+                    return Json(new { success = false, message = L.T("Mes_Norm_NoCuttingVariantsShort") }, JsonRequestBehavior.AllowGet);
                 }
 
                 decimal totalNorm = 0;
@@ -707,8 +708,8 @@ namespace tahsinERP.Controllers.Engineering
                 }
 
                 var message = reusedLinesCount > 0
-                    ? $"Optimizatsiya: {reusedLinesCount} ta kesim chiqindidan olindi (sarf 0). Umumiy norma {totalNorm:F4} m, umumiy chiqindi {totalWaste:F4} m, umumiy summa {totalCost:F2}."
-                    : $"Optimizatsiya: chiqindidan qayta ishlatish imkoni topilmadi. Umumiy norma {totalNorm:F4} m, umumiy chiqindi {totalWaste:F4} m, umumiy summa {totalCost:F2}.";
+                    ? L.T("Mes_Norm_OptResultReused", reusedLinesCount, totalNorm.ToString("F4"), totalWaste.ToString("F4"), totalCost.ToString("F2"))
+                    : L.T("Mes_Norm_OptResultNone", totalNorm.ToString("F4"), totalWaste.ToString("F4"), totalCost.ToString("F2"));
 
                 return Json(new
                 {
@@ -728,7 +729,7 @@ namespace tahsinERP.Controllers.Engineering
             }
             catch (Exception ex)
             {
-                return JsonError(ex, "Hisoblashda xatolik yuz berdi.");
+                return JsonError(ex, L.T("Mes_Norm_CalcError"));
             }
         }
 
@@ -746,7 +747,7 @@ namespace tahsinERP.Controllers.Engineering
             // Avval faqat yangi normalar tekshirilardi va tahrirda boshqa versiya qatorlari o'chib ketardi (MES-B06).
             if (await FindNormForPeriodAsync(viewModel.ProductID, viewModel.Period, viewModel.NormVersionID) != null)
             {
-                TempData["Error"] = $"Bu mahsulot uchun {viewModel.Period} oyi uchun norm allaqachon mavjud. Iltimos, mavjud normni tahrirlang yoki boshqa oy tanlang.";
+                TempData["Error"] = L.T("Mes_Norm_AlreadyExistsForMonth", viewModel.Period);
                 return RedirectToAction("Details", new { id = viewModel.ProductID });
             }
 
@@ -840,7 +841,7 @@ namespace tahsinERP.Controllers.Engineering
 
                         if (normVersion == null)
                         {
-                            TempData["Error"] = "Norm versiyasi topilmadi.";
+                            TempData["Error"] = L.T("Mes_Norm_VersionNotFound");
                             return RedirectToAction("Index");
                         }
 
@@ -1001,7 +1002,7 @@ namespace tahsinERP.Controllers.Engineering
 
                     transaction.Complete();
 
-                    TempData["Success"] = "NORM muvaffaqiyatli saqlandi." + (string.IsNullOrEmpty(bomNote) ? "" : " " + bomNote);
+                    TempData["Success"] = L.T("Mes_Norm_Saved") + (string.IsNullOrEmpty(bomNote) ? "" : " " + bomNote);
                     return RedirectToAction("Index", new { productId = viewModel.ProductID });
                 }
                 catch (Exception ex)
@@ -1201,7 +1202,7 @@ namespace tahsinERP.Controllers.Engineering
                     bomHeader.IsActive = false;
                     await db.Database.ExecuteSqlCommandAsync(
                         "IF OBJECT_ID('dbo.BOMS_AND_NORMS', 'U') IS NOT NULL UPDATE dbo.BOMS_AND_NORMS SET IsActive = 0 WHERE BOMID = {0}", bomHeader.ID);
-                    return "Mahsulotda norma qolmadi — BOM faolsizlantirildi.";
+                    return L.T("Mes_Norm_BomDeactivated");
                 }
                 return null;
             }
@@ -1219,7 +1220,7 @@ namespace tahsinERP.Controllers.Engineering
                 if (bomHeader != null && bomHeader.IsActive == true && bomHeader.VersionNo == latestPeriod)
                 {
                     return current != null
-                        ? $"BOM o'zgarmadi: u eng so'nggi norma ({latestPeriod}) bo'yicha qoladi."
+                        ? L.T("Mes_Norm_BomUnchanged", latestPeriod)
                         : null;
                 }
 
@@ -1268,7 +1269,7 @@ namespace tahsinERP.Controllers.Engineering
             await TryUpsertBomNormLinkAsync(bomHeader.ID, latest.ID, User.Identity.Name, productPNo);
 
             return current != null && latest.ID != current.ID
-                ? $"BOM eng so'nggi norma ({latestPeriod}) bo'yicha yangilandi."
+                ? L.T("Mes_Norm_BomUpdated", latestPeriod)
                 : null;
         }
 
@@ -1394,7 +1395,7 @@ namespace tahsinERP.Controllers.Engineering
                 month = productMonths.OrderByDescending(x => x).FirstOrDefault();
             }
 
-            var text = string.IsNullOrWhiteSpace(month) ? "Oy yo'q" : month;
+            var text = string.IsNullOrWhiteSpace(month) ? L.T("Mes_Norm_NoMonth") : month;
             if (!string.IsNullOrWhiteSpace(comment))
             {
                 text += " | " + comment;
@@ -1576,8 +1577,8 @@ namespace tahsinERP.Controllers.Engineering
                 foreach (var line in lines)
                 {
                     line.OptimizationNote = !requiresCutting
-                        ? "Kesilmaydigan material — optimizatsiya qo'llanilmadi."
-                        : "Standart uzunlik yo'q — optimizatsiya qo'llanilmadi.";
+                        ? L.T("Mes_Norm_OptNoteNotCut")
+                        : L.T("Mes_Norm_OptNoteNoStdLength");
                 }
                 return lines;
             }
@@ -1635,7 +1636,7 @@ namespace tahsinERP.Controllers.Engineering
 
                         tgt.UsesWaste = true;
                         tgt.OptimizationNote =
-                            $"{tgtCut:F0}mm × {origQty} dona {pos}-qatordagi {src.CalculatedLengthMm.Value:F0}mm kesim chiqindisidan olinadi. Sarf 0 qilindi.";
+                            L.T("Mes_Norm_OptNoteFromWaste", tgtCut.ToString("F0"), origQty, pos, src.CalculatedLengthMm.Value.ToString("F0"));
 
                         // Foydalanuvchi talabi: dona va sarf 0 qilinadi (xomashyo qo'shimcha sotib olinmaydi).
                         tgt.Quantity = 0;
@@ -1668,8 +1669,8 @@ namespace tahsinERP.Controllers.Engineering
                     var totalWasteMm = perPieceWasteMm * src.Quantity;
                     var usedMm = totalWasteMm - remainingWasteMm;
                     src.OptimizationNote = usedMm > 0
-                        ? $"Chiqindidan {usedMm:F0}mm boshqa kalta kesimlarga ishlatildi. Qolgan chiqindi {remainingWasteMm:F0}mm."
-                        : $"Chiqindi {remainingWasteMm:F0}mm (boshqa kesimga ishlatilmadi).";
+                        ? L.T("Mes_Norm_OptNoteWasteUsed", usedMm.ToString("F0"), remainingWasteMm.ToString("F0"))
+                        : L.T("Mes_Norm_OptNoteWasteUnused", remainingWasteMm.ToString("F0"));
                 }
             }
 

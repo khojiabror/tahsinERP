@@ -1,6 +1,6 @@
 @model List<tahsinERP.Controllers.Finance.RecurringObligationViewModel>
 @{
-    ViewBag.Title = "Doimiy harajatlar";
+    ViewBag.Title = L.T("Fin_RecurringExpenses");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -19,8 +19,8 @@
                             <div class="breadcrumb-wrapper col-12">
                                 <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                     <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
-                                    <li class="breadcrumb-item"><a href="@Url.Action("BalanceSheet", "FinDashboard")">Moliya</a></li>
-                                    <li class="breadcrumb-item active">Doimiy harajatlar</li>
+                                    <li class="breadcrumb-item"><a href="@Url.Action("BalanceSheet", "FinDashboard")">@L.T("Menu_Finance")</a></li>
+                                    <li class="breadcrumb-item active">@L.T("Fin_RecurringExpenses")</li>
                                 </ol>
                             </div>
                         </div>
@@ -33,19 +33,19 @@
                     <div class="alert alert-warning">@ViewBag.Error</div>
                 }
                 <p class="text-muted">
-                    Bu ro'yxatdagi harajatlar har oy balansda "Doimiy harajatlar qarzi" sifatida shakllanadi. To'lovni
-                    <a href="@Url.Action("Index", "FinTransactions")">Tranzaksiyalar</a> orqali kiritganda <strong>Manba hujjat turi</strong> = <code>RecurringObligationPayment</code>, <strong>Manba hujjat ID</strong> = quyidagi majburiyat ID sini kiriting.
+                    @L.T("Fin_RecurringInfo1")
+                    <a href="@Url.Action("Index", "FinTransactions")">@L.T("Fin_Transactions")</a> @L.T("Fin_RecurringInfo2") <strong>@L.T("Fin_SourceDocType")</strong> = <code>RecurringObligationPayment</code>, <strong>@L.T("Fin_SourceDocId")</strong> = @L.T("Fin_RecurringInfo3")
                 </p>
                 @if (changePermit)
                 {
                     <div class="mb-1">
-                        <a href="@Url.Action("Create")" class="btn btn-outline-success">Doimiy harajat qo'shish</a>
-                        <a href="@Url.Action("BalanceSheet", "FinDashboard")" class="btn btn-outline-primary">Balans hisoboti</a>
+                        <a href="@Url.Action("Create")" class="btn btn-outline-success">@L.T("Fin_AddRecurring")</a>
+                        <a href="@Url.Action("BalanceSheet", "FinDashboard")" class="btn btn-outline-primary">@L.T("Fin_BalanceReport")</a>
                     </div>
                 }
                 <div class="card">
                     <div class="card-header">
-                        <h4 class="card-title">Doimiy harajatlar (ijara, buxgalteriya va h.k.)</h4>
+                        <h4 class="card-title">@L.T("Fin_RecurringExpensesLong")</h4>
                     </div>
                     <div class="card-content">
                         <div class="card-body">
@@ -54,12 +54,12 @@
                                     <thead>
                                         <tr>
                                             <th>ID</th>
-                                            <th>Nomi</th>
-                                            <th class="text-right">Oylik summa</th>
-                                            <th>Valyuta</th>
-                                            <th>Boshlash</th>
-                                            <th>Balans kategoriyasi</th>
-                                            <th>Faol</th>
+                                            <th>@L.T("Name")</th>
+                                            <th class="text-right">@L.T("Fin_MonthlyAmount")</th>
+                                            <th>@L.T("Currency")</th>
+                                            <th>@L.T("Fin_Start")</th>
+                                            <th>@L.T("Fin_BalanceCategory")</th>
+                                            <th>@L.T("Active")</th>
                                             @if (changePermit) { <th>Amallar</th> }
                                         </tr>
                                     </thead>
@@ -75,15 +75,15 @@
                                                     <td>@(item.CurrencyShortname ?? "")</td>
                                                     <td>@item.StartYear-@item.StartMonth.ToString("D2")</td>
                                                     <td>@(item.BalanceCategoryName ?? "—")</td>
-                                                    <td>@(item.IsActive ? "Ha" : "Yo'q")</td>
+                                                    <td>@(item.IsActive ? L.T("Yes") : L.T("No"))</td>
                                                     @if (changePermit)
                                                     {
                                                         <td>
-                                                            @Html.ActionLink("Tahrirlash", "Edit", new { id = item.ID }, new { @class = "btn btn-sm btn-outline-primary" })
-                                                            @using (Html.BeginForm("Delete", "FinRecurringObligations", new { id = item.ID }, FormMethod.Post, new { style = "display:inline", onsubmit = "return confirm('O\'chirishni xohlaysizmi?');" }))
+                                                            @Html.ActionLink(L.T("Edit"), "Edit", new { id = item.ID }, new { @class = "btn btn-sm btn-outline-primary" })
+                                                            @using (Html.BeginForm("Delete", "FinRecurringObligations", new { id = item.ID }, FormMethod.Post, new { style = "display:inline", onsubmit = "return confirm('" + L.Js("Fin_ConfirmDeleteQ") + "');" }))
                                                             {
                                                                 @Html.AntiForgeryToken()
-                                                                <button type="submit" class="btn btn-sm btn-outline-danger">O'chirish</button>
+                                                                <button type="submit" class="btn btn-sm btn-outline-danger">@L.T("Delete")</button>
                                                             }
                                                         </td>
                                                     }
@@ -92,7 +92,7 @@
                                         }
                                         else
                                         {
-                                            <tr><td colspan="@(changePermit ? 9 : 8)" class="text-center">Ma'lumot yo'q</td></tr>
+                                            <tr><td colspan="@(changePermit ? 9 : 8)" class="text-center">@L.T("NoData")</td></tr>
                                         }
                                     </tbody>
                                 </table>

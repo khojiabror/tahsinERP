@@ -9,6 +9,7 @@ using tahsinERP.Models;
 using tahsinERP.Services;
 using tahsinERP.ViewModels.Tannarx;
 using tahsinERP.Helpers;
+using tahsinERP.I18n;
 
 namespace tahsinERP.Controllers.Engineering
 {
@@ -128,7 +129,7 @@ namespace tahsinERP.Controllers.Engineering
                 {
                     LogHelper.LogToDatabase(User.Identity.Name, "Tannarx", 
                         $"{generatedCount} ta tannarx yaratildi - {year}-{month}");
-                    TempData["Success"] = $"{generatedCount} ta tannarx muvaffaqiyatli yaratildi.";
+                    TempData["Success"] = L.T("Mes_Tan_Generated", generatedCount);
                 }
                 else
                 {
@@ -142,15 +143,15 @@ namespace tahsinERP.Controllers.Engineering
 
                     if (!normProductIds.Any())
                     {
-                        TempData["Info"] = "Ushbu oy uchun norma kiritilgan mahsulot topilmadi.";
+                        TempData["Info"] = L.T("Mes_Tan_NoNormProducts");
                     }
                     else if (existingCount >= normProductIds.Count)
                     {
-                        TempData["Info"] = "Yangi tannarx yaratilmadi. Norma mavjud mahsulotlar uchun tannarx allaqachon yaratilgan.";
+                        TempData["Info"] = L.T("Mes_Tan_NoneGeneratedAllExist");
                     }
                     else
                     {
-                        TempData["Info"] = "Yangi tannarx yaratilmadi. Iltimos, norma davri va mahsulot ma'lumotlarini tekshiring.";
+                        TempData["Info"] = L.T("Mes_Tan_NoneGeneratedCheck");
                     }
                 }
             }
@@ -158,7 +159,7 @@ namespace tahsinERP.Controllers.Engineering
             {
                 LogHelper.LogToDatabase(User.Identity.Name, "Tannarx", 
                     $"Tannarx yaratishda xatolik: {ex.Message}");
-                TempData["Error"] = $"Tannarx yaratishda xatolik yuz berdi: {ex.Message}";
+                TempData["Error"] = L.T("Mes_Tan_GenerateError", ex.Message);
             }
 
             return RedirectToAction("Index", new { year = year, month = month });
@@ -215,7 +216,7 @@ namespace tahsinERP.Controllers.Engineering
 
                 if (tannarxForRefresh == null)
                 {
-                    TempData["Error"] = "Tannarx topilmadi.";
+                    TempData["Error"] = L.T("Mes_Tan_NotFound");
                     return RedirectToAction("Index");
                 }
 
@@ -237,7 +238,7 @@ namespace tahsinERP.Controllers.Engineering
                 }
 
                 await db.SaveChangesAsync();
-                TempData["Success"] = "Material narxi normadan yangilandi.";
+                TempData["Success"] = L.T("Mes_Tan_MaterialRefreshed");
                 return RedirectToAction("Edit", new { id = viewModel.ID });
             }
 
@@ -263,7 +264,7 @@ namespace tahsinERP.Controllers.Engineering
 
                 if (tannarx == null)
                 {
-                    TempData["Error"] = "Tannarx topilmadi.";
+                    TempData["Error"] = L.T("Mes_Tan_NotFound");
                     return RedirectToAction("Index");
                 }
 
@@ -295,7 +296,7 @@ namespace tahsinERP.Controllers.Engineering
 
                 LogHelper.LogToDatabase(User.Identity.Name, "Tannarx", 
                     $"Tannarx yangilandi - ProductID: {tannarx.ProductID}, Year: {tannarx.Year}, Month: {tannarx.Month}");
-                TempData["Success"] = "Tannarx muvaffaqiyatli yangilandi.";
+                TempData["Success"] = L.T("Mes_Tan_Updated");
 
                 return RedirectToAction("Index", new { year = tannarx.Year, month = tannarx.Month });
             }
@@ -303,7 +304,7 @@ namespace tahsinERP.Controllers.Engineering
             {
                 LogHelper.LogToDatabase(User.Identity.Name, "Tannarx", 
                     $"Tannarx yangilashda xatolik: {ex.Message}");
-                TempData["Error"] = $"Tannarx yangilashda xatolik yuz berdi: {ex.Message}";
+                TempData["Error"] = L.T("Mes_Tan_UpdateError", ex.Message);
                 return View(viewModel);
             }
         }
@@ -390,7 +391,7 @@ namespace tahsinERP.Controllers.Engineering
 
                 if (tannarx == null)
                 {
-                    TempData["Error"] = "Tannarx topilmadi.";
+                    TempData["Error"] = L.T("Mes_Tan_NotFound");
                     return RedirectToAction("Index");
                 }
 
@@ -403,7 +404,7 @@ namespace tahsinERP.Controllers.Engineering
 
                 LogHelper.LogToDatabase(User.Identity.Name, "Tannarx", 
                     $"Tannarx o'chirildi - ProductID: {tannarx.ProductID}, Year: {tannarx.Year}, Month: {tannarx.Month}");
-                TempData["Success"] = "Tannarx muvaffaqiyatli o'chirildi.";
+                TempData["Success"] = L.T("Mes_Tan_Deleted");
 
                 return RedirectToAction("Index", new { year = tannarx.Year, month = tannarx.Month });
             }
@@ -411,7 +412,7 @@ namespace tahsinERP.Controllers.Engineering
             {
                 LogHelper.LogToDatabase(User.Identity.Name, "Tannarx", 
                     $"Tannarx o'chirishda xatolik: {ex.Message}");
-                TempData["Error"] = $"Tannarx o'chirishda xatolik yuz berdi: {ex.Message}";
+                TempData["Error"] = L.T("Mes_Tan_DeleteError", ex.Message);
                 return RedirectToAction("Index");
             }
         }

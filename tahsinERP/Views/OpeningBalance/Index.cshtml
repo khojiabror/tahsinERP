@@ -2,7 +2,7 @@
 @model System.Collections.Generic.List<tahsinERP.ViewModels.Finance.OpeningBalanceDateRow>
 
 @{
-    ViewBag.Title = "Opening balans";
+    ViewBag.Title = L.T("Fin_OpeningBalance");
     Layout = "~/Views/Shared/_Layout.cshtml";
     var canChange = ViewBag.CanChange as bool? ?? false;
 }
@@ -18,8 +18,8 @@
                             <div class="breadcrumb-wrapper col-12">
                                 <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                     <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
-                                    <li class="breadcrumb-item">Moliya</li>
-                                    <li class="breadcrumb-item active">Opening balans</li>
+                                    <li class="breadcrumb-item">@L.T("Menu_Finance")</li>
+                                    <li class="breadcrumb-item active">@L.T("Fin_OpeningBalance")</li>
                                 </ol>
                             </div>
                         </div>
@@ -29,11 +29,11 @@
             <div class="content-body">
                 <div class="card">
                     <div class="card-header d-flex justify-content-between align-items-center flex-wrap">
-                        <h4 class="card-title mb-0">Opening balans — sanalar</h4>
+                        <h4 class="card-title mb-0">@L.T("Fin_OpeningDates")</h4>
                         @if (canChange)
                         {
                             <a href="@Url.Action("Edit", "OpeningBalance", new { snapshotDate = DateTime.Today.ToString("yyyy-MM-dd") })" class="btn btn-primary btn-sm mt-1 mt-md-0">
-                                Yangi / tahrirlash (bugungi sana)
+                                @L.T("Fin_NewEditToday")
                             </a>
                         }
                     </div>
@@ -50,10 +50,10 @@
 
                             @if (Model == null || !Model.Any())
                             {
-                                <p class="text-muted">Hozircha saqlangan opening balans yozuvlari yo'q.</p>
+                                <p class="text-muted">@L.T("Fin_NoOpeningYet")</p>
                                 if (canChange)
                                 {
-                                    <p><a href="@Url.Action("Edit", "OpeningBalance", new { snapshotDate = DateTime.Today.ToString("yyyy-MM-dd") })" class="btn btn-outline-primary">Boshlash</a></p>
+                                    <p><a href="@Url.Action("Edit", "OpeningBalance", new { snapshotDate = DateTime.Today.ToString("yyyy-MM-dd") })" class="btn btn-outline-primary">@L.T("Fin_Begin")</a></p>
                                 }
                             }
                             else
@@ -62,8 +62,8 @@
                                     <table class="table table-striped table-bordered">
                                         <thead>
                                             <tr>
-                                                <th>Sana</th>
-                                                <th class="text-right">Qatorlar soni</th>
+                                                <th>@L.T("Date")</th>
+                                                <th class="text-right">@L.T("Fin_LineCount")</th>
                                                 <th></th>
                                             </tr>
                                         </thead>
@@ -76,14 +76,14 @@
                                                     <td class="text-right">@row.LineCount</td>
                                                     <td class="text-nowrap">
                                                         <a href="@Url.Action("Details", "OpeningBalance", new { snapshotDate = d })" class="btn btn-sm btn-outline-info">
-                                                            Batafsil
+                                                            @L.T("Details")
                                                         </a>
                                                         <a href="@Url.Action("Edit", "OpeningBalance", new { snapshotDate = d })" class="btn btn-sm btn-outline-primary">
-                                                            @(canChange ? "Tahrir" : "Ko'rish")
+                                                            @(canChange ? L.T("Fin_EditShort") : L.T("View"))
                                                         </a>
                                                         @if (canChange)
                                                         {
-                                                            <a href="@Url.Action("Delete", "OpeningBalance", new { snapshotDate = d })" class="btn btn-sm btn-outline-danger">O'chirish</a>
+                                                            <a href="@Url.Action("Delete", "OpeningBalance", new { snapshotDate = d })" class="btn btn-sm btn-outline-danger">@L.T("Delete")</a>
                                                         }
                                                     </td>
                                                 </tr>

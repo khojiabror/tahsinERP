@@ -1,7 +1,7 @@
 @model tahsinERP.ViewModels.MESDashboardViewModel
 @using System.Web.Helpers
 @{
-    ViewBag.Title = "MES Dashboard";
+    ViewBag.Title = L.T("Menu_DashMes");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -19,7 +19,7 @@
                                     <li class="breadcrumb-item">
                                         <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                     </li>
-                                    <li class="breadcrumb-item active">MES Dashboard</li>
+                                    <li class="breadcrumb-item active">@L.T("Menu_DashMes")</li>
                                 </ol>
                             </div>
                         </div>
@@ -34,7 +34,7 @@
                                 <div class="card-body">
                                     <form method="get" action="@Url.Action("Dashboard")" class="row">
                                         <div class="col-md-3 col-12">
-                                            <label>Yil</label>
+                                            <label>@L.T("Mes_Year")</label>
                                             <select name="year" class="form-control">
                                                 @foreach (var y in Enumerable.Range(DateTime.Now.Year - 5, 7))
                                                 {
@@ -43,9 +43,9 @@
                                             </select>
                                         </div>
                                         <div class="col-md-3 col-12">
-                                            <label>Oy</label>
+                                            <label>@L.T("Mes_Month")</label>
                                             <select name="month" class="form-control">
-                                                <option value="">Tanlang</option>
+                                                <option value="">@L.T("Select")</option>
                                                 @for (int m = 1; m <= 12; m++)
                                                 {
                                                     <option value="@m" @(ViewBag.SelectedMonth != null && ViewBag.SelectedMonth == m ? "selected" : "")>@m</option>
@@ -53,9 +53,9 @@
                                             </select>
                                         </div>
                                         <div class="col-md-3 col-12">
-                                            <label>Kun</label>
+                                            <label>@L.T("Mes_Dash_Day")</label>
                                             <select name="day" class="form-control">
-                                                <option value="">Tanlang</option>
+                                                <option value="">@L.T("Select")</option>
                                                 @for (int d = 1; d <= 31; d++)
                                                 {
                                                     <option value="@d" @(ViewBag.SelectedDay != null && ViewBag.SelectedDay == d ? "selected" : "")>@d</option>
@@ -64,7 +64,7 @@
                                         </div>
                                         <div class="col-md-3 col-12 d-flex align-items-end">
                                             <button type="submit" class="btn btn-primary w-100">
-                                                <i class="bx bx-filter"></i> Ko'rsatish
+                                                <i class="bx bx-filter"></i> @L.T("Mes_Show")
                                             </button>
                                         </div>
                                     </form>
@@ -83,7 +83,7 @@
                                     <div class="media d-flex">
                                         <div class="media-body text-left">
                                             <h3 class="primary">@Model.TodayPlanned.ToString("N2")</h3>
-                                            <span>@(ViewBag.PrimaryLabel ?? "Tanlangan davr") reja</span>
+                                            <span>@L.T("Mes_Dash_PeriodPlan", (string)ViewBag.PrimaryLabel ?? L.T("Mes_Dash_SelectedPeriod"))</span>
                                         </div>
                                         <div class="align-self-center">
                                             <i class="bx bx-calendar primary font-large-2 float-right"></i>
@@ -100,7 +100,7 @@
                                     <div class="media d-flex">
                                         <div class="media-body text-left">
                                             <h3 class="success">@Model.TodayActual.ToString("N2")</h3>
-                                            <span>@(ViewBag.PrimaryLabel ?? "Tanlangan davr") fakt</span>
+                                            <span>@L.T("Mes_Dash_PeriodFact", (string)ViewBag.PrimaryLabel ?? L.T("Mes_Dash_SelectedPeriod"))</span>
                                         </div>
                                         <div class="align-self-center">
                                             <i class="bx bx-check-circle success font-large-2 float-right"></i>
@@ -117,7 +117,7 @@
                                     <div class="media d-flex">
                                         <div class="media-body text-left">
                                             <h3 class="@(Model.TodayPlanVsActualPercent >= 100 ? "success" : "warning")">@Model.TodayPlanVsActualPercent.ToString("N1")%</h3>
-                                            <span>@(ViewBag.PrimaryLabel ?? "Tanlangan davr") reja/fakt</span>
+                                            <span>@L.T("Mes_Dash_PeriodPlanVsFact", (string)ViewBag.PrimaryLabel ?? L.T("Mes_Dash_SelectedPeriod"))</span>
                                         </div>
                                         <div class="align-self-center">
                                             <i class="bx bx-trending-up @(Model.TodayPlanVsActualPercent >= 100 ? "success" : "warning") font-large-2 float-right"></i>
@@ -134,7 +134,7 @@
                                     <div class="media d-flex">
                                         <div class="media-body text-left">
                                             <h3 class="@(Model.MonthPlanVsActualPercent >= 100 ? "success" : "warning")">@Model.MonthPlanVsActualPercent.ToString("N1")%</h3>
-                                            <span>@(ViewBag.SecondaryLabel ?? "Tanlangan davr") reja/fakt</span>
+                                            <span>@L.T("Mes_Dash_PeriodPlanVsFact", (string)ViewBag.SecondaryLabel ?? L.T("Mes_Dash_SelectedPeriod"))</span>
                                         </div>
                                         <div class="align-self-center">
                                             <i class="bx bx-bar-chart-alt-2 @(Model.MonthPlanVsActualPercent >= 100 ? "success" : "warning") font-large-2 float-right"></i>
@@ -151,7 +151,7 @@
                     <div class="col-xl-8 col-12">
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">Kunlik Reja vs Fakt (@(ViewBag.StartDate != null && ViewBag.EndDate != null ? ((DateTime)ViewBag.StartDate).ToString("dd.MM.yyyy") + " - " + ((DateTime)ViewBag.EndDate).ToString("dd.MM.yyyy") : "Tanlangan davr"))</h4>
+                                <h4 class="card-title">@L.T("Mes_Dash_DailyPlanVsFact") (@(ViewBag.StartDate != null && ViewBag.EndDate != null ? ((DateTime)ViewBag.StartDate).ToString("dd.MM.yyyy") + " - " + ((DateTime)ViewBag.EndDate).ToString("dd.MM.yyyy") : L.T("Mes_Dash_SelectedPeriod")))</h4>
                             </div>
                             <div class="card-content">
                                 <div class="card-body">
@@ -163,7 +163,7 @@
                     <div class="col-xl-4 col-12">
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">Ishlab chiqarish bo'yicha sexlar</h4>
+                                <h4 class="card-title">@L.T("Mes_Dash_ProductionByShop")</h4>
                             </div>
                             <div class="card-content">
                                 <div class="card-body">
@@ -179,23 +179,23 @@
                     <div class="col-xl-6 col-12">
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">Sifat Nazorati Xulosa</h4>
+                                <h4 class="card-title">@L.T("Mes_Dash_QualitySummary")</h4>
                             </div>
                             <div class="card-content">
                                 <div class="card-body">
                                     <div class="row">
                                         <div class="col-md-6 col-12">
-                                            <p><strong>Jami tekshiruvlar:</strong> @Model.TotalInspections</p>
-                                            <p><strong>Tasdiqlangan:</strong> <span class="text-success">@Model.ApprovedInspections</span></p>
-                                            <p><strong>Qabul qilingan miqdor:</strong> @Model.TotalAcceptedQty.ToString("N3")</p>
-                                            <p><strong>Brak miqdor:</strong> <span class="text-danger">@Model.TotalRejectedQty.ToString("N3")</span></p>
+                                            <p><strong>@L.T("Mes_Dash_TotalInspections"):</strong> @Model.TotalInspections</p>
+                                            <p><strong>@L.T("Mes_Qi_Status_APPROVED"):</strong> <span class="text-success">@Model.ApprovedInspections</span></p>
+                                            <p><strong>@L.T("Mes_Qi_QtyAccepted"):</strong> @Model.TotalAcceptedQty.ToString("N3")</p>
+                                            <p><strong>@L.T("Mes_Dash_DefectQty"):</strong> <span class="text-danger">@Model.TotalRejectedQty.ToString("N3")</span></p>
                                             @if (Model.FTQPercent.HasValue)
                                             {
                                                 <p><strong>FTQ (First Time Quality):</strong> <span class="text-primary">@Model.FTQPercent.Value.ToString("N1")%</span></p>
                                             }
                                             @if (Model.RejectedInspections > 0)
                                             {
-                                                <p class="mb-0"><strong>Brak chiqqan tekshiruvlar:</strong> <span class="text-danger">@Model.RejectedInspections</span></p>
+                                                <p class="mb-0"><strong>@L.T("Mes_Dash_InspectionsWithDefects"):</strong> <span class="text-danger">@Model.RejectedInspections</span></p>
                                             }
                                         </div>
                                         <div class="col-md-6 col-12">
@@ -214,23 +214,23 @@
                     <div class="col-xl-6 col-12">
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">Buyurtma To'siqlari (Top 10)</h4>
+                                <h4 class="card-title">@L.T("Mes_Dash_OrderBottlenecks")</h4>
                             </div>
                             <div class="card-content">
                                 <div class="card-body">
                                     <div class="text-muted mb-1" style="font-size: 12px;">
-                                        Qoldiq = Buyurtma (reja) − Invoice qilingan. Fakt = mahsulot bo'yicha jami ishlab chiqarilgan (orderga 1:1 bog'lanmagan).
+                                        @L.T("Mes_Dash_BottleneckHint")
                                     </div>
                                     <div class="table-responsive">
                                         <table class="table table-sm">
                                             <thead>
                                                 <tr>
-                                                    <th>Buyurtma</th>
-                                                    <th>Mahsulot</th>
-                                                    <th class="text-right">Reja</th>
-                                                    <th class="text-right">Fakt</th>
-                                                    <th class="text-right">Qoldiq</th>
-                                                    <th>Izoh</th>
+                                                    <th>@L.T("Mes_Order")</th>
+                                                    <th>@L.T("Mes_Product")</th>
+                                                    <th class="text-right">@L.T("Mes_Plan")</th>
+                                                    <th class="text-right">@L.T("Mes_Actual")</th>
+                                                    <th class="text-right">@L.T("Mes_Qi_Remaining")</th>
+                                                    <th>@L.T("Comment")</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -270,13 +270,13 @@
             data: {
                 labels: planVsLabels,
                 datasets: [{
-                    label: 'Reja',
+                    label: '@L.Js("Mes_Plan")',
                     data: planVsPlanned,
                     borderColor: 'rgb(75, 192, 192)',
                     backgroundColor: 'rgba(75, 192, 192, 0.2)',
                     tension: 0.1
                 }, {
-                    label: 'Fakt',
+                    label: '@L.Js("Mes_Actual")',
                     data: planVsActual,
                     borderColor: 'rgb(255, 99, 132)',
                     backgroundColor: 'rgba(255, 99, 132, 0.2)',
@@ -304,7 +304,7 @@
             data: {
                 labels: shopLabels,
                 datasets: [{
-                    label: 'Ishlab chiqarish',
+                    label: '@L.Js("Mes_Qi_Production")',
                     data: shopTotals,
                     backgroundColor: [
                         'rgba(255, 99, 132, 0.2)',
@@ -339,7 +339,7 @@
         var qualityQtyChart = new Chart(qualityQtyCtx, {
             type: 'doughnut',
             data: {
-                labels: ['Qabul', 'Brak'],
+                labels: ['@L.Js("Mes_Qi_AcceptShort")', '@L.Js("Mes_Dash_Defect")'],
                 datasets: [{
                     data: @Html.Raw(Json.Encode(new[] { Model.TotalAcceptedQty, Model.TotalRejectedQty })),
                     backgroundColor: ['rgba(40, 199, 111, 0.25)', 'rgba(234, 84, 85, 0.25)'],
@@ -365,7 +365,7 @@
             data: {
                 labels: defectLabels,
                 datasets: [{
-                    label: 'Top-3 nuqson (brak miqdor)',
+                    label: '@L.Js("Mes_Dash_Top3Defects")',
                     data: defectValues,
                     backgroundColor: 'rgba(234, 84, 85, 0.25)',
                     borderColor: 'rgba(234, 84, 85, 1)',

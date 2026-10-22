@@ -17,7 +17,7 @@
                                 <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                     <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
                                     <li class="breadcrumb-item"><a href="~/Bom">BOM</a></li>
-                                    <li class="breadcrumb-item active">Ro'yxat</li>
+                                    <li class="breadcrumb-item active">@L.T("Mes_List")</li>
                                 </ol>
                             </div>
                         </div>
@@ -51,10 +51,10 @@
                                         <table class="table table-striped table-bordered table-hover" id="bomTable">
                                             <thead class="thead-light">
                                                 <tr>
-                                                    <th>Mahsulot raqami</th>
-                                                    <th>Mahsulot nomi</th>
-                                                    <th>Norm versiyasi</th>
-                                                    <th class="text-center">Amallar</th>
+                                                    <th>@L.T("Mes_ProductNo")</th>
+                                                    <th>@L.T("Mes_ProductName")</th>
+                                                    <th>@L.T("Mes_Bom_NormVersion")</th>
+                                                    <th class="text-center">@L.T("Actions")</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -75,7 +75,7 @@
                                                                 </span>
                                                             </td>
                                                             <td class="text-center">
-                                                                <a href="@Url.Action("Details", "Bom", new { productId = item.ProductId })" class="btn btn-sm btn-outline-primary" title="BOM ni ko'rish">
+                                                                <a href="@Url.Action("Details", "Bom", new { productId = item.ProductId })" class="btn btn-sm btn-outline-primary" title="@L.T("Mes_Bom_View")">
                                                                     <i class="bx bx-show"></i>
                                                                 </a>
                                                             </td>
@@ -85,7 +85,7 @@
                                                 else
                                                 {
                                                     <tr>
-                                                        <td colspan="4" class="text-center text-muted">BOM topilmadi</td>
+                                                        <td colspan="4" class="text-center text-muted">@L.T("Mes_Bom_NotFoundShort")</td>
                                                     </tr>
                                                 }
                                             </tbody>
@@ -110,28 +110,14 @@
             }
 
             jQuery('#bomTable').DataTable({
-                "language": {
-                    "search": "Qidirish:",
-                    "lengthMenu": "_MENU_ ta ko'rsatish",
-                    "info": "_TOTAL_ ta yozuvdan _START_ dan _END_ gacha",
-                    "infoEmpty": "Yozuvlar yo'q",
-                    "infoFiltered": "(jami _MAX_ ta yozuvdan filtrlangan)",
-                    "paginate": {
-                        "first": "Birinchi",
-                        "last": "Oxirgi",
-                        "next": "Keyingi",
-                        "previous": "Oldingi"
-                    },
-                    "zeroRecords": "Ma'lumot topilmadi"
-                },
                 "pageLength": 25,
-                "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Hammasi"]],
+                "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, '@L.Js("All")']],
                 "order": [[0, "asc"]],
                 "dom": "lBfrtip",
                 "columnDefs": [
                     { "orderable": false, "targets": -1 }
                 ],
-                buttons: erpDataTable.buttons({ small: true })
+                buttons: erpDataTable.buttons({ small: true, fileName: '@L.Js("Mes_Bom_Title")' })
             });
         });
     </script>

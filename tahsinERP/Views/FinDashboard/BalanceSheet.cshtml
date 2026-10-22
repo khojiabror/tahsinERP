@@ -1,5 +1,5 @@
 @{
-    ViewBag.Title = "Balans";
+    ViewBag.Title = L.T("Menu_Balance");
     Layout = "~/Views/Shared/_Layout.cshtml";
     var balanceData = ViewBag.BalanceData as List<tahsinERP.ViewModels.Finance.BalanceCategoryData> ?? new List<tahsinERP.ViewModels.Finance.BalanceCategoryData>();
     var totals = ViewBag.Totals as tahsinERP.ViewModels.Finance.BalanceTotals;
@@ -16,8 +16,8 @@
                             <div class="breadcrumb-wrapper col-12">
                                 <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                     <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
-                                    <li class="breadcrumb-item">Moliya</li>
-                                    <li class="breadcrumb-item active">Balans</li>
+                                    <li class="breadcrumb-item">@L.T("Menu_Finance")</li>
+                                    <li class="breadcrumb-item active">@L.T("Menu_Balance")</li>
                                 </ol>
                             </div>
                         </div>
@@ -30,32 +30,32 @@
                     <div class="col-12">
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">Balans - @(ViewBag.AsOfDate != null ? ((DateTime)ViewBag.AsOfDate).ToString("dd.MM.yyyy") : DateTime.Now.ToString("dd.MM.yyyy"))</h4>
+                                <h4 class="card-title">@L.T("Menu_Balance") - @(ViewBag.AsOfDate != null ? ((DateTime)ViewBag.AsOfDate).ToString("dd.MM.yyyy") : DateTime.Now.ToString("dd.MM.yyyy"))</h4>
                             </div>
                             <div class="card-content">
                                 <div class="card-body">
                                     <form method="get" action="@Url.Action("BalanceSheet")" class="mb-3">
                                         <div class="row">
                                             <div class="col-md-3">
-                                                <label class="control-label">Sana:</label>
+                                                <label class="control-label">@L.T("Date"):</label>
                                                 <input type="date" name="asOfDate" class="form-control" value="@(ViewBag.AsOfDate?.ToString("yyyy-MM-dd"))" />
                                             </div>
                                             <div class="col-md-2">
                                                 <label class="control-label">&nbsp;</label>
-                                                <button type="submit" class="btn btn-primary btn-block">Ko'rsatish</button>
+                                                <button type="submit" class="btn btn-primary btn-block">@L.T("Fin_Show")</button>
                                             </div>
                                         </div>
                                     </form>
                                     
                                     <div class="row">
                                         <div class="col-md-6">
-                                            <h5>Aktivlar</h5>
+                                            <h5>@L.T("Fin_Assets")</h5>
                                             <div class="table-responsive">
                                                 <table class="table table-striped">
                                                     <thead>
                                                         <tr>
-                                                            <th>Kategoriya</th>
-                                                            <th class="text-right">Summa</th>
+                                                            <th>@L.T("Category")</th>
+                                                            <th class="text-right">@L.T("Amount")</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody>
@@ -69,7 +69,7 @@
                                                     </tbody>
                                                     <tfoot>
                                                         <tr>
-                                                            <th>Jami aktivlar:</th>
+                                                            <th>@L.T("Fin_TotalAssets"):</th>
                                                             <th class="text-right">
                                                                 <a style="text-decoration: underline;"
                                                                    href="@Url.Action("BalanceSheetAssetDetails", new { asOfDate = ViewBag.AsOfDate != null ? ((DateTime)ViewBag.AsOfDate).ToString("yyyy-MM-dd") : null })">
@@ -82,13 +82,13 @@
                                             </div>
                                         </div>
                                         <div class="col-md-6">
-                                            <h5>Passivlar va Kapital</h5>
+                                            <h5>@L.T("Fin_LiabilitiesAndEquity")</h5>
                                             <div class="table-responsive">
                                                 <table class="table table-striped">
                                                     <thead>
                                                         <tr>
-                                                            <th>Kategoriya</th>
-                                                            <th class="text-right">Summa</th>
+                                                            <th>@L.T("Category")</th>
+                                                            <th class="text-right">@L.T("Amount")</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody>
@@ -105,8 +105,8 @@
                                                         {
                                                             <tr>
                                                                 <td>
-                                                                    Taqsimlanmagan foyda (hisoblangan)
-                                                                    <small class="d-block text-muted">Aktiv − majburiyatlar − kiritilgan kapital; balanslovchi qator</small>
+                                                                    @L.T("Fin_RetainedEarningsCalc")
+                                                                    <small class="d-block text-muted">@L.T("Fin_RetainedEarningsHint")</small>
                                                                 </td>
                                                                 <td class="text-right">@totals.RetainedEarnings.ToString("N2")</td>
                                                             </tr>
@@ -114,7 +114,7 @@
                                                     </tbody>
                                                     <tfoot>
                                                         <tr>
-                                                            <th>Jami passivlar va kapital:</th>
+                                                            <th>@L.T("Fin_TotalLiabilitiesAndEquity"):</th>
                                                             <th class="text-right">
                                                                 @{
                                                                     var totalDisplay = totals != null
@@ -131,7 +131,7 @@
                                                 </table>
                                                 @if (totals != null)
                                                 {
-                                                    <p class="small text-muted mt-1 mb-0">Balans tengligi: aktiv @totals.Assets.ToString("N2") = majburiyatlar @totals.Liabilities.ToString("N2") + kapital @totals.Equity.ToString("N2") + taqsimlanmagan foyda @totals.RetainedEarnings.ToString("N2")</p>
+                                                    <p class="small text-muted mt-1 mb-0">@L.T("Fin_BalanceEquation", totals.Assets.ToString("N2"), totals.Liabilities.ToString("N2"), totals.Equity.ToString("N2"), totals.RetainedEarnings.ToString("N2"))</p>
                                                 }
                                             </div>
                                         </div>

@@ -1,5 +1,5 @@
 @{
-    ViewBag.Title = "Majburiyatlar dashboard";
+    ViewBag.Title = L.T("Menu_DashObligations");
     Layout = "~/Views/Shared/_Layout.cshtml";
     var passiveStats = ViewBag.PassiveBalanceStats as List<tahsinERP.ViewModels.Finance.BalanceCategoryDetailData> ?? new List<tahsinERP.ViewModels.Finance.BalanceCategoryDetailData>();
 }
@@ -15,9 +15,9 @@
                             <div class="breadcrumb-wrapper col-12">
                                 <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                     <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
-                                    <li class="breadcrumb-item">Dashboard</li>
-                                    <li class="breadcrumb-item">Moliya Dashboard</li>
-                                    <li class="breadcrumb-item active">Majburiyatlar dashboard</li>
+                                    <li class="breadcrumb-item">@L.T("Menu_Dashboard")</li>
+                                    <li class="breadcrumb-item">@L.T("Menu_DashFinance")</li>
+                                    <li class="breadcrumb-item active">@L.T("Menu_DashObligations")</li>
                                 </ol>
                             </div>
                         </div>
@@ -29,16 +29,16 @@
                 <form method="get" action="@Url.Action("LiabilitiesDashboard")" class="mb-3">
                     <div class="row">
                         <div class="col-md-4">
-                            <label class="control-label">Dan sana:</label>
+                            <label class="control-label">@L.T("Fin_DateFrom"):</label>
                             <input type="date" name="fromDate" class="form-control" value="@(ViewBag.FromDate?.ToString("yyyy-MM-dd"))" />
                         </div>
                         <div class="col-md-4">
-                            <label class="control-label">Gacha sana:</label>
+                            <label class="control-label">@L.T("Fin_DateTo"):</label>
                             <input type="date" name="toDate" class="form-control" value="@(ViewBag.ToDate?.ToString("yyyy-MM-dd"))" />
                         </div>
                         <div class="col-md-4">
                             <label class="control-label">&nbsp;</label>
-                            <button type="submit" class="btn btn-primary btn-block">Ko'rsatish</button>
+                            <button type="submit" class="btn btn-primary btn-block">@L.T("Fin_Show")</button>
                         </div>
                     </div>
                 </form>
@@ -67,7 +67,7 @@
                     <div class="col-12">
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">Ta'minotchilardan qarzlar (Payables)</h4>
+                                <h4 class="card-title">@L.T("Fin_PayablesTitle")</h4>
                             </div>
                             <div class="card-content">
                                 <div class="card-body">
@@ -75,7 +75,7 @@
                                         <div class="col-md-6">
                                             <div class="card">
                                                 <div class="card-header">
-                                                    <h5>Ta'minotchilar bo'yicha (Pie Chart)</h5>
+                                                    <h5>@L.T("Fin_BySuppliersPie")</h5>
                                                 </div>
                                                 <div class="card-body">
                                                     <canvas id="payablesBySupplierChart"></canvas>
@@ -85,7 +85,7 @@
                                         <div class="col-md-6">
                                             <div class="card">
                                                 <div class="card-header">
-                                                    <h5>Oylik trend</h5>
+                                                    <h5>@L.T("Fin_MonthlyTrend")</h5>
                                                 </div>
                                                 <div class="card-body">
                                                     <canvas id="monthlyPayablesChart"></canvas>
@@ -98,7 +98,7 @@
                                         <div class="col-md-12">
                                             <div class="card">
                                                 <div class="card-header">
-                                                    <h5>Payables account qoldiqlari</h5>
+                                                    <h5>@L.T("Fin_PayablesAccountBalances")</h5>
                                                 </div>
                                                 <div class="card-body">
                                                     <div class="table-responsive">
@@ -106,11 +106,11 @@
                                                             <thead>
                                                                 <tr>
                                                                     <th class="text-center">Nº</th>
-                                                                    <th class="text-center">Hisob raqam</th>
-                                                                    <th>Hisob nomi</th>
-                                                                    <th class="text-right" style="background-color: #e3f2fd;">Kirim</th>
-                                                                    <th class="text-right" style="background-color: #ffebee;">Chiqim</th>
-                                                                    <th class="text-right" style="background-color: #e8f5e9; font-weight: bold;">Qoldiq</th>
+                                                                    <th class="text-center">@L.T("Fin_AccountNo")</th>
+                                                                    <th>@L.T("Fin_AccountName")</th>
+                                                                    <th class="text-right" style="background-color: #e3f2fd;">@L.T("Fin_Inflow")</th>
+                                                                    <th class="text-right" style="background-color: #ffebee;">@L.T("Fin_Expense")</th>
+                                                                    <th class="text-right" style="background-color: #e8f5e9; font-weight: bold;">@L.T("Fin_Balance")</th>
                                                                 </tr>
                                                             </thead>
                                                             <tbody>
@@ -160,7 +160,7 @@
                     <div class="col-12">
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">Oyliklardan qarzimiz (Trend)</h4>
+                                <h4 class="card-title">@L.T("Fin_PayrollDebtTrend")</h4>
                             </div>
                             <div class="card-content">
                                 <div class="card-body">
@@ -176,7 +176,7 @@
                     <div class="col-12">
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">Xaridorlardan haqlarimiz (Receivables)</h4>
+                                <h4 class="card-title">@L.T("Fin_ReceivablesTitle")</h4>
                             </div>
                             <div class="card-content">
                                 <div class="card-body">
@@ -184,7 +184,7 @@
                                         <div class="col-md-6">
                                             <div class="card">
                                                 <div class="card-header">
-                                                    <h5>Xaridorlar bo'yicha (Pie Chart)</h5>
+                                                    <h5>@L.T("Fin_ByCustomersPie")</h5>
                                                 </div>
                                                 <div class="card-body">
                                                     <canvas id="receivablesByCustomerChart"></canvas>
@@ -194,7 +194,7 @@
                                         <div class="col-md-6">
                                             <div class="card">
                                                 <div class="card-header">
-                                                    <h5>Oylik trend</h5>
+                                                    <h5>@L.T("Fin_MonthlyTrend")</h5>
                                                 </div>
                                                 <div class="card-body">
                                                     <canvas id="monthlyReceivablesChart"></canvas>
@@ -207,7 +207,7 @@
                                         <div class="col-md-12">
                                             <div class="card">
                                                 <div class="card-header">
-                                                    <h5>Receivables account qoldiqlari</h5>
+                                                    <h5>@L.T("Fin_ReceivablesAccountBalances")</h5>
                                                 </div>
                                                 <div class="card-body">
                                                     <div class="table-responsive">
@@ -215,11 +215,11 @@
                                                             <thead>
                                                                 <tr>
                                                                     <th class="text-center">Nº</th>
-                                                                    <th class="text-center">Hisob raqam</th>
-                                                                    <th>Hisob nomi</th>
-                                                                    <th class="text-right" style="background-color: #e3f2fd;">Kirim</th>
-                                                                    <th class="text-right" style="background-color: #ffebee;">Chiqim</th>
-                                                                    <th class="text-right" style="background-color: #e8f5e9; font-weight: bold;">Qoldiq</th>
+                                                                    <th class="text-center">@L.T("Fin_AccountNo")</th>
+                                                                    <th>@L.T("Fin_AccountName")</th>
+                                                                    <th class="text-right" style="background-color: #e3f2fd;">@L.T("Fin_Inflow")</th>
+                                                                    <th class="text-right" style="background-color: #ffebee;">@L.T("Fin_Expense")</th>
+                                                                    <th class="text-right" style="background-color: #e8f5e9; font-weight: bold;">@L.T("Fin_Balance")</th>
                                                                 </tr>
                                                             </thead>
                                                             <tbody>
@@ -358,7 +358,7 @@
                         data: {
                             labels: payablesPeriods,
                             datasets: [{
-                                label: 'Ta\'minotchilardan qarzlar',
+                                label: '@L.Js("Fin_PayablesToSuppliers")',
                                 data: payablesAmounts,
                                 borderColor: 'rgb(255, 152, 0)',
                                 backgroundColor: 'rgba(255, 152, 0, 0.1)',
@@ -389,7 +389,7 @@
                         data: {
                             labels: receivablesPeriods,
                             datasets: [{
-                                label: 'Xaridorlardan haqlarimiz',
+                                label: '@L.Js("Fin_ReceivablesFromBuyers")',
                                 data: receivablesAmounts,
                                 borderColor: 'rgb(33, 150, 243)',
                                 backgroundColor: 'rgba(33, 150, 243, 0.1)',
@@ -420,7 +420,7 @@
                         data: {
                             labels: payrollPeriods,
                             datasets: [{
-                                label: 'Oyliklardan qarzimiz',
+                                label: '@L.Js("Fin_PayrollDebtPlural")',
                                 data: payrollAmounts,
                                 borderColor: 'rgb(142, 36, 170)',
                                 backgroundColor: 'rgba(142, 36, 170, 0.1)',
@@ -444,13 +444,13 @@
                     $('#payablesAccountsTable').DataTable({
                         "order": [[5, "desc"]],
                         "pageLength": 25,
-                        "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Barchasi"]]
+                        "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "@L.Js("All")"]]
                     });
 
                     $('#receivablesAccountsTable').DataTable({
                         "order": [[5, "desc"]],
                         "pageLength": 25,
-                        "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Barchasi"]]
+                        "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "@L.Js("All")"]]
                     });
                 }
             });

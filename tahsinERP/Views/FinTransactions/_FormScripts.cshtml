@@ -21,7 +21,7 @@
             var $row = $('#supplierContractRow');
             var $cs = $('#contractSelect');
             $row.hide();
-            $cs.empty().append($('<option></option>').val('').text('---Tanlang---')).prop('disabled', true);
+            $cs.empty().append($('<option></option>').val('').text('---@L.Js("Select")---')).prop('disabled', true);
         }
 
         function shouldShowContractByType(type) {
@@ -29,10 +29,10 @@
         }
 
         function contractLabelByType(type) {
-            if (type === '1') return "Shartnoma (sotuv)";
-            if (type === '2') return "Shartnoma (xarid)";
-            if (type === '4') return "Shartnoma (forwarder)";
-            return "Shartnoma";
+            if (type === '1') return '@L.Js("Fin_ContractSale")';
+            if (type === '2') return '@L.Js("Fin_ContractPurchase")';
+            if (type === '4') return '@L.Js("Fin_ContractForwarder")';
+            return '@L.Js("Fin_Contract")';
         }
 
         function loadContractsForCounterparty(type, counterpartyId, selectContractNo) {
@@ -49,7 +49,7 @@
                     return;
                 }
                 var $cs = $('#contractSelect');
-                $cs.empty().append($('<option></option>').val('').text('---Tanlang---'));
+                $cs.empty().append($('<option></option>').val('').text('---@L.Js("Select")---'));
                 $.each(res.data, function (i, c) {
                     var id = c.ID != null ? c.ID : c.id;
                     var no = c.ContractNo != null ? c.ContractNo : c.contractNo;
@@ -84,7 +84,7 @@
             }
 
             if (!type) {
-                $cp.append($('<option></option>').val('').text('Avval kontragent turini tanlang'));
+                $cp.append($('<option></option>').val('').text('@L.Js("Fin_SelectCounterpartyTypeFirst")'));
                 return;
             }
 
@@ -98,7 +98,7 @@
                     return;
                 }
                 $cp.empty();
-                $cp.append($('<option></option>').val('').text('Tanlang...'));
+                $cp.append($('<option></option>').val('').text('@L.Js("Fin_SelectDots")'));
                 if (data && data.success && data.items && data.items.length) {
                     $.each(data.items, function (i, it) {
                         var id = itemId(it);
@@ -119,7 +119,7 @@
                     return;
                 }
                 $cp.empty();
-                $cp.append($('<option></option>').val('').text('Yuklashda xatolik'));
+                $cp.append($('<option></option>').val('').text('@L.Js("Fin_LoadError")'));
             });
         }
 

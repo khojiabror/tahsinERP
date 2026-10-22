@@ -1,5 +1,5 @@
 @{
-    ViewBag.Title = "Moliya Dashboard - Umumiy ko'rinish";
+    ViewBag.Title = L.T("Fin_OverviewTitle");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -14,9 +14,9 @@
                             <div class="breadcrumb-wrapper col-12">
                                 <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                     <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
-                                    <li class="breadcrumb-item">Dashboard</li>
-                                    <li class="breadcrumb-item">Moliya Dashboard</li>
-                                    <li class="breadcrumb-item active">Umumiy ko'rinish</li>
+                                    <li class="breadcrumb-item">@L.T("Menu_Dashboard")</li>
+                                    <li class="breadcrumb-item">@L.T("Menu_DashFinance")</li>
+                                    <li class="breadcrumb-item active">@L.T("Menu_Overview")</li>
                                 </ol>
                             </div>
                         </div>
@@ -29,23 +29,23 @@
                     <div class="col-12">
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">Moliya Dashboard - Umumiy ko'rinish</h4>
+                                <h4 class="card-title">@L.T("Fin_OverviewTitle")</h4>
                             </div>
                             <div class="card-content">
                                 <div class="card-body">
                                     <form method="get" action="@Url.Action("FinancialOverview")" class="mb-3">
                                         <div class="row">
                                             <div class="col-md-4">
-                                                <label class="control-label">Dan sana:</label>
+                                                <label class="control-label">@L.T("Fin_DateFrom"):</label>
                                                 <input type="date" name="fromDate" class="form-control" value="@(ViewBag.FromDate?.ToString("yyyy-MM-dd"))" />
                                             </div>
                                             <div class="col-md-4">
-                                                <label class="control-label">Gacha sana:</label>
+                                                <label class="control-label">@L.T("Fin_DateTo"):</label>
                                                 <input type="date" name="toDate" class="form-control" value="@(ViewBag.ToDate?.ToString("yyyy-MM-dd"))" />
                                             </div>
                                             <div class="col-md-4">
                                                 <label class="control-label">&nbsp;</label>
-                                                <button type="submit" class="btn btn-primary btn-block">Ko'rsatish</button>
+                                                <button type="submit" class="btn btn-primary btn-block">@L.T("Fin_Show")</button>
                                             </div>
                                         </div>
                                     </form>
@@ -55,7 +55,7 @@
                                         <div class="col-md-3">
                                             <div class="stat-card stat-card-inflow">
                                                 <div class="stat-card-body">
-                                                    <div class="stat-card-title">Jami kirim</div>
+                                                    <div class="stat-card-title">@L.T("Fin_TotalIncome")</div>
                                                     <div class="stat-card-value">@ViewBag.TotalIncome.ToString("N2")</div>
                                                     <div class="stat-card-currency">@(ViewBag.CurrencyShortname ?? "UZS")</div>
                                                 </div>
@@ -64,7 +64,7 @@
                                         <div class="col-md-3">
                                             <div class="stat-card stat-card-outflow">
                                                 <div class="stat-card-body">
-                                                    <div class="stat-card-title">Jami chiqim</div>
+                                                    <div class="stat-card-title">@L.T("Fin_TotalExpense")</div>
                                                     <div class="stat-card-value">@ViewBag.TotalExpense.ToString("N2")</div>
                                                     <div class="stat-card-currency">@(ViewBag.CurrencyShortname ?? "UZS")</div>
                                                 </div>
@@ -73,7 +73,7 @@
                                         <div class="col-md-3">
                                             <div class="stat-card stat-card-net">
                                                 <div class="stat-card-body">
-                                                    <div class="stat-card-title">Net kassa oqimi</div>
+                                                    <div class="stat-card-title">@L.T("Fin_NetCashflow")</div>
                                                     <div class="stat-card-value">@ViewBag.NetCashflow.ToString("N2")</div>
                                                     <div class="stat-card-currency">@(ViewBag.CurrencyShortname ?? "UZS")</div>
                                                 </div>
@@ -82,7 +82,7 @@
                                         <div class="col-md-3">
                                             <div class="stat-card stat-card-balance">
                                                 <div class="stat-card-body">
-                                                    <div class="stat-card-title">Joriy balans</div>
+                                                    <div class="stat-card-title">@L.T("Fin_CurrentBalance")</div>
                                                     <div class="stat-card-value">@((ViewBag.CashBalance + ViewBag.BankBalance).ToString("N2"))</div>
                                                     <div class="stat-card-currency">@(ViewBag.CurrencyShortname ?? "UZS")</div>
                                                 </div>
@@ -94,7 +94,7 @@
                                         <div class="col-md-6">
                                             <div class="card">
                                                 <div class="card-header">
-                                                    <h5>Oylik trend</h5>
+                                                    <h5>@L.T("Fin_MonthlyTrend")</h5>
                                                 </div>
                                                 <div class="card-body">
                                                     <canvas id="monthlyTrendChart"></canvas>
@@ -104,7 +104,7 @@
                                         <div class="col-md-6">
                                             <div class="card">
                                                 <div class="card-header">
-                                                    <h5>Eng ko'p chiqim kategoriyalar</h5>
+                                                    <h5>@L.T("Fin_TopExpenseCategories")</h5>
                                                 </div>
                                                 <div class="card-body">
                                                     <canvas id="topExpenseChart"></canvas>
@@ -117,7 +117,7 @@
                                         <div class="col-md-6">
                                             <div class="card">
                                                 <div class="card-header">
-                                                    <h5>Eng ko'p kirim kategoriyalar</h5>
+                                                    <h5>@L.T("Fin_TopIncomeCategories")</h5>
                                                 </div>
                                                 <div class="card-body">
                                                     <canvas id="topIncomeChart"></canvas>
@@ -127,20 +127,20 @@
                                         <div class="col-md-6">
                                             <div class="card">
                                                 <div class="card-header">
-                                                    <h5>Balans tafsilotlari</h5>
+                                                    <h5>@L.T("Fin_BalanceDetails")</h5>
                                                 </div>
                                                 <div class="card-body">
                                                     <table class="table table-striped">
                                                         <tr>
-                                                            <td><strong>Naqd pul balansi:</strong></td>
+                                                            <td><strong>@L.T("Fin_CashBalance"):</strong></td>
                                                             <td class="text-right">@ViewBag.CashBalance.ToString("N2") @(ViewBag.CurrencyShortname ?? "UZS")</td>
                                                         </tr>
                                                         <tr>
-                                                            <td><strong>Bank balansi:</strong></td>
+                                                            <td><strong>@L.T("Fin_BankBalance"):</strong></td>
                                                             <td class="text-right">@ViewBag.BankBalance.ToString("N2") @(ViewBag.CurrencyShortname ?? "UZS")</td>
                                                         </tr>
                                                         <tr>
-                                                            <td><strong>Jami balans:</strong></td>
+                                                            <td><strong>@L.T("Fin_TotalBalance"):</strong></td>
                                                             <td class="text-right"><strong>@((ViewBag.CashBalance + ViewBag.BankBalance).ToString("N2")) @(ViewBag.CurrencyShortname ?? "UZS")</strong></td>
                                                         </tr>
                                                     </table>
@@ -176,13 +176,13 @@
             data: {
                 labels: monthlyPeriods,
                 datasets: [{
-                    label: 'Kirim',
+                    label: '@L.Js("Fin_Inflow")',
                     data: monthlyIncome,
                     borderColor: 'rgb(40, 199, 111)',
                     backgroundColor: 'rgba(40, 199, 111, 0.1)',
                     tension: 0.4
                 }, {
-                    label: 'Chiqim',
+                    label: '@L.Js("Fin_Expense")',
                     data: monthlyExpense,
                     borderColor: 'rgb(234, 84, 85)',
                     backgroundColor: 'rgba(234, 84, 85, 0.1)',
@@ -210,7 +210,7 @@
             data: {
                 labels: expenseLabels,
                 datasets: [{
-                    label: 'Chiqim',
+                    label: '@L.Js("Fin_Expense")',
                     data: expenseAmounts,
                     backgroundColor: 'rgba(234, 84, 85, 0.8)',
                     borderColor: 'rgb(234, 84, 85)',
@@ -238,7 +238,7 @@
             data: {
                 labels: incomeLabels,
                 datasets: [{
-                    label: 'Kirim',
+                    label: '@L.Js("Fin_Inflow")',
                     data: incomeAmounts,
                     backgroundColor: 'rgba(40, 199, 111, 0.8)',
                     borderColor: 'rgb(40, 199, 111)',

@@ -1,5 +1,5 @@
 @{
-    ViewBag.Title = "Hisoblardagi qoldiq";
+    ViewBag.Title = L.T("Menu_AccountBalances");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -14,9 +14,9 @@
                             <div class="breadcrumb-wrapper col-12">
                                 <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                     <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
-                                    <li class="breadcrumb-item">Dashboard</li>
-                                    <li class="breadcrumb-item">Moliya Dashboard</li>
-                                    <li class="breadcrumb-item active">Hisoblardagi qoldiq</li>
+                                    <li class="breadcrumb-item">@L.T("Menu_Dashboard")</li>
+                                    <li class="breadcrumb-item">@L.T("Menu_DashFinance")</li>
+                                    <li class="breadcrumb-item active">@L.T("Menu_AccountBalances")</li>
                                 </ol>
                             </div>
                         </div>
@@ -29,40 +29,40 @@
                     <div class="col-12">
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">Hisoblardagi qoldiq</h4>
+                                <h4 class="card-title">@L.T("Menu_AccountBalances")</h4>
                             </div>
                             <div class="card-content">
                                 <div class="card-body">
                                     <form method="get" action="@Url.Action("AccountBalances")" class="mb-3">
                                         <div class="row">
                                             <div class="col-md-3">
-                                                <label class="control-label">Dan sana:</label>
+                                                <label class="control-label">@L.T("Fin_DateFrom"):</label>
                                                 <input type="date" name="fromDate" class="form-control" value="@(ViewBag.FromDate?.ToString("yyyy-MM-dd"))" />
                                             </div>
                                             <div class="col-md-3">
-                                                <label class="control-label">Gacha sana:</label>
+                                                <label class="control-label">@L.T("Fin_DateTo"):</label>
                                                 <input type="date" name="toDate" class="form-control" value="@(ViewBag.ToDate?.ToString("yyyy-MM-dd"))" />
                                             </div>
                                             <div class="col-md-3">
-                                                <label class="control-label">Hisob turi:</label>
+                                                <label class="control-label">@L.T("Fin_AccountType"):</label>
                                                 <select name="accountType" class="form-control">
-                                                    <option value="">Barchasi</option>
-                                                    <option value="1" @(ViewBag.AccountType != null && (int)ViewBag.AccountType == 1 ? "selected" : "")>Aktiv</option>
-                                                    <option value="2" @(ViewBag.AccountType != null && (int)ViewBag.AccountType == 2 ? "selected" : "")>Majburiyat</option>
+                                                    <option value="">@L.T("All")</option>
+                                                    <option value="1" @(ViewBag.AccountType != null && (int)ViewBag.AccountType == 1 ? "selected" : "")>@L.T("Fin_Asset")</option>
+                                                    <option value="2" @(ViewBag.AccountType != null && (int)ViewBag.AccountType == 2 ? "selected" : "")>@L.T("Fin_Obligation")</option>
                                                 </select>
                                             </div>
                                             <div class="col-md-3">
                                                 <label class="control-label">&nbsp;</label>
-                                                <button type="submit" class="btn btn-primary btn-block">Ko'rsatish</button>
+                                                <button type="submit" class="btn btn-primary btn-block">@L.T("Fin_Show")</button>
                                             </div>
                                         </div>
                                     </form>
 
                                     <div class="alert alert-secondary small mb-2" role="alert">
-                                        <strong>Opening balans va qoldiq:</strong>
-                                        Hisob <em>balans kategoriyasiga</em> bog'langan bo'lsa (masalan, <code>PAYABLES_5</code> → Ta'minotchilardan qarzlar),
-                                        <strong>Qoldiq</strong> = hisobning opening qoldig'i (Opening balans sahifasida hisob kesimida kiritiladi) + <em>opening sanasidan keyingi</em> tranzaksiyalar. Hisob kesimida kiritilmagan bo'lsa, kategoriya opening'i hisoblar soniga teng bo'linadi — bunday qoldiq <strong>≈</strong> bilan belgilangan (taxminiy).
-                                        Opening sanasidan <strong>oldingi</strong> tranzaksiyalar qoldiqqa qo'shilmaydi.
+                                        <strong>@L.T("Fin_OpeningAndBalance"):</strong>
+                                        @L.T("Fin_AccBalHint1") <em>@L.T("Fin_AccBalHint2")</em> @L.T("Fin_AccBalHint3") <code>PAYABLES_5</code> → @L.T("Fin_AccBalHint4")
+                                        <strong>@L.T("Fin_Balance")</strong> = @L.T("Fin_AccBalHint5") + <em>@L.T("Fin_AccBalHint6")</em> @L.T("Fin_AccBalHint7") <strong>≈</strong> @L.T("Fin_AccBalHint8")
+                                        @L.T("Fin_AccBalHint9") <strong>@L.T("Fin_AccBalHint10")</strong> @L.T("Fin_AccBalHint11")
                                     </div>
 
                                     <div class="table-responsive">
@@ -70,11 +70,11 @@
                                             <thead>
                                                 <tr>
                                                     <th class="text-center">Nº</th>
-                                                    <th class="text-center">Hisob raqam</th>
-                                                    <th class="text-center">Egasi</th>
-                                                    <th class="text-center" style="background-color: #e3f2fd;">Kirim</th>
-                                                    <th class="text-center" style="background-color: #ffebee;">Chiqim</th>
-                                                    <th class="text-center" style="background-color: #e8f5e9; font-weight: bold;">Qoldiq</th>
+                                                    <th class="text-center">@L.T("Fin_AccountNo")</th>
+                                                    <th class="text-center">@L.T("Fin_Owner")</th>
+                                                    <th class="text-center" style="background-color: #e3f2fd;">@L.T("Fin_Inflow")</th>
+                                                    <th class="text-center" style="background-color: #ffebee;">@L.T("Fin_Expense")</th>
+                                                    <th class="text-center" style="background-color: #e8f5e9; font-weight: bold;">@L.T("Fin_Balance")</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -109,7 +109,7 @@
                                                 @if (ViewBag.AccountBalances == null || (ViewBag.AccountBalances as System.Collections.IEnumerable) == null || !(ViewBag.AccountBalances as System.Collections.IEnumerable).Cast<object>().Any())
                                                 {
                                                     <tr>
-                                                        <td colspan="6" class="text-center">Ma'lumot topilmadi</td>
+                                                        <td colspan="6" class="text-center">@L.T("Fin_NoDataFound")</td>
                                                     </tr>
                                                 }
                                             </tbody>
@@ -131,7 +131,7 @@
                 $('#accountBalancesTable').DataTable({
                     "order": [[5, "desc"]], // Sort by Qoldiq column
                     "pageLength": 25,
-                    "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Barchasi"]],
+                    "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "@L.Js("All")"]],
                     "columnDefs": [
                         { "orderable": true, "targets": [0, 1, 2, 3, 4, 5] },
                         { "type": "num", "targets": [0] }

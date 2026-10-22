@@ -4,6 +4,7 @@ using System.Data.Entity;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using tahsinERP.I18n;
 using tahsinERP.Models;
 
 namespace tahsinERP.Services.Tannarx
@@ -633,7 +634,7 @@ namespace tahsinERP.Services.Tannarx
 
                 if (row.SourceDocType != null && AccrualSourceDocTypes.Contains(row.SourceDocType))
                 {
-                    AddLine(row.CategoryID, "Chiqarildi", "Invoys hisoblash yozuvi (to'lovi alohida keladi)", signed, row.Count);
+                    AddLine(row.CategoryID, "Chiqarildi", L.T("Mes_Tan_Reason_Accrual"), signed, row.Count);
                     continue;
                 }
                 if (_baseCurrencyId.HasValue && row.CurrencyID != _baseCurrencyId.Value)
@@ -642,7 +643,7 @@ namespace tahsinERP.Services.Tannarx
                     totals.SkippedForeignCount += row.Count;
                     totals.SkippedForeignByCurrency.TryGetValue(code, out var prev);
                     totals.SkippedForeignByCurrency[code] = prev + signed;
-                    AddLine(row.CategoryID, "Chiqarildi", "Boshqa valyuta (" + code + ") — konvertatsiya qilinmaydi", signed, row.Count);
+                    AddLine(row.CategoryID, "Chiqarildi", L.T("Mes_Tan_Reason_ForeignCurrency", code), signed, row.Count);
                     continue;
                 }
 
@@ -654,7 +655,7 @@ namespace tahsinERP.Services.Tannarx
                     && row.SourceDocType != null
                     && CoveredElsewhereSourceDocTypes.Contains(row.SourceDocType))
                 {
-                    AddLine(row.CategoryID, "Chiqarildi", "Boshqa joyda hisoblanadi (" + row.SourceDocType + ")", signed, row.Count);
+                    AddLine(row.CategoryID, "Chiqarildi", L.T("Mes_Tan_Reason_CoveredElsewhere", row.SourceDocType), signed, row.Count);
                     continue;
                 }
                 switch (cls.Bucket)

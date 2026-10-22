@@ -1,7 +1,7 @@
 @model List<tahsinERP.Controllers.Finance.BulkPlanItem>
 
 @{
-    ViewBag.Title = "P&L rejalarni to'plamda tahrirlash";
+    ViewBag.Title = L.T("Fin_PlBulkEditTitle");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -16,8 +16,8 @@
                             <div class="breadcrumb-wrapper col-12">
                                 <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                     <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
-                                    <li class="breadcrumb-item"><a href="~/FinPlPlans">P&L rejalar</a></li>
-                                    <li class="breadcrumb-item active">To'plamda tahrirlash</li>
+                                    <li class="breadcrumb-item"><a href="~/FinPlPlans">@L.T("Fin_PlPlans")</a></li>
+                                    <li class="breadcrumb-item active">@L.T("Fin_BulkEdit")</li>
                                 </ol>
                             </div>
                         </div>
@@ -29,7 +29,7 @@
                     <div class="col-md-12">
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">P&L rejalarni to'plamda tahrirlash - @ViewBag.Year yil, @(new DateTime(2000, (int)(ViewBag.Month ?? 1), 1).ToString("MMMM")) oy</h4>
+                                <h4 class="card-title">@L.T("Fin_PlBulkEditTitleFor", ViewBag.Year, new DateTime(2000, (int)(ViewBag.Month ?? 1), 1).ToString("MMMM"))</h4>
                             </div>
                             <div class="card-content">
                                 <div class="card-body">
@@ -42,7 +42,7 @@
                                                 @Html.DropDownList("month", ViewBag.MonthList as SelectList, new { @class = "form-control" })
                                             </div>
                                             <div class="col-md-2">
-                                                <button type="submit" class="btn btn-primary">Ko'rsatish</button>
+                                                <button type="submit" class="btn btn-primary">@L.T("Fin_Show")</button>
                                             </div>
                                         </div>
                                     </form>
@@ -57,9 +57,9 @@
                                             <table id="bulkPlansTable" class="table table-striped table-bordered" style="width:100%">
                                                 <thead>
                                                     <tr>
-                                                        <th>Kod</th>
-                                                        <th>Element nomi</th>
-                                                        <th>Reja summasi</th>
+                                                        <th>@L.T("Code")</th>
+                                                        <th>@L.T("Fin_ItemName")</th>
+                                                        <th>@L.T("Fin_PlanAmount")</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
@@ -81,8 +81,8 @@
                                         </div>
                                         
                                         <div class="form-actions mt-3">
-                                            <button type="submit" class="btn btn-primary">Saqlash</button>
-                                            <a href="@Url.Action("Index", new { year = ViewBag.Year, month = ViewBag.Month })" class="btn btn-secondary">Bekor qilish</a>
+                                            <button type="submit" class="btn btn-primary">@L.T("Save")</button>
+                                            <a href="@Url.Action("Index", new { year = ViewBag.Year, month = ViewBag.Month })" class="btn btn-secondary">@L.T("Cancel")</a>
                                         </div>
                                     }
                                 </div>

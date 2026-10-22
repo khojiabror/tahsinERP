@@ -9,29 +9,29 @@ namespace tahsinERP.ViewModels
     {
         public int ID { get; set; }
         
-        [Required(ErrorMessage = "Mahsulotni tanlang")]
-        [Display(Name = "Mahsulot")]
+        [Required(ErrorMessage = "Mes_Val_SelectProduct")]
+        [Display(Name = "Mes_Product")]
         public int ProductID { get; set; }
         
-        [Required(ErrorMessage = "Reja miqdorini kiriting")]
-        [Display(Name = "Reja miqdori")]
-        [Range(0.01, double.MaxValue, ErrorMessage = "Miqdor 0 dan katta bo'lishi kerak")]
+        [Required(ErrorMessage = "Mes_Plan_Val_EnterPlanQty")]
+        [Display(Name = "Mes_Plan_PlanQty")]
+        [Range(0.01, double.MaxValue, ErrorMessage = "Mes_Plan_Val_QtyPositive")]
         public double TotalQty { get; set; }
         
-        [Required(ErrorMessage = "Boshlanish sanasini kiriting")]
-        [Display(Name = "Boshlanish sanasi")]
+        [Required(ErrorMessage = "Mes_Plan_Val_EnterStartDate")]
+        [Display(Name = "Mes_Plan_StartDate")]
         [DataType(DataType.Date)]
         public DateTime StartDate { get; set; }
         
-        [Required(ErrorMessage = "Tugash sanasini kiriting")]
-        [Display(Name = "Tugash sanasi")]
+        [Required(ErrorMessage = "Mes_Plan_Val_EnterEndDate")]
+        [Display(Name = "Mes_Plan_EndDate")]
         [DataType(DataType.Date)]
         public DateTime EndDate { get; set; }
         
-        [Display(Name = "O'chirilgan")]
+        [Display(Name = "Mes_Plan_IsDeleted")]
         public bool IsDeleted { get; set; }
 
-        [Display(Name = "Savdo buyurtmasi")]
+        [Display(Name = "Mes_Plan_SalesOrder")]
         public int? SalesOrderID { get; set; }
         public string SalesOrderNo { get; set; }
         
@@ -55,19 +55,19 @@ namespace tahsinERP.ViewModels
         public int PlanID { get; set; }
         
         [Required]
-        [Display(Name = "Sana")]
+        [Display(Name = "Date")]
         [DataType(DataType.Date)]
         public DateTime Day { get; set; }
         
-        [Display(Name = "Kunduzgi smena")]
-        [Range(0, double.MaxValue, ErrorMessage = "Miqdor 0 yoki undan katta bo'lishi kerak")]
+        [Display(Name = "Mes_DayShift")]
+        [Range(0, double.MaxValue, ErrorMessage = "Mes_Val_QtyNonNegative")]
         public double DayShift { get; set; }
         
-        [Display(Name = "Tungi smena")]
-        [Range(0, double.MaxValue, ErrorMessage = "Miqdor 0 yoki undan katta bo'lishi kerak")]
+        [Display(Name = "Mes_NightShift")]
+        [Range(0, double.MaxValue, ErrorMessage = "Mes_Val_QtyNonNegative")]
         public double NightShift { get; set; }
         
-        [Display(Name = "Jami")]
+        [Display(Name = "Total")]
         public double Total { get; set; }
         
         // Actual production data for comparison

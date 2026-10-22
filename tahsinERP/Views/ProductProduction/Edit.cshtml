@@ -1,6 +1,6 @@
 @model tahsinERP.ViewModels.ProductProductionViewModel
 @{
-    ViewBag.Title = "Ishlab Chiqarish Tahrirlash";
+    ViewBag.Title = L.T("Mes_Prod_EditTitle");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -23,9 +23,9 @@
                                             <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                         </li>
                                         <li class="breadcrumb-item">
-                                            <a href="~/ProductProduction/Index">Ishlab Chiqarish</a>
+                                            <a href="~/ProductProduction/Index">@L.T("Mes_Prod_Title")</a>
                                         </li>
-                                        <li class="breadcrumb-item active">Tahrirlash</li>
+                                        <li class="breadcrumb-item active">@L.T("Edit")</li>
                                     </ol>
                                 </div>
                             </div>
@@ -43,52 +43,52 @@
                                             <hr />
                                             <div class="row">
                                                 <div class="col-md-6">
-                                                    <h6 class="invoice-to">Mahsulot *</h6>
+                                                    <h6 class="invoice-to">@L.T("Mes_Product") *</h6>
                                                     <fieldset class="invoice-address form-group">
-                                                        @Html.DropDownListFor(model => model.ProductID, ViewBag.Products as SelectList, "Mahsulotni tanlang", new { @class = "form-control", @required = "required" })
+                                                        @Html.DropDownListFor(model => model.ProductID, ViewBag.Products as SelectList, L.T("Mes_Val_SelectProduct"), new { @class = "form-control", @required = "required" })
                                                         @Html.ValidationMessageFor(model => model.ProductID, "", new { @class = "text-danger" })
                                                     </fieldset>
                                                 </div>
                                                 <div class="col-md-6">
-                                                    <h6 class="invoice-to">Sex *</h6>
+                                                    <h6 class="invoice-to">@L.T("Mes_Prod_Shop") *</h6>
                                                     <fieldset class="invoice-address form-group">
-                                                        @Html.DropDownListFor(model => model.ShopID, ViewBag.Shops as SelectList, "Sexni tanlang", new { @class = "form-control", @required = "required" })
+                                                        @Html.DropDownListFor(model => model.ShopID, ViewBag.Shops as SelectList, L.T("Mes_Prod_Val_SelectShop"), new { @class = "form-control", @required = "required" })
                                                         @Html.ValidationMessageFor(model => model.ShopID, "", new { @class = "text-danger" })
                                                     </fieldset>
                                                 </div>
                                             </div>
                                             <div class="row">
                                                 <div class="col-md-6">
-                                                    <h6 class="invoice-to">Sana *</h6>
+                                                    <h6 class="invoice-to">@L.T("Date") *</h6>
                                                     <fieldset class="invoice-address form-group">
                                                         @Html.TextBoxFor(model => model.Date, "{0:yyyy-MM-dd}", new { @class = "form-control", @type = "date", @required = "required" })
                                                         @Html.ValidationMessageFor(model => model.Date, "", new { @class = "text-danger" })
                                                     </fieldset>
                                                 </div>
                                                 <div class="col-md-6">
-                                                    <h6 class="invoice-to">Izoh</h6>
+                                                    <h6 class="invoice-to">@L.T("Comment")</h6>
                                                     <fieldset class="invoice-address form-group">
-                                                        @Html.TextBoxFor(model => model.Comment, new { @class = "form-control", @placeholder = "Izoh" })
+                                                        @Html.TextBoxFor(model => model.Comment, new { @class = "form-control", @placeholder = L.T("Comment") })
                                                     </fieldset>
                                                 </div>
                                             </div>
                                             <div class="row">
                                                 <div class="col-md-4">
-                                                    <h6 class="invoice-to">Kunduzgi smena</h6>
+                                                    <h6 class="invoice-to">@L.T("Mes_DayShift")</h6>
                                                     <fieldset class="invoice-address form-group">
                                                         @Html.TextBoxFor(model => model.DayShift, "{0:0.######}", new { @class = "form-control day-shift-input", @type = "number", @step = "0.001", @min = "0" })
                                                         @Html.ValidationMessageFor(model => model.DayShift, "", new { @class = "text-danger" })
                                                     </fieldset>
                                                 </div>
                                                 <div class="col-md-4">
-                                                    <h6 class="invoice-to">Tungi smena</h6>
+                                                    <h6 class="invoice-to">@L.T("Mes_NightShift")</h6>
                                                     <fieldset class="invoice-address form-group">
                                                         @Html.TextBoxFor(model => model.NightShift, "{0:0.######}", new { @class = "form-control night-shift-input", @type = "number", @step = "0.001", @min = "0" })
                                                         @Html.ValidationMessageFor(model => model.NightShift, "", new { @class = "text-danger" })
                                                     </fieldset>
                                                 </div>
                                                 <div class="col-md-4">
-                                                    <h6 class="invoice-to">Jami</h6>
+                                                    <h6 class="invoice-to">@L.T("Total")</h6>
                                                     <fieldset class="invoice-address form-group">
                                                         @Html.TextBoxFor(model => model.Total, "{0:0.######}", new { @class = "form-control", @readonly = "readonly", @id = "totalDisplay" })
                                                     </fieldset>
@@ -98,13 +98,13 @@
                                             <div class="row">
                                                 <div class="col-12">
                                                     <button type="submit" class="btn btn-success">
-                                                        <i class="bx bx-save"></i> Saqlash
+                                                        <i class="bx bx-save"></i> @L.T("Save")
                                                     </button>
                                                     <a href="@Url.Action("Index")" class="btn btn-secondary">
-                                                        <i class="bx bx-x"></i> Bekor qilish
+                                                        <i class="bx bx-x"></i> @L.T("Cancel")
                                                     </a>
                                                     <a href="@Url.Action("Details", new { id = Model.ID })" class="btn btn-outline-success ml-1">
-                                                        <i class="bx bx-show"></i> Ma'lumotlar
+                                                        <i class="bx bx-show"></i> @L.T("Details")
                                                     </a>
                                                 </div>
                                             </div>

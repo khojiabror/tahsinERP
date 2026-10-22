@@ -4,6 +4,7 @@ using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
 using tahsinERP.Controllers;
+using tahsinERP.I18n;
 using tahsinERP.Models;
 using tahsinERP.Services.Common;
 using tahsinERP.Services.DlocFifo;
@@ -128,7 +129,7 @@ namespace tahsinERP.Services
                 if (!kgId.HasValue)
                 {
                     throw new InvalidOperationException(
-                        $"UNITS jadvalida kg birligi topilmadi (mahsulot: {req.MaterialPNo ?? req.MaterialID.ToString()}).");
+                        L.T("Mes_Prod_KgUnitNotFound", req.MaterialPNo ?? req.MaterialID.ToString()));
                 }
                 return kgId;
             }
@@ -190,8 +191,8 @@ namespace tahsinERP.Services
                 unitName = (unitName ?? "").Trim();
                 var suffix = unitName.Length > 0 ? " " + unitName : "";
 
-                return $"Ishlab chiqarish natijasini saqlab bo'lmadi: xomashyo yetarli emas. Mahsulot: {req.MaterialPNo ?? req.MaterialID.ToString()}, " +
-                       $"omborda {availableQty:N2}{suffix}, kerak {req.TotalConsumption:N2}{suffix}.";
+                return L.T("Mes_Prod_StockShortage", req.MaterialPNo ?? req.MaterialID.ToString(),
+                    availableQty.ToString("N2") + suffix, req.TotalConsumption.ToString("N2") + suffix);
             }
 
             return null;

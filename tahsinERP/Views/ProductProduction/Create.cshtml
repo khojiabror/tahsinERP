@@ -1,6 +1,6 @@
 @model tahsinERP.ViewModels.ProductProductionDailyEntryViewModel
 @{
-    ViewBag.Title = "Kunlik Ishlab Chiqarish Kiritish";
+    ViewBag.Title = L.T("Mes_Prod_DailyEntryTitle");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -22,9 +22,9 @@
                                             <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                         </li>
                                         <li class="breadcrumb-item">
-                                            <a href="~/ProductProduction/Index">Ishlab Chiqarish</a>
+                                            <a href="~/ProductProduction/Index">@L.T("Mes_Prod_Title")</a>
                                         </li>
-                                        <li class="breadcrumb-item active">Kunlik Ishlab Chiqarish</li>
+                                        <li class="breadcrumb-item active">@L.T("Mes_Prod_Daily")</li>
                                     </ol>
                                 </div>
                             </div>
@@ -49,23 +49,23 @@
                                                     
                                                     <div class="row">
                                                         <div class="col-md-4">
-                                                            <h6 class="invoice-to">Reja sanasi *</h6>
+                                                            <h6 class="invoice-to">@L.T("Mes_Prod_PlanDate") *</h6>
                                                             <fieldset class="invoice-address form-group">
                                                                 @Html.TextBoxFor(model => model.Date, "{0:yyyy-MM-dd}", new { @class = "form-control", @type = "date", @required = "required", @id = "planDate" })
                                                                 @Html.ValidationMessageFor(model => model.Date, "", new { @class = "text-danger" })
                                                             </fieldset>
                                                         </div>
                                                         <div class="col-md-4">
-                                                            <h6 class="invoice-to">Fakt ishlab chiqarish sanasi *</h6>
+                                                            <h6 class="invoice-to">@L.T("Mes_FactProductionDate") *</h6>
                                                             <fieldset class="invoice-address form-group">
                                                                 @Html.TextBoxFor(model => model.ProductionDate, "{0:yyyy-MM-dd}", new { @class = "form-control", @type = "date", @required = "required", @id = "factProductionDate" })
                                                                 @Html.ValidationMessageFor(model => model.ProductionDate, "", new { @class = "text-danger" })
                                                             </fieldset>
                                                         </div>
                                                         <div class="col-md-4">
-                                                            <h6 class="invoice-to">Sex *</h6>
+                                                            <h6 class="invoice-to">@L.T("Mes_Prod_Shop") *</h6>
                                                             <fieldset class="invoice-address form-group">
-                                                                @Html.DropDownListFor(model => model.ShopID, ViewBag.Shops as SelectList, "Sexni tanlang", new { @class = "form-control", @required = "required", @id = "shopSelect" })
+                                                                @Html.DropDownListFor(model => model.ShopID, ViewBag.Shops as SelectList, L.T("Mes_Prod_Val_SelectShop"), new { @class = "form-control", @required = "required", @id = "shopSelect" })
                                                                 @Html.ValidationMessageFor(model => model.ShopID, "", new { @class = "text-danger" })
                                                             </fieldset>
                                                         </div>
@@ -73,7 +73,7 @@
                                                             <h6 class="invoice-to">&nbsp;</h6>
                                                             <fieldset class="invoice-address form-group">
                                                                 <button type="button" id="loadPlannedBtn" class="btn btn-primary btn-block">
-                                                                    <i class="bx bx-refresh"></i> Rejalashtirilgan mahsulotlarni yuklash
+                                                                    <i class="bx bx-refresh"></i> @L.T("Mes_Prod_LoadPlanned")
                                                                 </button>
                                                             </fieldset>
                                                         </div>
@@ -85,14 +85,14 @@
                                                         <table class="table table-bordered" id="productionItemsTable">
                                                             <thead>
                                                                 <tr>
-                                                                    <th>Mahsulot</th>
-                                                                    <th>Reja (Kunduzgi)</th>
-                                                                    <th>Reja (Tungi)</th>
-                                                                    <th>Reja (Jami)</th>
-                                                                    <th>Kunduzgi smena</th>
-                                                                    <th>Tungi smena</th>
-                                                                    <th>Jami</th>
-                                                                    <th>Izoh</th>
+                                                                    <th>@L.T("Mes_Product")</th>
+                                                                    <th>@L.T("Mes_Prod_PlanDay")</th>
+                                                                    <th>@L.T("Mes_Prod_PlanNight")</th>
+                                                                    <th>@L.T("Mes_Prod_PlanTotal")</th>
+                                                                    <th>@L.T("Mes_DayShift")</th>
+                                                                    <th>@L.T("Mes_NightShift")</th>
+                                                                    <th>@L.T("Total")</th>
+                                                                    <th>@L.T("Comment")</th>
                                                                 </tr>
                                                             </thead>
                                                             <tbody>
@@ -108,7 +108,7 @@
                                                                                 @Html.Hidden($"ProductionItems[{i}].ID", item.ID)
                                                                                 @if (item.IsPlanned)
                                                                                 {
-                                                                                    <span class="badge badge-info">Rejalashtirilgan</span>
+                                                                                    <span class="badge badge-info">@L.T("Mes_Prod_Planned")</span>
                                                                                 }
                                                                             </td>
                                                                             <td>@(item.PlannedDayShift?.ToString("N3") ?? "-")</td>
@@ -134,7 +134,7 @@
                                                                 {
                                                                     <tr>
                                                                         <td colspan="8" class="text-center">
-                                                                            Sana va sexni tanlang va "Rejalashtirilgan mahsulotlarni yuklash" tugmasini bosing
+                                                                            @L.T("Mes_Prod_SelectDateShopHint")
                                                                         </td>
                                                                     </tr>
                                                                 }
@@ -152,10 +152,10 @@
                             <div class="row">
                                 <div class="col-12">
                                     <button type="submit" class="btn btn-primary mr-1">
-                                        <i class="bx bx-save"></i> Saqlash
+                                        <i class="bx bx-save"></i> @L.T("Save")
                                     </button>
                                     <a href="@Url.Action("Index")" class="btn btn-secondary">
-                                        <i class="bx bx-x"></i> Bekor qilish
+                                        <i class="bx bx-x"></i> @L.T("Cancel")
                                     </a>
                                 </div>
                             </div>
@@ -184,13 +184,13 @@
                 var shopID = $('#shopSelect').val();
                 
                 if (!date || !shopID) {
-                    alert('Iltimos, sana va sexni tanlang');
+                    alert('@L.Js("Mes_Prod_PleaseSelectDateShop")');
                     return;
                 }
 
                 // Disable button during loading
                 var $btn = $(this);
-                $btn.prop('disabled', true).html('<i class="bx bx-loader bx-spin"></i> Yuklanmoqda...');
+                $btn.prop('disabled', true).html('<i class="bx bx-loader bx-spin"></i> @L.Js("Loading")');
 
                 $.ajax({
                     url: '@Url.Action("GetPlannedProducts", "ProductProduction")',
@@ -205,8 +205,8 @@
                         tbody.empty();
                         
                         if (!data || data.length === 0) {
-                            tbody.append('<tr><td colspan="8" class="text-center">Rejalashtirilgan mahsulotlar topilmadi</td></tr>');
-                            $btn.prop('disabled', false).html('<i class="bx bx-refresh"></i> Rejalashtirilgan mahsulotlarni yuklash');
+                            tbody.append('<tr><td colspan="8" class="text-center">@L.Js("Mes_Prod_NoPlannedProducts")</td></tr>');
+                            $btn.prop('disabled', false).html('<i class="bx bx-refresh"></i> @L.Js("Mes_Prod_LoadPlanned")');
                             return;
                         }
 
@@ -220,7 +220,7 @@
                                 '<input type="hidden" name="ProductionItems[' + index + '].ID" value="' + (item.ID || '') + '" />';
                             
                             if (item.IsPlanned) {
-                                row += ' <span class="badge badge-info">Rejalashtirilgan</span>';
+                                row += ' <span class="badge badge-info">@L.Js("Mes_Prod_Planned")</span>';
                             }
                             
                             row += '</td>' +
@@ -240,13 +240,13 @@
                         attachTotalCalculation();
                         
                         // Re-enable button
-                        $btn.prop('disabled', false).html('<i class="bx bx-refresh"></i> Rejalashtirilgan mahsulotlarni yuklash');
+                        $btn.prop('disabled', false).html('<i class="bx bx-refresh"></i> @L.Js("Mes_Prod_LoadPlanned")');
                     },
                     error: function(xhr, status, error) {
                         console.error('AJAX Error:', status, error);
                         console.error('Response:', xhr.responseText);
-                        alert('Xatolik yuz berdi: ' + (xhr.responseJSON?.message || error || 'Noma\'lum xatolik'));
-                        $btn.prop('disabled', false).html('<i class="bx bx-refresh"></i> Rejalashtirilgan mahsulotlarni yuklash');
+                        alert('@L.Js("Mes_Prod_ErrorOccurred") ' + (xhr.responseJSON?.message || error || '@L.Js("Mes_UnknownError")'));
+                        $btn.prop('disabled', false).html('<i class="bx bx-refresh"></i> @L.Js("Mes_Prod_LoadPlanned")');
                     }
                 });
             });

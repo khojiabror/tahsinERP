@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using tahsinERP.I18n;
 using tahsinERP.Services.DlocFifo;
 
 namespace tahsinERP.Helpers
@@ -16,7 +17,7 @@ namespace tahsinERP.Helpers
         public static string From(Exception ex)
         {
             if (ex == null)
-                return "Xatolik yuz berdi.";
+                return L.T("Error_Generic");
 
             if (ex is WarehouseDlocException || (ex is InvalidOperationException && ex.InnerException == null))
                 return ex.Message;
@@ -28,7 +29,7 @@ namespace tahsinERP.Helpers
                     messages.Add(current.Message.Trim());
             }
 
-            return "Xatolik: " + string.Join(" | Ichki xatolik: ", messages.Distinct());
+            return L.T("Mes_Prod_ErrorPrefix", string.Join(" | " + L.T("Mes_Prod_InnerError") + ": ", messages.Distinct()));
         }
     }
 }

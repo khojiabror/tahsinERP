@@ -13,6 +13,7 @@ using tahsinERP.Controllers;
 using ClosedXML.Excel;
 using System.Collections.Generic;
 using System.Web;
+using tahsinERP.I18n;
 
 namespace tahsinERP.Controllers.Finance
 {
@@ -115,9 +116,9 @@ namespace tahsinERP.Controllers.Finance
             }
 
             ViewBag.DirectionList = new SelectList(new[] {
-                new { Value = (byte?)null, Text = "Barcha" },
-                new { Value = (byte?)1, Text = "Kirim" },
-                new { Value = (byte?)2, Text = "Chiqim" }
+                new { Value = (byte?)null, Text = L.T("Fin_AllOption") },
+                new { Value = (byte?)1, Text = L.T("Fin_Inflow") },
+                new { Value = (byte?)2, Text = L.T("Fin_Expense") }
             }, "Value", "Text", direction);
 
             ViewBag.FromDate = fromDate;
@@ -273,7 +274,7 @@ namespace tahsinERP.Controllers.Finance
             var account = db.FIN_ACCOUNTS.Find(transaction.AccountID);
             if (account != null && account.CurrencyID != transaction.CurrencyID)
             {
-                ModelState.AddModelError("CurrencyID", "Hisob valyutasi bilan tranzaksiya valyutasi mos kelmaydi.");
+                ModelState.AddModelError("CurrencyID", L.T("Fin_CurrencyMismatch"));
             }
 
             transaction.SourceDocType = string.IsNullOrWhiteSpace(transaction.SourceDocType)
@@ -281,7 +282,7 @@ namespace tahsinERP.Controllers.Finance
                 : transaction.SourceDocType.Trim();
             if (!FinSelectLists.ManualSourceDocTypes.Contains(transaction.SourceDocType, StringComparer.OrdinalIgnoreCase))
             {
-                ModelState.AddModelError("SourceDocType", "Bu manba hujjat turini qo'lda tanlab bo'lmaydi.");
+                ModelState.AddModelError("SourceDocType", L.T("Fin_SourceTypeNotManual"));
             }
 
             // Ta'minotchiga to'lov bo'lsa, kontragent va invoys bog'lanishi majburiy.
@@ -289,17 +290,17 @@ namespace tahsinERP.Controllers.Finance
             {
                 if (transaction.CounterpartyType != 2)
                 {
-                    ModelState.AddModelError("CounterpartyType", "Ta'minotchiga to'lov uchun Kontragent turi = Ta'minotchi bo'lishi kerak.");
+                    ModelState.AddModelError("CounterpartyType", L.T("Fin_SupplierPayTypeRequired"));
                 }
 
                 if (!transaction.CounterpartyID.HasValue)
                 {
-                    ModelState.AddModelError("CounterpartyID", "Ta'minotchiga to'lov uchun Kontragent (ID) tanlanishi shart.");
+                    ModelState.AddModelError("CounterpartyID", L.T("Fin_SupplierPayCounterpartyRequired"));
                 }
 
                 if (!transaction.SourceDocID.HasValue)
                 {
-                    ModelState.AddModelError("SourceDocID", "Ta'minotchiga to'lov uchun Manba hujjat ID (xarid invoysi ID) kiritilishi shart.");
+                    ModelState.AddModelError("SourceDocID", L.T("Fin_SupplierPayDocRequired"));
                 }
             }
         }
@@ -429,7 +430,7 @@ namespace tahsinERP.Controllers.Finance
                 }
                 if (!FinSelectLists.IsUserEditable(transaction.SourceDocType))
                 {
-                    TempData["Error"] = $"Ushbu tranzaksiya '{transaction.SourceDocType}' hujjatidan yaratilgan. Uni manba hujjat orqali o'zgartiring.";
+                    TempData["Error"] = L.T("Fin_TxFromDocEditViaSource", transaction.SourceDocType);
                     return RedirectToAction("Index");
                 }
 
@@ -455,7 +456,7 @@ namespace tahsinERP.Controllers.Finance
                 // FIN-B15: hujjatdan yaratilgan (posted) tranzaksiyani to'g'ridan-to'g'ri POST bilan ham tahrirlab bo'lmaydi
                 if (!FinSelectLists.IsUserEditable(existing.SourceDocType))
                 {
-                    TempData["Error"] = $"Ushbu tranzaksiya '{existing.SourceDocType}' hujjatidan yaratilgan. Tahrirlash mumkin emas.";
+                    TempData["Error"] = L.T("Fin_TxFromDocNoEdit", existing.SourceDocType);
                     return RedirectToAction("Index");
                 }
 
@@ -540,14 +541,14 @@ namespace tahsinERP.Controllers.Finance
 
                     if (transaction == null)
                     {
-                        TempData["Error"] = "Tranzaksiya topilmadi yoki oldin o'chirilgan.";
+                        TempData["Error"] = L.T("Fin_TxNotFoundOrDeleted");
                         return RedirectToAction("Index");
                     }
 
                     // Faqat qo'lda kiritilgan (Manual, ta'minotchiga to'lov, doimiy harajat to'lovi) tranzaksiyani o'chirishga ruxsat.
                     if (!FinSelectLists.IsUserEditable(transaction.SourceDocType))
                     {
-                        TempData["Error"] = $"Ushbu tranzaksiya '{transaction.SourceDocType}' hujjatidan yaratilgan. O'chirish mumkin emas.";
+                        TempData["Error"] = L.T("Fin_TxFromDocNoDelete", transaction.SourceDocType);
                         return RedirectToAction("Delete", new { id });
                     }
 
@@ -564,11 +565,11 @@ namespace tahsinERP.Controllers.Finance
 
                     LogHelper.LogToDatabase(User.Identity.Name, "FinTransactions", "Delete",
                         $"Tranzaksiya o'chirildi: ID {id}");
-                    TempData["Success"] = "Tranzaksiya muvaffaqiyatli o'chirildi.";
+                    TempData["Success"] = L.T("Fin_TxDeleted");
                 }
                 catch (Exception ex)
                 {
-                    TempData["Error"] = $"O'chirishda xatolik: {ex.Message}";
+                    TempData["Error"] = L.T("Fin_DeleteError", ex.Message);
                     LogHelper.LogToDatabase(User.Identity.Name, "FinTransactions", "DeleteError",
                         $"Tranzaksiya o'chirishda xatolik: ID {id}. Tafsilot: {ex}");
                 }
@@ -612,16 +613,16 @@ namespace tahsinERP.Controllers.Finance
                     .ToList();
 
                 // FIN-D22: umumiy ExcelExport (litsenziya Application_Start'da o'rnatiladi)
-                var bytes = ExcelExport.Create("Tranzaksiyalar", rows,
-                    ExcelExport.Col<ExportRow>("Sana", x => x.TxnDate.ToString("yyyy-MM-dd")),
-                    ExcelExport.Col<ExportRow>("Hisob", x => x.Account),
-                    ExcelExport.Col<ExportRow>("Kategoriya", x => x.Category),
-                    ExcelExport.Col<ExportRow>("Yo'nalish", x => x.Direction == 1 ? "Kirim" : "Chiqim"),
-                    ExcelExport.Col<ExportRow>("Summa", x => x.Amount),
-                    ExcelExport.Col<ExportRow>("Valyuta", x => x.Currency),
-                    ExcelExport.Col<ExportRow>("Kontragent", x => x.CounterpartyName),
-                    ExcelExport.Col<ExportRow>("Maqsad", x => x.Purpose),
-                    ExcelExport.Col<ExportRow>("Manba hujjat", x => x.SourceDocType));
+                var bytes = ExcelExport.Create(L.T("Fin_Transactions"), rows,
+                    ExcelExport.Col<ExportRow>(L.T("Date"), x => x.TxnDate.ToString("yyyy-MM-dd")),
+                    ExcelExport.Col<ExportRow>(L.T("Fin_Account"), x => x.Account),
+                    ExcelExport.Col<ExportRow>(L.T("Category"), x => x.Category),
+                    ExcelExport.Col<ExportRow>(L.T("Fin_Direction"), x => x.Direction == 1 ? L.T("Fin_Inflow") : L.T("Fin_Expense")),
+                    ExcelExport.Col<ExportRow>(L.T("Amount"), x => x.Amount),
+                    ExcelExport.Col<ExportRow>(L.T("Currency"), x => x.Currency),
+                    ExcelExport.Col<ExportRow>(L.T("Fin_Counterparty"), x => x.CounterpartyName),
+                    ExcelExport.Col<ExportRow>(L.T("Fin_Purpose"), x => x.Purpose),
+                    ExcelExport.Col<ExportRow>(L.T("Fin_SourceDoc"), x => x.SourceDocType));
 
                 return File(bytes, ExcelExport.ContentType, $"FinTransactions_{DateTime.Now:yyyyMMdd}.xlsx");
             }
@@ -656,13 +657,13 @@ namespace tahsinERP.Controllers.Finance
         {
             if (file == null || file.ContentLength == 0)
             {
-                ViewBag.Error = "Fayl yuklanmadi yoki bo'sh!";
+                ViewBag.Error = L.T("Fin_FileEmpty");
                 return View();
             }
 
             if (!file.FileName.EndsWith(".xlsx", StringComparison.OrdinalIgnoreCase))
             {
-                ViewBag.Error = "Faqat .xlsx formatidagi fayllarni yuklash mumkin!";
+                ViewBag.Error = L.T("Fin_OnlyXlsxUpload");
                 return View();
             }
 
@@ -673,7 +674,7 @@ namespace tahsinERP.Controllers.Finance
                     var worksheet = workbook.Worksheet(1);
                     if (worksheet.LastRowNumber() < 2)
                     {
-                        ViewBag.Error = "Excel faylda ma'lumot yo'q!";
+                        ViewBag.Error = L.T("Fin_ExcelNoData");
                         return View();
                     }
 
@@ -686,7 +687,7 @@ namespace tahsinERP.Controllers.Finance
                         }
                         catch (Exception userEx)
                         {
-                            ViewBag.Error = $"Foydalanuvchi topilmadi: {User.Identity.Name}. Xatolik: {userEx.Message}. Iltimos, tizimga qayta kiring yoki administratorga murojaat qiling.";
+                            ViewBag.Error = L.T("Fin_UserNotFound", User.Identity.Name, userEx.Message);
                             return View();
                         }
 
@@ -695,7 +696,7 @@ namespace tahsinERP.Controllers.Finance
 
                         if (result.Transactions.Count == 0)
                         {
-                            ViewBag.Error = "Hech qanday to'g'ri tranzaksiya topilmadi!";
+                            ViewBag.Error = L.T("Fin_NoValidTx");
                             if (messages.Count > 0)
                             {
                                 ViewBag.Errors = messages;
@@ -712,11 +713,11 @@ namespace tahsinERP.Controllers.Finance
                         {
                             var validationErrors = dbEx.EntityValidationErrors
                                 .SelectMany(v => v.ValidationErrors)
-                                .Select(e => $"Maydon: {e.PropertyName}, Xatolik: {e.ErrorMessage}");
-                            ViewBag.Error = $"Ma'lumotlar validatsiyadan o'tmadi: {string.Join("; ", validationErrors)}";
+                                .Select(e => L.T("Fin_FieldError", e.PropertyName, e.ErrorMessage));
+                            ViewBag.Error = L.T("Fin_ValidationFailed", string.Join("; ", validationErrors));
                             if (dbEx.InnerException != null)
                             {
-                                ViewBag.Error += $" | Ichki xatolik: {dbEx.InnerException.Message}";
+                                ViewBag.Error += " | " + L.T("Fin_InnerError", dbEx.InnerException.Message);
                             }
                             if (messages.Count > 0)
                             {
@@ -726,7 +727,7 @@ namespace tahsinERP.Controllers.Finance
                         }
                         catch (System.Data.Entity.Infrastructure.DbUpdateException dbUpdateEx)
                         {
-                            ViewBag.Error = "Ma'lumotlar bazasini yangilashda xatolik: " + ExceptionChain(dbUpdateEx);
+                            ViewBag.Error = L.T("Fin_DbUpdateError", ExceptionChain(dbUpdateEx));
                             if (messages.Count > 0)
                             {
                                 ViewBag.Errors = messages;
@@ -734,11 +735,11 @@ namespace tahsinERP.Controllers.Finance
                             return View();
                         }
 
-                        ViewBag.Success = $"{result.Transactions.Count} ta tranzaksiya muvaffaqiyatli import qilindi!";
+                        ViewBag.Success = L.T("Fin_TxImported", result.Transactions.Count);
                         if (messages.Count > 0)
                         {
                             ViewBag.Errors = messages;
-                            ViewBag.Warning = $"{result.Errors.Count} ta qatorda xatolik, {result.Warnings.Count} ta ogohlantirish.";
+                            ViewBag.Warning = L.T("Fin_ImportErrWarnCount", result.Errors.Count, result.Warnings.Count);
                         }
 
                         LogHelper.LogToDatabase(User.Identity.Name, "FinTransactionsController",
@@ -750,7 +751,7 @@ namespace tahsinERP.Controllers.Finance
             }
             catch (Exception ex)
             {
-                ViewBag.Error = $"Import jarayonida xatolik: {ExceptionChain(ex)}";
+                ViewBag.Error = L.T("Fin_ImportProcessError", ExceptionChain(ex));
                 LogHelper.LogToDatabase(User.Identity.Name, "FinTransactionsController",
                     $"Import xatolik: {ex.Message}", ex.ToString());
                 return View();

@@ -6,6 +6,7 @@ using System.Linq;
 using ClosedXML.Excel;
 using tahsinERP.Helpers;
 using tahsinERP.Models;
+using tahsinERP.I18n;
 
 namespace tahsinERP.Services.Finance
 {
@@ -165,7 +166,7 @@ namespace tahsinERP.Services.Finance
 
                         if (cpId <= 0)
                         {
-                            result.Errors.Add(sheetName + " row " + r + ": kontragent topilmadi.");
+                            result.Errors.Add(L.T("Fin_ObImp_CounterpartyNotFound", sheetName, r));
                             continue;
                         }
 
@@ -177,14 +178,14 @@ namespace tahsinERP.Services.Finance
 
                         if (contractId <= 0)
                         {
-                            result.Errors.Add(sheetName + " row " + r + ": shartnoma topilmadi.");
+                            result.Errors.Add(L.T("Fin_ObImp_ContractNotFound", sheetName, r));
                             continue;
                         }
 
                         var contractNo = contracts.FirstOrDefault(x => x.ID == contractId && x.CounterpartyID == cpId)?.ContractNo ?? "";
                         if (string.IsNullOrWhiteSpace(contractNo))
                         {
-                            result.Errors.Add(sheetName + " row " + r + ": shartnoma kontragentga mos emas.");
+                            result.Errors.Add(L.T("Fin_ObImp_ContractMismatch", sheetName, r));
                             continue;
                         }
 

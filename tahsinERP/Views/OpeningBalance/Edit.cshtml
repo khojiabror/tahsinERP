@@ -2,7 +2,7 @@
 @using System.Linq
 
 @{
-    ViewBag.Title = "Opening balans — tahrir";
+    ViewBag.Title = L.T("Fin_OpeningEditTitle");
     Layout = "~/Views/Shared/_Layout.cshtml";
     var canChange = ViewBag.CanChange as bool? ?? false;
     // FIN-P12: har qatorda butun kontragent ro'yxati chizilmaydi — faqat tanlangan qiymat;
@@ -20,7 +20,7 @@
 @helper LazySelect(string name, string optionsKey, string cssClass, int? selected, Dictionary<string, string> names)
 {
     <select class="@cssClass lazy-options" data-options="@optionsKey" data-type="@optionsKey" name="@name">
-        <option value="">-- Tanlang --</option>
+        <option value="">-- @L.T("Select") --</option>
         @if (selected.HasValue)
         {
             var key = selected.Value.ToString();
@@ -47,8 +47,8 @@
                             <div class="breadcrumb-wrapper col-12">
                                 <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                     <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
-                                    <li class="breadcrumb-item"><a href="@Url.Action("Index", "OpeningBalance")">Opening balans</a></li>
-                                    <li class="breadcrumb-item active">@(canChange ? "Tahrir" : "Ko'rish")</li>
+                                    <li class="breadcrumb-item"><a href="@Url.Action("Index", "OpeningBalance")">@L.T("Fin_OpeningBalance")</a></li>
+                                    <li class="breadcrumb-item active">@(canChange ? L.T("Fin_EditShort") : L.T("View"))</li>
                                 </ol>
                             </div>
                         </div>
@@ -58,7 +58,7 @@
             <div class="content-body">
                 <div class="card">
                     <div class="card-header">
-                        <h4 class="card-title">Opening balans — boshlang'ich qoldiqlar</h4>
+                        <h4 class="card-title">@L.T("Fin_OpeningEditHeader")</h4>
                     </div>
                     <div class="card-content">
                         <div class="card-body">
@@ -81,7 +81,7 @@
                                     <div class="row mb-2">
                                         <div class="col-md-4">
                                             <div class="form-group">
-                                                <label class="control-label">Opening sana *</label>
+                                                <label class="control-label">@L.T("Fin_OpeningDate") *</label>
                                                 @Html.TextBoxFor(m => m.SnapshotDate, new
                                                 {
                                                     @class = "form-control",
@@ -89,26 +89,26 @@
                                                     required = "required",
                                                     Value = Model.SnapshotDate.ToString("yyyy-MM-dd")
                                                 })
-                                                <small class="text-muted">Bu sanaga nisbatan barcha balanslar birinchi marta kiritiladi.</small>
+                                                <small class="text-muted">@L.T("Fin_OpeningDateHint")</small>
                                             </div>
                                         </div>
                                         <div class="col-md-3 d-flex align-items-end">
                                             <div class="form-group">
                                                 <button type="button" id="btnLoadOpeningByDate" class="btn btn-info">
-                                                    Load qilish
+                                                    @L.T("Fin_Load")
                                                 </button>
                                             </div>
                                         </div>
                                         <div class="col-md-5 d-flex align-items-end">
                                             <div class="form-group">
                                                 <button type="button" class="btn btn-warning" id="btnAutoFillCurrent">
-                                                    Auto-fill from current balances
+                                                    @L.T("Fin_AutoFillCurrent")
                                                 </button>
                                                 <button type="button" class="btn btn-outline-success ml-1" id="btnImportExcel">
-                                                    Excel import (AR/AP)
+                                                    @L.T("Fin_ExcelImportArAp")
                                                 </button>
                                                 <a class="btn btn-outline-primary ml-1" href="@Url.Action("DownloadOpeningBalanceExcelTemplate", "OpeningBalance")">
-                                                    Excel template
+                                                    @L.T("Fin_ExcelTemplate")
                                                 </a>
                                                 <input type="file" id="openingExcelFile" accept=".xlsx" style="display:none;" />
                                             </div>
@@ -116,31 +116,31 @@
                                     </div>
 
                                     <div class="alert alert-light-primary">
-                                        AR/AP bo'limlarida <strong>Umumiy oldi-berdi</strong> tizim ma'lumotidan olinadi (read-only).
-                                        Faqat <strong>to'langan/olingan</strong> summani kiriting.
+                                        @L.T("Fin_OpeningArApHint1") <strong>@L.T("Fin_TotalTurnover")</strong> @L.T("Fin_OpeningArApHint2")
+                                        @L.T("Fin_OpeningArApHint3") <strong>@L.T("Fin_PaidReceived")</strong> @L.T("Fin_OpeningArApHint4")
                                     </div>
 
                                     <hr />
-                                    <h5 class="mb-1">Mijozlardan haqqimiz (AR) — shartnoma kesimida</h5>
+                                    <h5 class="mb-1">@L.T("Fin_ArByContract")</h5>
                                     <div class="form-group mb-1">
                                         <label class="d-inline-flex align-items-center">
                                             @Html.CheckBoxFor(m => m.LeaveCustomerReceivableEmpty, new { @class = "form-check-input mr-50" })
-                                            <span>AR bo'limini bo'sh qoldirish (saqlanmasin)</span>
+                                            <span>@L.T("Fin_LeaveArEmpty")</span>
                                         </label>
                                     </div>
                                     <div class="d-flex justify-content-end mb-1">
-                                        <span class="badge badge-light-danger">Jami haqqimiz: @(Model.CustomerReceivableLines.Sum(x => x.Amount).ToString("N2"))</span>
+                                        <span class="badge badge-light-danger">@L.T("Fin_TotalReceivable"): @(Model.CustomerReceivableLines.Sum(x => x.Amount).ToString("N2"))</span>
                                     </div>
                                     <div class="table-responsive">
                                         <table class="table table-bordered table-sm" id="tblOpeningCustomerLines">
                                             <thead>
                                                 <tr>
-                                                    <th style="min-width:260px;">Mijoz</th>
-                                                    <th style="min-width:220px;">Shartnoma</th>
-                                                    <th class="text-right" style="min-width:170px;">Umumiy oldi-berdi</th>
-                                                    <th class="text-right" style="min-width:170px;">Olgan pulimiz</th>
-                                                    <th class="text-right" style="min-width:170px;">Qoldiq (haqqimiz)</th>
-                                                    <th style="min-width:120px;">Valyuta</th>
+                                                    <th style="min-width:260px;">@L.T("Fin_Customer")</th>
+                                                    <th style="min-width:220px;">@L.T("Fin_Contract")</th>
+                                                    <th class="text-right" style="min-width:170px;">@L.T("Fin_TotalTurnover")</th>
+                                                    <th class="text-right" style="min-width:170px;">@L.T("Fin_ReceivedMoney")</th>
+                                                    <th class="text-right" style="min-width:170px;">@L.T("Fin_BalanceReceivable")</th>
+                                                    <th style="min-width:120px;">@L.T("Currency")</th>
                                                     <th style="width:80px;"></th>
                                                 </tr>
                                             </thead>
@@ -158,7 +158,7 @@
                                                                     data-type="customer"
                                                                     data-selected-id="@(Model.CustomerReceivableLines[i].ContractID.HasValue ? Model.CustomerReceivableLines[i].ContractID.Value.ToString() : "")"
                                                                     data-selected-text="@Model.CustomerReceivableLines[i].ContractNo">
-                                                                <option value="">-- Shartnoma tanlanmagan --</option>
+                                                                <option value="">-- @L.T("Fin_NoContractSelected") --</option>
                                                                 @if (Model.CustomerReceivableLines[i].ContractID.HasValue)
                                                                 {
                                                                     <option value="@Model.CustomerReceivableLines[i].ContractID.Value" selected="selected">@Model.CustomerReceivableLines[i].ContractNo</option>
@@ -178,34 +178,34 @@
                                                         <td>
                                                             @Html.DropDownListFor(m => m.CustomerReceivableLines[i].CurrencyID, Model.CurrencyList, new { @class = "form-control" })
                                                         </td>
-                                                        <td><button type="button" class="btn btn-sm btn-outline-danger btn-remove-line">O'chir</button></td>
+                                                        <td><button type="button" class="btn btn-sm btn-outline-danger btn-remove-line">@L.T("Fin_DeleteShort")</button></td>
                                                     </tr>
                                                 }
                                             </tbody>
                                         </table>
                                     </div>
-                                    <button type="button" class="btn btn-sm btn-outline-primary mb-2" id="btnAddCustomerLine">+ Qator qo'shish</button>
+                                    <button type="button" class="btn btn-sm btn-outline-primary mb-2" id="btnAddCustomerLine">+ @L.T("Fin_AddRow")</button>
 
-                                    <h5 class="mb-1">Ta'minotchilardan qarzimiz (AP) — shartnoma kesimida</h5>
+                                    <h5 class="mb-1">@L.T("Fin_ApByContract")</h5>
                                     <div class="form-group mb-1">
                                         <label class="d-inline-flex align-items-center">
                                             @Html.CheckBoxFor(m => m.LeaveSupplierPayableEmpty, new { @class = "form-check-input mr-50" })
-                                            <span>AP bo'limini bo'sh qoldirish (saqlanmasin)</span>
+                                            <span>@L.T("Fin_LeaveApEmpty")</span>
                                         </label>
                                     </div>
                                     <div class="d-flex justify-content-end mb-1">
-                                        <span class="badge badge-light-warning">Jami qarzimiz: @(Model.SupplierPayableLines.Sum(x => x.Amount).ToString("N2"))</span>
+                                        <span class="badge badge-light-warning">@L.T("Fin_TotalPayable"): @(Model.SupplierPayableLines.Sum(x => x.Amount).ToString("N2"))</span>
                                     </div>
                                     <div class="table-responsive">
                                         <table class="table table-bordered table-sm" id="tblOpeningSupplierLines">
                                             <thead>
                                                 <tr>
-                                                    <th style="min-width:260px;">Ta'minotchi</th>
-                                                    <th style="min-width:220px;">Shartnoma</th>
-                                                    <th class="text-right" style="min-width:170px;">Umumiy oldi-berdi</th>
-                                                    <th class="text-right" style="min-width:170px;">To'lagan pulimiz</th>
-                                                    <th class="text-right" style="min-width:170px;">Qoldiq (qarzimiz)</th>
-                                                    <th style="min-width:120px;">Valyuta</th>
+                                                    <th style="min-width:260px;">@L.T("Fin_Supplier")</th>
+                                                    <th style="min-width:220px;">@L.T("Fin_Contract")</th>
+                                                    <th class="text-right" style="min-width:170px;">@L.T("Fin_TotalTurnover")</th>
+                                                    <th class="text-right" style="min-width:170px;">@L.T("Fin_PaidMoney")</th>
+                                                    <th class="text-right" style="min-width:170px;">@L.T("Fin_BalancePayable")</th>
+                                                    <th style="min-width:120px;">@L.T("Currency")</th>
                                                     <th style="width:80px;"></th>
                                                 </tr>
                                             </thead>
@@ -223,7 +223,7 @@
                                                                     data-type="supplier"
                                                                     data-selected-id="@(Model.SupplierPayableLines[i].ContractID.HasValue ? Model.SupplierPayableLines[i].ContractID.Value.ToString() : "")"
                                                                     data-selected-text="@Model.SupplierPayableLines[i].ContractNo">
-                                                                <option value="">-- Shartnoma tanlanmagan --</option>
+                                                                <option value="">-- @L.T("Fin_NoContractSelected") --</option>
                                                                 @if (Model.SupplierPayableLines[i].ContractID.HasValue)
                                                                 {
                                                                     <option value="@Model.SupplierPayableLines[i].ContractID.Value" selected="selected">@Model.SupplierPayableLines[i].ContractNo</option>
@@ -243,33 +243,33 @@
                                                         <td>
                                                             @Html.DropDownListFor(m => m.SupplierPayableLines[i].CurrencyID, Model.CurrencyList, new { @class = "form-control" })
                                                         </td>
-                                                        <td><button type="button" class="btn btn-sm btn-outline-danger btn-remove-line">O'chir</button></td>
+                                                        <td><button type="button" class="btn btn-sm btn-outline-danger btn-remove-line">@L.T("Fin_DeleteShort")</button></td>
                                                     </tr>
                                                 }
                                             </tbody>
                                         </table>
                                     </div>
-                                    <button type="button" class="btn btn-sm btn-outline-primary" id="btnAddSupplierLine">+ Qator qo'shish</button>
+                                    <button type="button" class="btn btn-sm btn-outline-primary" id="btnAddSupplierLine">+ @L.T("Fin_AddRow")</button>
 
-                                    <h5 class="mb-1 mt-2">Oylikdan qarzimiz (HRM) — xodim kesimida</h5>
+                                    <h5 class="mb-1 mt-2">@L.T("Fin_PayrollByEmployee")</h5>
                                     <div class="form-group mb-1">
                                         <label class="d-inline-flex align-items-center">
                                             @Html.CheckBoxFor(m => m.LeavePayrollEmpty, new { @class = "form-check-input mr-50" })
-                                            <span>Oylik bo'limini bo'sh qoldirish (saqlanmasin)</span>
+                                            <span>@L.T("Fin_LeavePayrollEmpty")</span>
                                         </label>
                                     </div>
                                     <div class="d-flex justify-content-end mb-1">
-                                        <span class="badge badge-light-info">Jami oylik qarzi: @(Model.EmployeePayrollLines.Sum(x => x.Amount).ToString("N2"))</span>
+                                        <span class="badge badge-light-info">@L.T("Fin_TotalPayrollDebt"): @(Model.EmployeePayrollLines.Sum(x => x.Amount).ToString("N2"))</span>
                                     </div>
                                     <div class="table-responsive">
                                         <table class="table table-bordered table-sm" id="tblOpeningPayrollLines">
                                             <thead>
                                                 <tr>
-                                                    <th style="min-width:280px;">Xodim</th>
-                                                    <th class="text-right" style="min-width:170px;">Umumiy hisoblangan</th>
-                                                    <th class="text-right" style="min-width:170px;">To'lagan pulimiz</th>
-                                                    <th class="text-right" style="min-width:170px;">Qoldiq (qarzimiz)</th>
-                                                    <th style="min-width:120px;">Valyuta</th>
+                                                    <th style="min-width:280px;">@L.T("Fin_Employee")</th>
+                                                    <th class="text-right" style="min-width:170px;">@L.T("Fin_TotalAccrued")</th>
+                                                    <th class="text-right" style="min-width:170px;">@L.T("Fin_PaidMoney")</th>
+                                                    <th class="text-right" style="min-width:170px;">@L.T("Fin_BalancePayable")</th>
+                                                    <th style="min-width:120px;">@L.T("Currency")</th>
                                                     <th style="width:80px;"></th>
                                                 </tr>
                                             </thead>
@@ -293,34 +293,34 @@
                                                         <td>
                                                             @Html.DropDownListFor(m => m.EmployeePayrollLines[i].CurrencyID, Model.CurrencyList, new { @class = "form-control" })
                                                         </td>
-                                                        <td><button type="button" class="btn btn-sm btn-outline-danger btn-remove-line">O'chir</button></td>
+                                                        <td><button type="button" class="btn btn-sm btn-outline-danger btn-remove-line">@L.T("Fin_DeleteShort")</button></td>
                                                     </tr>
                                                 }
                                             </tbody>
                                         </table>
                                     </div>
-                                    <button type="button" class="btn btn-sm btn-outline-primary" id="btnAddPayrollLine">+ Qator qo'shish</button>
+                                    <button type="button" class="btn btn-sm btn-outline-primary" id="btnAddPayrollLine">+ @L.T("Fin_AddRow")</button>
 
-                                    <h5 class="mb-1 mt-2">Logistikadan qarzimiz — ekspeditor shartnomasi kesimida</h5>
+                                    <h5 class="mb-1 mt-2">@L.T("Fin_LogisticsByContract")</h5>
                                     <div class="form-group mb-1">
                                         <label class="d-inline-flex align-items-center">
                                             @Html.CheckBoxFor(m => m.LeaveForwarderPayableEmpty, new { @class = "form-check-input mr-50" })
-                                            <span>Logistika bo'limini bo'sh qoldirish (saqlanmasin)</span>
+                                            <span>@L.T("Fin_LeaveLogisticsEmpty")</span>
                                         </label>
                                     </div>
                                     <div class="d-flex justify-content-end mb-1">
-                                        <span class="badge badge-light-warning">Jami logistika qarzi: @(Model.ForwarderPayableLines.Sum(x => x.Amount).ToString("N2"))</span>
+                                        <span class="badge badge-light-warning">@L.T("Fin_TotalLogisticsDebt"): @(Model.ForwarderPayableLines.Sum(x => x.Amount).ToString("N2"))</span>
                                     </div>
                                     <div class="table-responsive">
                                         <table class="table table-bordered table-sm" id="tblOpeningForwarderLines">
                                             <thead>
                                                 <tr>
-                                                    <th style="min-width:260px;">Ekspeditor</th>
-                                                    <th style="min-width:220px;">Shartnoma</th>
-                                                    <th class="text-right" style="min-width:170px;">Umumiy oldi-berdi</th>
-                                                    <th class="text-right" style="min-width:170px;">To'lagan pulimiz</th>
-                                                    <th class="text-right" style="min-width:170px;">Qoldiq (qarzimiz)</th>
-                                                    <th style="min-width:120px;">Valyuta</th>
+                                                    <th style="min-width:260px;">@L.T("Fin_Forwarder")</th>
+                                                    <th style="min-width:220px;">@L.T("Fin_Contract")</th>
+                                                    <th class="text-right" style="min-width:170px;">@L.T("Fin_TotalTurnover")</th>
+                                                    <th class="text-right" style="min-width:170px;">@L.T("Fin_PaidMoney")</th>
+                                                    <th class="text-right" style="min-width:170px;">@L.T("Fin_BalancePayable")</th>
+                                                    <th style="min-width:120px;">@L.T("Currency")</th>
                                                     <th style="width:80px;"></th>
                                                 </tr>
                                             </thead>
@@ -338,7 +338,7 @@
                                                                     data-type="forwarder"
                                                                     data-selected-id="@(Model.ForwarderPayableLines[i].ContractID.HasValue ? Model.ForwarderPayableLines[i].ContractID.Value.ToString() : "")"
                                                                     data-selected-text="@Model.ForwarderPayableLines[i].ContractNo">
-                                                                <option value="">-- Shartnoma tanlanmagan --</option>
+                                                                <option value="">-- @L.T("Fin_NoContractSelected") --</option>
                                                                 @if (Model.ForwarderPayableLines[i].ContractID.HasValue)
                                                                 {
                                                                     <option value="@Model.ForwarderPayableLines[i].ContractID.Value" selected="selected">@Model.ForwarderPayableLines[i].ContractNo</option>
@@ -358,28 +358,28 @@
                                                         <td>
                                                             @Html.DropDownListFor(m => m.ForwarderPayableLines[i].CurrencyID, Model.CurrencyList, new { @class = "form-control" })
                                                         </td>
-                                                        <td><button type="button" class="btn btn-sm btn-outline-danger btn-remove-line">O'chir</button></td>
+                                                        <td><button type="button" class="btn btn-sm btn-outline-danger btn-remove-line">@L.T("Fin_DeleteShort")</button></td>
                                                     </tr>
                                                 }
                                             </tbody>
                                         </table>
                                     </div>
-                                    <button type="button" class="btn btn-sm btn-outline-primary" id="btnAddForwarderLine">+ Qator qo'shish</button>
+                                    <button type="button" class="btn btn-sm btn-outline-primary" id="btnAddForwarderLine">+ @L.T("Fin_AddRow")</button>
 
                                     <hr />
-                                    <h5 class="mb-1">Boshqa balans kategoriyalari (manual opening)</h5>
+                                    <h5 class="mb-1">@L.T("Fin_OtherCategoriesManual")</h5>
                                     <p class="text-muted small mb-2">
-                                        <strong>Bo'sh qoldirish:</strong> belgilangan bo'lsa, summada <strong>0</strong> kiritilsa bu kategoriya uchun opening yozuvi saqlanmaydi.
+                                        <strong>@L.T("Fin_LeaveEmpty"):</strong> @L.T("Fin_LeaveEmptyHint1") <strong>0</strong> @L.T("Fin_LeaveEmptyHint2")
                                     </p>
                                     <div class="table-responsive">
                                         <table class="table table-striped table-bordered">
                                             <thead>
                                                 <tr>
-                                                    <th>Kategoriya</th>
-                                                    <th>Turi</th>
-                                                    <th class="text-right">Summasi</th>
-                                                    <th>Valyuta</th>
-                                                    <th class="text-center" style="white-space: nowrap;">Bo'sh qoldirish</th>
+                                                    <th>@L.T("Category")</th>
+                                                    <th>@L.T("Type")</th>
+                                                    <th class="text-right">@L.T("Fin_AmountOf")</th>
+                                                    <th>@L.T("Currency")</th>
+                                                    <th class="text-center" style="white-space: nowrap;">@L.T("Fin_LeaveEmpty")</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -404,7 +404,7 @@
                                                                 new { @class = "form-control" })
                                                         </td>
                                                         <td class="text-center align-middle">
-                                                            @Html.CheckBoxFor(m => m.Items[i].LeaveEmpty, new { @class = "form-check-input", title = "0 bo'lsa snapshot yozilmasin" })
+                                                            @Html.CheckBoxFor(m => m.Items[i].LeaveEmpty, new { @class = "form-check-input", title = L.T("Fin_LeaveEmptyTitle") })
                                                         </td>
                                                     </tr>
                                                 }
@@ -412,19 +412,19 @@
                                         </table>
                                     </div>
 
-                                    <h5 class="mb-1 mt-2">Hisoblar bo'yicha opening (kassa, bank)</h5>
+                                    <h5 class="mb-1 mt-2">@L.T("Fin_OpeningByAccountsCashBank")</h5>
                                     <p class="text-muted small mb-2">
-                                        Har hisobning opening qoldig'i. Kiritilsa, shu hisoblar kategoriyasining opening'i ularning
-                                        <strong>yig'indisiga</strong> teng saqlanadi (yuqoridagi summa o'rniga). Bo'sh qoldirilgan hisob uchun yozuv saqlanmaydi.
+                                        @L.T("Fin_OpeningAccountsHint1")
+                                        <strong>@L.T("Fin_OpeningAccountsHint2")</strong> @L.T("Fin_OpeningAccountsHint3")
                                     </p>
                                     <div class="table-responsive">
                                         <table class="table table-striped table-bordered table-sm" id="tblOpeningAccounts">
                                             <thead>
                                                 <tr>
-                                                    <th>Hisob</th>
-                                                    <th>Kategoriya</th>
-                                                    <th class="text-right" style="min-width:170px;">Opening qoldig'i</th>
-                                                    <th>Valyuta</th>
+                                                    <th>@L.T("Fin_Account")</th>
+                                                    <th>@L.T("Category")</th>
+                                                    <th class="text-right" style="min-width:170px;">@L.T("Fin_OpeningBalanceAmount")</th>
+                                                    <th>@L.T("Currency")</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -442,16 +442,16 @@
                                                 }
                                                 @if (Model.AccountItems.Count == 0)
                                                 {
-                                                    <tr><td colspan="4" class="text-center text-muted">Balans kategoriyasiga bog'langan faol hisob yo'q</td></tr>
+                                                    <tr><td colspan="4" class="text-center text-muted">@L.T("Fin_NoActiveAccountsLinked")</td></tr>
                                                 }
                                             </tbody>
                                         </table>
                                     </div>
 
                                     <div class="form-actions mt-2">
-                                        <button type="submit" class="btn btn-primary">Saqlash</button>
-                                        <a href="@Url.Action("Edit", new { snapshotDate = Model.SnapshotDate.ToString("yyyy-MM-dd") })" class="btn btn-secondary">Yangilash</a>
-                                        <a href="@Url.Action("Index", "OpeningBalance")" class="btn btn-light">Ro'yxatga</a>
+                                        <button type="submit" class="btn btn-primary">@L.T("Save")</button>
+                                        <a href="@Url.Action("Edit", new { snapshotDate = Model.SnapshotDate.ToString("yyyy-MM-dd") })" class="btn btn-secondary">@L.T("Refresh")</a>
+                                        <a href="@Url.Action("Index", "OpeningBalance")" class="btn btn-light">@L.T("Fin_ToList")</a>
                                     </div>
                                 }
                             }
@@ -459,18 +459,18 @@
                             {
                                 <div class="row mb-2">
                                     <div class="col-md-4">
-                                        <p><strong>Sana:</strong> @Model.SnapshotDate.ToString("yyyy-MM-dd")</p>
+                                        <p><strong>@L.T("Date"):</strong> @Model.SnapshotDate.ToString("yyyy-MM-dd")</p>
                                     </div>
                                 </div>
                                 <div class="table-responsive">
                                     <table class="table table-striped table-bordered">
                                         <thead>
                                             <tr>
-                                                <th>Kategoriya</th>
-                                                <th>Turi</th>
-                                                <th class="text-right">Summasi</th>
-                                                <th>Valyuta</th>
-                                                <th class="text-center">Bo'sh qoldirish</th>
+                                                <th>@L.T("Category")</th>
+                                                <th>@L.T("Type")</th>
+                                                <th class="text-right">@L.T("Fin_AmountOf")</th>
+                                                <th>@L.T("Currency")</th>
+                                                <th class="text-center">@L.T("Fin_LeaveEmpty")</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -481,21 +481,21 @@
                                                     <td>@item.TypeName</td>
                                                     <td class="text-right">@item.Amount.ToString("N2")</td>
                                                     <td>@item.CurrencyShortname</td>
-                                                    <td class="text-center">@(item.LeaveEmpty ? "Ha" : "Yo'q")</td>
+                                                    <td class="text-center">@(item.LeaveEmpty ? L.T("Yes") : L.T("No"))</td>
                                                 </tr>
                                             }
                                         </tbody>
                                     </table>
                                 </div>
-                                <h5 class="mb-1">Hisoblar bo'yicha opening</h5>
+                                <h5 class="mb-1">@L.T("Fin_OpeningByAccounts")</h5>
                                 <div class="table-responsive">
                                     <table class="table table-striped table-bordered table-sm">
                                         <thead>
                                             <tr>
-                                                <th>Hisob</th>
-                                                <th>Kategoriya</th>
-                                                <th class="text-right">Opening qoldig'i</th>
-                                                <th>Valyuta</th>
+                                                <th>@L.T("Fin_Account")</th>
+                                                <th>@L.T("Category")</th>
+                                                <th class="text-right">@L.T("Fin_OpeningBalanceAmount")</th>
+                                                <th>@L.T("Currency")</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -510,16 +510,16 @@
                                             }
                                             @if (!Model.AccountItems.Any(x => x.Amount.HasValue))
                                             {
-                                                <tr><td colspan="4" class="text-center text-muted">Kiritilmagan</td></tr>
+                                                <tr><td colspan="4" class="text-center text-muted">@L.T("Fin_NotEntered")</td></tr>
                                             }
                                         </tbody>
                                     </table>
                                 </div>
                                 <hr />
-                                <h5 class="mb-1">Mijozlardan haqqimiz (AR)</h5>
+                                <h5 class="mb-1">@L.T("Fin_ArTitle")</h5>
                                 <div class="table-responsive mb-2">
                                     <table class="table table-bordered table-sm">
-                                        <thead><tr><th>Mijoz</th><th>Shartnoma</th><th class="text-right">Umumiy</th><th class="text-right">Olingan</th><th class="text-right">Qoldiq</th></tr></thead>
+                                        <thead><tr><th>@L.T("Fin_Customer")</th><th>@L.T("Fin_Contract")</th><th class="text-right">@L.T("Fin_TotalAmt")</th><th class="text-right">@L.T("Fin_Received")</th><th class="text-right">@L.T("Fin_Balance")</th></tr></thead>
                                         <tbody>
                                             @if (Model.CustomerReceivableLines != null && Model.CustomerReceivableLines.Any())
                                             {
@@ -528,14 +528,14 @@
                                                     <tr><td>@x.CounterpartyName</td><td>@x.ContractNo</td><td class="text-right">@x.TotalAmount.ToString("N2")</td><td class="text-right">@x.PaidAmount.ToString("N2")</td><td class="text-right">@x.Amount.ToString("N2")</td></tr>
                                                 }
                                             }
-                                            else { <tr><td colspan="5" class="text-center text-muted">Yo'q</td></tr> }
+                                            else { <tr><td colspan="5" class="text-center text-muted">@L.T("No")</td></tr> }
                                         </tbody>
                                     </table>
                                 </div>
-                                <h5 class="mb-1">Ta'minotchilardan qarzimiz (AP)</h5>
+                                <h5 class="mb-1">@L.T("Fin_ApTitle")</h5>
                                 <div class="table-responsive">
                                     <table class="table table-bordered table-sm">
-                                        <thead><tr><th>Ta'minotchi</th><th>Shartnoma</th><th class="text-right">Umumiy</th><th class="text-right">To'langan</th><th class="text-right">Qoldiq</th></tr></thead>
+                                        <thead><tr><th>@L.T("Fin_Supplier")</th><th>@L.T("Fin_Contract")</th><th class="text-right">@L.T("Fin_TotalAmt")</th><th class="text-right">@L.T("Fin_Paid")</th><th class="text-right">@L.T("Fin_Balance")</th></tr></thead>
                                         <tbody>
                                             @if (Model.SupplierPayableLines != null && Model.SupplierPayableLines.Any())
                                             {
@@ -544,14 +544,14 @@
                                                     <tr><td>@x.CounterpartyName</td><td>@x.ContractNo</td><td class="text-right">@x.TotalAmount.ToString("N2")</td><td class="text-right">@x.PaidAmount.ToString("N2")</td><td class="text-right">@x.Amount.ToString("N2")</td></tr>
                                                 }
                                             }
-                                            else { <tr><td colspan="5" class="text-center text-muted">Yo'q</td></tr> }
+                                            else { <tr><td colspan="5" class="text-center text-muted">@L.T("No")</td></tr> }
                                         </tbody>
                                     </table>
                                 </div>
-                                <h5 class="mb-1 mt-2">Oylikdan qarzimiz (HRM)</h5>
+                                <h5 class="mb-1 mt-2">@L.T("Fin_PayrollDebtTitle")</h5>
                                 <div class="table-responsive">
                                     <table class="table table-bordered table-sm">
-                                        <thead><tr><th>Xodim</th><th class="text-right">Hisoblangan</th><th class="text-right">To'langan</th><th class="text-right">Qoldiq</th></tr></thead>
+                                        <thead><tr><th>@L.T("Fin_Employee")</th><th class="text-right">@L.T("Fin_Accrued")</th><th class="text-right">@L.T("Fin_Paid")</th><th class="text-right">@L.T("Fin_Balance")</th></tr></thead>
                                         <tbody>
                                             @if (Model.EmployeePayrollLines != null && Model.EmployeePayrollLines.Any())
                                             {
@@ -560,14 +560,14 @@
                                                     <tr><td>@x.EmployeeName</td><td class="text-right">@x.TotalAmount.ToString("N2")</td><td class="text-right">@x.PaidAmount.ToString("N2")</td><td class="text-right">@x.Amount.ToString("N2")</td></tr>
                                                 }
                                             }
-                                            else { <tr><td colspan="4" class="text-center text-muted">Yo'q</td></tr> }
+                                            else { <tr><td colspan="4" class="text-center text-muted">@L.T("No")</td></tr> }
                                         </tbody>
                                     </table>
                                 </div>
-                                <h5 class="mb-1 mt-2">Logistikadan qarzimiz</h5>
+                                <h5 class="mb-1 mt-2">@L.T("Fin_LogisticsDebtTitle")</h5>
                                 <div class="table-responsive">
                                     <table class="table table-bordered table-sm">
-                                        <thead><tr><th>Ekspeditor</th><th>Shartnoma</th><th class="text-right">Umumiy</th><th class="text-right">To'langan</th><th class="text-right">Qoldiq</th></tr></thead>
+                                        <thead><tr><th>@L.T("Fin_Forwarder")</th><th>@L.T("Fin_Contract")</th><th class="text-right">@L.T("Fin_TotalAmt")</th><th class="text-right">@L.T("Fin_Paid")</th><th class="text-right">@L.T("Fin_Balance")</th></tr></thead>
                                         <tbody>
                                             @if (Model.ForwarderPayableLines != null && Model.ForwarderPayableLines.Any())
                                             {
@@ -576,11 +576,11 @@
                                                     <tr><td>@x.CounterpartyName</td><td>@x.ContractNo</td><td class="text-right">@x.TotalAmount.ToString("N2")</td><td class="text-right">@x.PaidAmount.ToString("N2")</td><td class="text-right">@x.Amount.ToString("N2")</td></tr>
                                                 }
                                             }
-                                            else { <tr><td colspan="5" class="text-center text-muted">Yo'q</td></tr> }
+                                            else { <tr><td colspan="5" class="text-center text-muted">@L.T("No")</td></tr> }
                                         </tbody>
                                     </table>
                                 </div>
-                                <a href="@Url.Action("Index", "OpeningBalance")" class="btn btn-secondary">Ro'yxatga</a>
+                                <a href="@Url.Action("Index", "OpeningBalance")" class="btn btn-secondary">@L.T("Fin_ToList")</a>
                             }
                         </div>
                     </div>
@@ -602,7 +602,7 @@
                 loadBtn.addEventListener('click', function () {
                     var dateValue = dateInput.value;
                     if (!dateValue) {
-                        alert('Avval sana tanlang.');
+                        alert('@L.Js("Fin_SelectDateFirst")');
                         return;
                     }
                     var baseUrl = '@Url.Action("Edit", "OpeningBalance")';
@@ -611,7 +611,7 @@
                 var autoFillBtn = document.getElementById('btnAutoFillCurrent');
                 if (autoFillBtn) {
                     autoFillBtn.addEventListener('click', function (e) {
-                        if (!confirm("Current balances asosida detailed opening qatorlari qayta hisoblab yozilsinmi?")) {
+                        if (!confirm('@L.Js("Fin_AutoFillConfirm")')) {
                             return;
                         }
                         var tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
@@ -699,7 +699,7 @@
                     var html = optionsHtmlByKey[sel.getAttribute('data-options')];
                     if (html === undefined) return;
                     var current = sel.value;
-                    sel.innerHTML = '<option value="">-- Tanlang --</option>' + html;
+                    sel.innerHTML = '<option value="">-- @L.Js("Select") --</option>' + html;
                     sel.value = current;
                     sel.setAttribute('data-loaded', '1');
                 }
@@ -719,15 +719,15 @@
                 }
 
                 function createLineHtml(prefix, index, type) {
-                    var counterpartyOptions = '<option value="">-- Tanlang --</option>' + (optionsHtmlByKey[type] || '');
+                    var counterpartyOptions = '<option value="">-- @L.Js("Select") --</option>' + (optionsHtmlByKey[type] || '');
                     if (type === 'payroll') {
                         return '<tr>'
-                            + '<td><select class="form-control" name="' + prefix + '[' + index + '].EmployeeID"><option value="">-- Tanlang --</option>' + employeeOptionsHtml + '</select></td>'
+                            + '<td><select class="form-control" name="' + prefix + '[' + index + '].EmployeeID"><option value="">-- @L.Js("Select") --</option>' + employeeOptionsHtml + '</select></td>'
                             + '<td><input class="form-control text-right opening-total" type="number" step="0.01" name="' + prefix + '[' + index + '].TotalAmount" value="0" /></td>'
                             + '<td><input class="form-control text-right opening-paid" type="number" step="0.01" name="' + prefix + '[' + index + '].PaidAmount" value="0" /></td>'
                             + '<td class="text-right align-middle"><span class="badge badge-light-info opening-balance-text">0,00</span><input class="opening-amount-hidden" type="hidden" name="' + prefix + '[' + index + '].Amount" value="0" /></td>'
                             + '<td><select class="form-control" name="' + prefix + '[' + index + '].CurrencyID">' + buildCurrencyOptions() + '</select></td>'
-                            + '<td><button type="button" class="btn btn-sm btn-outline-danger btn-remove-line">O\'chir</button></td>'
+                            + '<td><button type="button" class="btn btn-sm btn-outline-danger btn-remove-line">@L.Js("Fin_DeleteShort")</button></td>'
                             + '</tr>';
                     }
 
@@ -735,13 +735,13 @@
                         + '<td><select class="form-control opening-counterparty" data-type="' + type + '" name="' + prefix + '[' + index + '].CounterpartyID">' + counterpartyOptions + '</select></td>'
                         + '<td><input type="hidden" class="opening-contract-no" name="' + prefix + '[' + index + '].ContractNo" />'
                         + '<select class="form-control opening-contract-select" data-type="' + type + '" name="' + prefix + '[' + index + '].ContractID">'
-                        + '<option value="">-- Shartnoma tanlanmagan --</option>'
+                        + '<option value="">-- @L.Js("Fin_NoContractSelected") --</option>'
                         + '</select></td>'
                         + '<td><input class="form-control text-right opening-total opening-total-system" type="number" step="0.01" readonly="readonly" name="' + prefix + '[' + index + '].TotalAmount" value="0" /></td>'
                         + '<td><input class="form-control text-right opening-paid" type="number" step="0.01" name="' + prefix + '[' + index + '].PaidAmount" value="0" /></td>'
                         + '<td class="text-right align-middle"><span class="badge badge-light-secondary opening-balance-text">0,00</span><input class="opening-amount-hidden" type="hidden" name="' + prefix + '[' + index + '].Amount" value="0" /></td>'
                         + '<td><select class="form-control" name="' + prefix + '[' + index + '].CurrencyID">' + buildCurrencyOptions() + '</select></td>'
-                        + '<td><button type="button" class="btn btn-sm btn-outline-danger btn-remove-line">O\'chir</button></td>'
+                        + '<td><button type="button" class="btn btn-sm btn-outline-danger btn-remove-line">@L.Js("Fin_DeleteShort")</button></td>'
                         + '</tr>';
                 }
 
@@ -767,7 +767,7 @@
                     var selectedText = $contract.attr('data-selected-text') || '';
                     $contract.attr('data-loaded', '1');
 
-                    $contract.empty().append('<option value="">-- Shartnoma tanlanmagan --</option>');
+                    $contract.empty().append('<option value="">-- @L.Js("Fin_NoContractSelected") --</option>');
                     if (!counterpartyId || !type) {
                         if (selectedId && selectedText) {
                             $contract.append($('<option></option>').val(selectedId).text(selectedText));
@@ -802,7 +802,7 @@
                     var $hiddenNo = $row.find('.opening-contract-no');
                     var txt = $contract.find('option:selected').text() || '';
                     if ($contract.val()) {
-                        $hiddenNo.val(txt === '-- Shartnoma tanlanmagan --' ? '' : txt);
+                        $hiddenNo.val(txt === '-- @L.Js("Fin_NoContractSelected") --' ? '' : txt);
                     } else {
                         $hiddenNo.val('');
                     }
@@ -884,7 +884,7 @@
                     var $row = $(tbody).find('tr:last');
                     $row.find('.opening-counterparty').val(String(row.CounterpartyID || ''));
                     $row.find('.opening-contract-select').empty()
-                        .append($('<option></option>').val('').text('-- Shartnoma tanlanmagan --'))
+                        .append($('<option></option>').val('').text('-- @L.Js("Fin_NoContractSelected") --'))
                         .append($('<option></option>').val(row.ContractID || '').text(row.ContractNo || '').prop('selected', true));
                     $row.find('.opening-contract-no').val(row.ContractNo || '');
                     $row.find('.opening-total').val(toFixed2(row.TotalAmount || 0));
@@ -968,7 +968,7 @@
                             .then(function (r) { return r.json(); })
                             .then(function (res) {
                                 if (!res || !res.success) {
-                                    alert((res && res.message) ? res.message : 'Import xatoligi.');
+                                    alert((res && res.message) ? res.message : '@L.Js("Fin_ImportError")');
                                     return;
                                 }
 
@@ -984,13 +984,13 @@
                                 }
 
                                 if (Array.isArray(res.errors) && res.errors.length) {
-                                    alert('Import tugadi, ba\'zi qatorlarda xatolar bor:\n- ' + res.errors.join('\n- '));
+                                    alert('@L.Js("Fin_ImportDoneWithErrors")\n- ' + res.errors.join('\n- '));
                                 } else {
-                                    alert('Import muvaffaqiyatli yakunlandi. Endi "Saqlash" tugmasini bosing.');
+                                    alert('@L.Js("Fin_ImportDoneSave")');
                                 }
                             })
                             .catch(function () {
-                                alert('Import paytida server bilan bog\'lanishda xatolik.');
+                                alert('@L.Js("Fin_ImportConnError")');
                             });
                     });
                 }

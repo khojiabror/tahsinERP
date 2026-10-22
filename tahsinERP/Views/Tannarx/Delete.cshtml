@@ -1,7 +1,7 @@
 @model tahsinERP.ViewModels.Tannarx.TannarxDetailsViewModel
 
 @{
-    ViewBag.Title = "Tannarxni o'chirish";
+    ViewBag.Title = L.T("Mes_Tan_DeleteTitle");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -17,8 +17,8 @@
                             <div class="breadcrumb-wrapper col-12">
                                 <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                     <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
-                                    <li class="breadcrumb-item"><a href="~/Tannarx">Tannarx</a></li>
-                                    <li class="breadcrumb-item active">O'chirish</li>
+                                    <li class="breadcrumb-item"><a href="~/Tannarx">@L.T("Mes_Tan_Title")</a></li>
+                                    <li class="breadcrumb-item active">@L.T("Delete")</li>
                                 </ol>
                             </div>
                         </div>
@@ -33,23 +33,23 @@
                             <div class="card-content">
                                 <div class="card-body">
                                     <div class="alert alert-warning">
-                                        <h5>Diqqat!</h5>
-                                        <p>Siz quyidagi tannarxni o'chirmoqchisiz:</p>
+                                        <h5>@L.T("Mes_Tan_Attention")</h5>
+                                        <p>@L.T("Mes_Tan_DeleteConfirmText")</p>
                                     </div>
 
                                     <div class="row">
                                         <div class="col-md-12">
                                             <table class="table table-bordered">
                                                 <tr>
-                                                    <th style="width: 200px;">Maxsulot raqami</th>
+                                                    <th style="width: 200px;">@L.T("Mes_ProductNo")</th>
                                                     <td>@Model.ProductPNo</td>
                                                 </tr>
                                                 <tr>
-                                                    <th>Maxsulot nomi</th>
+                                                    <th>@L.T("Mes_ProductName")</th>
                                                     <td>@Model.ProductName</td>
                                                 </tr>
                                                 <tr>
-                                                    <th>Oy</th>
+                                                    <th>@L.T("Mes_Month")</th>
                                                     <td>@Model.MonthString</td>
                                                 </tr>
                                             </table>
@@ -57,8 +57,8 @@
                                     </div>
 
                                     <div class="alert alert-danger">
-                                        <p><strong>Bu amalni qaytarib bo'lmaydi!</strong></p>
-                                        <p>Tannarx o'chirilgandan so'ng, uni qayta tiklash mumkin emas.</p>
+                                        <p><strong>@L.T("Mes_Tan_IrreversibleTitle")</strong></p>
+                                        <p>@L.T("Mes_Tan_IrreversibleText")</p>
                                     </div>
 
                                     @using (Html.BeginForm("Delete", "Tannarx", FormMethod.Post, new { @class = "form" }))
@@ -68,10 +68,10 @@
 
                                         <div class="form-actions">
                                             <button type="submit" class="btn btn-danger">
-                                                <i class="bx bx-trash"></i> Ha, o'chirish
+                                                <i class="bx bx-trash"></i> @L.T("Mes_YesDelete")
                                             </button>
                                             <a href="@Url.Action("Index", "Tannarx", new { year = Model.Year, month = Model.Month })" class="btn btn-secondary">
-                                                <i class="bx bx-x"></i> Bekor qilish
+                                                <i class="bx bx-x"></i> @L.T("Cancel")
                                             </a>
                                         </div>
                                     }

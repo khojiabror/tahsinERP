@@ -9,6 +9,7 @@ using tahsinERP.Filters;
 using tahsinERP.Services.Finance;
 using tahsinERP.Controllers;
 using tahsinERP.Services.Common;
+using tahsinERP.I18n;
 
 namespace tahsinERP.Controllers.Finance
 {
@@ -57,10 +58,10 @@ namespace tahsinERP.Controllers.Finance
                 ViewBag.Type = type;
                 ViewBag.ParentID = parentID;
                 ViewBag.TypeList = new SelectList(new[] {
-                    new { Value = (int?)null, Text = "Barcha" },
-                    new { Value = (int?)1, Text = "Daromad" },
-                    new { Value = (int?)2, Text = "Chiqim" },
-                    new { Value = (int?)3, Text = "Boshqa" }
+                    new { Value = (int?)null, Text = L.T("Fin_AllOption") },
+                    new { Value = (int?)1, Text = L.T("Fin_Income") },
+                    new { Value = (int?)2, Text = L.T("Fin_Expense") },
+                    new { Value = (int?)3, Text = L.T("Fin_Other") }
                 }, "Value", "Text", type);
 
                 return View(tree);
@@ -116,9 +117,9 @@ namespace tahsinERP.Controllers.Finance
                     "ID", "Name", parentID);
 
                 ViewBag.TypeList = new SelectList(new[] {
-                    new { Value = (byte)1, Text = "Daromad" },
-                    new { Value = (byte)2, Text = "Chiqim" },
-                    new { Value = (byte)3, Text = "Boshqa" }
+                    new { Value = (byte)1, Text = L.T("Fin_Income") },
+                    new { Value = (byte)2, Text = L.T("Fin_Expense") },
+                    new { Value = (byte)3, Text = L.T("Fin_Other") }
                 }, "Value", "Text");
 
                 var model = new FIN_CATEGORIES
@@ -162,9 +163,9 @@ namespace tahsinERP.Controllers.Finance
                     "ID", "Name", category.ParentID);
 
                 ViewBag.TypeList = new SelectList(new[] {
-                    new { Value = (byte)1, Text = "Daromad" },
-                    new { Value = (byte)2, Text = "Chiqim" },
-                    new { Value = (byte)3, Text = "Boshqa" }
+                    new { Value = (byte)1, Text = L.T("Fin_Income") },
+                    new { Value = (byte)2, Text = L.T("Fin_Expense") },
+                    new { Value = (byte)3, Text = L.T("Fin_Other") }
                 }, "Value", "Text", category.Type);
 
                 return View(category);
@@ -196,9 +197,9 @@ namespace tahsinERP.Controllers.Finance
                     "ID", "Name", category.ParentID);
 
                 ViewBag.TypeList = new SelectList(new[] {
-                    new { Value = (byte)1, Text = "Daromad" },
-                    new { Value = (byte)2, Text = "Chiqim" },
-                    new { Value = (byte)3, Text = "Boshqa" }
+                    new { Value = (byte)1, Text = L.T("Fin_Income") },
+                    new { Value = (byte)2, Text = L.T("Fin_Expense") },
+                    new { Value = (byte)3, Text = L.T("Fin_Other") }
                 }, "Value", "Text", category.Type);
 
                 return View(category);
@@ -222,14 +223,14 @@ namespace tahsinERP.Controllers.Finance
                         excludeIds.Add(category.ID);
                         if (category.ParentID.HasValue && excludeIds.Contains(category.ParentID.Value))
                         {
-                            ModelState.AddModelError("ParentID", "Ota kategoriya sifatida o'zini yoki farzandini tanlash mumkin emas.");
+                            ModelState.AddModelError("ParentID", L.T("Fin_ParentCycleCategory"));
                             ViewBag.ParentID = new SelectList(
                                 db.FIN_CATEGORIES.Where(c => c.IsActive && !excludeIds.Contains(c.ID)).OrderBy(c => c.Name).ToList(),
                                 "ID", "Name", category.ParentID);
                             ViewBag.TypeList = new SelectList(new[] {
-                                new { Value = (byte)1, Text = "Daromad" },
-                                new { Value = (byte)2, Text = "Chiqim" },
-                                new { Value = (byte)3, Text = "Boshqa" }
+                                new { Value = (byte)1, Text = L.T("Fin_Income") },
+                                new { Value = (byte)2, Text = L.T("Fin_Expense") },
+                                new { Value = (byte)3, Text = L.T("Fin_Other") }
                             }, "Value", "Text", category.Type);
                             return View(category);
                         }
@@ -253,9 +254,9 @@ namespace tahsinERP.Controllers.Finance
                     db.FIN_CATEGORIES.Where(c => c.IsActive && !excludeIds2.Contains(c.ID)).OrderBy(c => c.Name).ToList(),
                     "ID", "Name", category.ParentID);
                 ViewBag.TypeList = new SelectList(new[] {
-                    new { Value = (byte)1, Text = "Daromad" },
-                    new { Value = (byte)2, Text = "Chiqim" },
-                    new { Value = (byte)3, Text = "Boshqa" }
+                    new { Value = (byte)1, Text = L.T("Fin_Income") },
+                    new { Value = (byte)2, Text = L.T("Fin_Expense") },
+                    new { Value = (byte)3, Text = L.T("Fin_Other") }
                 }, "Value", "Text", category.Type);
 
                 return View(category);

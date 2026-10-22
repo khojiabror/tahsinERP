@@ -1,8 +1,8 @@
 @model tahsinERP.ViewModels.ProductionMonthlyReportViewModel
 @{
-    ViewBag.Title = "Ishlab chiqarish oylik hisoboti";
+    ViewBag.Title = L.T("Mes_Rep_ProductionMonthly");
     Layout = "~/Views/Shared/_Layout.cshtml";
-    var monthNames = new[] { "", "Yanvar", "Fevral", "Mart", "Aprel", "May", "Iyun", "Iyul", "Avgust", "Sentyabr", "Oktyabr", "Noyabr", "Dekabr" };
+    var monthNames = new[] { "", L.T("Month_1"), L.T("Month_2"), L.T("Month_3"), L.T("Month_4"), L.T("Month_5"), L.T("Month_6"), L.T("Month_7"), L.T("Month_8"), L.T("Month_9"), L.T("Month_10"), L.T("Month_11"), L.T("Month_12") };
 }
 @if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "ProductPlan") || tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "ProductProduction"))
 {
@@ -14,8 +14,8 @@
                     <div class="breadcrumb-wrapper col-12">
                         <ol class="breadcrumb rounded-pill breadcrumb-divider">
                             <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
-                            <li class="breadcrumb-item"><a href="~/MESDashboard/Dashboard">MES</a></li>
-                            <li class="breadcrumb-item active">Ishlab chiqarish oylik hisoboti</li>
+                            <li class="breadcrumb-item"><a href="~/MESDashboard/Dashboard">@L.T("Mes_Rep_Mes")</a></li>
+                            <li class="breadcrumb-item active">@L.T("Mes_Rep_ProductionMonthly")</li>
                         </ol>
                     </div>
                 </div>
@@ -27,7 +27,7 @@
                             <div class="card-body">
                                 <form method="get" action="@Url.Action("ProductionMonthly")" class="row align-items-end">
                                     <div class="col-md-3 col-12 form-group">
-                                        <label>Yil</label>
+                                        <label>@L.T("Mes_Year")</label>
                                         <select name="year" class="form-control">
                                             @foreach (var y in (List<int>)ViewBag.Years)
                                             {
@@ -36,7 +36,7 @@
                                         </select>
                                     </div>
                                     <div class="col-md-3 col-12 form-group">
-                                        <label>Oy</label>
+                                        <label>@L.T("Mes_Month")</label>
                                         <select name="month" class="form-control">
                                             @for (int m = 1; m <= 12; m++)
                                             {
@@ -45,10 +45,10 @@
                                         </select>
                                     </div>
                                     <div class="col-md-3 col-12 form-group">
-                                        <button type="submit" class="btn btn-primary"><i class="bx bx-filter"></i> Ko'rsatish</button>
+                                        <button type="submit" class="btn btn-primary"><i class="bx bx-filter"></i> @L.T("Mes_Show")</button>
                                     </div>
                                     <div class="col-md-3 col-12 form-group text-right">
-                                        <button type="button" class="btn btn-outline-secondary" onclick="window.print();"><i class="bx bx-printer"></i> Chop etish</button>
+                                        <button type="button" class="btn btn-outline-secondary" onclick="window.print();"><i class="bx bx-printer"></i> @L.T("Print")</button>
                                     </div>
                                 </form>
                             </div>
@@ -59,19 +59,19 @@
                 <div id="reportContent" class="card print-report">
                     <div class="card-body">
                         <div class="report-header text-center mb-4">
-                            <h4 class="text-primary mb-1">ISHLAB CHIQARISH OYLIK HISOBOTI</h4>
+                            <h4 class="text-primary mb-1">@L.T("Mes_Rep_ProductionMonthly").ToUpper()</h4>
                             <p class="mb-0 text-muted">@Model.StartDate.ToString("dd.MM.yyyy") - @Model.EndDate.ToString("dd.MM.yyyy") (@monthNames[Model.Month] @Model.Year)</p>
                         </div>
                         <table class="table table-bordered table-sm">
                             <thead class="thead-light">
                                 <tr>
                                     <th>#</th>
-                                    <th>Mahsulot kodi</th>
-                                    <th>Mahsulot nomi</th>
-                                    <th class="text-right">Reja</th>
-                                    <th class="text-right">Fakt</th>
-                                    <th class="text-right">Farq</th>
-                                    <th class="text-right">Qoldiq (ishlab chiqarish ombori)</th>
+                                    <th>@L.T("Mes_ProductCode")</th>
+                                    <th>@L.T("Mes_ProductName")</th>
+                                    <th class="text-right">@L.T("Mes_Plan")</th>
+                                    <th class="text-right">@L.T("Mes_Actual")</th>
+                                    <th class="text-right">@L.T("Mes_Variance")</th>
+                                    <th class="text-right">@L.T("Mes_Rep_ProductionStock")</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -92,7 +92,7 @@
                             </tbody>
                             <tfoot class="font-weight-bold">
                                 <tr>
-                                    <td colspan="3" class="text-right">JAMI:</td>
+                                    <td colspan="3" class="text-right">@(L.T("Total").ToUpper()):</td>
                                     <td class="text-right">@Model.TotalReja.ToString("N2")</td>
                                     <td class="text-right">@Model.TotalFakt.ToString("N2")</td>
                                     <td class="text-right">@Model.TotalFarq.ToString("N2")</td>
@@ -102,10 +102,10 @@
                         </table>
                         <div class="row mt-4 pt-3">
                             <div class="col-6">
-                                <p class="mb-0 small text-muted">Tuzildi: @DateTime.Now.ToString("dd.MM.yyyy HH:mm")</p>
+                                <p class="mb-0 small text-muted">@L.T("Mes_Rep_Compiled", DateTime.Now.ToString("dd.MM.yyyy HH:mm"))</p>
                             </div>
                             <div class="col-6 text-right">
-                                <p class="mb-0 small">Ishlab chiqarish boshlig'i: _________________________</p>
+                                <p class="mb-0 small">@L.T("Mes_Rep_ProductionHead"): _________________________</p>
                             </div>
                         </div>
                     </div>

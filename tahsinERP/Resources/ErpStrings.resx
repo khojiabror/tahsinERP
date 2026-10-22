@@ -6171,4 +6171,3679 @@
   <data name="Log_ActualDeliveryDate" xml:space="preserve">
     <value>Haqiqiy yetkazish sanasi</value>
   </data>
+  <data name="Fin_AccBalHint1" xml:space="preserve">
+    <value>Hisob</value>
+  </data>
+  <data name="Fin_AccBalHint10" xml:space="preserve">
+    <value>oldingi</value>
+  </data>
+  <data name="Fin_AccBalHint11" xml:space="preserve">
+    <value>tranzaksiyalar qoldiqqa qo'shilmaydi.</value>
+  </data>
+  <data name="Fin_AccBalHint2" xml:space="preserve">
+    <value>balans kategoriyasiga</value>
+  </data>
+  <data name="Fin_AccBalHint3" xml:space="preserve">
+    <value>bog'langan bo'lsa (masalan,</value>
+  </data>
+  <data name="Fin_AccBalHint4" xml:space="preserve">
+    <value>Ta'minotchilardan qarzlar),</value>
+  </data>
+  <data name="Fin_AccBalHint5" xml:space="preserve">
+    <value>hisobning opening qoldig'i (Opening balans sahifasida hisob kesimida kiritiladi)</value>
+  </data>
+  <data name="Fin_AccBalHint6" xml:space="preserve">
+    <value>opening sanasidan keyingi</value>
+  </data>
+  <data name="Fin_AccBalHint7" xml:space="preserve">
+    <value>tranzaksiyalar. Hisob kesimida kiritilmagan bo'lsa, kategoriya opening'i hisoblar soniga teng bo'linadi — bunday qoldiq</value>
+  </data>
+  <data name="Fin_AccBalHint8" xml:space="preserve">
+    <value>bilan belgilangan (taxminiy).</value>
+  </data>
+  <data name="Fin_AccBalHint9" xml:space="preserve">
+    <value>Opening sanasidan</value>
+  </data>
+  <data name="Fin_Account" xml:space="preserve">
+    <value>Hisob</value>
+  </data>
+  <data name="Fin_AccountAnalysisTitle" xml:space="preserve">
+    <value>Hisoblar bo'yicha tahlil</value>
+  </data>
+  <data name="Fin_AccountBalanceCatHint" xml:space="preserve">
+    <value>Hisobni balans hisobotida qaysi kategoriyaga qo'shishni belgilang</value>
+  </data>
+  <data name="Fin_AccountCode" xml:space="preserve">
+    <value>Hisob kodi</value>
+  </data>
+  <data name="Fin_AccountCodeExists" xml:space="preserve">
+    <value>Bu kod bilan hisob allaqachon mavjud.</value>
+  </data>
+  <data name="Fin_AccountCodeHint" xml:space="preserve">
+    <value>Hisob raqami (masalan: 9000)</value>
+  </data>
+  <data name="Fin_AccountDeleteConfirm" xml:space="preserve">
+    <value>Ushbu hisobni o'chirishni tasdiqlaysizmi?</value>
+  </data>
+  <data name="Fin_AccountDetails" xml:space="preserve">
+    <value>Hisob tafsilotlari</value>
+  </data>
+  <data name="Fin_AccountHasTxDeactivate" xml:space="preserve">
+    <value>Bu hisobda tranzaksiyalar mavjud. O'chirilganda faollikdan chiqariladi.</value>
+  </data>
+  <data name="Fin_AccountName" xml:space="preserve">
+    <value>Hisob nomi</value>
+  </data>
+  <data name="Fin_AccountNo" xml:space="preserve">
+    <value>Hisob raqam</value>
+  </data>
+  <data name="Fin_AccountType" xml:space="preserve">
+    <value>Hisob turi</value>
+  </data>
+  <data name="Fin_Accounts" xml:space="preserve">
+    <value>Hisoblar</value>
+  </data>
+  <data name="Fin_Accrued" xml:space="preserve">
+    <value>Hisoblangan</value>
+  </data>
+  <data name="Fin_AccumMonths" xml:space="preserve">
+    <value>Yig'ilgan oy</value>
+  </data>
+  <data name="Fin_Accumulated" xml:space="preserve">
+    <value>Yig'ilgan</value>
+  </data>
+  <data name="Fin_Actual" xml:space="preserve">
+    <value>Haqiqiy</value>
+  </data>
+  <data name="Fin_AddAccount" xml:space="preserve">
+    <value>Hisob qo'shish</value>
+  </data>
+  <data name="Fin_AddAccountTitle" xml:space="preserve">
+    <value>Yangi hisob qo'shish</value>
+  </data>
+  <data name="Fin_AddBackDepreciation" xml:space="preserve">
+    <value>Qaytarib qo'shiladi: amortizatsiya (Depreciation &amp; Amortization)</value>
+  </data>
+  <data name="Fin_AddBackDepreciationShort" xml:space="preserve">
+    <value>Qaytarib qo'shiladi: amortizatsiya</value>
+  </data>
+  <data name="Fin_AddBackInterest" xml:space="preserve">
+    <value>Qaytarib qo'shiladi: foiz/kredit (Interest)</value>
+  </data>
+  <data name="Fin_AddBackInterestShort" xml:space="preserve">
+    <value>Qaytarib qo'shiladi: foiz/kredit xarajatlari</value>
+  </data>
+  <data name="Fin_AddBackTaxes" xml:space="preserve">
+    <value>Qaytarib qo'shiladi: soliqlar (Taxes)</value>
+  </data>
+  <data name="Fin_AddBackTaxesShort" xml:space="preserve">
+    <value>Qaytarib qo'shiladi: soliqlar</value>
+  </data>
+  <data name="Fin_AddBalanceCategoryTitle" xml:space="preserve">
+    <value>Yangi balans kategoriyasi qo'shish</value>
+  </data>
+  <data name="Fin_AddCategory" xml:space="preserve">
+    <value>Kategoriya qo'shish</value>
+  </data>
+  <data name="Fin_AddCategoryTitle" xml:space="preserve">
+    <value>Yangi kategoriya qo'shish</value>
+  </data>
+  <data name="Fin_AddContribution" xml:space="preserve">
+    <value>Hissa qo'shish</value>
+  </data>
+  <data name="Fin_AddPlItem" xml:space="preserve">
+    <value>P&amp;L element qo'shish</value>
+  </data>
+  <data name="Fin_AddPlItemTitle" xml:space="preserve">
+    <value>Yangi P&amp;L element qo'shish</value>
+  </data>
+  <data name="Fin_AddPlPlanTitle" xml:space="preserve">
+    <value>Yangi P&amp;L rejasi qo'shish</value>
+  </data>
+  <data name="Fin_AddPlan" xml:space="preserve">
+    <value>Reja qo'shish</value>
+  </data>
+  <data name="Fin_AddRecurring" xml:space="preserve">
+    <value>Doimiy harajat qo'shish</value>
+  </data>
+  <data name="Fin_AddRecurringLong" xml:space="preserve">
+    <value>Doimiy harajat qo'shish (ijara, buxgalteriya va h.k.)</value>
+  </data>
+  <data name="Fin_AddRow" xml:space="preserve">
+    <value>Qator qo'shish</value>
+  </data>
+  <data name="Fin_AddSharePeriod" xml:space="preserve">
+    <value>Yangi ulush davri qo'shish</value>
+  </data>
+  <data name="Fin_AddShareholder" xml:space="preserve">
+    <value>Aksiyador qo'shish</value>
+  </data>
+  <data name="Fin_AddShareholderTitle" xml:space="preserve">
+    <value>Yangi aksiyador qo'shish</value>
+  </data>
+  <data name="Fin_AddSubCategory" xml:space="preserve">
+    <value>Kichik kategoriya qo'shish</value>
+  </data>
+  <data name="Fin_AddSubItem" xml:space="preserve">
+    <value>Kichik element qo'shish</value>
+  </data>
+  <data name="Fin_AddTx" xml:space="preserve">
+    <value>Tranzaksiya qo'shish</value>
+  </data>
+  <data name="Fin_AddTxTitle" xml:space="preserve">
+    <value>Yangi tranzaksiya qo'shish</value>
+  </data>
+  <data name="Fin_Added" xml:space="preserve">
+    <value>Qo'shilgan</value>
+  </data>
+  <data name="Fin_AddedSubtractedDocs" xml:space="preserve">
+    <value>Qo'shilgan/ayrilgan hujjatlar</value>
+  </data>
+  <data name="Fin_AdditionalComment" xml:space="preserve">
+    <value>Qo'shimcha izoh</value>
+  </data>
+  <data name="Fin_AllAccounts" xml:space="preserve">
+    <value>Barcha hisoblar</value>
+  </data>
+  <data name="Fin_AllCategories" xml:space="preserve">
+    <value>Barcha kategoriyalar</value>
+  </data>
+  <data name="Fin_AllOption" xml:space="preserve">
+    <value>Barcha</value>
+  </data>
+  <data name="Fin_AmountOf" xml:space="preserve">
+    <value>Summasi</value>
+  </data>
+  <data name="Fin_AnalyticsGroup" xml:space="preserve">
+    <value>Tahliliy guruh</value>
+  </data>
+  <data name="Fin_AnalyticsGroupHint" xml:space="preserve">
+    <value>EBITDA (soliq, foiz, amortizatsiya, dividend) va fakt tannarx shu guruhga qaraydi — kategoriya nomiga emas.</value>
+  </data>
+  <data name="Fin_AnnualIncome12m" xml:space="preserve">
+    <value>Yillik daromad (oxirgi 12 oy)</value>
+  </data>
+  <data name="Fin_AnnualProfitFormula" xml:space="preserve">
+    <value>Yillik foyda = daromad × margin</value>
+  </data>
+  <data name="Fin_ApByContract" xml:space="preserve">
+    <value>Ta'minotchilardan qarzimiz (AP) — shartnoma kesimida</value>
+  </data>
+  <data name="Fin_ApTitle" xml:space="preserve">
+    <value>Ta'minotchilardan qarzimiz (AP)</value>
+  </data>
+  <data name="Fin_ArByContract" xml:space="preserve">
+    <value>Mijozlardan haqqimiz (AR) — shartnoma kesimida</value>
+  </data>
+  <data name="Fin_ArTitle" xml:space="preserve">
+    <value>Mijozlardan haqqimiz (AR)</value>
+  </data>
+  <data name="Fin_AsOfDate" xml:space="preserve">
+    <value>Holat sanasi (As of date)</value>
+  </data>
+  <data name="Fin_Asset" xml:space="preserve">
+    <value>Aktiv</value>
+  </data>
+  <data name="Fin_Assets" xml:space="preserve">
+    <value>Aktivlar</value>
+  </data>
+  <data name="Fin_AssetsDetails" xml:space="preserve">
+    <value>Aktivlar Tafsiloti</value>
+  </data>
+  <data name="Fin_Attention" xml:space="preserve">
+    <value>Diqqat!</value>
+  </data>
+  <data name="Fin_AttentionRecommended" xml:space="preserve">
+    <value>Diqqat (majburiy tavsiya)</value>
+  </data>
+  <data name="Fin_AutoFillConfirm" xml:space="preserve">
+    <value>Current balances asosida detailed opening qatorlari qayta hisoblab yozilsinmi?</value>
+  </data>
+  <data name="Fin_AutoFillCurrent" xml:space="preserve">
+    <value>Auto-fill from current balances</value>
+  </data>
+  <data name="Fin_AutoFillDone" xml:space="preserve">
+    <value>Auto-fill bajarildi: current balances asosida detailed opening qatorlari yangilandi.</value>
+  </data>
+  <data name="Fin_AutoFillError" xml:space="preserve">
+    <value>Auto-fill xatoligi: {0}</value>
+  </data>
+  <data name="Fin_AvgMarginCost" xml:space="preserve">
+    <value>Tannarx modulidagi o'rtacha margin</value>
+  </data>
+  <data name="Fin_Balance" xml:space="preserve">
+    <value>Qoldiq</value>
+  </data>
+  <data name="Fin_BalanceCategories" xml:space="preserve">
+    <value>Balans kategoriyalari</value>
+  </data>
+  <data name="Fin_BalanceCategory" xml:space="preserve">
+    <value>Balans kategoriyasi</value>
+  </data>
+  <data name="Fin_BalanceCategoryDetails" xml:space="preserve">
+    <value>Balans kategoriyasi tafsilotlari</value>
+  </data>
+  <data name="Fin_BalanceCategoryLiabilities" xml:space="preserve">
+    <value>Balans kategoriyasi (Passivlar)</value>
+  </data>
+  <data name="Fin_BalanceDetails" xml:space="preserve">
+    <value>Balans tafsilotlari</value>
+  </data>
+  <data name="Fin_BalanceEquation" xml:space="preserve">
+    <value>Balans tengligi: aktiv {0} = majburiyatlar {1} + kapital {2} + taqsimlanmagan foyda {3}</value>
+  </data>
+  <data name="Fin_BalancePayable" xml:space="preserve">
+    <value>Qoldiq (qarzimiz)</value>
+  </data>
+  <data name="Fin_BalanceReceivable" xml:space="preserve">
+    <value>Qoldiq (haqqimiz)</value>
+  </data>
+  <data name="Fin_BalanceReport" xml:space="preserve">
+    <value>Balans hisoboti</value>
+  </data>
+  <data name="Fin_Balancing" xml:space="preserve">
+    <value>Balanslovchi</value>
+  </data>
+  <data name="Fin_Bank" xml:space="preserve">
+    <value>Bank</value>
+  </data>
+  <data name="Fin_BankBalance" xml:space="preserve">
+    <value>Bank balansi</value>
+  </data>
+  <data name="Fin_Begin" xml:space="preserve">
+    <value>Boshlash</value>
+  </data>
+  <data name="Fin_BulkEdit" xml:space="preserve">
+    <value>To'plamda tahrirlash</value>
+  </data>
+  <data name="Fin_ByCustomersPie" xml:space="preserve">
+    <value>Xaridorlar bo'yicha (Pie Chart)</value>
+  </data>
+  <data name="Fin_BySuppliersPie" xml:space="preserve">
+    <value>Ta'minotchilar bo'yicha (Pie Chart)</value>
+  </data>
+  <data name="Fin_CalcAccountBased" xml:space="preserve">
+    <value>Account-Based</value>
+  </data>
+  <data name="Fin_CalcByAccount" xml:space="preserve">
+    <value>Hisob asosida</value>
+  </data>
+  <data name="Fin_CalcByAccountHint" xml:space="preserve">
+    <value>Hisoblar qoldiqlari yig'indisi (Naqd pul, Bank)</value>
+  </data>
+  <data name="Fin_CalcByAccountLong" xml:space="preserve">
+    <value>Hisob asosida (Account-Based)</value>
+  </data>
+  <data name="Fin_CalcByDocument" xml:space="preserve">
+    <value>Hujjat asosida</value>
+  </data>
+  <data name="Fin_CalcByDocumentHint" xml:space="preserve">
+    <value>Hujjatlardan to'g'ridan-to'g'ri (Qarzlar, Haqlar)</value>
+  </data>
+  <data name="Fin_CalcByDocumentLong" xml:space="preserve">
+    <value>Hujjat asosida (Document-Based)</value>
+  </data>
+  <data name="Fin_CalcByTransaction" xml:space="preserve">
+    <value>Tranzaksiya asosida</value>
+  </data>
+  <data name="Fin_CalcByTransactionHint" xml:space="preserve">
+    <value>Kategoriyalar orqali tranzaksiyalar (Ustav kapitali)</value>
+  </data>
+  <data name="Fin_CalcByTransactionLong" xml:space="preserve">
+    <value>Tranzaksiya asosida (Transaction-Based)</value>
+  </data>
+  <data name="Fin_CalcDocumentBased" xml:space="preserve">
+    <value>Document-Based</value>
+  </data>
+  <data name="Fin_CalcMethod" xml:space="preserve">
+    <value>Hisoblash uslubi</value>
+  </data>
+  <data name="Fin_CalcTransactionBased" xml:space="preserve">
+    <value>Transaction-Based</value>
+  </data>
+  <data name="Fin_CalcWarehousePrice" xml:space="preserve">
+    <value>Hisob-kitob (ombor × narx)</value>
+  </data>
+  <data name="Fin_Calc_WarehouseCost" xml:space="preserve">
+    <value>Ombor + Tannarx</value>
+  </data>
+  <data name="Fin_Calc_WarehouseLastIncome" xml:space="preserve">
+    <value>Ombor + oxirgi kirim</value>
+  </data>
+  <data name="Fin_CalculationMethod" xml:space="preserve">
+    <value>Hisoblash usuli</value>
+  </data>
+  <data name="Fin_CalculationType" xml:space="preserve">
+    <value>Hisoblash turi</value>
+  </data>
+  <data name="Fin_Cash" xml:space="preserve">
+    <value>Naqd pul</value>
+  </data>
+  <data name="Fin_CashBalance" xml:space="preserve">
+    <value>Naqd pul balansi</value>
+  </data>
+  <data name="Fin_CashContributionHint" xml:space="preserve">
+    <value>Naqd pul hissasi uchun avtomatik moliya tranzaksiyasi yaratiladi.</value>
+  </data>
+  <data name="Fin_Categories" xml:space="preserve">
+    <value>Kategoriyalar</value>
+  </data>
+  <data name="Fin_CategoryAnalysisTitle" xml:space="preserve">
+    <value>Kategoriyalar bo'yicha tahlil</value>
+  </data>
+  <data name="Fin_CategoryDeleteConfirm" xml:space="preserve">
+    <value>Ushbu kategoriyani o'chirishni tasdiqlaysizmi?</value>
+  </data>
+  <data name="Fin_CategoryDetails" xml:space="preserve">
+    <value>Kategoriya tafsilotlari</value>
+  </data>
+  <data name="Fin_CategoryHasChildren" xml:space="preserve">
+    <value>Bu kategoriyada kichik kategoriyalar mavjud.</value>
+  </data>
+  <data name="Fin_CategoryHasSnapshots" xml:space="preserve">
+    <value>Bu kategoriyada snapshotlar mavjud. O'chirilganda faollikdan chiqariladi.</value>
+  </data>
+  <data name="Fin_CategoryHasTxDeactivate" xml:space="preserve">
+    <value>Bu kategoriyada tranzaksiyalar mavjud. O'chirilganda faollikdan chiqariladi.</value>
+  </data>
+  <data name="Fin_CategoryMovements" xml:space="preserve">
+    <value>Kategoriya harakatlari</value>
+  </data>
+  <data name="Fin_CategoryName" xml:space="preserve">
+    <value>Kategoriya nomi</value>
+  </data>
+  <data name="Fin_CategoryNameHint" xml:space="preserve">
+    <value>Kategoriya nomi (masalan: Sotuv)</value>
+  </data>
+  <data name="Fin_CategoryNotFound" xml:space="preserve">
+    <value>Kategoriya topilmadi</value>
+  </data>
+  <data name="Fin_ColDate" xml:space="preserve">
+    <value>Sana (DD.MM.YYYY)</value>
+  </data>
+  <data name="Fin_ColDirection" xml:space="preserve">
+    <value>Yo'nalish (1={0}, 2={1})</value>
+  </data>
+  <data name="Fin_ColTime" xml:space="preserve">
+    <value>Vaqt (HH:mm)</value>
+  </data>
+  <data name="Fin_Column" xml:space="preserve">
+    <value>Ustun</value>
+  </data>
+  <data name="Fin_Company" xml:space="preserve">
+    <value>Korxona</value>
+  </data>
+  <data name="Fin_CompanyValue" xml:space="preserve">
+    <value>Kompaniya qiymati</value>
+  </data>
+  <data name="Fin_ConfirmDeleteQ" xml:space="preserve">
+    <value>O'chirishni xohlaysizmi?</value>
+  </data>
+  <data name="Fin_Contract" xml:space="preserve">
+    <value>Shartnoma</value>
+  </data>
+  <data name="Fin_ContractForwarder" xml:space="preserve">
+    <value>Shartnoma (forwarder)</value>
+  </data>
+  <data name="Fin_ContractListHint" xml:space="preserve">
+    <value>Ta'minotchi tanlanganda PInvoices dagi kabi shartnomalar ro'yxati.</value>
+  </data>
+  <data name="Fin_ContractNo" xml:space="preserve">
+    <value>Shartnoma raqami</value>
+  </data>
+  <data name="Fin_ContractNoPh" xml:space="preserve">
+    <value>Shartnomani tanlasangiz avto to'ldiriladi</value>
+  </data>
+  <data name="Fin_ContractPurchase" xml:space="preserve">
+    <value>Shartnoma (xarid)</value>
+  </data>
+  <data name="Fin_ContractSale" xml:space="preserve">
+    <value>Shartnoma (sotuv)</value>
+  </data>
+  <data name="Fin_ContributionType" xml:space="preserve">
+    <value>Hissa turi</value>
+  </data>
+  <data name="Fin_Contributions" xml:space="preserve">
+    <value>Hissalar</value>
+  </data>
+  <data name="Fin_CoreReports" xml:space="preserve">
+    <value>Yadro hisobotlar</value>
+  </data>
+  <data name="Fin_CountPcs" xml:space="preserve">
+    <value>{0} ta</value>
+  </data>
+  <data name="Fin_Counterparty" xml:space="preserve">
+    <value>Kontragent</value>
+  </data>
+  <data name="Fin_CounterpartyLoadHint" xml:space="preserve">
+    <value>Tur bo'yicha faol (o'chirilmagan) kontragentlar yuklanadi.</value>
+  </data>
+  <data name="Fin_CounterpartyName" xml:space="preserve">
+    <value>Kontragent nomi</value>
+  </data>
+  <data name="Fin_CounterpartyRecommendHint" xml:space="preserve">
+    <value>Material/Oylik/Avans to'lovlarida Kontragent turi va Kontragent ni to'ldiring. Kontragent ro'yxati tur bo'yicha avtomatik yuklanadi.</value>
+  </data>
+  <data name="Fin_CounterpartyType" xml:space="preserve">
+    <value>Kontragent turi</value>
+  </data>
+  <data name="Fin_CounterpartyTypeHint" xml:space="preserve">
+    <value>Material: Ta'minotchi | Oylik/Avans: Xodim. Tanlaganingizga qarab quyidagi ro'yxatda kontragentlar chiqadi.</value>
+  </data>
+  <data name="Fin_CpForwarder" xml:space="preserve">
+    <value>Forwarder</value>
+  </data>
+  <data name="Fin_CreatedByUser" xml:space="preserve">
+    <value>Yaratgan foydalanuvchi</value>
+  </data>
+  <data name="Fin_Currencies" xml:space="preserve">
+    <value>Valyutalar</value>
+  </data>
+  <data name="Fin_CurrencyMismatch" xml:space="preserve">
+    <value>Hisob valyutasi bilan tranzaksiya valyutasi mos kelmaydi.</value>
+  </data>
+  <data name="Fin_CurrencyShortName" xml:space="preserve">
+    <value>Valyuta qisqa nomi</value>
+  </data>
+  <data name="Fin_CurrencyShortNameHint" xml:space="preserve">
+    <value>Valyuta qisqa nomi (masalan: {0})</value>
+  </data>
+  <data name="Fin_CurrentBalance" xml:space="preserve">
+    <value>Joriy balans</value>
+  </data>
+  <data name="Fin_CurrentShare" xml:space="preserve">
+    <value>Joriy ulush</value>
+  </data>
+  <data name="Fin_Custom" xml:space="preserve">
+    <value>maxsus</value>
+  </data>
+  <data name="Fin_Customer" xml:space="preserve">
+    <value>Mijoz</value>
+  </data>
+  <data name="Fin_CustomerEn" xml:space="preserve">
+    <value>Customer</value>
+  </data>
+  <data name="Fin_CustomerNum" xml:space="preserve">
+    <value>Customer #{0}</value>
+  </data>
+  <data name="Fin_DateFrom" xml:space="preserve">
+    <value>Dan sana</value>
+  </data>
+  <data name="Fin_DateTo" xml:space="preserve">
+    <value>Gacha sana</value>
+  </data>
+  <data name="Fin_DbUpdateError" xml:space="preserve">
+    <value>Ma'lumotlar bazasini yangilashda xatolik: {0}</value>
+  </data>
+  <data name="Fin_DcfMethod" xml:space="preserve">
+    <value>DCF uslubi</value>
+  </data>
+  <data name="Fin_DcfValueFormula" xml:space="preserve">
+    <value>Kompaniya qiymati = Sof aktivlar + Kelajak foydasi</value>
+  </data>
+  <data name="Fin_Debt" xml:space="preserve">
+    <value>Qarz</value>
+  </data>
+  <data name="Fin_DeleteAccount" xml:space="preserve">
+    <value>Hisobni o'chirish</value>
+  </data>
+  <data name="Fin_DeleteBalanceCategory" xml:space="preserve">
+    <value>Balans kategoriyasini o'chirish</value>
+  </data>
+  <data name="Fin_DeleteCategory" xml:space="preserve">
+    <value>Kategoriyani o'chirish</value>
+  </data>
+  <data name="Fin_DeleteError" xml:space="preserve">
+    <value>O'chirishda xatolik: {0}</value>
+  </data>
+  <data name="Fin_DeleteOpeningBalance" xml:space="preserve">
+    <value>Opening balansni o'chirish</value>
+  </data>
+  <data name="Fin_DeletePlItem" xml:space="preserve">
+    <value>P&amp;L elementni o'chirish</value>
+  </data>
+  <data name="Fin_DeletePlPlan" xml:space="preserve">
+    <value>P&amp;L rejasini o'chirish</value>
+  </data>
+  <data name="Fin_DeleteShareholder" xml:space="preserve">
+    <value>Aksiyadorni o'chirish</value>
+  </data>
+  <data name="Fin_DeleteShort" xml:space="preserve">
+    <value>O'chir</value>
+  </data>
+  <data name="Fin_DeleteTx" xml:space="preserve">
+    <value>Tranzaksiyani o'chirish</value>
+  </data>
+  <data name="Fin_Details" xml:space="preserve">
+    <value>Tafsilotlar</value>
+  </data>
+  <data name="Fin_Direction" xml:space="preserve">
+    <value>Yo'nalish</value>
+  </data>
+  <data name="Fin_DoFilter" xml:space="preserve">
+    <value>Filtrlash</value>
+  </data>
+  <data name="Fin_Document" xml:space="preserve">
+    <value>Hujjat</value>
+  </data>
+  <data name="Fin_DownloadTemplate" xml:space="preserve">
+    <value>Shablon faylni yuklab olish</value>
+  </data>
+  <data name="Fin_EbitdaHint1" xml:space="preserve">
+    <value>EBITDA — foiz, soliq va amortizatsiya xarajatlarigacha bo'lgan operatsion foyda.</value>
+  </data>
+  <data name="Fin_EbitdaHint2" xml:space="preserve">
+    <value>Daromad va xarajatlar P&amp;L bandlariga bog'langan kategoriyalar bo'yicha olinadi (dividend, qarz olish, ichki o'tkazmalar va aksiyador hissasi kirmaydi). Soliq, foiz/kredit va amortizatsiya xarajatlari kategoriya nomi bo'yicha aniqlanadi.</value>
+  </data>
+  <data name="Fin_EbitdaHint3" xml:space="preserve">
+    <value>Kompaniya qiymatini EBITDA × multiplikator (Ishlab chiqarish: 3–6x) usulida hisoblash uchun</value>
+  </data>
+  <data name="Fin_EbitdaHint4" xml:space="preserve">
+    <value>sahifasiga o'ting.</value>
+  </data>
+  <data name="Fin_EbitdaMethod" xml:space="preserve">
+    <value>EBITDA uslubi</value>
+  </data>
+  <data name="Fin_EbitdaMultiple" xml:space="preserve">
+    <value>EBITDA multiplikatori (3-6x)</value>
+  </data>
+  <data name="Fin_EbitdaReport" xml:space="preserve">
+    <value>EBITDA hisoboti</value>
+  </data>
+  <data name="Fin_EditAccount" xml:space="preserve">
+    <value>Hisobni tahrirlash</value>
+  </data>
+  <data name="Fin_EditBalanceCategory" xml:space="preserve">
+    <value>Balans kategoriyasini tahrirlash</value>
+  </data>
+  <data name="Fin_EditCategory" xml:space="preserve">
+    <value>Kategoriyani tahrirlash</value>
+  </data>
+  <data name="Fin_EditPlItem" xml:space="preserve">
+    <value>P&amp;L elementni tahrirlash</value>
+  </data>
+  <data name="Fin_EditPlPlan" xml:space="preserve">
+    <value>P&amp;L rejasini tahrirlash</value>
+  </data>
+  <data name="Fin_EditRecurring" xml:space="preserve">
+    <value>Doimiy harajatni tahrirlash</value>
+  </data>
+  <data name="Fin_EditShareholder" xml:space="preserve">
+    <value>Aksiyadorni tahrirlash</value>
+  </data>
+  <data name="Fin_EditShort" xml:space="preserve">
+    <value>Tahrir</value>
+  </data>
+  <data name="Fin_EditTx" xml:space="preserve">
+    <value>Tranzaksiyani tahrirlash</value>
+  </data>
+  <data name="Fin_Employee" xml:space="preserve">
+    <value>Xodim</value>
+  </data>
+  <data name="Fin_EmptyMeansNow" xml:space="preserve">
+    <value>Bo'sh qoldirilsa, hozirgacha</value>
+  </data>
+  <data name="Fin_EndBeforeStart" xml:space="preserve">
+    <value>Tugash sanasi boshlanish sanasidan oldin bo'lishi mumkin emas.</value>
+  </data>
+  <data name="Fin_EnteredManually" xml:space="preserve">
+    <value>Qo'lda kiritilgan</value>
+  </data>
+  <data name="Fin_Equity" xml:space="preserve">
+    <value>Kapital</value>
+  </data>
+  <data name="Fin_ErrorExcl" xml:space="preserve">
+    <value>Xatolik!</value>
+  </data>
+  <data name="Fin_ErrorList" xml:space="preserve">
+    <value>Xatoliklar ro'yxati</value>
+  </data>
+  <data name="Fin_ExcelImport" xml:space="preserve">
+    <value>Excel dan import</value>
+  </data>
+  <data name="Fin_ExcelImportArAp" xml:space="preserve">
+    <value>Excel import (AR/AP)</value>
+  </data>
+  <data name="Fin_ExcelNoData" xml:space="preserve">
+    <value>Excel faylda ma'lumot yo'q!</value>
+  </data>
+  <data name="Fin_ExcelTemplate" xml:space="preserve">
+    <value>Excel template</value>
+  </data>
+  <data name="Fin_ExistingSharePeriods" xml:space="preserve">
+    <value>Mavjud ulush davrlari</value>
+  </data>
+  <data name="Fin_Exp_Ap" xml:space="preserve">
+    <value>SUM(invoys) − SUM(to'lov). To'lov: PurchaseInvoicePayment yoki ta'minotchi + ContractNo bilan chiqim.</value>
+  </data>
+  <data name="Fin_Exp_ApOpening" xml:space="preserve">
+    <value>Opening balans ({0}) + SUM(invoys) − SUM(to'lov). To'lov: PurchaseInvoicePayment yoki ta'minotchi + ContractNo bilan chiqim.</value>
+  </data>
+  <data name="Fin_Exp_Ar" xml:space="preserve">
+    <value>Sotuv invoyslari va mijozdan tushumlar (FIFO) bo'yicha hisoblandi</value>
+  </data>
+  <data name="Fin_Exp_ArOpening" xml:space="preserve">
+    <value>Opening balans ({0}) + sotuv invoyslari − mijozdan tushumlar (FIFO) bo'yicha hisoblandi</value>
+  </data>
+  <data name="Fin_Exp_ByAccounts" xml:space="preserve">
+    <value>Hisoblar bo'yicha hisoblandi: {0} ta hisob</value>
+  </data>
+  <data name="Fin_Exp_ByCategories" xml:space="preserve">
+    <value>Kategoriyalar bo'yicha hisoblandi: {0} ta kategoriya</value>
+  </data>
+  <data name="Fin_Exp_FinishedGoods" xml:space="preserve">
+    <value>Ishlab chiqarish omboridagi tayyor maxsulot (IsFinishedGood) miqdori × shu mahsulot bo'yicha oxirgi Tannarx: SalesPriceCIPWithVAT (Sotuv narxi QQS bilan CIP).</value>
+  </data>
+  <data name="Fin_Exp_Logistics" xml:space="preserve">
+    <value>Yo'l varaqalari bo'yicha: {0}, to'lovlar {1}</value>
+  </data>
+  <data name="Fin_Exp_LogisticsOpening" xml:space="preserve">
+    <value>Opening balans ({0}) + yo'l varaqalari {1} − to'lovlar {2}</value>
+  </data>
+  <data name="Fin_Exp_NoAccounts" xml:space="preserve">
+    <value>Hisoblar moslanmadi</value>
+  </data>
+  <data name="Fin_Exp_NoCategories" xml:space="preserve">
+    <value>Kategoriya moslanmadi</value>
+  </data>
+  <data name="Fin_Exp_OpeningAccounts" xml:space="preserve">
+    <value>Opening balans + hisob harakatlari: {0} ta hisob</value>
+  </data>
+  <data name="Fin_Exp_OpeningCategories" xml:space="preserve">
+    <value>Opening balans + kategoriyalar harakati: {0} ta kategoriya</value>
+  </data>
+  <data name="Fin_Exp_OpeningInsteadOfWarehouse" xml:space="preserve">
+    <value>Opening balans ({0}) qiymati (ombor hisobining o'rniga).</value>
+  </data>
+  <data name="Fin_Exp_OpeningPlusMoves" xml:space="preserve">
+    <value>Opening balans ({0}) + keyingi harakatlar bo'yicha</value>
+  </data>
+  <data name="Fin_Exp_Payroll" xml:space="preserve">
+    <value>Oyliklar bo'yicha: hisoblangan {0}, to'langan {1}</value>
+  </data>
+  <data name="Fin_Exp_PayrollOpening" xml:space="preserve">
+    <value>Oylik opening ({0}) {1} + hisoblangan {2} − to'langan {3}</value>
+  </data>
+  <data name="Fin_Exp_RawMaterials" xml:space="preserve">
+    <value>Xomashyo ombori qoldig'i (mahsulot kategoriyasi «Jihoz» bo'lmaganlar) × shu omborga qilingan oxirgi kirim birlik narxi (TotalPrice/Amount yoki PiecePrice).</value>
+  </data>
+  <data name="Fin_Exp_Recurring" xml:space="preserve">
+    <value>Doimiy harajatlar: {0} ta majburiyat, hisoblangan {1}, to'langan {2}</value>
+  </data>
+  <data name="Fin_Expense" xml:space="preserve">
+    <value>Chiqim</value>
+  </data>
+  <data name="Fin_ExpenseName" xml:space="preserve">
+    <value>Harajat nomi</value>
+  </data>
+  <data name="Fin_Expenses" xml:space="preserve">
+    <value>Chiqimlar</value>
+  </data>
+  <data name="Fin_FieldError" xml:space="preserve">
+    <value>Maydon: {0}, Xatolik: {1}</value>
+  </data>
+  <data name="Fin_FileEmpty" xml:space="preserve">
+    <value>Fayl yuklanmadi yoki bo'sh!</value>
+  </data>
+  <data name="Fin_FileNotSelected" xml:space="preserve">
+    <value>Fayl tanlanmagan.</value>
+  </data>
+  <data name="Fin_FinanceAccounts" xml:space="preserve">
+    <value>Moliya hisoblari</value>
+  </data>
+  <data name="Fin_FinanceCategories" xml:space="preserve">
+    <value>Moliya kategoriyalari</value>
+  </data>
+  <data name="Fin_FinanceTransactions" xml:space="preserve">
+    <value>Moliya tranzaksiyalari</value>
+  </data>
+  <data name="Fin_FinishedProducts" xml:space="preserve">
+    <value>Tayyor mahsulot</value>
+  </data>
+  <data name="Fin_Forwarder" xml:space="preserve">
+    <value>Ekspeditor</value>
+  </data>
+  <data name="Fin_From" xml:space="preserve">
+    <value>Dan</value>
+  </data>
+  <data name="Fin_FullName" xml:space="preserve">
+    <value>To'liq ism</value>
+  </data>
+  <data name="Fin_FullNameOf" xml:space="preserve">
+    <value>To'liq nomi</value>
+  </data>
+  <data name="Fin_FutureProfitFormula" xml:space="preserve">
+    <value>Kelajak foydasi = yillik foyda × {0} yil</value>
+  </data>
+  <data name="Fin_Goods" xml:space="preserve">
+    <value>Tovarlar</value>
+  </data>
+  <data name="Fin_HubTitle" xml:space="preserve">
+    <value>Moliya hisobotlari (yadro)</value>
+  </data>
+  <data name="Fin_IdShownOnPage" xml:space="preserve">
+    <value>sahifasida ID ko'rsatilgan.</value>
+  </data>
+  <data name="Fin_Imp_AccountCurrencyMismatch" xml:space="preserve">
+    <value>Qator {0}: Hisob ({1}) valyutasi {2} emas</value>
+  </data>
+  <data name="Fin_Imp_AccountNotFound" xml:space="preserve">
+    <value>Qator {0}: Hisob kodi topilmadi - {1}</value>
+  </data>
+  <data name="Fin_Imp_AlreadyExists" xml:space="preserve">
+    <value>Qator {0}: Bunday tranzaksiya bazada allaqachon bor (o'tkazib yuborildi)</value>
+  </data>
+  <data name="Fin_Imp_BadAmount" xml:space="preserve">
+    <value>Qator {0}: Summa noto'g'ri - {1}</value>
+  </data>
+  <data name="Fin_Imp_BadDate" xml:space="preserve">
+    <value>Qator {0}: Sana noto'g'ri format - {1}</value>
+  </data>
+  <data name="Fin_Imp_BadDirection" xml:space="preserve">
+    <value>Qator {0}: Yo'nalish noto'g'ri (1 yoki 2 bo'lishi kerak) - {1}</value>
+  </data>
+  <data name="Fin_Imp_CategoryNotFound" xml:space="preserve">
+    <value>Qator {0}: Kategoriya topilmadi - {1}</value>
+  </data>
+  <data name="Fin_Imp_CurrencyNotFound" xml:space="preserve">
+    <value>Qator {0}: Valyuta topilmadi - {1}</value>
+  </data>
+  <data name="Fin_Imp_DuplicateRow" xml:space="preserve">
+    <value>Qator {0}: {1}-qator bilan bir xil (ikkalasi ham import qilinadi)</value>
+  </data>
+  <data name="Fin_Imp_RowError" xml:space="preserve">
+    <value>Qator {0}: {1}</value>
+  </data>
+  <data name="Fin_ImportConnError" xml:space="preserve">
+    <value>Import paytida server bilan bog'lanishda xatolik.</value>
+  </data>
+  <data name="Fin_ImportDoneSave" xml:space="preserve">
+    <value>Import muvaffaqiyatli yakunlandi. Endi "Saqlash" tugmasini bosing.</value>
+  </data>
+  <data name="Fin_ImportDoneWithErrors" xml:space="preserve">
+    <value>Import tugadi, ba'zi qatorlarda xatolar bor:</value>
+  </data>
+  <data name="Fin_ImportErrWarnCount" xml:space="preserve">
+    <value>{0} ta qatorda xatolik, {1} ta ogohlantirish.</value>
+  </data>
+  <data name="Fin_ImportError" xml:space="preserve">
+    <value>Import xatoligi.</value>
+  </data>
+  <data name="Fin_ImportNote" xml:space="preserve">
+    <value>Hisob kodi, Kategoriya nomi va Valyuta qisqa nomi bazada mavjud bo'lishi kerak. Shablon faylda "Hisoblar", "Kategoriyalar" va "Valyutalar" varaqlarida mavjud qiymatlar ko'rsatilgan.</value>
+  </data>
+  <data name="Fin_ImportProcessError" xml:space="preserve">
+    <value>Import jarayonida xatolik: {0}</value>
+  </data>
+  <data name="Fin_ImportStep1" xml:space="preserve">
+    <value>Avval shablon faylni yuklab oling</value>
+  </data>
+  <data name="Fin_ImportStep2" xml:space="preserve">
+    <value>Shablon faylni to'ldiring (birinchi qator - misol, uni o'chirib tashlang)</value>
+  </data>
+  <data name="Fin_ImportStep3" xml:space="preserve">
+    <value>To'ldirilgan faylni yuklang</value>
+  </data>
+  <data name="Fin_InOutByAccountsChart" xml:space="preserve">
+    <value>Hisoblar bo'yicha kirim/chiqim (Bar Chart)</value>
+  </data>
+  <data name="Fin_Income" xml:space="preserve">
+    <value>Daromad</value>
+  </data>
+  <data name="Fin_Incomes" xml:space="preserve">
+    <value>Kirimlar</value>
+  </data>
+  <data name="Fin_Inflow" xml:space="preserve">
+    <value>Kirim</value>
+  </data>
+  <data name="Fin_InnerError" xml:space="preserve">
+    <value>Ichki xatolik: {0}</value>
+  </data>
+  <data name="Fin_Instructions" xml:space="preserve">
+    <value>Ko'rsatmalar</value>
+  </data>
+  <data name="Fin_Inv_CostNote" xml:space="preserve">
+    <value>Tannarx: {0}/{1}, SalesPriceCIPWithVAT</value>
+  </data>
+  <data name="Fin_Inv_LastIncomeNote" xml:space="preserve">
+    <value>Qoldiq × oxirgi kirim narxi: {0} {1}</value>
+  </data>
+  <data name="Fin_Inv_NoCost" xml:space="preserve">
+    <value>Sanagacha mos Tannarx topilmadi</value>
+  </data>
+  <data name="Fin_Inv_NoFinishedStock" xml:space="preserve">
+    <value>Bu omborda tayyor maxsulot (IsFinishedGood) qoldig'i yo'q.</value>
+  </data>
+  <data name="Fin_Inv_NoLastIncome" xml:space="preserve">
+    <value>Oxirgi kirim (shu ombor, sanagacha) topilmadi</value>
+  </data>
+  <data name="Fin_Inv_NoPrice" xml:space="preserve">
+    <value>Kirim qatorida narx (PiecePrice / TotalPrice) yo'q</value>
+  </data>
+  <data name="Fin_Inv_NoProductionWh" xml:space="preserve">
+    <value>Ishlab chiqarish ombori topilmadi (Sozlamalar → Omborlar: ombor turi «Ishlab chiqarish» bo'lishi kerak).</value>
+  </data>
+  <data name="Fin_Inv_NoRawStock" xml:space="preserve">
+    <value>Bu omborda xomashyo qoldig'i yo'q.</value>
+  </data>
+  <data name="Fin_Inv_NoRawWh" xml:space="preserve">
+    <value>Xomashyo ombori topilmadi (Sozlamalar → Omborlar: ombor turi «Xomashyo (ta'minot)» bo'lishi kerak).</value>
+  </data>
+  <data name="Fin_InvalidParameters" xml:space="preserve">
+    <value>Invalid parameters</value>
+  </data>
+  <data name="Fin_Item" xml:space="preserve">
+    <value>Element</value>
+  </data>
+  <data name="Fin_ItemDeleteConfirm" xml:space="preserve">
+    <value>Ushbu elementni o'chirishni tasdiqlaysizmi?</value>
+  </data>
+  <data name="Fin_ItemHasCategories" xml:space="preserve">
+    <value>Bu elementga kategoriyalar bog'langan.</value>
+  </data>
+  <data name="Fin_ItemHasChildren" xml:space="preserve">
+    <value>Bu elementda kichik elementlar mavjud.</value>
+  </data>
+  <data name="Fin_ItemHasPlans" xml:space="preserve">
+    <value>Bu elementda rejalar mavjud.</value>
+  </data>
+  <data name="Fin_ItemName" xml:space="preserve">
+    <value>Element nomi</value>
+  </data>
+  <data name="Fin_LeaveApEmpty" xml:space="preserve">
+    <value>AP bo'limini bo'sh qoldirish (saqlanmasin)</value>
+  </data>
+  <data name="Fin_LeaveArEmpty" xml:space="preserve">
+    <value>AR bo'limini bo'sh qoldirish (saqlanmasin)</value>
+  </data>
+  <data name="Fin_LeaveEmpty" xml:space="preserve">
+    <value>Bo'sh qoldirish</value>
+  </data>
+  <data name="Fin_LeaveEmptyHint1" xml:space="preserve">
+    <value>belgilangan bo'lsa, summada</value>
+  </data>
+  <data name="Fin_LeaveEmptyHint2" xml:space="preserve">
+    <value>kiritilsa bu kategoriya uchun opening yozuvi saqlanmaydi.</value>
+  </data>
+  <data name="Fin_LeaveEmptyTitle" xml:space="preserve">
+    <value>0 bo'lsa snapshot yozilmasin</value>
+  </data>
+  <data name="Fin_LeaveLogisticsEmpty" xml:space="preserve">
+    <value>Logistika bo'limini bo'sh qoldirish (saqlanmasin)</value>
+  </data>
+  <data name="Fin_LeavePayrollEmpty" xml:space="preserve">
+    <value>Oylik bo'limini bo'sh qoldirish (saqlanmasin)</value>
+  </data>
+  <data name="Fin_LiabilitiesAndEquity" xml:space="preserve">
+    <value>Passivlar va Kapital</value>
+  </data>
+  <data name="Fin_LiabilitiesEquityDetails" xml:space="preserve">
+    <value>Passivlar va Kapital Tafsiloti</value>
+  </data>
+  <data name="Fin_Liability" xml:space="preserve">
+    <value>Passiv</value>
+  </data>
+  <data name="Fin_LineCount" xml:space="preserve">
+    <value>Qatorlar soni</value>
+  </data>
+  <data name="Fin_Lines" xml:space="preserve">
+    <value>Qatorlar</value>
+  </data>
+  <data name="Fin_Load" xml:space="preserve">
+    <value>Load qilish</value>
+  </data>
+  <data name="Fin_LoadError" xml:space="preserve">
+    <value>Yuklashda xatolik</value>
+  </data>
+  <data name="Fin_LoadErrorShort" xml:space="preserve">
+    <value>Yuklashda xato</value>
+  </data>
+  <data name="Fin_LogisticsByContract" xml:space="preserve">
+    <value>Logistikadan qarzimiz — ekspeditor shartnomasi kesimida</value>
+  </data>
+  <data name="Fin_LogisticsDebtTitle" xml:space="preserve">
+    <value>Logistikadan qarzimiz</value>
+  </data>
+  <data name="Fin_ManageShares" xml:space="preserve">
+    <value>Ulushlarni boshqarish</value>
+  </data>
+  <data name="Fin_Mandatory" xml:space="preserve">
+    <value>Majburiy</value>
+  </data>
+  <data name="Fin_Manual" xml:space="preserve">
+    <value>Qo'lda</value>
+  </data>
+  <data name="Fin_MapCategories" xml:space="preserve">
+    <value>Kategoriyalarni bog'lash</value>
+  </data>
+  <data name="Fin_MappedCategories" xml:space="preserve">
+    <value>Bog'langan kategoriyalar</value>
+  </data>
+  <data name="Fin_Month" xml:space="preserve">
+    <value>Oy</value>
+  </data>
+  <data name="Fin_MonthlyAmount" xml:space="preserve">
+    <value>Oylik summa</value>
+  </data>
+  <data name="Fin_MonthlyTrend" xml:space="preserve">
+    <value>Oylik trend</value>
+  </data>
+  <data name="Fin_MovementsLower" xml:space="preserve">
+    <value>harakatlar</value>
+  </data>
+  <data name="Fin_Negative" xml:space="preserve">
+    <value>Manfiy</value>
+  </data>
+  <data name="Fin_NetAmount" xml:space="preserve">
+    <value>Net summa</value>
+  </data>
+  <data name="Fin_NetAssets" xml:space="preserve">
+    <value>Sof aktivlar</value>
+  </data>
+  <data name="Fin_NetCashflow" xml:space="preserve">
+    <value>Net kassa oqimi</value>
+  </data>
+  <data name="Fin_NewAccount" xml:space="preserve">
+    <value>Yangi hisob</value>
+  </data>
+  <data name="Fin_NewCategory" xml:space="preserve">
+    <value>Yangi kategoriya</value>
+  </data>
+  <data name="Fin_NewEditToday" xml:space="preserve">
+    <value>Yangi / tahrirlash (bugungi sana)</value>
+  </data>
+  <data name="Fin_NewItem" xml:space="preserve">
+    <value>Yangi element</value>
+  </data>
+  <data name="Fin_NewPlan" xml:space="preserve">
+    <value>Yangi reja</value>
+  </data>
+  <data name="Fin_NewShareholder" xml:space="preserve">
+    <value>Yangi aksiyador</value>
+  </data>
+  <data name="Fin_NewTx" xml:space="preserve">
+    <value>Yangi tranzaksiya</value>
+  </data>
+  <data name="Fin_NoActiveAccountsLinked" xml:space="preserve">
+    <value>Balans kategoriyasiga bog'langan faol hisob yo'q</value>
+  </data>
+  <data name="Fin_NoCashAccountWarn" xml:space="preserve">
+    <value>Shu valyutadagi faol kassa hisobi topilmadi — hissa saqlandi, lekin kassaga kirim yozilmadi.</value>
+  </data>
+  <data name="Fin_NoContractSelected" xml:space="preserve">
+    <value>Shartnoma tanlanmagan</value>
+  </data>
+  <data name="Fin_NoContributions" xml:space="preserve">
+    <value>Hissalar mavjud emas</value>
+  </data>
+  <data name="Fin_NoDataFound" xml:space="preserve">
+    <value>Ma'lumot topilmadi</value>
+  </data>
+  <data name="Fin_NoDebtFound" xml:space="preserve">
+    <value>Qarz aniqlanmadi</value>
+  </data>
+  <data name="Fin_NoOpeningYet" xml:space="preserve">
+    <value>Hozircha saqlangan opening balans yozuvlari yo'q.</value>
+  </data>
+  <data name="Fin_NoParentCategory" xml:space="preserve">
+    <value>Ota kategoriya yo'q</value>
+  </data>
+  <data name="Fin_NoParentItem" xml:space="preserve">
+    <value>Ota element yo'q</value>
+  </data>
+  <data name="Fin_NoSelectRecurringDebt" xml:space="preserve">
+    <value>-Tanlamaslik (Doimiy harajatlar qarzi)</value>
+  </data>
+  <data name="Fin_NoUnpaidRecurring" xml:space="preserve">
+    <value>To'lanmagan doimiy harajat yo'q</value>
+  </data>
+  <data name="Fin_NoValidTx" xml:space="preserve">
+    <value>Hech qanday to'g'ri tranzaksiya topilmadi!</value>
+  </data>
+  <data name="Fin_NotEntered" xml:space="preserve">
+    <value>Kiritilmagan</value>
+  </data>
+  <data name="Fin_NotSelected" xml:space="preserve">
+    <value>Tanlanmagan</value>
+  </data>
+  <data name="Fin_NotSetDash" xml:space="preserve">
+    <value>— belgilanmagan —</value>
+  </data>
+  <data name="Fin_ObImp_ContractMismatch" xml:space="preserve">
+    <value>{0} row {1}: shartnoma kontragentga mos emas.</value>
+  </data>
+  <data name="Fin_ObImp_ContractNotFound" xml:space="preserve">
+    <value>{0} row {1}: shartnoma topilmadi.</value>
+  </data>
+  <data name="Fin_ObImp_CounterpartyNotFound" xml:space="preserve">
+    <value>{0} row {1}: kontragent topilmadi.</value>
+  </data>
+  <data name="Fin_Obligation" xml:space="preserve">
+    <value>Majburiyat</value>
+  </data>
+  <data name="Fin_OnlyXlsx" xml:space="preserve">
+    <value>Faqat .xlsx format qabul qilinadi.</value>
+  </data>
+  <data name="Fin_OnlyXlsxUpload" xml:space="preserve">
+    <value>Faqat .xlsx formatidagi fayllarni yuklash mumkin!</value>
+  </data>
+  <data name="Fin_OpeningAccountsHint1" xml:space="preserve">
+    <value>Har hisobning opening qoldig'i. Kiritilsa, shu hisoblar kategoriyasining opening'i ularning</value>
+  </data>
+  <data name="Fin_OpeningAccountsHint2" xml:space="preserve">
+    <value>yig'indisiga</value>
+  </data>
+  <data name="Fin_OpeningAccountsHint3" xml:space="preserve">
+    <value>teng saqlanadi (yuqoridagi summa o'rniga). Bo'sh qoldirilgan hisob uchun yozuv saqlanmaydi.</value>
+  </data>
+  <data name="Fin_OpeningAndBalance" xml:space="preserve">
+    <value>Opening balans va qoldiq</value>
+  </data>
+  <data name="Fin_OpeningArApHint1" xml:space="preserve">
+    <value>AR/AP bo'limlarida</value>
+  </data>
+  <data name="Fin_OpeningArApHint2" xml:space="preserve">
+    <value>tizim ma'lumotidan olinadi (read-only).</value>
+  </data>
+  <data name="Fin_OpeningArApHint3" xml:space="preserve">
+    <value>Faqat</value>
+  </data>
+  <data name="Fin_OpeningArApHint4" xml:space="preserve">
+    <value>summani kiriting.</value>
+  </data>
+  <data name="Fin_OpeningBalance" xml:space="preserve">
+    <value>Opening balans</value>
+  </data>
+  <data name="Fin_OpeningBalanceAmount" xml:space="preserve">
+    <value>Opening qoldig'i</value>
+  </data>
+  <data name="Fin_OpeningByAccounts" xml:space="preserve">
+    <value>Hisoblar bo'yicha opening</value>
+  </data>
+  <data name="Fin_OpeningByAccountsCashBank" xml:space="preserve">
+    <value>Hisoblar bo'yicha opening (kassa, bank)</value>
+  </data>
+  <data name="Fin_OpeningDate" xml:space="preserve">
+    <value>Opening sana</value>
+  </data>
+  <data name="Fin_OpeningDateHint" xml:space="preserve">
+    <value>Bu sanaga nisbatan barcha balanslar birinchi marta kiritiladi.</value>
+  </data>
+  <data name="Fin_OpeningDates" xml:space="preserve">
+    <value>Opening balans — sanalar</value>
+  </data>
+  <data name="Fin_OpeningDeleteWarn" xml:space="preserve">
+    <value>Ushbu sana uchun barcha opening balans yozuvlari o'chiriladi.</value>
+  </data>
+  <data name="Fin_OpeningDeleted" xml:space="preserve">
+    <value>Opening balans ({0}) o'chirildi.</value>
+  </data>
+  <data name="Fin_OpeningDetailsHeader" xml:space="preserve">
+    <value>Opening balans — batafsil ko'rinish</value>
+  </data>
+  <data name="Fin_OpeningDetailsTitle" xml:space="preserve">
+    <value>Opening balans — batafsil</value>
+  </data>
+  <data name="Fin_OpeningEditHeader" xml:space="preserve">
+    <value>Opening balans — boshlang'ich qoldiqlar</value>
+  </data>
+  <data name="Fin_OpeningEditTitle" xml:space="preserve">
+    <value>Opening balans — tahrir</value>
+  </data>
+  <data name="Fin_OpeningNotFoundForDate" xml:space="preserve">
+    <value>Tanlangan sana uchun opening balans yozuvlari topilmadi.</value>
+  </data>
+  <data name="Fin_OpeningSaved" xml:space="preserve">
+    <value>Opening balans muvaffaqiyatli saqlandi.</value>
+  </data>
+  <data name="Fin_OperatingExpenses" xml:space="preserve">
+    <value>Operatsion xarajatlar</value>
+  </data>
+  <data name="Fin_OperatingIncome" xml:space="preserve">
+    <value>Operatsion daromad</value>
+  </data>
+  <data name="Fin_OperatingIncome12m" xml:space="preserve">
+    <value>Operatsion daromad (oxirgi 12 oy)</value>
+  </data>
+  <data name="Fin_OperatingProfit" xml:space="preserve">
+    <value>Operatsion foyda</value>
+  </data>
+  <data name="Fin_OptionalCap" xml:space="preserve">
+    <value>Ixtiyoriy</value>
+  </data>
+  <data name="Fin_Order" xml:space="preserve">
+    <value>Tartib</value>
+  </data>
+  <data name="Fin_Organization" xml:space="preserve">
+    <value>Tashkilot</value>
+  </data>
+  <data name="Fin_Other" xml:space="preserve">
+    <value>Boshqa</value>
+  </data>
+  <data name="Fin_OtherBalanceCategories" xml:space="preserve">
+    <value>Boshqa balans kategoriyalari</value>
+  </data>
+  <data name="Fin_OtherCategoriesManual" xml:space="preserve">
+    <value>Boshqa balans kategoriyalari (manual opening)</value>
+  </data>
+  <data name="Fin_OverviewTitle" xml:space="preserve">
+    <value>Moliya Dashboard - Umumiy ko'rinish</value>
+  </data>
+  <data name="Fin_Owner" xml:space="preserve">
+    <value>Egasi</value>
+  </data>
+  <data name="Fin_Paid" xml:space="preserve">
+    <value>To'langan</value>
+  </data>
+  <data name="Fin_PaidMoney" xml:space="preserve">
+    <value>To'lagan pulimiz</value>
+  </data>
+  <data name="Fin_PaidReceived" xml:space="preserve">
+    <value>to'langan/olingan</value>
+  </data>
+  <data name="Fin_ParentCategory" xml:space="preserve">
+    <value>Ota kategoriya</value>
+  </data>
+  <data name="Fin_ParentCycleCategory" xml:space="preserve">
+    <value>Ota kategoriya sifatida o'zini yoki farzandini tanlash mumkin emas.</value>
+  </data>
+  <data name="Fin_ParentCycleItem" xml:space="preserve">
+    <value>Ota element sifatida o'zini yoki farzandini tanlash mumkin emas.</value>
+  </data>
+  <data name="Fin_ParentItem" xml:space="preserve">
+    <value>Ota element</value>
+  </data>
+  <data name="Fin_Payable" xml:space="preserve">
+    <value>Qarzimiz</value>
+  </data>
+  <data name="Fin_PayableToSuppliers" xml:space="preserve">
+    <value>Ta'minotchilardan qarzimiz</value>
+  </data>
+  <data name="Fin_PayablesAccountBalances" xml:space="preserve">
+    <value>Payables account qoldiqlari</value>
+  </data>
+  <data name="Fin_PayablesBySuppliers" xml:space="preserve">
+    <value>Ta'minotchilar bo'yicha qarzimiz</value>
+  </data>
+  <data name="Fin_PayablesTitle" xml:space="preserve">
+    <value>Ta'minotchilardan qarzlar (Payables)</value>
+  </data>
+  <data name="Fin_PayablesToSuppliers" xml:space="preserve">
+    <value>Ta'minotchilardan qarzlar</value>
+  </data>
+  <data name="Fin_PayrollByEmployee" xml:space="preserve">
+    <value>Oylikdan qarzimiz (HRM) — xodim kesimida</value>
+  </data>
+  <data name="Fin_PayrollDebt" xml:space="preserve">
+    <value>Oylikdan qarzimiz</value>
+  </data>
+  <data name="Fin_PayrollDebtByEmployee" xml:space="preserve">
+    <value>Oylikdan kimdan qancha qarzmiz (xodim kesimida)</value>
+  </data>
+  <data name="Fin_PayrollDebtPlural" xml:space="preserve">
+    <value>Oyliklardan qarzimiz</value>
+  </data>
+  <data name="Fin_PayrollDebtTitle" xml:space="preserve">
+    <value>Oylikdan qarzimiz (HRM)</value>
+  </data>
+  <data name="Fin_PayrollDebtTrend" xml:space="preserve">
+    <value>Oyliklardan qarzimiz (Trend)</value>
+  </data>
+  <data name="Fin_PdfDownloadWhole" xml:space="preserve">
+    <value>PDF yuklab olish (butun sahifa)</value>
+  </data>
+  <data name="Fin_PdfExportError" xml:space="preserve">
+    <value>PDF exportda xatolik:</value>
+  </data>
+  <data name="Fin_PdfPreparing" xml:space="preserve">
+    <value>PDF tayyorlanmoqda...</value>
+  </data>
+  <data name="Fin_PerMonth" xml:space="preserve">
+    <value>Oyiga</value>
+  </data>
+  <data name="Fin_Percent" xml:space="preserve">
+    <value>Foiz</value>
+  </data>
+  <data name="Fin_PeriodEnd" xml:space="preserve">
+    <value>Tugash</value>
+  </data>
+  <data name="Fin_PeriodStart" xml:space="preserve">
+    <value>Boshlanish</value>
+  </data>
+  <data name="Fin_PlBulkEditTitle" xml:space="preserve">
+    <value>P&amp;L rejalarni to'plamda tahrirlash</value>
+  </data>
+  <data name="Fin_PlBulkEditTitleFor" xml:space="preserve">
+    <value>P&amp;L rejalarni to'plamda tahrirlash - {0} yil, {1} oy</value>
+  </data>
+  <data name="Fin_PlItem" xml:space="preserve">
+    <value>P&amp;L Element</value>
+  </data>
+  <data name="Fin_PlItemDetails" xml:space="preserve">
+    <value>P&amp;L element tafsilotlari</value>
+  </data>
+  <data name="Fin_PlItems" xml:space="preserve">
+    <value>P&amp;L elementlar</value>
+  </data>
+  <data name="Fin_PlPlans" xml:space="preserve">
+    <value>P&amp;L rejalar</value>
+  </data>
+  <data name="Fin_PlReport" xml:space="preserve">
+    <value>Foyda va zarar hisoboti</value>
+  </data>
+  <data name="Fin_Plan" xml:space="preserve">
+    <value>Reja</value>
+  </data>
+  <data name="Fin_PlanAmount" xml:space="preserve">
+    <value>Reja summasi</value>
+  </data>
+  <data name="Fin_PlanCount" xml:space="preserve">
+    <value>Rejalar soni</value>
+  </data>
+  <data name="Fin_PlanDeleteConfirm" xml:space="preserve">
+    <value>Ushbu rejani o'chirishni tasdiqlaysizmi?</value>
+  </data>
+  <data name="Fin_PlanExists" xml:space="preserve">
+    <value>Bu oy va element uchun reja allaqachon mavjud. Tahrirlash sahifasiga o'ting.</value>
+  </data>
+  <data name="Fin_PlanExistsOther" xml:space="preserve">
+    <value>Bu oy va element uchun boshqa reja allaqachon mavjud.</value>
+  </data>
+  <data name="Fin_PluralByAccountsPie" xml:space="preserve">
+    <value>{0} bo'yicha hisoblar (Pie Chart)</value>
+  </data>
+  <data name="Fin_PluralByCategoriesBar" xml:space="preserve">
+    <value>{0} bo'yicha kategoriyalar (Bar Chart)</value>
+  </data>
+  <data name="Fin_PluralByCategoriesPie" xml:space="preserve">
+    <value>{0} bo'yicha kategoriyalar (Pie Chart)</value>
+  </data>
+  <data name="Fin_PluralMonthlyTrend" xml:space="preserve">
+    <value>Oylik {0} trendi</value>
+  </data>
+  <data name="Fin_PluralTable" xml:space="preserve">
+    <value>{0} jadvali</value>
+  </data>
+  <data name="Fin_Positive" xml:space="preserve">
+    <value>Musbat</value>
+  </data>
+  <data name="Fin_Product" xml:space="preserve">
+    <value>Mahsulot</value>
+  </data>
+  <data name="Fin_ProjectionYears" xml:space="preserve">
+    <value>Loyihalash yili (2-5)</value>
+  </data>
+  <data name="Fin_Purpose" xml:space="preserve">
+    <value>Maqsad</value>
+  </data>
+  <data name="Fin_RawMaterials" xml:space="preserve">
+    <value>Xomashyo</value>
+  </data>
+  <data name="Fin_Receivable" xml:space="preserve">
+    <value>Haqqimiz</value>
+  </data>
+  <data name="Fin_ReceivableFromCustomers" xml:space="preserve">
+    <value>Mijozlardan haqqimiz</value>
+  </data>
+  <data name="Fin_ReceivablesAccountBalances" xml:space="preserve">
+    <value>Receivables account qoldiqlari</value>
+  </data>
+  <data name="Fin_ReceivablesByCustomers" xml:space="preserve">
+    <value>Mijozlar bo'yicha haqqimiz</value>
+  </data>
+  <data name="Fin_ReceivablesFromBuyers" xml:space="preserve">
+    <value>Xaridorlardan haqlarimiz</value>
+  </data>
+  <data name="Fin_ReceivablesTitle" xml:space="preserve">
+    <value>Xaridorlardan haqlarimiz (Receivables)</value>
+  </data>
+  <data name="Fin_Received" xml:space="preserve">
+    <value>Olingan</value>
+  </data>
+  <data name="Fin_ReceivedMoney" xml:space="preserve">
+    <value>Olgan pulimiz</value>
+  </data>
+  <data name="Fin_RecurringCatHint" xml:space="preserve">
+    <value>Odatda "Doimiy harajatlar qarzi" ni tanlang (balansda shu ostida ko'rsatiladi).</value>
+  </data>
+  <data name="Fin_RecurringExpenses" xml:space="preserve">
+    <value>Doimiy harajatlar</value>
+  </data>
+  <data name="Fin_RecurringExpensesLong" xml:space="preserve">
+    <value>Doimiy harajatlar (ijara, buxgalteriya va h.k.)</value>
+  </data>
+  <data name="Fin_RecurringInfo1" xml:space="preserve">
+    <value>Bu ro'yxatdagi harajatlar har oy balansda "Doimiy harajatlar qarzi" sifatida shakllanadi. To'lovni</value>
+  </data>
+  <data name="Fin_RecurringInfo2" xml:space="preserve">
+    <value>orqali kiritganda</value>
+  </data>
+  <data name="Fin_RecurringInfo3" xml:space="preserve">
+    <value>quyidagi majburiyat ID sini kiriting.</value>
+  </data>
+  <data name="Fin_RecurringNamePh" xml:space="preserve">
+    <value>Masalan: Ijara haqi, Buxgalteriya xizmati</value>
+  </data>
+  <data name="Fin_RecurringReadError" xml:space="preserve">
+    <value>Doimiy harajatni o'qishda xatolik: {0}</value>
+  </data>
+  <data name="Fin_RecurringTableMissing" xml:space="preserve">
+    <value>Doimiy harajatlar jadvali topilmadi. Database/Migrations/003_FIN_RECURRING_OBLIGATIONS.sql qo'llanganini tekshiring (Database/tools/Invoke-DbMigrations.ps1).</value>
+  </data>
+  <data name="Fin_RecurringUnpaidTitle" xml:space="preserve">
+    <value>Doimiy harajatlar: qaysilari to'lanmadi</value>
+  </data>
+  <data name="Fin_RemainingDebt" xml:space="preserve">
+    <value>Qoldiq qarz</value>
+  </data>
+  <data name="Fin_RetainedEarningsCalc" xml:space="preserve">
+    <value>Taqsimlanmagan foyda (hisoblangan)</value>
+  </data>
+  <data name="Fin_RetainedEarningsFormula" xml:space="preserve">
+    <value>Aktiv {0} − majburiyatlar {1} − kiritilgan kapital {2}</value>
+  </data>
+  <data name="Fin_RetainedEarningsHint" xml:space="preserve">
+    <value>Aktiv − majburiyatlar − kiritilgan kapital; balanslovchi qator</value>
+  </data>
+  <data name="Fin_SaveError" xml:space="preserve">
+    <value>Saqlash xatosi: {0}</value>
+  </data>
+  <data name="Fin_SaveErrorWith" xml:space="preserve">
+    <value>Saqlashda xatolik: {0}</value>
+  </data>
+  <data name="Fin_SelectCounterpartyTypeFirst" xml:space="preserve">
+    <value>Avval kontragent turini tanlang</value>
+  </data>
+  <data name="Fin_SelectDateFirst" xml:space="preserve">
+    <value>Avval sana tanlang.</value>
+  </data>
+  <data name="Fin_SelectDots" xml:space="preserve">
+    <value>Tanlang...</value>
+  </data>
+  <data name="Fin_SelectExcelFile" xml:space="preserve">
+    <value>Excel faylni tanlang (.xlsx)</value>
+  </data>
+  <data name="Fin_SelectOptional" xml:space="preserve">
+    <value>Tanlang... (ixtiyoriy)</value>
+  </data>
+  <data name="Fin_SelectSupplier" xml:space="preserve">
+    <value>Ta'minotchini tanlang</value>
+  </data>
+  <data name="Fin_SharePct" xml:space="preserve">
+    <value>Ulush %</value>
+  </data>
+  <data name="Fin_SharePeriodAdded" xml:space="preserve">
+    <value>Ulush davri qo'shildi.</value>
+  </data>
+  <data name="Fin_ShareRangeError" xml:space="preserve">
+    <value>Ulush 0% dan katta va 100% dan oshmasligi kerak.</value>
+  </data>
+  <data name="Fin_Shareholder" xml:space="preserve">
+    <value>Aksiyador</value>
+  </data>
+  <data name="Fin_ShareholderDeleteConfirm" xml:space="preserve">
+    <value>Ushbu aksiyadorni o'chirishni tasdiqlaysizmi?</value>
+  </data>
+  <data name="Fin_ShareholderDetails" xml:space="preserve">
+    <value>Aksiyador tafsilotlari</value>
+  </data>
+  <data name="Fin_ShareholderHasContributions" xml:space="preserve">
+    <value>Bu aksiyadorda hissalar mavjud.</value>
+  </data>
+  <data name="Fin_ShareholderHasPeriods" xml:space="preserve">
+    <value>Bu aksiyadorda ulush davrlari mavjud. O'chirilganda faollikdan chiqariladi.</value>
+  </data>
+  <data name="Fin_Shareholders" xml:space="preserve">
+    <value>Aksiyadorlar</value>
+  </data>
+  <data name="Fin_SharesOver100" xml:space="preserve">
+    <value>Jami aksiyalar 100% dan oshib ketdi (shu davrda band: {0}%). Aksiyadorning avvalgi davri bo'lsa, avval uning tugash sanasini belgilang.</value>
+  </data>
+  <data name="Fin_ShortName" xml:space="preserve">
+    <value>Qisqa nomi</value>
+  </data>
+  <data name="Fin_Show" xml:space="preserve">
+    <value>Ko'rsatish</value>
+  </data>
+  <data name="Fin_Sign" xml:space="preserve">
+    <value>Belgi</value>
+  </data>
+  <data name="Fin_SnapshotCount" xml:space="preserve">
+    <value>Snapshotlar soni</value>
+  </data>
+  <data name="Fin_SortOrder" xml:space="preserve">
+    <value>Tartib raqami</value>
+  </data>
+  <data name="Fin_Source" xml:space="preserve">
+    <value>Manba</value>
+  </data>
+  <data name="Fin_SourceDoc" xml:space="preserve">
+    <value>Manba hujjat</value>
+  </data>
+  <data name="Fin_SourceDocId" xml:space="preserve">
+    <value>Manba hujjat ID</value>
+  </data>
+  <data name="Fin_SourceDocIdLong" xml:space="preserve">
+    <value>Manba hujjat ID (majburiyat yoki xarid invoysi ID)</value>
+  </data>
+  <data name="Fin_SourceDocType" xml:space="preserve">
+    <value>Manba hujjat turi</value>
+  </data>
+  <data name="Fin_SourceTypeNotManual" xml:space="preserve">
+    <value>Bu manba hujjat turini qo'lda tanlab bo'lmaydi.</value>
+  </data>
+  <data name="Fin_Src_ExpenseDoc" xml:space="preserve">
+    <value>Ombor chiqimi</value>
+  </data>
+  <data name="Fin_Src_IncomeDoc" xml:space="preserve">
+    <value>Ombor kirimi</value>
+  </data>
+  <data name="Fin_Src_PurchaseInvoice" xml:space="preserve">
+    <value>Xarid invoysi</value>
+  </data>
+  <data name="Fin_Src_RecurringPayment" xml:space="preserve">
+    <value>Doimiy harajat to'lovi (ijara, buxgalteriya va h.k.)</value>
+  </data>
+  <data name="Fin_Src_SalesInvoice" xml:space="preserve">
+    <value>Sotuv invoysi</value>
+  </data>
+  <data name="Fin_Src_ShareholderContribution" xml:space="preserve">
+    <value>Aksiyador hissasi</value>
+  </data>
+  <data name="Fin_Src_SupplierPayment" xml:space="preserve">
+    <value>Ta'minotchiga to'lov (xarid invoysiga bog'lash)</value>
+  </data>
+  <data name="Fin_Src_WaybillPayment" xml:space="preserve">
+    <value>Yo'l varaqasi to'lovi</value>
+  </data>
+  <data name="Fin_Start" xml:space="preserve">
+    <value>Boshlash</value>
+  </data>
+  <data name="Fin_StartMonth" xml:space="preserve">
+    <value>Boshlash oyi</value>
+  </data>
+  <data name="Fin_StartYear" xml:space="preserve">
+    <value>Boshlash yili</value>
+  </data>
+  <data name="Fin_State" xml:space="preserve">
+    <value>Holati</value>
+  </data>
+  <data name="Fin_SubCategories" xml:space="preserve">
+    <value>Kichik kategoriyalar</value>
+  </data>
+  <data name="Fin_SubItems" xml:space="preserve">
+    <value>Kichik elementlar</value>
+  </data>
+  <data name="Fin_Subtracted" xml:space="preserve">
+    <value>Ayrilgan</value>
+  </data>
+  <data name="Fin_SuccessExcl" xml:space="preserve">
+    <value>Muvaffaqiyat!</value>
+  </data>
+  <data name="Fin_Supplier" xml:space="preserve">
+    <value>Ta'minotchi</value>
+  </data>
+  <data name="Fin_SupplierEn" xml:space="preserve">
+    <value>Supplier</value>
+  </data>
+  <data name="Fin_SupplierNum" xml:space="preserve">
+    <value>Supplier #{0}</value>
+  </data>
+  <data name="Fin_SupplierPayCounterpartyRequired" xml:space="preserve">
+    <value>Ta'minotchiga to'lov uchun Kontragent (ID) tanlanishi shart.</value>
+  </data>
+  <data name="Fin_SupplierPayDocRequired" xml:space="preserve">
+    <value>Ta'minotchiga to'lov uchun Manba hujjat ID (xarid invoysi ID) kiritilishi shart.</value>
+  </data>
+  <data name="Fin_SupplierPayTypeRequired" xml:space="preserve">
+    <value>Ta'minotchiga to'lov uchun Kontragent turi = Ta'minotchi bo'lishi kerak.</value>
+  </data>
+  <data name="Fin_SupplierPaymentHint" xml:space="preserve">
+    <value>Ta'minotchiga to'lovda: "Ta'minotchiga to'lov" ni tanlang, Kontragent turi = Ta'minotchi, Kontragent ID = ta'minotchi ID, Manba hujjat ID = xarid invoysi ID (balansda ayrilishi uchun).</value>
+  </data>
+  <data name="Fin_TemplateColumns" xml:space="preserve">
+    <value>Shablon fayl ustunlari</value>
+  </data>
+  <data name="Fin_To" xml:space="preserve">
+    <value>Gacha</value>
+  </data>
+  <data name="Fin_ToList" xml:space="preserve">
+    <value>Ro'yxatga</value>
+  </data>
+  <data name="Fin_TopCustomers" xml:space="preserve">
+    <value>TOP mijozlar (haqqimiz)</value>
+  </data>
+  <data name="Fin_TopExpenseCategories" xml:space="preserve">
+    <value>Eng ko'p chiqim kategoriyalar</value>
+  </data>
+  <data name="Fin_TopIncomeCategories" xml:space="preserve">
+    <value>Eng ko'p kirim kategoriyalar</value>
+  </data>
+  <data name="Fin_TopSuppliers" xml:space="preserve">
+    <value>TOP ta'minotchilar (qarzimiz)</value>
+  </data>
+  <data name="Fin_TotalAccrued" xml:space="preserve">
+    <value>Umumiy hisoblangan</value>
+  </data>
+  <data name="Fin_TotalAmt" xml:space="preserve">
+    <value>Umumiy</value>
+  </data>
+  <data name="Fin_TotalAssets" xml:space="preserve">
+    <value>Jami aktivlar</value>
+  </data>
+  <data name="Fin_TotalBalance" xml:space="preserve">
+    <value>Jami balans</value>
+  </data>
+  <data name="Fin_TotalCompanyValue" xml:space="preserve">
+    <value>Jami kompaniya qiymati</value>
+  </data>
+  <data name="Fin_TotalExpense" xml:space="preserve">
+    <value>Jami chiqim</value>
+  </data>
+  <data name="Fin_TotalIncome" xml:space="preserve">
+    <value>Jami kirim</value>
+  </data>
+  <data name="Fin_TotalLiabilitiesAndEquity" xml:space="preserve">
+    <value>Jami passivlar va kapital</value>
+  </data>
+  <data name="Fin_TotalLiabilitiesObl" xml:space="preserve">
+    <value>Jami passivlar (majburiyatlar)</value>
+  </data>
+  <data name="Fin_TotalLogisticsDebt" xml:space="preserve">
+    <value>Jami logistika qarzi</value>
+  </data>
+  <data name="Fin_TotalPayable" xml:space="preserve">
+    <value>Jami qarzimiz</value>
+  </data>
+  <data name="Fin_TotalPayrollDebt" xml:space="preserve">
+    <value>Jami oylik qarzi</value>
+  </data>
+  <data name="Fin_TotalReceivable" xml:space="preserve">
+    <value>Jami haqqimiz</value>
+  </data>
+  <data name="Fin_TotalTurnover" xml:space="preserve">
+    <value>Umumiy oldi-berdi</value>
+  </data>
+  <data name="Fin_Transactions" xml:space="preserve">
+    <value>Tranzaksiyalar</value>
+  </data>
+  <data name="Fin_TxAmount" xml:space="preserve">
+    <value>Tranzaksiya summasi</value>
+  </data>
+  <data name="Fin_TxAutoCreated1" xml:space="preserve">
+    <value>Bu tranzaksiya</value>
+  </data>
+  <data name="Fin_TxAutoCreated2" xml:space="preserve">
+    <value>hujjatidan avtomatik yaratilgan. Uni o'chirish mumkin emas.</value>
+  </data>
+  <data name="Fin_TxAutoCreatedHint" xml:space="preserve">
+    <value>O'chirish uchun asosiy hujjatni o'chiring yoki bekor qiling.</value>
+  </data>
+  <data name="Fin_TxByAccounts" xml:space="preserve">
+    <value>Hisoblar bo'yicha tranzaksiyalar</value>
+  </data>
+  <data name="Fin_TxCategories" xml:space="preserve">
+    <value>Tranzaksiya kategoriyalari</value>
+  </data>
+  <data name="Fin_TxCount" xml:space="preserve">
+    <value>Tranzaksiyalar soni</value>
+  </data>
+  <data name="Fin_TxDate" xml:space="preserve">
+    <value>Tranzaksiya sanasi</value>
+  </data>
+  <data name="Fin_TxDeleteConfirm" xml:space="preserve">
+    <value>Ushbu tranzaksiyani o'chirishni tasdiqlaysizmi?</value>
+  </data>
+  <data name="Fin_TxDeleted" xml:space="preserve">
+    <value>Tranzaksiya muvaffaqiyatli o'chirildi.</value>
+  </data>
+  <data name="Fin_TxDetails" xml:space="preserve">
+    <value>Tranzaksiya tafsilotlari</value>
+  </data>
+  <data name="Fin_TxFromDocEditViaSource" xml:space="preserve">
+    <value>Ushbu tranzaksiya '{0}' hujjatidan yaratilgan. Uni manba hujjat orqali o'zgartiring.</value>
+  </data>
+  <data name="Fin_TxFromDocNoDelete" xml:space="preserve">
+    <value>Ushbu tranzaksiya '{0}' hujjatidan yaratilgan. O'chirish mumkin emas.</value>
+  </data>
+  <data name="Fin_TxFromDocNoEdit" xml:space="preserve">
+    <value>Ushbu tranzaksiya '{0}' hujjatidan yaratilgan. Tahrirlash mumkin emas.</value>
+  </data>
+  <data name="Fin_TxImportTitle" xml:space="preserve">
+    <value>Tranzaksiyalarni Excel dan import qilish</value>
+  </data>
+  <data name="Fin_TxImported" xml:space="preserve">
+    <value>{0} ta tranzaksiya muvaffaqiyatli import qilindi!</value>
+  </data>
+  <data name="Fin_TxNotFoundOrDeleted" xml:space="preserve">
+    <value>Tranzaksiya topilmadi yoki oldin o'chirilgan.</value>
+  </data>
+  <data name="Fin_TxPurpose" xml:space="preserve">
+    <value>Tranzaksiya maqsadi</value>
+  </data>
+  <data name="Fin_TxTime" xml:space="preserve">
+    <value>Tranzaksiya vaqti</value>
+  </data>
+  <data name="Fin_UnitPrice" xml:space="preserve">
+    <value>Narx birligi</value>
+  </data>
+  <data name="Fin_Unknown" xml:space="preserve">
+    <value>Noma'lum</value>
+  </data>
+  <data name="Fin_UnpaidRecurring" xml:space="preserve">
+    <value>To'lanmagan doimiy harajatlar</value>
+  </data>
+  <data name="Fin_UntilNow" xml:space="preserve">
+    <value>Hozirgacha</value>
+  </data>
+  <data name="Fin_UploadAndImport" xml:space="preserve">
+    <value>Faylni yuklash va import qilish</value>
+  </data>
+  <data name="Fin_UserNotFound" xml:space="preserve">
+    <value>Foydalanuvchi topilmadi: {0}. Xatolik: {1}. Iltimos, tizimga qayta kiring yoki administratorga murojaat qiling.</value>
+  </data>
+  <data name="Fin_ValidationFailed" xml:space="preserve">
+    <value>Ma'lumotlar validatsiyadan o'tmadi: {0}</value>
+  </data>
+  <data name="Fin_ValueOf" xml:space="preserve">
+    <value>Qiymati</value>
+  </data>
+  <data name="Fin_Variance" xml:space="preserve">
+    <value>Farq</value>
+  </data>
+  <data name="Fin_VariancePct" xml:space="preserve">
+    <value>Farq %</value>
+  </data>
+  <data name="Fin_Warehouse" xml:space="preserve">
+    <value>Ombor</value>
+  </data>
+  <data name="Fin_WarningExcl" xml:space="preserve">
+    <value>Ogohlantirish!</value>
+  </data>
+  <data name="Fin_WithDcf" xml:space="preserve">
+    <value>DCF bilan</value>
+  </data>
+  <data name="Fin_WithEbitda" xml:space="preserve">
+    <value>EBITDA bilan</value>
+  </data>
+  <data name="Fin_Year" xml:space="preserve">
+    <value>Yil</value>
+  </data>
+  <data name="Fin_YesDelete" xml:space="preserve">
+    <value>Ha, o'chirish</value>
+  </data>
+  <data name="Mes_List" xml:space="preserve">
+    <value>Ro'yxat</value>
+  </data>
+  <data name="Mes_Product" xml:space="preserve">
+    <value>Mahsulot</value>
+  </data>
+  <data name="Mes_ProductNo" xml:space="preserve">
+    <value>Mahsulot raqami</value>
+  </data>
+  <data name="Mes_ProductName" xml:space="preserve">
+    <value>Mahsulot nomi</value>
+  </data>
+  <data name="Mes_ProductCode" xml:space="preserve">
+    <value>Mahsulot kodi</value>
+  </data>
+  <data name="Mes_ProductInfo" xml:space="preserve">
+    <value>Mahsulot ma'lumotlari</value>
+  </data>
+  <data name="Mes_ProductNotFound" xml:space="preserve">
+    <value>Mahsulot topilmadi.</value>
+  </data>
+  <data name="Mes_MaterialCode" xml:space="preserve">
+    <value>Material kodi</value>
+  </data>
+  <data name="Mes_MaterialName" xml:space="preserve">
+    <value>Material nomi</value>
+  </data>
+  <data name="Mes_Actual" xml:space="preserve">
+    <value>Fakt</value>
+  </data>
+  <data name="Mes_DataNotFound" xml:space="preserve">
+    <value>Ma'lumotlar topilmadi</value>
+  </data>
+  <data name="Mes_DayShift" xml:space="preserve">
+    <value>Kunduzgi smena</value>
+  </data>
+  <data name="Mes_FactProductionDate" xml:space="preserve">
+    <value>Fakt ishlab chiqarish sanasi</value>
+  </data>
+  <data name="Mes_From" xml:space="preserve">
+    <value>Dan</value>
+  </data>
+  <data name="Mes_Info" xml:space="preserve">
+    <value>Ma'lumotlar</value>
+  </data>
+  <data name="Mes_Load" xml:space="preserve">
+    <value>Yuklash</value>
+  </data>
+  <data name="Mes_Materials" xml:space="preserve">
+    <value>Material</value>
+  </data>
+  <data name="Mes_Month" xml:space="preserve">
+    <value>Oy</value>
+  </data>
+  <data name="Mes_NightShift" xml:space="preserve">
+    <value>Tungi smena</value>
+  </data>
+  <data name="Mes_Order" xml:space="preserve">
+    <value>Buyurtma</value>
+  </data>
+  <data name="Mes_Plan" xml:space="preserve">
+    <value>Reja</value>
+  </data>
+  <data name="Mes_Produced" xml:space="preserve">
+    <value>Ishlab chiqarilgan</value>
+  </data>
+  <data name="Mes_Show" xml:space="preserve">
+    <value>Ko'rsatish</value>
+  </data>
+  <data name="Mes_To" xml:space="preserve">
+    <value>Gacha</value>
+  </data>
+  <data name="Mes_Val_QtyNonNegative" xml:space="preserve">
+    <value>Miqdor 0 yoki undan katta bo'lishi kerak</value>
+  </data>
+  <data name="Mes_Val_SelectProduct" xml:space="preserve">
+    <value>Mahsulotni tanlang</value>
+  </data>
+  <data name="Mes_Variance" xml:space="preserve">
+    <value>Farq</value>
+  </data>
+  <data name="Mes_Year" xml:space="preserve">
+    <value>Yil</value>
+  </data>
+  <data name="Mes_YesDelete" xml:space="preserve">
+    <value>Ha, o'chirish</value>
+  </data>
+  <data name="Mes_Dt_Name" xml:space="preserve">
+    <value>Nuqson turi</value>
+  </data>
+  <data name="Mes_PdfError" xml:space="preserve">
+    <value>PDF yaratishda xatolik yuz berdi:</value>
+  </data>
+  <data name="Mes_PdfGenerating" xml:space="preserve">
+    <value>PDF yaratilmoqda...</value>
+  </data>
+  <data name="Mes_PdfLibNotLoaded" xml:space="preserve">
+    <value>PDF kutubxonasi yuklanmadi. Iltimos, sahifani yangilang.</value>
+  </data>
+  <data name="Mes_Qi_Status_REJECTED" xml:space="preserve">
+    <value>Rad etilgan</value>
+  </data>
+  <data name="Mes_UnknownError" xml:space="preserve">
+    <value>Noma'lum xatolik</value>
+  </data>
+  <data name="Mes_UnitOfMeasure" xml:space="preserve">
+    <value>O'lchov birligi</value>
+  </data>
+  <data name="Mes_NoImage" xml:space="preserve">
+    <value>Rasm yo'q</value>
+  </data>
+  <data name="Mes_PdfNoContent" xml:space="preserve">
+    <value>PDF uchun kontent topilmadi. Element ID: bomContent</value>
+  </data>
+  <data name="Mes_DescriptionField" xml:space="preserve">
+    <value>Batafsil</value>
+  </data>
+  <data name="Mes_DataOf" xml:space="preserve">
+    <value>{0} ma'lumotlari</value>
+  </data>
+  <data name="Mes_EditDataOf" xml:space="preserve">
+    <value>{0} ma'lumotlarini tahrirlash</value>
+  </data>
+  <data name="Mes_DeleteDataOf" xml:space="preserve">
+    <value>{0} ma'lumotlarini o'chirish</value>
+  </data>
+  <data name="Mes_Bom_Title" xml:space="preserve">
+    <value>BOM</value>
+  </data>
+  <data name="Mes_Bom_DetailsTitle" xml:space="preserve">
+    <value>BOM Tafsilotlari</value>
+  </data>
+  <data name="Mes_Bom_NormVersion" xml:space="preserve">
+    <value>Norm versiyasi</value>
+  </data>
+  <data name="Mes_Bom_View" xml:space="preserve">
+    <value>BOM ni ko'rish</value>
+  </data>
+  <data name="Mes_Bom_NotFoundShort" xml:space="preserve">
+    <value>BOM topilmadi</value>
+  </data>
+  <data name="Mes_Bom_NotFoundForProduct" xml:space="preserve">
+    <value>Bu mahsulot uchun BOM topilmadi.</value>
+  </data>
+  <data name="Mes_Bom_Structure" xml:space="preserve">
+    <value>BOM Strukturasi</value>
+  </data>
+  <data name="Mes_Bom_NoComponents" xml:space="preserve">
+    <value>Bu mahsulot uchun BOM komponentlari topilmadi.</value>
+  </data>
+  <data name="Mes_Bom_MaterialSummary" xml:space="preserve">
+    <value>Materiallar bo'yicha sarf va summa</value>
+  </data>
+  <data name="Mes_Bom_MaterialConsumption" xml:space="preserve">
+    <value>Xomashyo sarfi</value>
+  </data>
+  <data name="Mes_Bom_MaterialAmount" xml:space="preserve">
+    <value>Xomashyo summasi</value>
+  </data>
+  <data name="Mes_Bom_NoMaterials" xml:space="preserve">
+    <value>Materiallar topilmadi.</value>
+  </data>
+  <data name="Mes_Bom_NoData" xml:space="preserve">
+    <value>BOM ma'lumotlari topilmadi.</value>
+  </data>
+  <data name="Mes_Pp_Title" xml:space="preserve">
+    <value>Production Processlar</value>
+  </data>
+  <data name="Mes_Pp_Add" xml:space="preserve">
+    <value>Yangi process qo'shish</value>
+  </data>
+  <data name="Mes_Pp_Name" xml:space="preserve">
+    <value>Process nomi</value>
+  </data>
+  <data name="Mes_Pp_Info" xml:space="preserve">
+    <value>Production Process ma'lumotlari</value>
+  </data>
+  <data name="Mes_Dt_Title" xml:space="preserve">
+    <value>Nuqson turlari</value>
+  </data>
+  <data name="Mes_Dt_Add" xml:space="preserve">
+    <value>Yangi nuqson turi qo'shish</value>
+  </data>
+  <data name="Mes_Dt_EnterName" xml:space="preserve">
+    <value>Nuqson turini kiriting</value>
+  </data>
+  <data name="Mes_Dt_Edit" xml:space="preserve">
+    <value>Nuqson turini tahrirlash</value>
+  </data>
+  <data name="Mes_Dt_Info" xml:space="preserve">
+    <value>Nuqson turi ma'lumotlari</value>
+  </data>
+  <data name="Mes_Norm_IndexTitle" xml:space="preserve">
+    <value>Norma kiritish</value>
+  </data>
+  <data name="Mes_Norm_CreateTitle" xml:space="preserve">
+    <value>Yangi Norma kiritish</value>
+  </data>
+  <data name="Mes_Norm_EditTitle" xml:space="preserve">
+    <value>Norma kiritish Tahrirlash</value>
+  </data>
+  <data name="Mes_Norm_DetailsTitle" xml:space="preserve">
+    <value>Norma kiritish - Mahsulot normlari</value>
+  </data>
+  <data name="Mes_Norm_ViewTitle" xml:space="preserve">
+    <value>Norma kiritish - Ko'rish</value>
+  </data>
+  <data name="Mes_Norm_Material" xml:space="preserve">
+    <value>Material</value>
+  </data>
+  <data name="Mes_Norm_MaterialType" xml:space="preserve">
+    <value>Material turi</value>
+  </data>
+  <data name="Mes_Norm_LengthMm" xml:space="preserve">
+    <value>Uzunlik (mm)</value>
+  </data>
+  <data name="Mes_Norm_WidthMm" xml:space="preserve">
+    <value>Kenglik (mm)</value>
+  </data>
+  <data name="Mes_Norm_ThicknessMm" xml:space="preserve">
+    <value>Qalinlik (mm)</value>
+  </data>
+  <data name="Mes_Norm_StandardLengthMm" xml:space="preserve">
+    <value>Standart uzunlik (mm)</value>
+  </data>
+  <data name="Mes_Norm_CalcMm" xml:space="preserve">
+    <value>Hisob (mm)</value>
+  </data>
+  <data name="Mes_Norm_CalcM" xml:space="preserve">
+    <value>Hisob (m)</value>
+  </data>
+  <data name="Mes_Norm_QuantityPcs" xml:space="preserve">
+    <value>Miqdori (dona)</value>
+  </data>
+  <data name="Mes_Norm_Qty" xml:space="preserve">
+    <value>Miqdori</value>
+  </data>
+  <data name="Mes_Norm_PiecesPerBar" xml:space="preserve">
+    <value>Bitta bar/sheet dan kesilgan dona</value>
+  </data>
+  <data name="Mes_Norm_ConsumptionPerProduct" xml:space="preserve">
+    <value>Bitta mahsulot uchun sarflanish (m)</value>
+  </data>
+  <data name="Mes_Norm_WastePerProduct" xml:space="preserve">
+    <value>Bitta mahsulot uchun chiqindi (m)</value>
+  </data>
+  <data name="Mes_Norm_Norma" xml:space="preserve">
+    <value>Norma</value>
+  </data>
+  <data name="Mes_Norm_Waste" xml:space="preserve">
+    <value>Chiqindi</value>
+  </data>
+  <data name="Mes_Norm_TotalCostPerProduct" xml:space="preserve">
+    <value>Bitta mahsulot uchun umumiy narx</value>
+  </data>
+  <data name="Mes_Norm_CuttingMethod" xml:space="preserve">
+    <value>Kesish usuli</value>
+  </data>
+  <data name="Mes_Norm_Version" xml:space="preserve">
+    <value>Versiya</value>
+  </data>
+  <data name="Mes_Norm_VersionId" xml:space="preserve">
+    <value>Versiya ID</value>
+  </data>
+  <data name="Mes_Norm_EffectiveFrom" xml:space="preserve">
+    <value>Samarali sanadan</value>
+  </data>
+  <data name="Mes_Norm_EffectiveTo" xml:space="preserve">
+    <value>Samarali sanagacha</value>
+  </data>
+  <data name="Mes_Norm_EffectiveFromThis" xml:space="preserve">
+    <value>Samarali shu sanadan</value>
+  </data>
+  <data name="Mes_Norm_EffectiveToThis" xml:space="preserve">
+    <value>Samarali shu sanagacha</value>
+  </data>
+  <data name="Mes_Norm_TotalNorm" xml:space="preserve">
+    <value>Umumiy norma</value>
+  </data>
+  <data name="Mes_Norm_TotalWaste" xml:space="preserve">
+    <value>Umumiy chiqindi</value>
+  </data>
+  <data name="Mes_Norm_TotalAmount" xml:space="preserve">
+    <value>Umumiy summa</value>
+  </data>
+  <data name="Mes_Norm_SelectMaterial" xml:space="preserve">
+    <value>Materialni tanlang</value>
+  </data>
+  <data name="Mes_Norm_SelectMonth" xml:space="preserve">
+    <value>Oyni tanlang</value>
+  </data>
+  <data name="Mes_Norm_Val_QtyNonNegative" xml:space="preserve">
+    <value>Miqdor manfiy bo'lishi mumkin emas</value>
+  </data>
+  <data name="Mes_Norm_Val_PiecesMin1" xml:space="preserve">
+    <value>Dona 1 dan katta bo'lishi kerak</value>
+  </data>
+  <data name="Mes_Norm_NormCount" xml:space="preserve">
+    <value>Normalar soni</value>
+  </data>
+  <data name="Mes_Norm_CountPcs" xml:space="preserve">
+    <value>{0} ta</value>
+  </data>
+  <data name="Mes_Norm_ViewNorms" xml:space="preserve">
+    <value>Normalarni ko'rish</value>
+  </data>
+  <data name="Mes_Norm_Norms" xml:space="preserve">
+    <value>Normalar</value>
+  </data>
+  <data name="Mes_Norm_AddNewNorm" xml:space="preserve">
+    <value>Yangi NORMA qo'shish</value>
+  </data>
+  <data name="Mes_Norm_NewNorm" xml:space="preserve">
+    <value>Yangi NORM</value>
+  </data>
+  <data name="Mes_Norm_NewNormCaps" xml:space="preserve">
+    <value>Yangi NORMA</value>
+  </data>
+  <data name="Mes_Norm_NoProducts" xml:space="preserve">
+    <value>Mahsulotlar topilmadi</value>
+  </data>
+  <data name="Mes_Norm_ProductLabel" xml:space="preserve">
+    <value>Mahsulot:</value>
+  </data>
+  <data name="Mes_Norm_NormMonth" xml:space="preserve">
+    <value>Norma oyi</value>
+  </data>
+  <data name="Mes_Norm_TotalConsumptionAmount" xml:space="preserve">
+    <value>Umumiy sarf bo'yicha summa</value>
+  </data>
+  <data name="Mes_Norm_TotalWasteAmount" xml:space="preserve">
+    <value>Umumiy chiqindi bo'yicha summa</value>
+  </data>
+  <data name="Mes_Norm_ConfirmDeleteNorm" xml:space="preserve">
+    <value>Bu NORM ni o'chirishni tasdiqlaysizmi?</value>
+  </data>
+  <data name="Mes_Norm_NoNormsForProduct" xml:space="preserve">
+    <value>Bu mahsulot uchun normalar topilmadi.</value>
+  </data>
+  <data name="Mes_Norm_AddFirstNorm" xml:space="preserve">
+    <value>Birinchi NORMA ni qo'shish</value>
+  </data>
+  <data name="Mes_Norm_LoadFromPrevious" xml:space="preserve">
+    <value>Oldingi oylardagi normadan yuklash</value>
+  </data>
+  <data name="Mes_Norm_CuttingVariants" xml:space="preserve">
+    <value>Kesish variantlari</value>
+  </data>
+  <data name="Mes_Norm_NoCuttingVariants" xml:space="preserve">
+    <value>Kesish variantlari topilmadi.</value>
+  </data>
+  <data name="Mes_Norm_AutoPriceFromWarehouse" xml:space="preserve">
+    <value>material narxlarini ombor avtomatik tortish</value>
+  </data>
+  <data name="Mes_Norm_ConsumptionM" xml:space="preserve">
+    <value>Sarf (m)</value>
+  </data>
+  <data name="Mes_Norm_WasteM" xml:space="preserve">
+    <value>Chiqindi (m)</value>
+  </data>
+  <data name="Mes_Norm_CleanConsumptionAmount" xml:space="preserve">
+    <value>Toza sarf summa</value>
+  </data>
+  <data name="Mes_Norm_WasteAmount" xml:space="preserve">
+    <value>Chiqindi summa</value>
+  </data>
+  <data name="Mes_Norm_TotalPrice" xml:space="preserve">
+    <value>Jami narx</value>
+  </data>
+  <data name="Mes_Norm_AddRow" xml:space="preserve">
+    <value>Qator qo'shish</value>
+  </data>
+  <data name="Mes_Norm_TotalsHeader" xml:space="preserve">
+    <value>Jami hisoblar</value>
+  </data>
+  <data name="Mes_Norm_TotalNormM" xml:space="preserve">
+    <value>Umumiy norma (m)</value>
+  </data>
+  <data name="Mes_Norm_TotalNormWoodM" xml:space="preserve">
+    <value>Umumiy norma Yog'och (m)</value>
+  </data>
+  <data name="Mes_Norm_WoodOnly" xml:space="preserve">
+    <value>faqat yog'och uchun</value>
+  </data>
+  <data name="Mes_Norm_CutOnly" xml:space="preserve">
+    <value>faqat kesiladiganlar uchun</value>
+  </data>
+  <data name="Mes_Norm_AllElements" xml:space="preserve">
+    <value>barcha elementlar uchun</value>
+  </data>
+  <data name="Mes_Norm_TotalWasteM" xml:space="preserve">
+    <value>Umumiy chiqindi (m)</value>
+  </data>
+  <data name="Mes_Norm_AmountsHeader" xml:space="preserve">
+    <value>Summa hisoblar</value>
+  </data>
+  <data name="Mes_Norm_TotalCleanConsumptionAmount" xml:space="preserve">
+    <value>Umumiy toza sarf summa</value>
+  </data>
+  <data name="Mes_Norm_TotalWasteAmountShort" xml:space="preserve">
+    <value>Umumiy chiqindi summa</value>
+  </data>
+  <data name="Mes_Norm_OptSuggestion" xml:space="preserve">
+    <value>Optimizatsiya taklifi</value>
+  </data>
+  <data name="Mes_Norm_SuggestedNormM" xml:space="preserve">
+    <value>Taklif qilingan norma (m)</value>
+  </data>
+  <data name="Mes_Norm_SuggestedWasteM" xml:space="preserve">
+    <value>Taklif qilingan chiqindi (m)</value>
+  </data>
+  <data name="Mes_Norm_SuggestedAmount" xml:space="preserve">
+    <value>Taklif qilingan summa</value>
+  </data>
+  <data name="Mes_Norm_OptimizedPositions" xml:space="preserve">
+    <value>Optimizatsiya qilingan pozitsiyalar</value>
+  </data>
+  <data name="Mes_Norm_RawMaterialCode" xml:space="preserve">
+    <value>Xomashyo kodi</value>
+  </data>
+  <data name="Mes_Norm_RawMaterialName" xml:space="preserve">
+    <value>Xomashyo nomi</value>
+  </data>
+  <data name="Mes_Norm_OptimizeConsumption" xml:space="preserve">
+    <value>Sarf optimizatsiyasi (chiqindidan foydalanish)</value>
+  </data>
+  <data name="Mes_Norm_SaveAndConfirm" xml:space="preserve">
+    <value>Saqlash va tasdiqlash</value>
+  </data>
+  <data name="Mes_Norm_PdfNoContent" xml:space="preserve">
+    <value>PDF uchun kontent topilmadi. Element ID: normContent</value>
+  </data>
+  <data name="Mes_Norm_UnknownErrorOccurred" xml:space="preserve">
+    <value>Noma'lum xatolik yuz berdi.</value>
+  </data>
+  <data name="Mes_Norm_SelectPreviousNorm" xml:space="preserve">
+    <value>Iltimos, oldingi normani tanlang.</value>
+  </data>
+  <data name="Mes_Norm_UsedWasteFromAbove" xml:space="preserve">
+    <value>Tepadagi pozitsiyaning chiqindisidan foydalanilgan</value>
+  </data>
+  <data name="Mes_Norm_Calculating" xml:space="preserve">
+    <value>Hisoblanmoqda...</value>
+  </data>
+  <data name="Mes_Norm_Optimize" xml:space="preserve">
+    <value>Optimizatsiya qilish</value>
+  </data>
+  <data name="Mes_Norm_ResponseParseError" xml:space="preserve">
+    <value>Xatolik: Server javobini tahlil qilishda muammo yuz berdi.</value>
+  </data>
+  <data name="Mes_Norm_ErrorPrefix" xml:space="preserve">
+    <value>Xatolik: </value>
+  </data>
+  <data name="Mes_Norm_ServerError" xml:space="preserve">
+    <value>Server xatosi yuz berdi.</value>
+  </data>
+  <data name="Mes_Norm_ProductIdMissing" xml:space="preserve">
+    <value>Mahsulot ID kiritilmagan.</value>
+  </data>
+  <data name="Mes_Norm_VersionIdMissing" xml:space="preserve">
+    <value>Norm versiyasi ID kiritilmagan.</value>
+  </data>
+  <data name="Mes_Norm_VersionNotFound" xml:space="preserve">
+    <value>Norm versiyasi topilmadi.</value>
+  </data>
+  <data name="Mes_Norm_Deleted" xml:space="preserve">
+    <value>NORM muvaffaqiyatli o'chirildi.</value>
+  </data>
+  <data name="Mes_Norm_Saved" xml:space="preserve">
+    <value>NORM muvaffaqiyatli saqlandi.</value>
+  </data>
+  <data name="Mes_Norm_AlreadyExistsForMonth" xml:space="preserve">
+    <value>Bu mahsulot uchun {0} oyi uchun norm allaqachon mavjud. Iltimos, mavjud normni tahrirlang yoki boshqa oy tanlang.</value>
+  </data>
+  <data name="Mes_Norm_TemplateNotFound" xml:space="preserve">
+    <value>Tanlangan oldingi norma topilmadi yoki ushbu mahsulotga tegishli emas.</value>
+  </data>
+  <data name="Mes_Norm_MaterialNotFound" xml:space="preserve">
+    <value>Material topilmadi</value>
+  </data>
+  <data name="Mes_Norm_JsonDataNotFound" xml:space="preserve">
+    <value>JSON ma'lumotlari topilmadi</value>
+  </data>
+  <data name="Mes_Norm_JsonFormatInvalid" xml:space="preserve">
+    <value>Ma'lumotlar formati noto'g'ri (JSON).</value>
+  </data>
+  <data name="Mes_Norm_ModelDataNotFound" xml:space="preserve">
+    <value>Model ma'lumotlari topilmadi</value>
+  </data>
+  <data name="Mes_Norm_NoCuttingVariantsShort" xml:space="preserve">
+    <value>Kesish variantlari topilmadi</value>
+  </data>
+  <data name="Mes_Norm_OptResultReused" xml:space="preserve">
+    <value>Optimizatsiya: {0} ta kesim chiqindidan olindi (sarf 0). Umumiy norma {1} m, umumiy chiqindi {2} m, umumiy summa {3}.</value>
+  </data>
+  <data name="Mes_Norm_OptResultNone" xml:space="preserve">
+    <value>Optimizatsiya: chiqindidan qayta ishlatish imkoni topilmadi. Umumiy norma {0} m, umumiy chiqindi {1} m, umumiy summa {2}.</value>
+  </data>
+  <data name="Mes_Norm_CalcError" xml:space="preserve">
+    <value>Hisoblashda xatolik yuz berdi.</value>
+  </data>
+  <data name="Mes_Norm_BomDeactivated" xml:space="preserve">
+    <value>Mahsulotda norma qolmadi — BOM faolsizlantirildi.</value>
+  </data>
+  <data name="Mes_Norm_BomUnchanged" xml:space="preserve">
+    <value>BOM o'zgarmadi: u eng so'nggi norma ({0}) bo'yicha qoladi.</value>
+  </data>
+  <data name="Mes_Norm_BomUpdated" xml:space="preserve">
+    <value>BOM eng so'nggi norma ({0}) bo'yicha yangilandi.</value>
+  </data>
+  <data name="Mes_Norm_NoMonth" xml:space="preserve">
+    <value>Oy yo'q</value>
+  </data>
+  <data name="Mes_Norm_OptNoteNotCut" xml:space="preserve">
+    <value>Kesilmaydigan material — optimizatsiya qo'llanilmadi.</value>
+  </data>
+  <data name="Mes_Norm_OptNoteNoStdLength" xml:space="preserve">
+    <value>Standart uzunlik yo'q — optimizatsiya qo'llanilmadi.</value>
+  </data>
+  <data name="Mes_Norm_OptNoteFromWaste" xml:space="preserve">
+    <value>{0}mm × {1} dona {2}-qatordagi {3}mm kesim chiqindisidan olinadi. Sarf 0 qilindi.</value>
+  </data>
+  <data name="Mes_Norm_OptNoteWasteUsed" xml:space="preserve">
+    <value>Chiqindidan {0}mm boshqa kalta kesimlarga ishlatildi. Qolgan chiqindi {1}mm.</value>
+  </data>
+  <data name="Mes_Norm_OptNoteWasteUnused" xml:space="preserve">
+    <value>Chiqindi {0}mm (boshqa kesimga ishlatilmadi).</value>
+  </data>
+  <data name="Mes_Plan_Title" xml:space="preserve">
+    <value>Ishlab Chiqarish Rejasi</value>
+  </data>
+  <data name="Mes_Plan_NewTitle" xml:space="preserve">
+    <value>Yangi Ishlab Chiqarish Rejasi</value>
+  </data>
+  <data name="Mes_Plan_EditTitle" xml:space="preserve">
+    <value>Ishlab Chiqarish Rejasini Tahrirlash</value>
+  </data>
+  <data name="Mes_Plan_DeleteTitle" xml:space="preserve">
+    <value>Ishlab Chiqarish Rejasini O'chirish</value>
+  </data>
+  <data name="Mes_Plan_DetailsTitle" xml:space="preserve">
+    <value>Ishlab Chiqarish Rejasi Ma'lumotlari</value>
+  </data>
+  <data name="Mes_Plan_GridCreateTitle" xml:space="preserve">
+    <value>Rejani jadvalda kiritish</value>
+  </data>
+  <data name="Mes_Plan_GridEditTitle" xml:space="preserve">
+    <value>Rejani jadvalda tahrirlash</value>
+  </data>
+  <data name="Mes_Plan_GridCreateHeader" xml:space="preserve">
+    <value>Ishlab chiqarish rejasini jadvalda kiritish</value>
+  </data>
+  <data name="Mes_Plan_GridEditHeader" xml:space="preserve">
+    <value>Ishlab chiqarish rejasini jadvalda tahrirlash</value>
+  </data>
+  <data name="Mes_Plan_NewPlan" xml:space="preserve">
+    <value>Yangi Reja</value>
+  </data>
+  <data name="Mes_Plan_GridEntry" xml:space="preserve">
+    <value>Jadvalda kiritish</value>
+  </data>
+  <data name="Mes_Plan_GridEditBtn" xml:space="preserve">
+    <value>Jadvalda tahrirlash</value>
+  </data>
+  <data name="Mes_Plan_PlanQty" xml:space="preserve">
+    <value>Reja miqdori</value>
+  </data>
+  <data name="Mes_Plan_PlanQtyTotal" xml:space="preserve">
+    <value>Reja miqdori (Jami)</value>
+  </data>
+  <data name="Mes_Plan_StartDate" xml:space="preserve">
+    <value>Boshlanish sanasi</value>
+  </data>
+  <data name="Mes_Plan_EndDate" xml:space="preserve">
+    <value>Tugash sanasi</value>
+  </data>
+  <data name="Mes_Plan_IsDeleted" xml:space="preserve">
+    <value>O'chirilgan</value>
+  </data>
+  <data name="Mes_Plan_SalesOrder" xml:space="preserve">
+    <value>Savdo buyurtmasi</value>
+  </data>
+  <data name="Mes_Plan_DaysCount" xml:space="preserve">
+    <value>Kunlar soni</value>
+  </data>
+  <data name="Mes_Plan_ApplyMonth" xml:space="preserve">
+    <value>Oyni qo'llash</value>
+  </data>
+  <data name="Mes_Plan_AddRow" xml:space="preserve">
+    <value>Yangi qator qo'shish</value>
+  </data>
+  <data name="Mes_Plan_OptionalLink" xml:space="preserve">
+    <value>-- ixtiyoriy bog'lash --</value>
+  </data>
+  <data name="Mes_Plan_LinkedSchedules" xml:space="preserve">
+    <value>Bog'langan yetkazib berish jadvallari</value>
+  </data>
+  <data name="Mes_Plan_DailyPlanInline" xml:space="preserve">
+    <value>Kunlik Reja (Inline Tahrirlash)</value>
+  </data>
+  <data name="Mes_Plan_PlanVsActualDaily" xml:space="preserve">
+    <value>Reja vs Fakt (Kunlik)</value>
+  </data>
+  <data name="Mes_Plan_NoDailyData" xml:space="preserve">
+    <value>Kunlik reja ma'lumotlari mavjud emas</value>
+  </data>
+  <data name="Mes_Plan_SaveDaily" xml:space="preserve">
+    <value>Kunlik rejalarni saqlash</value>
+  </data>
+  <data name="Mes_Plan_NoChanges" xml:space="preserve">
+    <value>O'zgarishlar yo'q</value>
+  </data>
+  <data name="Mes_Plan_Saving" xml:space="preserve">
+    <value>Saqlanmoqda...</value>
+  </data>
+  <data name="Mes_Plan_CreateHint" xml:space="preserve">
+    <value>Reja yaratilgandan so'ng, har bir kun uchun avtomatik ravishda kunlik reja yaratiladi. Keyinchalik kunlik rejalarni tahrirlash mumkin.</value>
+  </data>
+  <data name="Mes_Plan_EditHint" xml:space="preserve">
+    <value>Sanalar o'zgarganda, kunlik rejalar qayta yaratilmaydi. Faqat asosiy reja ma'lumotlari yangilanadi.</value>
+  </data>
+  <data name="Mes_Plan_DeleteConfirm" xml:space="preserve">
+    <value>Siz haqiqatan ham ushbu rejani o'chirmoqchimisiz?</value>
+  </data>
+  <data name="Mes_Plan_ConfirmDeletePlan" xml:space="preserve">
+    <value>Reja o'chirilsinmi?</value>
+  </data>
+  <data name="Mes_Plan_TokenNotFound" xml:space="preserve">
+    <value>Token topilmadi</value>
+  </data>
+  <data name="Mes_Plan_DeleteError" xml:space="preserve">
+    <value>O'chirishda xatolik</value>
+  </data>
+  <data name="Mes_Plan_NetworkError" xml:space="preserve">
+    <value>Tarmoq xatosi</value>
+  </data>
+  <data name="Mes_Plan_Val_EnterPlanQty" xml:space="preserve">
+    <value>Reja miqdorini kiriting</value>
+  </data>
+  <data name="Mes_Plan_Val_QtyPositive" xml:space="preserve">
+    <value>Miqdor 0 dan katta bo'lishi kerak.</value>
+  </data>
+  <data name="Mes_Plan_Val_EnterStartDate" xml:space="preserve">
+    <value>Boshlanish sanasini kiriting</value>
+  </data>
+  <data name="Mes_Plan_Val_EnterEndDate" xml:space="preserve">
+    <value>Tugash sanasini kiriting</value>
+  </data>
+  <data name="Mes_Plan_Err_Overlap" xml:space="preserve">
+    <value>Ushbu mahsulot uchun tanlangan muddatlarda allaqachon reja mavjud.</value>
+  </data>
+  <data name="Mes_Plan_Err_OverlapOther" xml:space="preserve">
+    <value>Ushbu mahsulot uchun tanlangan muddatlarda boshqa reja mavjud.</value>
+  </data>
+  <data name="Mes_Plan_Err_NoRowsToSave" xml:space="preserve">
+    <value>Saqlash uchun qator yo'q</value>
+  </data>
+  <data name="Mes_Plan_PlansSaved" xml:space="preserve">
+    <value>{0} ta reja saqlandi.</value>
+  </data>
+  <data name="Mes_Plan_GridUpdated" xml:space="preserve">
+    <value>Yangilandi: {0}, qo'shildi: {1}</value>
+  </data>
+  <data name="Mes_Plan_Err_EndBeforeStart" xml:space="preserve">
+    <value>Tugash sanasi boshlanish sanasidan kichik bo'lishi mumkin emas.</value>
+  </data>
+  <data name="Mes_Plan_Created" xml:space="preserve">
+    <value>Ishlab chiqarish rejasi muvaffaqiyatli yaratildi</value>
+  </data>
+  <data name="Mes_Plan_Updated" xml:space="preserve">
+    <value>Ishlab chiqarish rejasi muvaffaqiyatli yangilandi</value>
+  </data>
+  <data name="Mes_Plan_Deleted" xml:space="preserve">
+    <value>Ishlab chiqarish rejasi muvaffaqiyatli o'chirildi</value>
+  </data>
+  <data name="Mes_Plan_DailyRedistributed" xml:space="preserve">
+    <value>Muddat yoki miqdor o'zgargani uchun kunlik reja qayta taqsimlandi.</value>
+  </data>
+  <data name="Mes_Plan_Err_PlanNotFound" xml:space="preserve">
+    <value>Reja topilmadi</value>
+  </data>
+  <data name="Mes_Plan_PlanDeletedShort" xml:space="preserve">
+    <value>Reja o'chirildi</value>
+  </data>
+  <data name="Mes_Plan_DailyUpdated" xml:space="preserve">
+    <value>Kunlik reja muvaffaqiyatli yangilandi</value>
+  </data>
+  <data name="Mes_Plan_Err_DailySave" xml:space="preserve">
+    <value>Kunlik rejani saqlashda xatolik yuz berdi.</value>
+  </data>
+  <data name="Mes_Plan_Err_GridRowsOverlap" xml:space="preserve">
+    <value>Bir xil mahsulot uchun jadvalda ustma-ust tushadigan qatorlar bor.</value>
+  </data>
+  <data name="Mes_Plan_Err_ProductNotInOrder" xml:space="preserve">
+    <value>Xatolik: ushbu savdo buyurtmasida tanlangan mahsulot yo'q.</value>
+  </data>
+  <data name="Mes_Plan_Err_QtyExceedsOrder" xml:space="preserve">
+    <value>Xatolik: reja miqdori ({0}) savdo buyurtmasi miqdoridan ({1}) oshib ketdi.</value>
+  </data>
+  <data name="Mes_Prod_Title" xml:space="preserve">
+    <value>Ishlab Chiqarish</value>
+  </data>
+  <data name="Mes_Prod_New" xml:space="preserve">
+    <value>Yangi Ishlab Chiqarish</value>
+  </data>
+  <data name="Mes_Prod_FileName" xml:space="preserve">
+    <value>Ishlab_Chiqarish</value>
+  </data>
+  <data name="Mes_Prod_DailyEntryTitle" xml:space="preserve">
+    <value>Kunlik Ishlab Chiqarish Kiritish</value>
+  </data>
+  <data name="Mes_Prod_Daily" xml:space="preserve">
+    <value>Kunlik Ishlab Chiqarish</value>
+  </data>
+  <data name="Mes_Prod_EditTitle" xml:space="preserve">
+    <value>Ishlab Chiqarish Tahrirlash</value>
+  </data>
+  <data name="Mes_Prod_DetailsTitle" xml:space="preserve">
+    <value>Ishlab Chiqarish Ma'lumotlari</value>
+  </data>
+  <data name="Mes_Prod_Shop" xml:space="preserve">
+    <value>Sex</value>
+  </data>
+  <data name="Mes_Prod_Day" xml:space="preserve">
+    <value>Kunduzgi</value>
+  </data>
+  <data name="Mes_Prod_Night" xml:space="preserve">
+    <value>Tungi</value>
+  </data>
+  <data name="Mes_Prod_PlanDate" xml:space="preserve">
+    <value>Reja sanasi</value>
+  </data>
+  <data name="Mes_Prod_PlanDay" xml:space="preserve">
+    <value>Reja (Kunduzgi)</value>
+  </data>
+  <data name="Mes_Prod_PlanNight" xml:space="preserve">
+    <value>Reja (Tungi)</value>
+  </data>
+  <data name="Mes_Prod_PlanTotal" xml:space="preserve">
+    <value>Reja (Jami)</value>
+  </data>
+  <data name="Mes_Prod_Planned" xml:space="preserve">
+    <value>Rejalashtirilgan</value>
+  </data>
+  <data name="Mes_Prod_LoadPlanned" xml:space="preserve">
+    <value>Rejalashtirilgan mahsulotlarni yuklash</value>
+  </data>
+  <data name="Mes_Prod_SelectDateShopHint" xml:space="preserve">
+    <value>Sana va sexni tanlang va "Rejalashtirilgan mahsulotlarni yuklash" tugmasini bosing</value>
+  </data>
+  <data name="Mes_Prod_PleaseSelectDateShop" xml:space="preserve">
+    <value>Iltimos, sana va sexni tanlang</value>
+  </data>
+  <data name="Mes_Prod_NoPlannedProducts" xml:space="preserve">
+    <value>Rejalashtirilgan mahsulotlar topilmadi</value>
+  </data>
+  <data name="Mes_Prod_ErrorOccurred" xml:space="preserve">
+    <value>Xatolik yuz berdi:</value>
+  </data>
+  <data name="Mes_Prod_ReconcileConfirm" xml:space="preserve">
+    <value>Har bir ishlab chiqarish uchun xomashyo chiqimini «ishlab chiqarilgan son × BOM» ga moslab qayta hisoblashni xohlaysizmi?</value>
+  </data>
+  <data name="Mes_Prod_ReconcileHint" xml:space="preserve">
+    <value>Avtomatik xomashyo chiqimlarini BOM bo'yicha qayta hisoblash</value>
+  </data>
+  <data name="Mes_Prod_ReconcileButton" xml:space="preserve">
+    <value>Chiqimni tuzatish (BOM)</value>
+  </data>
+  <data name="Mes_Prod_ReconcileSummary" xml:space="preserve">
+    <value>Tuzatildi: {0}, allaqachon to'g'ri: {1}, o'tkazib yuborildi: {2}, xatolar: {3}.</value>
+  </data>
+  <data name="Mes_Prod_DeleteConfirm" xml:space="preserve">
+    <value>Ishlab chiqarishni oʻchirishni tasdiqlaysizmi? Kirim va xomashyo chiqimi bekor qilinadi.</value>
+  </data>
+  <data name="Mes_Prod_DocRef" xml:space="preserve">
+    <value>Hujjat havolasi:</value>
+  </data>
+  <data name="Mes_Prod_BomConsumptionTitle" xml:space="preserve">
+    <value>BOM/Norm bo'yicha sarf (xom ashyo talabi)</value>
+  </data>
+  <data name="Mes_Prod_BomLinesCount" xml:space="preserve">
+    <value>Jami &lt;b&gt;{0}&lt;/b&gt; ta xom ashyo (BOM/Norm).</value>
+  </data>
+  <data name="Mes_Prod_MaterialName" xml:space="preserve">
+    <value>Xom ashyo nomi</value>
+  </data>
+  <data name="Mes_Prod_RequiredPcs" xml:space="preserve">
+    <value>Talab qilingan (dona)</value>
+  </data>
+  <data name="Mes_Prod_TotalConsumption" xml:space="preserve">
+    <value>Jami sarf</value>
+  </data>
+  <data name="Mes_Prod_PiecePrice" xml:space="preserve">
+    <value>Dona narxi</value>
+  </data>
+  <data name="Mes_Prod_AmountMoney" xml:space="preserve">
+    <value>Summa (pul)</value>
+  </data>
+  <data name="Mes_Prod_NoBomLines" xml:space="preserve">
+    <value>Ushbu mahsulot uchun BOM/Norm topilmadi yoki sarf qatorlari yo'q.</value>
+  </data>
+  <data name="Mes_Prod_ExpenseDocsTitle" xml:space="preserve">
+    <value>Chiqim hujjatlari (ishlab chiqarish uchun xomashyo chiqimi)</value>
+  </data>
+  <data name="Mes_Prod_ExpensePageUrl" xml:space="preserve">
+    <value>Chiqim sahifasi URL:</value>
+  </data>
+  <data name="Mes_Prod_ExpenseLinkHint" xml:space="preserve">
+    <value>Quyidagi jadvalda har bir qator uchun &lt;b&gt;Chiqim&lt;/b&gt; tugmasi yoki havola orqali chiqim hujjatiga o‘ting.</value>
+  </data>
+  <data name="Mes_Prod_ExpenseDocsCount" xml:space="preserve">
+    <value>Ushbu ishlab chiqarishga bog‘liq &lt;b&gt;{0}&lt;/b&gt; ta chiqim hujjati.</value>
+  </data>
+  <data name="Mes_Prod_DocNo" xml:space="preserve">
+    <value>Hujjat raqami</value>
+  </data>
+  <data name="Mes_Prod_DateTime" xml:space="preserve">
+    <value>Sana va vaqt</value>
+  </data>
+  <data name="Mes_Prod_ProductCount" xml:space="preserve">
+    <value>Mahsulotlar soni</value>
+  </data>
+  <data name="Mes_Prod_TotalQty" xml:space="preserve">
+    <value>Jami miqdor</value>
+  </data>
+  <data name="Mes_Prod_ExpenseUrl" xml:space="preserve">
+    <value>Chiqim URL</value>
+  </data>
+  <data name="Mes_Prod_GoToExpense" xml:space="preserve">
+    <value>Chiqim hujjatiga o'tish</value>
+  </data>
+  <data name="Mes_Prod_Expense" xml:space="preserve">
+    <value>Chiqim</value>
+  </data>
+  <data name="Mes_Prod_NoExpenseDocs" xml:space="preserve">
+    <value>Ushbu ishlab chiqarish uchun chiqim hujjati topilmadi (BOM chiqimi bo‘lmagan yoki eski yozuvlar).</value>
+  </data>
+  <data name="Mes_Prod_Val_SelectShop" xml:space="preserve">
+    <value>Sexni tanlang</value>
+  </data>
+  <data name="Mes_Prod_Val_EnterDate" xml:space="preserve">
+    <value>Sanani kiriting</value>
+  </data>
+  <data name="Mes_Prod_Val_SelectPlanDate" xml:space="preserve">
+    <value>Reja sanasini tanlang</value>
+  </data>
+  <data name="Mes_Prod_Val_SelectProductionDate" xml:space="preserve">
+    <value>Fakt ishlab chiqarish sanasini tanlang</value>
+  </data>
+  <data name="Mes_Prod_LockedEdit" xml:space="preserve">
+    <value>Bu ishlab chiqarish sifat nazorati yoki lot o'tkazmasi (sotuvga transfer) bilan bog'langan. O'zgartirish mumkin emas.</value>
+  </data>
+  <data name="Mes_Prod_LockedDelete" xml:space="preserve">
+    <value>Bu ishlab chiqarish sifat nazorati yoki lot o'tkazmasi (sotuvga transfer) bilan bog'langan. O'chirish mumkin emas.</value>
+  </data>
+  <data name="Mes_Prod_LockedProducts" xml:space="preserve">
+    <value>Mahsulot(lar): {0}</value>
+  </data>
+  <data name="Mes_Prod_AtLeastOneQty" xml:space="preserve">
+    <value>Kamida bitta mahsulot uchun jami miqdor (kunduzgi + tungi) 0 dan katta bo'lishi kerak.</value>
+  </data>
+  <data name="Mes_Prod_WarehouseNotFound" xml:space="preserve">
+    <value>Ishlab chiqarish ombori topilmadi</value>
+  </data>
+  <data name="Mes_Prod_WarehouseNotFoundForReversal" xml:space="preserve">
+    <value>Ishlab chiqarish ombori topilmadi (eski qoldiqni bekor qilish uchun).</value>
+  </data>
+  <data name="Mes_Prod_Saved" xml:space="preserve">
+    <value>Ishlab chiqarish muvaffaqiyatli saqlandi</value>
+  </data>
+  <data name="Mes_Prod_Updated" xml:space="preserve">
+    <value>Ishlab chiqarish muvaffaqiyatli yangilandi</value>
+  </data>
+  <data name="Mes_Prod_Deleted" xml:space="preserve">
+    <value>Ishlab chiqarish muvaffaqiyatli o'chirildi</value>
+  </data>
+  <data name="Mes_Prod_LoadError" xml:space="preserve">
+    <value>Ma'lumotlarni yuklashda xatolik yuz berdi. Iltimos, qayta urinib ko'ring.</value>
+  </data>
+  <data name="Mes_Prod_DateShopRequired" xml:space="preserve">
+    <value>Sana va sex tanlanishi kerak</value>
+  </data>
+  <data name="Mes_Prod_KgUnitNotFound" xml:space="preserve">
+    <value>UNITS jadvalida kg birligi topilmadi (mahsulot: {0}).</value>
+  </data>
+  <data name="Mes_Prod_StockShortage" xml:space="preserve">
+    <value>Ishlab chiqarish natijasini saqlab bo'lmadi: xomashyo yetarli emas. Mahsulot: {0}, omborda {1}, kerak {2}.</value>
+  </data>
+  <data name="Mes_Prod_LotDisplay" xml:space="preserve">
+    <value>Lot {0} ({1}) — qoldiq: {2}</value>
+  </data>
+  <data name="Mes_Prod_LotInsufficientAccepted" xml:space="preserve">
+    <value>Lot (Ishlab chiqarish #{0}, {1}) uchun qabul qilingan miqdor yetarli emas. Qabul qilingan jami: {2}, avval o'tkazilgan: {3}, hozir so'ralgan: {4}.</value>
+  </data>
+  <data name="Mes_Prod_ErrorPrefix" xml:space="preserve">
+    <value>Xatolik: {0}</value>
+  </data>
+  <data name="Mes_Prod_InnerError" xml:space="preserve">
+    <value>Ichki xatolik</value>
+  </data>
+  <data name="Mes_Qi_Title" xml:space="preserve">
+    <value>Sifat Nazorati</value>
+  </data>
+  <data name="Mes_Qi_New" xml:space="preserve">
+    <value>Yangi Sifat Nazorati</value>
+  </data>
+  <data name="Mes_Qi_DetailsTitle" xml:space="preserve">
+    <value>Sifat Nazorati Ma'lumotlari</value>
+  </data>
+  <data name="Mes_Qi_PickDateAndLoad" xml:space="preserve">
+    <value>Sanani tanlang va yuklash</value>
+  </data>
+  <data name="Mes_Qi_NoRemainingForDay" xml:space="preserve">
+    <value>Bu kunda fakt ishlab chiqarish yozuvlari bor, lekin tekshiruv uchun qoldiq yo'q (limit faqat &lt;strong&gt;Product Production&lt;/strong&gt; miqdori bo'yicha; reja hisobga olinmaydi).</value>
+  </data>
+  <data name="Mes_Qi_NoProductionForDay" xml:space="preserve">
+    <value>Tanlangan kalendar kuni uchun fakt ishlab chiqarish (ProductProduction) yozuvlari topilmadi yoki tugallangan mahsulot (IsFinishedGood) emas.</value>
+  </data>
+  <data name="Mes_Qi_Produced" xml:space="preserve">
+    <value>Ishlab chiqarildi</value>
+  </data>
+  <data name="Mes_Qi_Inspected" xml:space="preserve">
+    <value>Tekshirildi</value>
+  </data>
+  <data name="Mes_Qi_InspectedCol" xml:space="preserve">
+    <value>Tekshirilgan</value>
+  </data>
+  <data name="Mes_Qi_Remaining" xml:space="preserve">
+    <value>Qoldiq</value>
+  </data>
+  <data name="Mes_Qi_RemainingWithValue" xml:space="preserve">
+    <value>Qoldiq: {0}</value>
+  </data>
+  <data name="Mes_Qi_AcceptShort" xml:space="preserve">
+    <value>Qabul</value>
+  </data>
+  <data name="Mes_Qi_RejectShort" xml:space="preserve">
+    <value>Rad</value>
+  </data>
+  <data name="Mes_Qi_Accepted" xml:space="preserve">
+    <value>Qabul qilingan</value>
+  </data>
+  <data name="Mes_Qi_DefectNo" xml:space="preserve">
+    <value>Nuqson #{0}</value>
+  </data>
+  <data name="Mes_Qi_RemoveRow" xml:space="preserve">
+    <value>Olib tashlash</value>
+  </data>
+  <data name="Mes_Qi_InspectionDate" xml:space="preserve">
+    <value>Tekshiruv sanasi</value>
+  </data>
+  <data name="Mes_Qi_QtyInspected" xml:space="preserve">
+    <value>Tekshirilgan miqdor</value>
+  </data>
+  <data name="Mes_Qi_QtyAccepted" xml:space="preserve">
+    <value>Qabul qilingan miqdor</value>
+  </data>
+  <data name="Mes_Qi_QtyRejected" xml:space="preserve">
+    <value>Rad etilgan miqdor</value>
+  </data>
+  <data name="Mes_Qi_ApprovalDate" xml:space="preserve">
+    <value>Tasdiqlash sanasi</value>
+  </data>
+  <data name="Mes_Qi_Production" xml:space="preserve">
+    <value>Ishlab chiqarish</value>
+  </data>
+  <data name="Mes_Qi_Notes" xml:space="preserve">
+    <value>Izohlar</value>
+  </data>
+  <data name="Mes_Qi_DeliverySchedule" xml:space="preserve">
+    <value>Yetkazib berish jadvali</value>
+  </data>
+  <data name="Mes_Qi_DailyPlan" xml:space="preserve">
+    <value>Kunlik reja</value>
+  </data>
+  <data name="Mes_Qi_SearchPlaceholder" xml:space="preserve">
+    <value>Mahsulot, izoh...</value>
+  </data>
+  <data name="Mes_Qi_Status_DRAFT" xml:space="preserve">
+    <value>Qoralama</value>
+  </data>
+  <data name="Mes_Qi_Status_APPROVED" xml:space="preserve">
+    <value>Tasdiqlangan</value>
+  </data>
+  <data name="Mes_Qi_ConfirmDelete" xml:space="preserve">
+    <value>Sifat nazorati yozuvini o'chirasizmi?</value>
+  </data>
+  <data name="Mes_Qi_ConfirmApprove" xml:space="preserve">
+    <value>Sifat nazoratini tasdiqlaysizmi?</value>
+  </data>
+  <data name="Mes_Qi_ProductionNotFound" xml:space="preserve">
+    <value>Ishlab chiqarish topilmadi</value>
+  </data>
+  <data name="Mes_Qi_ProductionNotFoundId" xml:space="preserve">
+    <value>Ishlab chiqarish topilmadi: ID {0}</value>
+  </data>
+  <data name="Mes_Qi_NoQtyEntered" xml:space="preserve">
+    <value>Tekshiruv uchun miqdor kiritilmadi</value>
+  </data>
+  <data name="Mes_Qi_Created" xml:space="preserve">
+    <value>Sifat nazorati muvaffaqiyatli yaratildi</value>
+  </data>
+  <data name="Mes_Qi_AlreadyApproved" xml:space="preserve">
+    <value>Bu sifat nazorati allaqachon tasdiqlangan</value>
+  </data>
+  <data name="Mes_Qi_ApprovedOk" xml:space="preserve">
+    <value>Sifat nazorati muvaffaqiyatli tasdiqlandi</value>
+  </data>
+  <data name="Mes_Qi_CannotDeleteApproved" xml:space="preserve">
+    <value>Tasdiqlangan sifat nazoratini o'chirish mumkin emas</value>
+  </data>
+  <data name="Mes_Qi_DeletedOk" xml:space="preserve">
+    <value>Sifat nazorati muvaffaqiyatli o'chirildi</value>
+  </data>
+  <data name="Mes_Qi_QtyExceedsRemaining" xml:space="preserve">
+    <value>Tekshirilgan miqdor ishlab chiqarilgan qoldiqdan oshib ketdi. Mahsulot: {0}, Ishlab chiqarildi: {1}, Qabul qilingan (oldingi): {2}, Qoldiq: {3}</value>
+  </data>
+  <data name="Mes_Qi_Val_EnterInspected" xml:space="preserve">
+    <value>Tekshirilgan miqdorni kiriting</value>
+  </data>
+  <data name="Mes_Qi_Val_EnterAccepted" xml:space="preserve">
+    <value>Qabul qilingan miqdorni kiriting</value>
+  </data>
+  <data name="Mes_Qi_Val_EnterRejected" xml:space="preserve">
+    <value>Rad etilgan miqdorni kiriting</value>
+  </data>
+  <data name="Mes_Qi_Val_QtyPositive" xml:space="preserve">
+    <value>Miqdor 0 dan katta bo'lishi kerak</value>
+  </data>
+  <data name="Mes_Dash_Day" xml:space="preserve">
+    <value>Kun</value>
+  </data>
+  <data name="Mes_Dash_SelectedDay" xml:space="preserve">
+    <value>Tanlangan kun</value>
+  </data>
+  <data name="Mes_Dash_SelectedMonth" xml:space="preserve">
+    <value>Tanlangan oy</value>
+  </data>
+  <data name="Mes_Dash_SelectedYear" xml:space="preserve">
+    <value>Tanlangan yil</value>
+  </data>
+  <data name="Mes_Dash_SelectedPeriod" xml:space="preserve">
+    <value>Tanlangan davr</value>
+  </data>
+  <data name="Mes_Dash_PeriodPlan" xml:space="preserve">
+    <value>{0} reja</value>
+  </data>
+  <data name="Mes_Dash_PeriodFact" xml:space="preserve">
+    <value>{0} fakt</value>
+  </data>
+  <data name="Mes_Dash_PeriodPlanVsFact" xml:space="preserve">
+    <value>{0} reja/fakt</value>
+  </data>
+  <data name="Mes_Dash_DailyPlanVsFact" xml:space="preserve">
+    <value>Kunlik Reja vs Fakt</value>
+  </data>
+  <data name="Mes_Dash_ProductionByShop" xml:space="preserve">
+    <value>Ishlab chiqarish bo'yicha sexlar</value>
+  </data>
+  <data name="Mes_Dash_QualitySummary" xml:space="preserve">
+    <value>Sifat Nazorati Xulosa</value>
+  </data>
+  <data name="Mes_Dash_TotalInspections" xml:space="preserve">
+    <value>Jami tekshiruvlar</value>
+  </data>
+  <data name="Mes_Dash_DefectQty" xml:space="preserve">
+    <value>Brak miqdor</value>
+  </data>
+  <data name="Mes_Dash_Defect" xml:space="preserve">
+    <value>Brak</value>
+  </data>
+  <data name="Mes_Dash_InspectionsWithDefects" xml:space="preserve">
+    <value>Brak chiqqan tekshiruvlar</value>
+  </data>
+  <data name="Mes_Dash_OrderBottlenecks" xml:space="preserve">
+    <value>Buyurtma To'siqlari (Top 10)</value>
+  </data>
+  <data name="Mes_Dash_BottleneckHint" xml:space="preserve">
+    <value>Qoldiq = Buyurtma (reja) − Invoice qilingan. Fakt = mahsulot bo'yicha jami ishlab chiqarilgan (orderga 1:1 bog'lanmagan).</value>
+  </data>
+  <data name="Mes_Dash_Top3Defects" xml:space="preserve">
+    <value>Top-3 nuqson (brak miqdor)</value>
+  </data>
+  <data name="Mes_Dash_NeedToProduce" xml:space="preserve">
+    <value>Ishlab chiqarish kerak: {0}</value>
+  </data>
+  <data name="Mes_Dash_NeedToInspect" xml:space="preserve">
+    <value>Sifat nazoratdan o'tkazish kerak: {0}</value>
+  </data>
+  <data name="Mes_Dash_ReadyToShip" xml:space="preserve">
+    <value>Sotuv hujjatini qilish / jo'natish mumkin: {0}</value>
+  </data>
+  <data name="Mes_Rep_Mes" xml:space="preserve">
+    <value>MES</value>
+  </data>
+  <data name="Mes_Rep_ProductionStock" xml:space="preserve">
+    <value>Qoldiq (ishlab chiqarish ombori)</value>
+  </data>
+  <data name="Mes_Rep_ProductionMonthly" xml:space="preserve">
+    <value>Ishlab chiqarish oylik hisoboti</value>
+  </data>
+  <data name="Mes_Rep_QualityMonthly" xml:space="preserve">
+    <value>Sifat oylik hisoboti</value>
+  </data>
+  <data name="Mes_Rep_Compiled" xml:space="preserve">
+    <value>Tuzildi: {0}</value>
+  </data>
+  <data name="Mes_Rep_ProductionHead" xml:space="preserve">
+    <value>Ishlab chiqarish boshlig'i</value>
+  </data>
+  <data name="Mes_Rep_QualityResponsible" xml:space="preserve">
+    <value>Sifat nazorati mas'uli</value>
+  </data>
+  <data name="Mes_Rep_ByProduct" xml:space="preserve">
+    <value>Mahsulot bo'yicha</value>
+  </data>
+  <data name="Mes_Rep_InspectionCount" xml:space="preserve">
+    <value>Tekshiruvlar soni</value>
+  </data>
+  <data name="Mes_Rep_TopDefectTypes" xml:space="preserve">
+    <value>Eng ko'p uchraydigan nuqson turlari</value>
+  </data>
+  <data name="Mes_Tan_Title" xml:space="preserve">
+    <value>Tannarx</value>
+  </data>
+  <data name="Mes_Tan_DetailsTitle" xml:space="preserve">
+    <value>Tannarx ma'lumotlari</value>
+  </data>
+  <data name="Mes_Tan_EditTitle" xml:space="preserve">
+    <value>Tannarxni tahrirlash</value>
+  </data>
+  <data name="Mes_Tan_DeleteTitle" xml:space="preserve">
+    <value>Tannarxni o'chirish</value>
+  </data>
+  <data name="Mes_Tan_Attention" xml:space="preserve">
+    <value>Diqqat!</value>
+  </data>
+  <data name="Mes_Tan_DeleteConfirmText" xml:space="preserve">
+    <value>Siz quyidagi tannarxni o'chirmoqchisiz:</value>
+  </data>
+  <data name="Mes_Tan_IrreversibleTitle" xml:space="preserve">
+    <value>Bu amalni qaytarib bo'lmaydi!</value>
+  </data>
+  <data name="Mes_Tan_IrreversibleText" xml:space="preserve">
+    <value>Tannarx o'chirilgandan so'ng, uni qayta tiklash mumkin emas.</value>
+  </data>
+  <data name="Mes_Tan_ProductId" xml:space="preserve">
+    <value>Mahsulot ID</value>
+  </data>
+  <data name="Mes_Tan_Dimensions" xml:space="preserve">
+    <value>O'lchami</value>
+  </data>
+  <data name="Mes_Tan_MaterialCosts" xml:space="preserve">
+    <value>Material xarajatlari</value>
+  </data>
+  <data name="Mes_Tan_MaterialPrice" xml:space="preserve">
+    <value>Material narxi</value>
+  </data>
+  <data name="Mes_Tan_MaterialTransport" xml:space="preserve">
+    <value>Material tashuvi narxi</value>
+  </data>
+  <data name="Mes_Tan_MaterialTransport2" xml:space="preserve">
+    <value>Material tashuvi narxi (2%)</value>
+  </data>
+  <data name="Mes_Tan_MaterialTransportPlanned" xml:space="preserve">
+    <value>Material tashuvi narxi PLANNED</value>
+  </data>
+  <data name="Mes_Tan_LaborAndExpenses" xml:space="preserve">
+    <value>Ish haqi va xarajatlar</value>
+  </data>
+  <data name="Mes_Tan_LaborA" xml:space="preserve">
+    <value>A - Ish haqi (Faqat ishchilar)</value>
+  </data>
+  <data name="Mes_Tan_TaxBankB" xml:space="preserve">
+    <value>B - Soliq va bank</value>
+  </data>
+  <data name="Mes_Tan_AdminC" xml:space="preserve">
+    <value>C - Administrativ xarajatlar</value>
+  </data>
+  <data name="Mes_Tan_OtherD" xml:space="preserve">
+    <value>D - Boshqa xarajatlar</value>
+  </data>
+  <data name="Mes_Tan_ProfitE" xml:space="preserve">
+    <value>E - Foyda</value>
+  </data>
+  <data name="Mes_Tan_TaxBankBPct" xml:space="preserve">
+    <value>B - Soliq va bank (%)</value>
+  </data>
+  <data name="Mes_Tan_AdminCPct" xml:space="preserve">
+    <value>C - Administrativ xarajatlar (%)</value>
+  </data>
+  <data name="Mes_Tan_OtherDPct" xml:space="preserve">
+    <value>D - Boshqa xarajatlar (%)</value>
+  </data>
+  <data name="Mes_Tan_ProfitEPct" xml:space="preserve">
+    <value>E - Foyda (%)</value>
+  </data>
+  <data name="Mes_Tan_ColLabor" xml:space="preserve">
+    <value>A Ish haqi (Faqat ishchilar)</value>
+  </data>
+  <data name="Mes_Tan_ColTaxBank" xml:space="preserve">
+    <value>B Soliq va bank</value>
+  </data>
+  <data name="Mes_Tan_ColAdmin" xml:space="preserve">
+    <value>Administrativ xarajatlar</value>
+  </data>
+  <data name="Mes_Tan_ColOther" xml:space="preserve">
+    <value>C Boshqa xarajatlar</value>
+  </data>
+  <data name="Mes_Tan_ColProfit" xml:space="preserve">
+    <value>D Foyda</value>
+  </data>
+  <data name="Mes_Tan_ExwPrices" xml:space="preserve">
+    <value>EXW narxlari</value>
+  </data>
+  <data name="Mes_Tan_SalesExwNoVat" xml:space="preserve">
+    <value>Sotuv narxi EXW QQS siz</value>
+  </data>
+  <data name="Mes_Tan_SalesExwVat" xml:space="preserve">
+    <value>Sotuv narxi QQS bilan EXW</value>
+  </data>
+  <data name="Mes_Tan_SetExwVat" xml:space="preserve">
+    <value>Belgilangan narxi QQS bilan EXW</value>
+  </data>
+  <data name="Mes_Tan_FinishedTransport" xml:space="preserve">
+    <value>Tayyor mahsulot tashuvi</value>
+  </data>
+  <data name="Mes_Tan_FinishedTransportPrice" xml:space="preserve">
+    <value>Tayyor mahsulot tashuvi narxi</value>
+  </data>
+  <data name="Mes_Tan_FinishedTransportPlanned" xml:space="preserve">
+    <value>Tayyor mahsulot tashuvi narxi PLANNED</value>
+  </data>
+  <data name="Mes_Tan_CipPrices" xml:space="preserve">
+    <value>CIP narxlari</value>
+  </data>
+  <data name="Mes_Tan_SalesCipNoVat" xml:space="preserve">
+    <value>Sotuv narxi CIP QQS siz</value>
+  </data>
+  <data name="Mes_Tan_SalesCipVat" xml:space="preserve">
+    <value>Sotuv narxi QQS bilan CIP</value>
+  </data>
+  <data name="Mes_Tan_SetCipVat" xml:space="preserve">
+    <value>Belgilangan QQS bilan CIP</value>
+  </data>
+  <data name="Mes_Tan_AuditInfo" xml:space="preserve">
+    <value>Audit ma'lumotlari</value>
+  </data>
+  <data name="Mes_Tan_CreatedByUser" xml:space="preserve">
+    <value>Yaratgan foydalanuvchi</value>
+  </data>
+  <data name="Mes_Tan_CreatedAt" xml:space="preserve">
+    <value>Yaratilgan vaqti</value>
+  </data>
+  <data name="Mes_Tan_ModifiedByUser" xml:space="preserve">
+    <value>O'zgartirgan foydalanuvchi</value>
+  </data>
+  <data name="Mes_Tan_ModifiedAt" xml:space="preserve">
+    <value>O'zgartirilgan vaqti</value>
+  </data>
+  <data name="Mes_Tan_RefreshMaterial" xml:space="preserve">
+    <value>Shu oydagi normadan material narxini yangilash</value>
+  </data>
+  <data name="Mes_Tan_RefreshMaterialHint" xml:space="preserve">
+    <value>Norm/ViewDetails dagi umumiy summa asosida qayta hisoblanadi</value>
+  </data>
+  <data name="Mes_Tan_LaborHint" xml:space="preserve">
+    <value>HR_PIECE_RATE_TARIFFS dan avtomatik hisoblanadi, lekin tahrirlash mumkin</value>
+  </data>
+  <data name="Mes_Tan_SuggestedPriceHint" xml:space="preserve">
+    <value>Tizim taklif qilgan narx, lekin tahrirlash mumkin</value>
+  </data>
+  <data name="Mes_Tan_TransportHint" xml:space="preserve">
+    <value>Keyinchalik Forwarders modulidan avtomatik olinadi</value>
+  </data>
+  <data name="Mes_Tan_Generate" xml:space="preserve">
+    <value>Tannarx shakllantirish</value>
+  </data>
+  <data name="Mes_Tan_CountsLine" xml:space="preserve">
+    <value>Norma kiritilgan mahsulotlar: {0} | Tannarx mavjud: {1} | Tannarx yo'q: {2}</value>
+  </data>
+  <data name="Mes_Tan_EmptyTable" xml:space="preserve">
+    <value>Tannarx ma'lumotlari topilmadi</value>
+  </data>
+  <data name="Mes_Tan_Generated" xml:space="preserve">
+    <value>{0} ta tannarx muvaffaqiyatli yaratildi.</value>
+  </data>
+  <data name="Mes_Tan_NoNormProducts" xml:space="preserve">
+    <value>Ushbu oy uchun norma kiritilgan mahsulot topilmadi.</value>
+  </data>
+  <data name="Mes_Tan_NoneGeneratedAllExist" xml:space="preserve">
+    <value>Yangi tannarx yaratilmadi. Norma mavjud mahsulotlar uchun tannarx allaqachon yaratilgan.</value>
+  </data>
+  <data name="Mes_Tan_NoneGeneratedCheck" xml:space="preserve">
+    <value>Yangi tannarx yaratilmadi. Iltimos, norma davri va mahsulot ma'lumotlarini tekshiring.</value>
+  </data>
+  <data name="Mes_Tan_GenerateError" xml:space="preserve">
+    <value>Tannarx yaratishda xatolik yuz berdi: {0}</value>
+  </data>
+  <data name="Mes_Tan_NotFound" xml:space="preserve">
+    <value>Tannarx topilmadi.</value>
+  </data>
+  <data name="Mes_Tan_MaterialRefreshed" xml:space="preserve">
+    <value>Material narxi normadan yangilandi.</value>
+  </data>
+  <data name="Mes_Tan_Updated" xml:space="preserve">
+    <value>Tannarx muvaffaqiyatli yangilandi.</value>
+  </data>
+  <data name="Mes_Tan_UpdateError" xml:space="preserve">
+    <value>Tannarx yangilashda xatolik yuz berdi: {0}</value>
+  </data>
+  <data name="Mes_Tan_Deleted" xml:space="preserve">
+    <value>Tannarx muvaffaqiyatli o'chirildi.</value>
+  </data>
+  <data name="Mes_Tan_DeleteError" xml:space="preserve">
+    <value>Tannarx o'chirishda xatolik yuz berdi: {0}</value>
+  </data>
+  <data name="Mes_Tan_Val_ProductRequired" xml:space="preserve">
+    <value>Mahsulot tanlanishi shart</value>
+  </data>
+  <data name="Mes_Tan_Val_YearRequired" xml:space="preserve">
+    <value>Yil tanlanishi shart</value>
+  </data>
+  <data name="Mes_Tan_Val_YearInvalid" xml:space="preserve">
+    <value>Yil noto'g'ri</value>
+  </data>
+  <data name="Mes_Tan_Val_MonthRequired" xml:space="preserve">
+    <value>Oy tanlanishi shart</value>
+  </data>
+  <data name="Mes_Tan_Val_MonthRange" xml:space="preserve">
+    <value>Oy 1-12 orasida bo'lishi kerak</value>
+  </data>
+  <data name="Mes_Tan_Val_MaterialPriceRequired" xml:space="preserve">
+    <value>Material narxi kiritilishi shart</value>
+  </data>
+  <data name="Mes_Tan_Val_MaterialPriceNegative" xml:space="preserve">
+    <value>Material narxi manfiy bo'lishi mumkin emas</value>
+  </data>
+  <data name="Mes_Tan_Val_LaborRequired" xml:space="preserve">
+    <value>Ish haqi kiritilishi shart</value>
+  </data>
+  <data name="Mes_Tan_Val_LaborNegative" xml:space="preserve">
+    <value>Ish haqi manfiy bo'lishi mumkin emas</value>
+  </data>
+  <data name="Mes_Tan_Val_PercentRange" xml:space="preserve">
+    <value>Foiz 0-100 orasida bo'lishi kerak</value>
+  </data>
+  <data name="Mes_Tan_Val_PriceNegative" xml:space="preserve">
+    <value>Narx manfiy bo'lishi mumkin emas</value>
+  </data>
+  <data name="Mes_Tan_Val_TransportNegative" xml:space="preserve">
+    <value>Tashuv narxi manfiy bo'lishi mumkin emas</value>
+  </data>
+  <data name="Mes_Tan_Bucket_Material" xml:space="preserve">
+    <value>Material (PATH3)</value>
+  </data>
+  <data name="Mes_Tan_Bucket_TaxBank" xml:space="preserve">
+    <value>B — Soliq va bank</value>
+  </data>
+  <data name="Mes_Tan_Bucket_Other" xml:space="preserve">
+    <value>D — Boshqa</value>
+  </data>
+  <data name="Mes_Tan_Bucket_OtherAuto" xml:space="preserve">
+    <value>D — Boshqa (avtomatik)</value>
+  </data>
+  <data name="Mes_Tan_Bucket_Exclude" xml:space="preserve">
+    <value>Chiqarilsin</value>
+  </data>
+  <data name="Mes_Tan_Excl_Financing" xml:space="preserve">
+    <value>Moliyaviy harakat (kredit/o'tkazma/naqd/qarz)</value>
+  </data>
+  <data name="Mes_Tan_Excl_Dividend" xml:space="preserve">
+    <value>Foydani taqsimlash (dividend/aksiyador)</value>
+  </data>
+  <data name="Mes_Tan_Excl_Vat" xml:space="preserve">
+    <value>QQS — tannarx emas</value>
+  </data>
+  <data name="Mes_Tan_Excl_Capex" xml:space="preserve">
+    <value>Kapital xarajat (asosiy vosita/uskuna/qurilish)</value>
+  </data>
+  <data name="Mes_Tan_Excl_Logistics" xml:space="preserve">
+    <value>Transport — yo'l varaqalari orqali hisoblanadi</value>
+  </data>
+  <data name="Mes_Tan_Excl_Payroll" xml:space="preserve">
+    <value>Ish haqi — HR ish haqi orqali hisoblanadi</value>
+  </data>
+  <data name="Mes_Tan_Excl_Purchase" xml:space="preserve">
+    <value>Xarid — material ombor/PI orqali hisoblanadi</value>
+  </data>
+  <data name="Mes_Tan_Reason_TaxBank" xml:space="preserve">
+    <value>Soliq va bank</value>
+  </data>
+  <data name="Mes_Tan_Reason_Other" xml:space="preserve">
+    <value>Boshqa</value>
+  </data>
+  <data name="Mes_Tan_Reason_ManualExcluded" xml:space="preserve">
+    <value>Qo'lda: tannarxga kirmaydi</value>
+  </data>
+  <data name="Mes_Tan_Reason_Manual" xml:space="preserve">
+    <value>Qo'lda belgilangan</value>
+  </data>
+  <data name="Mes_Tan_Reason_Undefined" xml:space="preserve">
+    <value>Aniqlanmagan xarajat → Boshqa</value>
+  </data>
+  <data name="Mes_Tan_Reason_Accrual" xml:space="preserve">
+    <value>Invoys hisoblash yozuvi (to'lovi alohida keladi)</value>
+  </data>
+  <data name="Mes_Tan_Reason_ForeignCurrency" xml:space="preserve">
+    <value>Boshqa valyuta ({0}) — konvertatsiya qilinmaydi</value>
+  </data>
+  <data name="Mes_Tan_Reason_CoveredElsewhere" xml:space="preserve">
+    <value>Boshqa joyda hisoblanadi ({0})</value>
+  </data>
+  <data name="Mes_TanA_DashboardTitle" xml:space="preserve">
+    <value>Tannarx tahlili</value>
+  </data>
+  <data name="Mes_TanA_ReportTitle" xml:space="preserve">
+    <value>Tannarx tahlil hisoboti</value>
+  </data>
+  <data name="Mes_TanA_ProductDetailsTitle" xml:space="preserve">
+    <value>Tannarx tahlili — mahsulot tafsilotlari</value>
+  </data>
+  <data name="Mes_TanA_MonthSourcesTitle" xml:space="preserve">
+    <value>Oy xarajatlari manbalari</value>
+  </data>
+  <data name="Mes_TanA_FinCatTitle" xml:space="preserve">
+    <value>Tannarx: Finance kategoriyalari</value>
+  </data>
+  <data name="Mes_TanA_Analysis" xml:space="preserve">
+    <value>Tahlil</value>
+  </data>
+  <data name="Mes_TanA_Report" xml:space="preserve">
+    <value>Hisobot</value>
+  </data>
+  <data name="Mes_TanA_DetailsCrumb" xml:space="preserve">
+    <value>Tafsilotlar</value>
+  </data>
+  <data name="Mes_TanA_FinCategories" xml:space="preserve">
+    <value>Finance kategoriyalari</value>
+  </data>
+  <data name="Mes_TanA_VariancePct" xml:space="preserve">
+    <value>Farq %</value>
+  </data>
+  <data name="Mes_TanA_Labor" xml:space="preserve">
+    <value>Ish haqi</value>
+  </data>
+  <data name="Mes_TanA_ExwPrice" xml:space="preserve">
+    <value>EXW narxi</value>
+  </data>
+  <data name="Mes_TanA_CipPrice" xml:space="preserve">
+    <value>CIP narxi</value>
+  </data>
+  <data name="Mes_TanA_UpdateActualBtn" xml:space="preserve">
+    <value>Fakt xarajatlarni yangilash</value>
+  </data>
+  <data name="Mes_TanA_WriteToCost" xml:space="preserve">
+    <value>Shu natijani tannarxga yozish</value>
+  </data>
+  <data name="Mes_TanA_Transactions" xml:space="preserve">
+    <value>Tranzaksiya</value>
+  </data>
+  <data name="Mes_TanA_MonthlyTrend" xml:space="preserve">
+    <value>Oylik trend (reja va fakt)</value>
+  </data>
+  <data name="Mes_TanA_SelectProductForChart" xml:space="preserve">
+    <value>Grafikni ko'rish uchun mahsulotni tanlang</value>
+  </data>
+  <data name="Mes_TanA_TopVariances" xml:space="preserve">
+    <value>Eng katta farqlar (EXW)</value>
+  </data>
+  <data name="Mes_TanA_Statistics" xml:space="preserve">
+    <value>Umumiy statistika</value>
+  </data>
+  <data name="Mes_TanA_Summary" xml:space="preserve">
+    <value>Umumiy xulosa</value>
+  </data>
+  <data name="Mes_TanA_TotalProducts" xml:space="preserve">
+    <value>Jami mahsulotlar</value>
+  </data>
+  <data name="Mes_TanA_WithActualData" xml:space="preserve">
+    <value>Fakt bo'yicha ma'lumot</value>
+  </data>
+  <data name="Mes_TanA_FilledPct" xml:space="preserve">
+    <value>To'ldirilgan foiz</value>
+  </data>
+  <data name="Mes_TanA_DetailedReport" xml:space="preserve">
+    <value>Batafsil hisobot</value>
+  </data>
+  <data name="Mes_TanA_TotalVariance" xml:space="preserve">
+    <value>Jami farq</value>
+  </data>
+  <data name="Mes_TanA_AvgVariance" xml:space="preserve">
+    <value>O'rtacha farq</value>
+  </data>
+  <data name="Mes_TanA_PlanVsActual" xml:space="preserve">
+    <value>Tannarx — reja va fakt</value>
+  </data>
+  <data name="Mes_TanA_CostType" xml:space="preserve">
+    <value>Xarajat turi</value>
+  </data>
+  <data name="Mes_TanA_PriceType" xml:space="preserve">
+    <value>Narx turi</value>
+  </data>
+  <data name="Mes_TanA_Indicator" xml:space="preserve">
+    <value>Ko'rsatkich</value>
+  </data>
+  <data name="Mes_TanA_NoteMaterial" xml:space="preserve">
+    <value>Fakt material narxi hisob izohi</value>
+  </data>
+  <data name="Mes_TanA_NoteMatTransport" xml:space="preserve">
+    <value>Material tashuvi hisob izohi</value>
+  </data>
+  <data name="Mes_TanA_NoteOverhead" xml:space="preserve">
+    <value>Ish haqi va xarajatlar (Finance) hisob izohi</value>
+  </data>
+  <data name="Mes_TanA_NoteFinishedTransport" xml:space="preserve">
+    <value>Tayyor mahsulot tashuvi hisob izohi</value>
+  </data>
+  <data name="Mes_TanA_NoNote" xml:space="preserve">
+    <value>Hisob izohi mavjud emas.</value>
+  </data>
+  <data name="Mes_TanA_ExwNoVat" xml:space="preserve">
+    <value>EXW QQSsiz</value>
+  </data>
+  <data name="Mes_TanA_ExwVat" xml:space="preserve">
+    <value>EXW QQS bilan</value>
+  </data>
+  <data name="Mes_TanA_CipNoVat" xml:space="preserve">
+    <value>CIP QQSsiz</value>
+  </data>
+  <data name="Mes_TanA_CipVat" xml:space="preserve">
+    <value>CIP QQS bilan</value>
+  </data>
+  <data name="Mes_TanA_DeliveryPerUnit" xml:space="preserve">
+    <value>Yetkazib berish (birlik)</value>
+  </data>
+  <data name="Mes_TanA_ProfitE" xml:space="preserve">
+    <value>E — Foyda</value>
+  </data>
+  <data name="Mes_TanA_PlanActualProfit" xml:space="preserve">
+    <value>Reja / fakt foyda</value>
+  </data>
+  <data name="Mes_TanA_PlanPriceExwVat" xml:space="preserve">
+    <value>Reja narxi (EXW QQS bilan)</value>
+  </data>
+  <data name="Mes_TanA_Tip" xml:space="preserve">
+    <value>Tip</value>
+  </data>
+  <data name="Mes_TanA_Tip_Material" xml:space="preserve">
+    <value>material sarf xarajati rejadagi normadan oshib ketdi, kamaytirish ustida bosh qotiring</value>
+  </data>
+  <data name="Mes_TanA_Tip_MatTransport" xml:space="preserve">
+    <value>material tashuvi xarajati rejadan oshib ketdi, logistika xarajatini optimallashtiring</value>
+  </data>
+  <data name="Mes_TanA_Tip_Labor" xml:space="preserve">
+    <value>ish haqi xarajati rejadan oshib ketdi, mehnat samaradorligini oshiring</value>
+  </data>
+  <data name="Mes_TanA_Tip_TaxBank" xml:space="preserve">
+    <value>soliq yoki bank xizmati xarajati rejadan oshib ketdi, stavka va to'lovlarni qayta ko'rib chiqing</value>
+  </data>
+  <data name="Mes_TanA_Tip_Admin" xml:space="preserve">
+    <value>administrativ xarajat rejadan oshib ketdi, ichki xarajatlarni qisqartiring</value>
+  </data>
+  <data name="Mes_TanA_Tip_Other" xml:space="preserve">
+    <value>boshqa xarajatlar rejadan oshib ketdi, sababini aniqlab cheklang</value>
+  </data>
+  <data name="Mes_TanA_Tip_Exw" xml:space="preserve">
+    <value>EXW narxi rejadan baland chiqdi, yuqoridagi oshgan bandlarni kamaytirish ustida ishlang</value>
+  </data>
+  <data name="Mes_TanA_Tip_FinishedTransport" xml:space="preserve">
+    <value>tayyor mahsulot tashuvi rejadan oshib ketdi, yetkazib berish xarajatini optimallashtiring</value>
+  </data>
+  <data name="Mes_TanA_Tip_Cip" xml:space="preserve">
+    <value>CIP narxi rejadan baland chiqdi, EXW va tashuv xarajatlarini kamaytirish ustida ishlang</value>
+  </data>
+  <data name="Mes_TanA_PrintContentNotFound" xml:space="preserve">
+    <value>Chop etish kontenti topilmadi (#printArea).</value>
+  </data>
+  <data name="Mes_TanA_PrintWindowBlocked" xml:space="preserve">
+    <value>Chop etish oynasi ochilmadi. Brauzer popup bloklagan bo'lishi mumkin.</value>
+  </data>
+  <data name="Mes_TanA_PrintTitle" xml:space="preserve">
+    <value>Tannarx chop etish</value>
+  </data>
+  <data name="Mes_TanA_AllProducedQty" xml:space="preserve">
+    <value>barcha ishlab chiqarilgan miqdor</value>
+  </data>
+  <data name="Mes_TanA_PcsEnd" xml:space="preserve">
+    <value>dona.</value>
+  </data>
+  <data name="Mes_TanA_AllCurrenciesNoUzs" xml:space="preserve">
+    <value>barchasi (UZS topilmadi)</value>
+  </data>
+  <data name="Mes_TanA_ReadOnlyHint" xml:space="preserve">
+    <value>Bu sahifa hech narsa yozmaydi — "yozish" tugmasi bir xil hisobni TANNARX ga saqlaydi.</value>
+  </data>
+  <data name="Mes_TanA_ElementsHeader" xml:space="preserve">
+    <value>Xarajat elementlari: manba → taqsimlangan</value>
+  </data>
+  <data name="Mes_TanA_Element" xml:space="preserve">
+    <value>Element</value>
+  </data>
+  <data name="Mes_TanA_Source" xml:space="preserve">
+    <value>Manba</value>
+  </data>
+  <data name="Mes_TanA_InSource" xml:space="preserve">
+    <value>Manbada (oy jami)</value>
+  </data>
+  <data name="Mes_TanA_AllocatedToCost" xml:space="preserve">
+    <value>Tannarxga taqsimlangan</value>
+  </data>
+  <data name="Mes_TanA_Unallocated" xml:space="preserve">
+    <value>Taqsimlanmagan</value>
+  </data>
+  <data name="Mes_TanA_ProductsActualPerUnit" xml:space="preserve">
+    <value>Mahsulotlar (1 dona uchun fakt)</value>
+  </data>
+  <data name="Mes_TanA_ProducedShort" xml:space="preserve">
+    <value>Ishlab chiq.</value>
+  </data>
+  <data name="Mes_TanA_MaterialAlgorithm" xml:space="preserve">
+    <value>Material algoritmi</value>
+  </data>
+  <data name="Mes_TanA_MatTransportShort" xml:space="preserve">
+    <value>Mat. tashuvi</value>
+  </data>
+  <data name="Mes_TanA_ColLaborA" xml:space="preserve">
+    <value>A Ish haqi</value>
+  </data>
+  <data name="Mes_TanA_ColTaxBankB" xml:space="preserve">
+    <value>B Soliq/bank</value>
+  </data>
+  <data name="Mes_TanA_ColAdminC" xml:space="preserve">
+    <value>C Admin</value>
+  </data>
+  <data name="Mes_TanA_ColOtherD" xml:space="preserve">
+    <value>D Boshqa</value>
+  </data>
+  <data name="Mes_TanA_TotalCost" xml:space="preserve">
+    <value>Jami xarajat</value>
+  </data>
+  <data name="Mes_TanA_FgTransportShort" xml:space="preserve">
+    <value>T.M. tashuvi</value>
+  </data>
+  <data name="Mes_TanA_NotProduced" xml:space="preserve">
+    <value>Ishlab chiqarilmagan</value>
+  </data>
+  <data name="Mes_TanA_AlgorithmHoverHint" xml:space="preserve">
+    <value>Material algoritmi ustiga sichqonchani olib borsangiz, barcha urinishlar va rad etilish sabablari ko'rinadi.</value>
+  </data>
+  <data name="Mes_TanA_FinCategoriesMonth" xml:space="preserve">
+    <value>Finance kategoriyalari (shu oy)</value>
+  </data>
+  <data name="Mes_TanA_ConfigureGroups" xml:space="preserve">
+    <value>Kategoriya guruhlarini sozlash</value>
+  </data>
+  <data name="Mes_TanA_Where" xml:space="preserve">
+    <value>Qayerga</value>
+  </data>
+  <data name="Mes_TanA_Reason" xml:space="preserve">
+    <value>Sabab</value>
+  </data>
+  <data name="Mes_TanA_AmountNet" xml:space="preserve">
+    <value>Summa (chiqim − qaytish)</value>
+  </data>
+  <data name="Mes_TanA_NoExpenseTxns" xml:space="preserve">
+    <value>Shu oyda xarajat tranzaksiyalari yo'q.</value>
+  </data>
+  <data name="Mes_TanA_Bucket_Excluded" xml:space="preserve">
+    <value>Chiqarildi</value>
+  </data>
+  <data name="Mes_TanA_ProducedNoCostRow" xml:space="preserve">
+    <value>Ishlab chiqarilgan, lekin tannarx qatori yo'q</value>
+  </data>
+  <data name="Mes_TanA_FinCatHeader" xml:space="preserve">
+    <value>Finance xarajat kategoriyalari → tannarx guruhi</value>
+  </data>
+  <data name="Mes_TanA_FinCatHelp1" xml:space="preserve">
+    <value>"Avtomatik" — kategoriyaning tahliliy guruhidan aniqlanadi (Moliya → Kategoriyalar formasida tanlanadi; o'ng ustunda ko'rsatilgan). Qo'lda tanlangan guruh undan ustun turadi; bola kategoriya o'zi belgilanmagan bo'lsa ota kategoriyaning guruhini oladi.</value>
+  </data>
+  <data name="Mes_TanA_FinCatHelp2" xml:space="preserve">
+    <value>"B — Soliq va bank" va "D — Boshqa" oy jami bo'yicha barcha ishlab chiqarilgan mahsulotlarga 1 donaga teng bo'linadi.</value>
+  </data>
+  <data name="Mes_TanA_FinCatHelp3" xml:space="preserve">
+    <value>"Material (PATH3)" — faqat ombordan chiqim yoki xarid invoysi topilmagan mahsulotlarga reja ulushida.</value>
+  </data>
+  <data name="Mes_TanA_FinCatNoTable" xml:space="preserve">
+    <value>Hali qo'lda belgilangan guruh yo'q — birinchi saqlashda sozlamalar jadvali avtomatik yaratiladi.</value>
+  </data>
+  <data name="Mes_TanA_CostGroup" xml:space="preserve">
+    <value>Tannarx guruhi</value>
+  </data>
+  <data name="Mes_TanA_IfAuto" xml:space="preserve">
+    <value>Avtomatik bo'lsa</value>
+  </data>
+  <data name="Mes_TanA_InEffect" xml:space="preserve">
+    <value>Hozir amalda</value>
+  </data>
+  <data name="Mes_TanA_InactiveLower" xml:space="preserve">
+    <value>nofaol</value>
+  </data>
+  <data name="Mes_TanA_Opt_Auto" xml:space="preserve">
+    <value>Avtomatik (nom bo'yicha)</value>
+  </data>
+  <data name="Mes_TanA_Opt_NotInCost" xml:space="preserve">
+    <value>Tannarxga kirmaydi</value>
+  </data>
+  <data name="Mes_TanA_Err_YearMonthRequired" xml:space="preserve">
+    <value>Fakt xarajatlarni yangilash uchun yil va oy tanlanishi shart.</value>
+  </data>
+  <data name="Mes_TanA_ActualUpdated" xml:space="preserve">
+    <value>{0} ta tannarx yozuvi uchun fakt xarajatlar yangilandi.</value>
+  </data>
+  <data name="Mes_TanA_Err_UpdateActual" xml:space="preserve">
+    <value>Fakt xarajatlarni yangilashda xatolik: {0}</value>
+  </data>
+  <data name="Mes_TanA_Err_MonthSources" xml:space="preserve">
+    <value>Oy manbalarini hisoblashda xatolik: {0}</value>
+  </data>
+  <data name="Mes_TanA_CategoriesSaved" xml:space="preserve">
+    <value>Kategoriya guruhlari saqlandi. Tannarxga ta'sir qilishi uchun oy bo'yicha "Fakt xarajatlarni yangilash" ni bosing.</value>
+  </data>
+  <data name="Mes_TanA_Err_Save" xml:space="preserve">
+    <value>Saqlashda xatolik: {0}</value>
+  </data>
+  <data name="Mes_TanA_DataNotFound" xml:space="preserve">
+    <value>Ma'lumot topilmadi.</value>
+  </data>
+  <data name="Mes_TanA_Err_ProductDetails" xml:space="preserve">
+    <value>ProductDetails ochishda xatolik: {0}</value>
+  </data>
+  <data name="Mes_TanA_Err_InvalidBucket" xml:space="preserve">
+    <value>Noto'g'ri guruh qiymati: {0}</value>
+  </data>
+  <data name="Mes_TanA_El_MaterialTransport" xml:space="preserve">
+    <value>Material tashuvi</value>
+  </data>
+  <data name="Mes_TanA_El_Labor" xml:space="preserve">
+    <value>A — Ish haqi</value>
+  </data>
+  <data name="Mes_TanA_El_Admin" xml:space="preserve">
+    <value>C — Administrativ</value>
+  </data>
+  <data name="Mes_TanA_El_FinishedTransport" xml:space="preserve">
+    <value>Tayyor mahsulot tashuvi (CIP)</value>
+  </data>
+  <data name="Mes_TanA_ProductsCount" xml:space="preserve">
+    <value>{0} ta mahsulot</value>
+  </data>
+  <data name="Mes_TanA_Src_FinanceMaterialPool" xml:space="preserve">
+    <value>Finance 'Material' xarajatlari (PATH3 havzasi)</value>
+  </data>
+  <data name="Mes_TanA_Note_FinanceMaterialRest" xml:space="preserve">
+    <value>Qoldiq — boshqa algoritm (ombor/PI) bilan hisoblangan mahsulotlar ulushi; ular materialini o'z manbasidan oladi</value>
+  </data>
+  <data name="Mes_TanA_Src_IncomingWaybills" xml:space="preserve">
+    <value>Kirim yo'l varaqalari (shu oy, sotuvga bog'lanmagan): {0} ta</value>
+  </data>
+  <data name="Mes_TanA_Note_ByQtyShare" xml:space="preserve">
+    <value>Miqdor ulushida (material summasi yo'q)</value>
+  </data>
+  <data name="Mes_TanA_Note_ByMaterialShare" xml:space="preserve">
+    <value>Material summasi ulushida</value>
+  </data>
+  <data name="Mes_TanA_Src_PieceRate" xml:space="preserve">
+    <value>Ishbay ish yozuvlari × tarif</value>
+  </data>
+  <data name="Mes_TanA_Src_HourlyPay" xml:space="preserve">
+    <value>Soatbay ish haqi (HR oylik, tasdiqlangan; bo'lmasa tabel)</value>
+  </data>
+  <data name="Mes_TanA_Src_FinanceOther" xml:space="preserve">
+    <value>Finance (boshqa + aniqlanmagan xarajatlar)</value>
+  </data>
+  <data name="Mes_TanA_Src_SalesWaybills" xml:space="preserve">
+    <value>Yo'l varaqalari (sotuv invoysiga bog'langan, shu oy)</value>
+  </data>
+  <data name="Mes_TanA_Note_MonthPerAllQty" xml:space="preserve">
+    <value>Oy jami / barcha ishlab chiqarilgan miqdor</value>
+  </data>
+  <data name="Mes_TanA_Path0" xml:space="preserve">
+    <value>PATH0 — ombordan ishlab chiqarishga chiqim (FIFO narx)</value>
+  </data>
+  <data name="Mes_TanA_Path1" xml:space="preserve">
+    <value>PATH1 — SO → PO → xarid invoysi</value>
+  </data>
+  <data name="Mes_TanA_Path2" xml:space="preserve">
+    <value>PATH2 — SO → PO → invoys → ombor kirimi</value>
+  </data>
+  <data name="Mes_TanA_Path3" xml:space="preserve">
+    <value>PATH3 — Finance 'Material' (reja ulushida)</value>
+  </data>
+  <data name="Mes_TanA_PathPlan" xml:space="preserve">
+    <value>Reja narxi (manba topilmadi)</value>
+  </data>
+  <data name="Mes_TanA_Warn_PlanPriceUsed" xml:space="preserve">
+    <value>{0} ta mahsulotda material uchun hech bir manba (ombordan chiqim, xarid invoysi, Finance) topilmadi — REJA narxi olindi. Ishlab chiqarish uchun ombordan chiqim hujjatlarini yoki SO → PO bog'lanishini tekshiring.</value>
+  </data>
+  <data name="Mes_TanA_Warn_PartialIssue" xml:space="preserve">
+    <value>{0} ta mahsulotda ishlab chiqarishning bir qismi uchun ombordan chiqim hujjati yo'q — birlik narx hujjatli qism bo'yicha olindi.</value>
+  </data>
+  <data name="Mes_TanA_Warn_ZeroPriceLines" xml:space="preserve">
+    <value>{0} ta mahsulotning ombordan chiqimida narxsiz (0) qatorlar bor ({1} qator) — kirim narxi kiritilmagan materiallar, material narxi past chiqadi.</value>
+  </data>
+  <data name="Mes_TanA_Warn_ProducedWithoutTannarx" xml:space="preserve">
+    <value>Shu oyda {0} ta mahsulot ({1:N2} dona) ishlab chiqarilgan, lekin ular uchun tannarx qatori yo'q — B/C/D xarajatlarining ularga tegishli ulushi hech qaysi tannarxga yozilmaydi. Tannarx sahifasida shu oy uchun qator yarating.</value>
+  </data>
+  <data name="Mes_TanA_Warn_NoUzs" xml:space="preserve">
+    <value>CURRENCIES da 'UZS' topilmadi — Finance summalari barcha valyutalarda konvertatsiyasiz qo'shildi.</value>
+  </data>
+  <data name="Mes_TanA_Warn_SkippedForeign" xml:space="preserve">
+    <value>Boshqa valyutadagi {0} ta Finance tranzaksiyasi hisobga olinmadi ({1}).</value>
+  </data>
+  <data name="Mes_TanA_MatWarn_Plan" xml:space="preserve">
+    <value>Diqqat: bu mahsulot uchun material manbasi (ombordan chiqim, xarid invoysi, Finance) topilmadi — fakt material o'rniga REJA narxi olingan.</value>
+  </data>
+  <data name="Mes_TanA_MatWarn_Partial" xml:space="preserve">
+    <value>Diqqat: ishlab chiqarishning faqat {0:P0} qismi uchun ombordan chiqim hujjati bor — birlik narx shu qism bo'yicha olingan.</value>
+  </data>
+  <data name="Mes_TanA_MatWarn_ZeroPrice" xml:space="preserve">
+    <value>Diqqat: ombordan chiqimda {0} ta narxsiz (0) qator bor — material narxi past chiqishi mumkin.</value>
+  </data>
+  <data name="Mes_TanA_Err_BuildNote" xml:space="preserve">
+    <value>Fakt hisob izohini tuzishda xatolik: {0}</value>
+  </data>
+  <data name="Mes_TanA_N_Period" xml:space="preserve">
+    <value>Period: {0}</value>
+  </data>
+  <data name="Mes_TanA_N_ProducedQty" xml:space="preserve">
+    <value>Ishlab chiqarilgan mahsulot (shu product) soni: {0:N2} ta</value>
+  </data>
+  <data name="Mes_TanA_N_Rule" xml:space="preserve">
+    <value>Hisoblanish qoidasi: {0}</value>
+  </data>
+  <data name="Mes_TanA_N_RuleMatTransport" xml:space="preserve">
+    <value>shu oyda berilgan barcha kirim yo'l varaqalari (sotuvga bog'lanmagan, ichki emas) jami -&gt;</value>
+  </data>
+  <data name="Mes_TanA_N_ReasonCode" xml:space="preserve">
+    <value>Tanlash sababi kodi: {0}</value>
+  </data>
+  <data name="Mes_TanA_N_NoProduction" xml:space="preserve">
+    <value>Shu oyda ishlab chiqarish yo'q — fakt xarajat hisoblanmaydi.</value>
+  </data>
+  <data name="Mes_TanA_N_Algorithms" xml:space="preserve">
+    <value>Algoritmlar (tartib bilan): {0}</value>
+  </data>
+  <data name="Mes_TanA_N_Path0Issue" xml:space="preserve">
+    <value>PATH0 — ombordan chiqim: {0} hujjat, {1} qator, summa {2:N2}; ishlab chiqarish yozuvlari {3}/{4}, qamrab olingan miqdor {5:N2}</value>
+  </data>
+  <data name="Mes_TanA_N_ZeroPriceLines" xml:space="preserve">
+    <value>; narxsiz (0) qatorlar: {0}</value>
+  </data>
+  <data name="Mes_TanA_N_Path0None" xml:space="preserve">
+    <value>PATH0 — ombordan chiqim: shu oy ishlab chiqarishiga bog'langan chiqim hujjati yo'q</value>
+  </data>
+  <data name="Mes_TanA_N_BomComponents" xml:space="preserve">
+    <value>BOM komponentlar soni: {0}</value>
+  </data>
+  <data name="Mes_TanA_N_SalesOrders" xml:space="preserve">
+    <value>Savdo buyurtmasi: {0}</value>
+  </data>
+  <data name="Mes_TanA_N_PurchaseOrders" xml:space="preserve">
+    <value>Unga bog'langan Xarid buyurtmasi: {0}</value>
+  </data>
+  <data name="Mes_TanA_N_PurchaseInvoices" xml:space="preserve">
+    <value>Xarid buyurtmasiga bog'langan Invoice (shu oy): {0}</value>
+  </data>
+  <data name="Mes_TanA_N_PiHeader" xml:space="preserve">
+    <value>PI Header jami summasi (QQS bilan bo'lishi mumkin, hisobda ishlatilmaydi): {0:N2}</value>
+  </data>
+  <data name="Mes_TanA_N_PiLines" xml:space="preserve">
+    <value>PI line jami summasi: {0:N2}</value>
+  </data>
+  <data name="Mes_TanA_N_PiMatched" xml:space="preserve">
+    <value>Bu mahsulot BOMiga mos material summasi: {0:N2}</value>
+  </data>
+  <data name="Mes_TanA_N_PiNotInBom" xml:space="preserve">
+    <value>BOMga kirmaydigan line summasi (hisobga olinmadi): {0:N2}</value>
+  </data>
+  <data name="Mes_TanA_N_PiShared" xml:space="preserve">
+    <value>Boshqa mahsulotlar bilan umumiy PI qatorlari: {0} ta — ishlab chiqarilgan miqdor ulushida bo'lindi; shu mahsulotga: {1:N2}</value>
+  </data>
+  <data name="Mes_TanA_N_FinanceMaterial" xml:space="preserve">
+    <value>Finance 'Material' xarajatlari (oy jami, {0}): {1:N2}; kategoriyalar: {2}</value>
+  </data>
+  <data name="Mes_TanA_N_AllCurrencies" xml:space="preserve">
+    <value>barcha valyuta</value>
+  </data>
+  <data name="Mes_TanA_N_AllocPlanShare" xml:space="preserve">
+    <value>Taqsimlash: reja material narxi × ishlab chiqarilgan miqdor ulushida.</value>
+  </data>
+  <data name="Mes_TanA_N_FormulaMaterial" xml:space="preserve">
+    <value>Formula: Fakt material (1 dona) = {0:N2} / {1:N2}</value>
+  </data>
+  <data name="Mes_TanA_N_MaterialUnitCost" xml:space="preserve">
+    <value>Fakt material narxi (1 dona): {0:N2} {1}</value>
+  </data>
+  <data name="Mes_TanA_N_ForcedFallback" xml:space="preserve">
+    <value>Izoh: PATH0/PATH1/PATH2/PATH3 manbasi yetarli bo'lmagani uchun policy bo'yicha majburiy fallback qo'llandi (NONE yo'q).</value>
+  </data>
+  <data name="Mes_TanA_N_SalesInvoiceCount" xml:space="preserve">
+    <value>Shu product bor SalesInvoice lar soni: {0}</value>
+  </data>
+  <data name="Mes_TanA_N_SalesInvoices" xml:space="preserve">
+    <value>SalesInvoice lar: {0}</value>
+  </data>
+  <data name="Mes_TanA_N_LinkedWaybills" xml:space="preserve">
+    <value>Ulangan Waybill lar (shu oy, ichki emas): {0}</value>
+  </data>
+  <data name="Mes_TanA_N_WaybillTotal" xml:space="preserve">
+    <value>Waybill jami summasi: {0:N2} {1}</value>
+  </data>
+  <data name="Mes_TanA_N_AllocatedToProduct" xml:space="preserve">
+    <value>Shu mahsulotga ajratilgan: {0:N2} {1}</value>
+  </data>
+  <data name="Mes_TanA_N_FormulaFinished" xml:space="preserve">
+    <value>Formula: Fakt tayyor mahsulot tashuvi (1 dona) = ajratilgan tashuv summasi / {0:N2}</value>
+  </data>
+  <data name="Mes_TanA_N_Result" xml:space="preserve">
+    <value>Natija: {0:N2} {1}</value>
+  </data>
+  <data name="Mes_TanA_N_MatTransportByQty" xml:space="preserve">
+    <value>ishlab chiqarilgan mahsulotlarga miqdor ulushida (material summasi yo'q)</value>
+  </data>
+  <data name="Mes_TanA_N_MatTransportByAmount" xml:space="preserve">
+    <value>ishlab chiqarilgan mahsulotlarga material summasi (1 dona material × miqdor) ulushida</value>
+  </data>
+  <data name="Mes_TanA_N_Waybills" xml:space="preserve">
+    <value>Yo'l varaqalari: {0}</value>
+  </data>
+  <data name="Mes_TanA_N_MatTransportPool" xml:space="preserve">
+    <value>Oy jami kirim tashuvi: {0:N2} {1}</value>
+  </data>
+  <data name="Mes_TanA_N_MatTransportShare" xml:space="preserve">
+    <value>Shu mahsulot ulushi: {0:P2}; ajratilgan: {1:N2} {2}</value>
+  </data>
+  <data name="Mes_TanA_N_FormulaMatTransport" xml:space="preserve">
+    <value>Formula: Fakt material tashuvi (1 dona) = {0:N2} / {1:N2}</value>
+  </data>
+  <data name="Mes_TanA_N_OverheadSource" xml:space="preserve">
+    <value>Manba: Finance tranzaksiyalari (chiqim − shu kategoriyaga qaytgan kirim); xarid/sotuv invoysi hisoblash yozuvlari olinmaydi.</value>
+  </data>
+  <data name="Mes_TanA_N_Currency" xml:space="preserve">
+    <value>Valyuta: {0}</value>
+  </data>
+  <data name="Mes_TanA_N_OnlyCurrency" xml:space="preserve">
+    <value>faqat {0}</value>
+  </data>
+  <data name="Mes_TanA_N_NoUzsAllAdded" xml:space="preserve">
+    <value>UZS topilmadi — barcha valyutalar qo'shildi</value>
+  </data>
+  <data name="Mes_TanA_N_MonthProducedQty" xml:space="preserve">
+    <value>Oy bo'yicha jami ishlab chiqarilgan (barcha mahsulotlar): {0:N2} ta</value>
+  </data>
+  <data name="Mes_TanA_N_TaxBank" xml:space="preserve">
+    <value>B — Soliq va bank: {0:N2}; kategoriyalar: {1}</value>
+  </data>
+  <data name="Mes_TanA_N_Other" xml:space="preserve">
+    <value>D — Boshqa: {0:N2}; kategoriyalar: {1}</value>
+  </data>
+  <data name="Mes_TanA_N_PerUnit" xml:space="preserve">
+    <value>1 donaga: {0:N2}</value>
+  </data>
+  <data name="Mes_TanA_N_Admin" xml:space="preserve">
+    <value>C — Administrativ (soatbay ish haqi): {0:N2}; 1 donaga: {1:N2}</value>
+  </data>
+  <data name="Mes_TanA_N_Labor" xml:space="preserve">
+    <value>A — Ish haqi (ishbay, tarif × miqdor): {0:N2}; 1 donaga: {1:N2}</value>
+  </data>
+  <data name="Mes_TanA_N_AllocBcd" xml:space="preserve">
+    <value>Taqsimlash: B, C, D — oy jami / barcha mahsulotlar ishlab chiqarilgan miqdori (1 donaga teng).</value>
+  </data>
+  <data name="Mes_TanA_N_SkippedForeign" xml:space="preserve">
+    <value>Hisobga olinmagan boshqa valyutadagi tranzaksiyalar: {0} ta ({1}) — konvertatsiya qilinmaydi.</value>
+  </data>
 </root>

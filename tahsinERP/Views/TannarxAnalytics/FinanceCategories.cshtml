@@ -1,7 +1,7 @@
 @model tahsinERP.ViewModels.Tannarx.TannarxFinanceCategoryMapViewModel
 
 @{
-    ViewBag.Title = "Tannarx: Finance kategoriyalari";
+    ViewBag.Title = L.T("Mes_TanA_FinCatTitle");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -21,9 +21,9 @@
                             <div class="breadcrumb-wrapper col-12">
                                 <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                     <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
-                                    <li class="breadcrumb-item"><a href="~/Tannarx">Tannarx</a></li>
-                                    <li class="breadcrumb-item"><a href="@Url.Action("MonthSources", "TannarxAnalytics", new { year = backYear, month = backMonth })">Oy xarajatlari manbalari</a></li>
-                                    <li class="breadcrumb-item active">Finance kategoriyalari</li>
+                                    <li class="breadcrumb-item"><a href="~/Tannarx">@L.T("Mes_Tan_Title")</a></li>
+                                    <li class="breadcrumb-item"><a href="@Url.Action("MonthSources", "TannarxAnalytics", new { year = backYear, month = backMonth })">@L.T("Mes_TanA_MonthSourcesTitle")</a></li>
+                                    <li class="breadcrumb-item active">@L.T("Mes_TanA_FinCategories")</li>
                                 </ol>
                             </div>
                         </div>
@@ -43,19 +43,17 @@
 
                 <div class="card">
                     <div class="card-header">
-                        <h4 class="card-title">Finance xarajat kategoriyalari → tannarx guruhi</h4>
+                        <h4 class="card-title">@L.T("Mes_TanA_FinCatHeader")</h4>
                     </div>
                     <div class="card-body">
                         <p class="text-muted small">
-                            "Avtomatik" — kategoriyaning tahliliy guruhidan aniqlanadi (Moliya → Kategoriyalar formasida tanlanadi; o'ng ustunda ko'rsatilgan).
-                            Qo'lda tanlangan guruh undan ustun turadi;
-                            bola kategoriya o'zi belgilanmagan bo'lsa ota kategoriyaning guruhini oladi.
-                            "B — Soliq va bank" va "D — Boshqa" oy jami bo'yicha barcha ishlab chiqarilgan mahsulotlarga 1 donaga teng bo'linadi.
-                            "Material (PATH3)" — faqat ombordan chiqim yoki xarid invoysi topilmagan mahsulotlarga reja ulushida.
+                            @L.T("Mes_TanA_FinCatHelp1")
+                            @L.T("Mes_TanA_FinCatHelp2")
+                            @L.T("Mes_TanA_FinCatHelp3")
                         </p>
                         @if (!Model.TableExists)
                         {
-                            <div class="alert alert-info small">Hali qo'lda belgilangan guruh yo'q — birinchi saqlashda sozlamalar jadvali avtomatik yaratiladi.</div>
+                            <div class="alert alert-info small">@L.T("Mes_TanA_FinCatNoTable")</div>
                         }
 
                         @using (Html.BeginForm("FinanceCategories", "TannarxAnalytics", new { year = backYear, month = backMonth }, FormMethod.Post))
@@ -65,11 +63,11 @@
                                 <table class="table table-bordered table-hover table-sm mb-0">
                                     <thead>
                                         <tr>
-                                            <th>Kategoriya</th>
-                                            <th class="text-right">Tranzaksiya</th>
-                                            <th style="min-width:220px">Tannarx guruhi</th>
-                                            <th>Avtomatik bo'lsa</th>
-                                            <th>Hozir amalda</th>
+                                            <th>@L.T("Category")</th>
+                                            <th class="text-right">@L.T("Mes_TanA_Transactions")</th>
+                                            <th style="min-width:220px">@L.T("Mes_TanA_CostGroup")</th>
+                                            <th>@L.T("Mes_TanA_IfAuto")</th>
+                                            <th>@L.T("Mes_TanA_InEffect")</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -85,7 +83,7 @@
                                                     @r.Name
                                                     @if (!r.IsActive)
                                                     {
-                                                        <span class="badge badge-light-secondary">nofaol</span>
+                                                        <span class="badge badge-light-secondary">@L.T("Mes_TanA_InactiveLower")</span>
                                                     }
                                                 </td>
                                                 <td class="text-right">@r.TransactionCount</td>
@@ -93,7 +91,7 @@
                                                     <select name="bucket_@r.CategoryID" class="form-control form-control-sm" @(changePermit ? "" : "disabled")>
                                                         @foreach (var o in tahsinERP.ViewModels.Tannarx.TannarxFinanceCategoryMapViewModel.Options)
                                                         {
-                                                            <option value="@o.Key" @(o.Key == current ? "selected" : "")>@o.Value</option>
+                                                            <option value="@o.Key" @(o.Key == current ? "selected" : "")>@L.T(o.Value)</option>
                                                         }
                                                     </select>
                                                 </td>
@@ -106,7 +104,7 @@
                             </div>
                             if (changePermit)
                             {
-                                <button type="submit" class="btn btn-primary mt-2"><i class="bx bx-save"></i> Saqlash</button>
+                                <button type="submit" class="btn btn-primary mt-2"><i class="bx bx-save"></i> @L.T("Save")</button>
                             }
                         }
                     </div>

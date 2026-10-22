@@ -1,7 +1,7 @@
 @model tahsinERP.Models.FIN_BALANCE_CATEGORIES
 
 @{
-    ViewBag.Title = "Yangi balans kategoriyasi qo'shish";
+    ViewBag.Title = L.T("Fin_AddBalanceCategoryTitle");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -16,8 +16,8 @@
                             <div class="breadcrumb-wrapper col-12">
                                 <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                     <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
-                                    <li class="breadcrumb-item"><a href="~/FinBalanceCategories">Balans kategoriyalari</a></li>
-                                    <li class="breadcrumb-item active">Yangi kategoriya</li>
+                                    <li class="breadcrumb-item"><a href="~/FinBalanceCategories">@L.T("Fin_BalanceCategories")</a></li>
+                                    <li class="breadcrumb-item active">@L.T("Fin_NewCategory")</li>
                                 </ol>
                             </div>
                         </div>
@@ -29,7 +29,7 @@
                     <div class="col-md-8">
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">Yangi balans kategoriyasi qo'shish</h4>
+                                <h4 class="card-title">@L.T("Fin_AddBalanceCategoryTitle")</h4>
                             </div>
                             <div class="card-content">
                                 <div class="card-body">
@@ -39,41 +39,41 @@
                                         @Html.ValidationSummary(true, "", new { @class = "text-danger" })
                                         
                                         <div class="form-group">
-                                            @Html.LabelFor(m => m.Name, "Nomi *", new { @class = "control-label" })
+                                            @Html.LabelFor(m => m.Name, L.T("Name") + " *", new { @class = "control-label" })
                                             @Html.TextBoxFor(m => m.Name, new { @class = "form-control", required = "required" })
                                             @Html.ValidationMessageFor(m => m.Name, "", new { @class = "text-danger" })
                                         </div>
                                         
                                         <div class="form-group">
-                                            @Html.LabelFor(m => m.Type, "Turi *", new { @class = "control-label" })
-                                            @Html.DropDownListFor(m => m.Type, ViewBag.TypeList as SelectList, "Tanlang...", new { @class = "form-control", required = "required" })
+                                            @Html.LabelFor(m => m.Type, L.T("Type") + " *", new { @class = "control-label" })
+                                            @Html.DropDownListFor(m => m.Type, ViewBag.TypeList as SelectList, L.T("Fin_SelectDots"), new { @class = "form-control", required = "required" })
                                             @Html.ValidationMessageFor(m => m.Type, "", new { @class = "text-danger" })
                                         </div>
                                         
                                         <div class="form-group">
-                                            @Html.LabelFor(m => m.ParentID, "Ota kategoriya", new { @class = "control-label" })
-                                            @Html.DropDownListFor(m => m.ParentID, ViewBag.ParentID as SelectList, "Ota kategoriya yo'q", new { @class = "form-control" })
+                                            @Html.LabelFor(m => m.ParentID, L.T("Fin_ParentCategory"), new { @class = "control-label" })
+                                            @Html.DropDownListFor(m => m.ParentID, ViewBag.ParentID as SelectList, L.T("Fin_NoParentCategory"), new { @class = "form-control" })
                                         </div>
                                         
                                         <div class="form-group">
-                                            @Html.LabelFor(m => m.SortOrder, "Tartib raqami", new { @class = "control-label" })
+                                            @Html.LabelFor(m => m.SortOrder, L.T("Fin_SortOrder"), new { @class = "control-label" })
                                             @Html.TextBoxFor(m => m.SortOrder, new { @class = "form-control", type = "number", @Value = Model.SortOrder })
                                         </div>
                                         
                                         <div class="form-group">
-                                            @Html.LabelFor(m => m.CalculationType, "Hisoblash turi *", new { @class = "control-label" })
-                                            @Html.DropDownListFor(m => m.CalculationType, ViewBag.CalculationTypeList as SelectList, "Tanlang...", new { @class = "form-control", required = "required" })
+                                            @Html.LabelFor(m => m.CalculationType, L.T("Fin_CalculationType") + " *", new { @class = "control-label" })
+                                            @Html.DropDownListFor(m => m.CalculationType, ViewBag.CalculationTypeList as SelectList, L.T("Fin_SelectDots"), new { @class = "form-control", required = "required" })
                                             @Html.ValidationMessageFor(m => m.CalculationType, "", new { @class = "text-danger" })
                                             <small class="form-text text-muted">
-                                                <strong>Hisob asosida:</strong> Hisoblar qoldiqlari yig'indisi (Naqd pul, Bank)<br/>
-                                                <strong>Tranzaksiya asosida:</strong> Kategoriyalar orqali tranzaksiyalar (Ustav kapitali)<br/>
-                                                <strong>Hujjat asosida:</strong> Hujjatlardan to'g'ridan-to'g'ri (Qarzlar, Haqlar)
+                                                <strong>@L.T("Fin_CalcByAccount"):</strong> @L.T("Fin_CalcByAccountHint")<br/>
+                                                <strong>@L.T("Fin_CalcByTransaction"):</strong> @L.T("Fin_CalcByTransactionHint")<br/>
+                                                <strong>@L.T("Fin_CalcByDocument"):</strong> @L.T("Fin_CalcByDocumentHint")
                                             </small>
                                         </div>
                                         
                                         <div class="form-actions">
-                                            <button type="submit" class="btn btn-primary">Saqlash</button>
-                                            <a href="@Url.Action("Index")" class="btn btn-secondary">Bekor qilish</a>
+                                            <button type="submit" class="btn btn-primary">@L.T("Save")</button>
+                                            <a href="@Url.Action("Index")" class="btn btn-secondary">@L.T("Cancel")</a>
                                         </div>
                                     }
                                 </div>

@@ -1,7 +1,7 @@
 @model tahsinERP.Models.SHAREHOLDER
 
 @{
-    ViewBag.Title = "Aksiyador tafsilotlari";
+    ViewBag.Title = L.T("Fin_ShareholderDetails");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -21,8 +21,8 @@
                             <div class="breadcrumb-wrapper col-12">
                                 <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                     <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
-                                    <li class="breadcrumb-item"><a href="~/Shareholder">Aksiyadorlar</a></li>
-                                    <li class="breadcrumb-item active">Tafsilotlar</li>
+                                    <li class="breadcrumb-item"><a href="~/Shareholder">@L.T("Fin_Shareholders")</a></li>
+                                    <li class="breadcrumb-item active">@L.T("Fin_Details")</li>
                                 </ol>
                             </div>
                         </div>
@@ -42,52 +42,52 @@
                     <div class="col-md-10">
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">Aksiyador tafsilotlari</h4>
+                                <h4 class="card-title">@L.T("Fin_ShareholderDetails")</h4>
                                 @if (changePermit)
                                 {
                                     <div class="heading-elements">
-                                        <a href="@Url.Action("Edit", new { id = Model.ID })" class="btn btn-sm btn-primary">Tahrirlash</a>
-                                        <a href="@Url.Action("ManageSharePeriods", new { id = Model.ID })" class="btn btn-sm btn-info">Ulushlarni boshqarish</a>
-                                        <a href="@Url.Action("AddContribution", new { id = Model.ID })" class="btn btn-sm btn-success">Hissa qo'shish</a>
+                                        <a href="@Url.Action("Edit", new { id = Model.ID })" class="btn btn-sm btn-primary">@L.T("Edit")</a>
+                                        <a href="@Url.Action("ManageSharePeriods", new { id = Model.ID })" class="btn btn-sm btn-info">@L.T("Fin_ManageShares")</a>
+                                        <a href="@Url.Action("AddContribution", new { id = Model.ID })" class="btn btn-sm btn-success">@L.T("Fin_AddContribution")</a>
                                     </div>
                                 }
                             </div>
                             <div class="card-content">
                                 <div class="card-body">
                                     <dl class="row">
-                                        <dt class="col-sm-4">To'liq ism:</dt>
+                                        <dt class="col-sm-4">@L.T("Fin_FullName"):</dt>
                                         <dd class="col-sm-8">@Model.FullName</dd>
                                         
-                                        <dt class="col-sm-4">Telefon:</dt>
+                                        <dt class="col-sm-4">@L.T("Phone"):</dt>
                                         <dd class="col-sm-8">@(Model.Phone ?? "-")</dd>
                                         
-                                        <dt class="col-sm-4">Joriy ulush:</dt>
+                                        <dt class="col-sm-4">@L.T("Fin_CurrentShare"):</dt>
                                         <dd class="col-sm-8"><strong>@ViewBag.CurrentSharePercent%</strong></dd>
                                         
-                                        <dt class="col-sm-4">Holati:</dt>
+                                        <dt class="col-sm-4">@L.T("Fin_State"):</dt>
                                         <dd class="col-sm-8">
                                             @if (Model.IsActive)
-                                            { <span class="badge badge-success">Faol</span> }
+                                            { <span class="badge badge-success">@L.T("Active")</span> }
                                             else
-                                            { <span class="badge badge-danger">Nofaol</span> }
+                                            { <span class="badge badge-danger">@L.T("Inactive")</span> }
                                         </dd>
                                         
-                                        <dt class="col-sm-4">Izoh:</dt>
+                                        <dt class="col-sm-4">@L.T("Comment"):</dt>
                                         <dd class="col-sm-8">@(Model.Notes ?? "-")</dd>
                                     </dl>
                                     
-                                    <h5 class="mt-4">Hissalar:</h5>
+                                    <h5 class="mt-4">@L.T("Fin_Contributions"):</h5>
                                     @if (contributions.Any())
                                     {
                                         <div class="table-responsive mt-2">
                                             <table class="table table-striped">
                                                 <thead>
                                                     <tr>
-                                                        <th>Sana</th>
-                                                        <th>Summa</th>
-                                                        <th>Valyuta</th>
-                                                        <th>Turi</th>
-                                                        <th>Tavsif</th>
+                                                        <th>@L.T("Date")</th>
+                                                        <th>@L.T("Amount")</th>
+                                                        <th>@L.T("Currency")</th>
+                                                        <th>@L.T("Type")</th>
+                                                        <th>@L.T("Description")</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
@@ -99,15 +99,15 @@
                                                             <td>@(contrib.CURRENCy != null ? contrib.CURRENCy.Shortname : "-")</td>
                                                             <td>
                                                                 @if (contrib.ContributionType == 1)
-                                                                { <span class="badge badge-success">Naqd pul</span> }
+                                                                { <span class="badge badge-success">@L.T("Fin_Cash")</span> }
                                                                 else if (contrib.ContributionType == 2)
-                                                                { <span class="badge badge-info">Tovarlar</span> }
+                                                                { <span class="badge badge-info">@L.T("Fin_Goods")</span> }
                                                                 else if (contrib.ContributionType == 3)
-                                                                { <span class="badge badge-warning">Xomashyo</span> }
+                                                                { <span class="badge badge-warning">@L.T("Fin_RawMaterials")</span> }
                                                                 else if (contrib.ContributionType == 4)
-                                                                { <span class="badge badge-primary">Tayyor mahsulot</span> }
+                                                                { <span class="badge badge-primary">@L.T("Fin_FinishedProducts")</span> }
                                                                 else
-                                                                { <span class="badge badge-secondary">Boshqa</span> }
+                                                                { <span class="badge badge-secondary">@L.T("Fin_Other")</span> }
                                                             </td>
                                                             <td>@(contrib.Description ?? "-")</td>
                                                         </tr>
@@ -118,7 +118,7 @@
                                     }
                                     else
                                     {
-                                        <p class="text-muted">Hissalar mavjud emas</p>
+                                        <p class="text-muted">@L.T("Fin_NoContributions")</p>
                                     }
                                 </div>
                             </div>

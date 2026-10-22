@@ -9,6 +9,7 @@ using tahsinERP.Filters;
 using tahsinERP.ViewModels.Finance;
 using tahsinERP.Services.Finance;
 using tahsinERP.Controllers;
+using tahsinERP.I18n;
 
 namespace tahsinERP.Controllers.Finance
 {
@@ -102,8 +103,8 @@ namespace tahsinERP.Controllers.Finance
                     "ID", "Name", parentID);
 
                 ViewBag.SignList = new SelectList(new[] {
-                    new { Value = (byte)1, Text = "+ (Musbat)" },
-                    new { Value = (byte)2, Text = "- (Manfiy)" }
+                    new { Value = (byte)1, Text = "+ (" + L.T("Fin_Positive") + ")" },
+                    new { Value = (byte)2, Text = "- (" + L.T("Fin_Negative") + ")" }
                 }, "Value", "Text");
 
                 var model = new FIN_PL_ITEMS
@@ -148,8 +149,8 @@ namespace tahsinERP.Controllers.Finance
                     "ID", "Name", item.ParentID);
 
                 ViewBag.SignList = new SelectList(new[] {
-                    new { Value = (byte)1, Text = "+ (Musbat)" },
-                    new { Value = (byte)2, Text = "- (Manfiy)" }
+                    new { Value = (byte)1, Text = "+ (" + L.T("Fin_Positive") + ")" },
+                    new { Value = (byte)2, Text = "- (" + L.T("Fin_Negative") + ")" }
                 }, "Value", "Text", item.Sign);
 
                 return View(item);
@@ -180,8 +181,8 @@ namespace tahsinERP.Controllers.Finance
                     "ID", "Name", item.ParentID);
 
                 ViewBag.SignList = new SelectList(new[] {
-                    new { Value = (byte)1, Text = "+ (Musbat)" },
-                    new { Value = (byte)2, Text = "- (Manfiy)" }
+                    new { Value = (byte)1, Text = "+ (" + L.T("Fin_Positive") + ")" },
+                    new { Value = (byte)2, Text = "- (" + L.T("Fin_Negative") + ")" }
                 }, "Value", "Text", item.Sign);
 
                 return View(item);
@@ -204,13 +205,13 @@ namespace tahsinERP.Controllers.Finance
                         excludeIds.Add(item.ID);
                         if (item.ParentID.HasValue && excludeIds.Contains(item.ParentID.Value))
                         {
-                            ModelState.AddModelError("ParentID", "Ota element sifatida o'zini yoki farzandini tanlash mumkin emas.");
+                            ModelState.AddModelError("ParentID", L.T("Fin_ParentCycleItem"));
                             ViewBag.ParentID = new SelectList(
                                 db.FIN_PL_ITEMS.Where(i => i.IsActive && !excludeIds.Contains(i.ID)).OrderBy(i => i.Name).ToList(),
                                 "ID", "Name", item.ParentID);
                             ViewBag.SignList = new SelectList(new[] {
-                                new { Value = (byte)1, Text = "+ (Musbat)" },
-                                new { Value = (byte)2, Text = "- (Manfiy)" }
+                                new { Value = (byte)1, Text = "+ (" + L.T("Fin_Positive") + ")" },
+                                new { Value = (byte)2, Text = "- (" + L.T("Fin_Negative") + ")" }
                             }, "Value", "Text", item.Sign);
                             return View(item);
                         }
@@ -235,8 +236,8 @@ namespace tahsinERP.Controllers.Finance
                     db.FIN_PL_ITEMS.Where(i => i.IsActive && !excludeIds2.Contains(i.ID)).OrderBy(i => i.Name).ToList(),
                     "ID", "Name", item.ParentID);
                 ViewBag.SignList = new SelectList(new[] {
-                    new { Value = (byte)1, Text = "+ (Musbat)" },
-                    new { Value = (byte)2, Text = "- (Manfiy)" }
+                    new { Value = (byte)1, Text = "+ (" + L.T("Fin_Positive") + ")" },
+                    new { Value = (byte)2, Text = "- (" + L.T("Fin_Negative") + ")" }
                 }, "Value", "Text", item.Sign);
 
                 return View(item);
@@ -309,7 +310,7 @@ namespace tahsinERP.Controllers.Finance
                     ID = item.ID,
                     Name = item.Name,
                     Controller = "FinPlItems",
-                    ListTitle = "P&L elementlar",
+                    ListTitle = L.T("Fin_PlItems"),
                     AllCategories = db.FIN_CATEGORIES.Where(c => c.IsActive).OrderBy(c => c.Name).ToList(),
                     MappedCategoryIds = db.FIN_CATEGORIES
                         .Where(c => c.FIN_PL_ITEMS.Any(pi => pi.ID == id))

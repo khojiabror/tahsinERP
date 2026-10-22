@@ -1,7 +1,7 @@
 @model tahsinERP.Models.SHAREHOLDER
 
 @{
-    ViewBag.Title = "Aksiyadorni tahrirlash";
+    ViewBag.Title = L.T("Fin_EditShareholder");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -16,8 +16,8 @@
                             <div class="breadcrumb-wrapper col-12">
                                 <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                     <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
-                                    <li class="breadcrumb-item"><a href="~/Shareholder">Aksiyadorlar</a></li>
-                                    <li class="breadcrumb-item active">Tahrirlash</li>
+                                    <li class="breadcrumb-item"><a href="~/Shareholder">@L.T("Fin_Shareholders")</a></li>
+                                    <li class="breadcrumb-item active">@L.T("Edit")</li>
                                 </ol>
                             </div>
                         </div>
@@ -29,7 +29,7 @@
                     <div class="col-md-8">
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">Aksiyadorni tahrirlash</h4>
+                                <h4 class="card-title">@L.T("Fin_EditShareholder")</h4>
                             </div>
                             <div class="card-content">
                                 <div class="card-body">
@@ -41,8 +41,8 @@
                                         @Html.Partial("_Form", Model, new ViewDataDictionary(ViewData) { { "IsCreate", false } })
 
                                         <div class="form-actions">
-                                            <button type="submit" class="btn btn-primary">Saqlash</button>
-                                            <a href="@Url.Action("Index")" class="btn btn-secondary">Bekor qilish</a>
+                                            <button type="submit" class="btn btn-primary">@L.T("Save")</button>
+                                            <a href="@Url.Action("Index")" class="btn btn-secondary">@L.T("Cancel")</a>
                                         </div>
                                     }
                                 </div>

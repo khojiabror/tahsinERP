@@ -1,7 +1,7 @@
 @model tahsinERP.ViewModels.Tannarx.TannarxAnalyticsDashboardViewModel
 
 @{
-    ViewBag.Title = "Tannarx tahlili";
+    ViewBag.Title = L.T("Mes_TanA_DashboardTitle");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -19,8 +19,8 @@
                             <div class="breadcrumb-wrapper col-12">
                                 <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                     <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
-                                    <li class="breadcrumb-item"><a href="~/Tannarx">Tannarx</a></li>
-                                    <li class="breadcrumb-item active">Tahlil</li>
+                                    <li class="breadcrumb-item"><a href="~/Tannarx">@L.T("Mes_Tan_Title")</a></li>
+                                    <li class="breadcrumb-item active">@L.T("Mes_TanA_Analysis")</li>
                                 </ol>
                             </div>
                         </div>
@@ -58,26 +58,26 @@
                                 <form id="filterForm" method="get" action="@Url.Action("Dashboard", "TannarxAnalytics")">
                                     <div class="row">
                                         <div class="col-md-3">
-                                            <label>Yil</label>
+                                            <label>@L.T("Mes_Year")</label>
                                             @Html.DropDownList("year", (SelectList)ViewBag.Years, new { @class = "form-control", @id = "yearFilter" })
                                         </div>
                                         <div class="col-md-3">
-                                            <label>Oy</label>
+                                            <label>@L.T("Mes_Month")</label>
                                             @Html.DropDownList("month", (SelectList)ViewBag.Months, new { @class = "form-control", @id = "monthFilter" })
                                         </div>
                                         <div class="col-md-3">
-                                            <label>Maxsulot</label>
-                                            @Html.DropDownList("productID", (SelectList)ViewBag.Products, "Barchasi", new { @class = "form-control", @id = "productFilter" })
+                                            <label>@L.T("Mes_Product")</label>
+                                            @Html.DropDownList("productID", (SelectList)ViewBag.Products, L.T("All"), new { @class = "form-control", @id = "productFilter" })
                                         </div>
                                         <div class="col-md-3 d-flex align-items-end">
                                             <button type="submit" class="btn btn-primary">
-                                                <i class="bx bx-search"></i> Filtrlash
+                                                <i class="bx bx-search"></i> @L.T("Filter")
                                             </button>
                                         </div>
                                     </div>
                                 </form>
                                 <a href="@Url.Action("MonthSources", "TannarxAnalytics", new { year = Model.Year, month = Model.Month })" class="btn btn-outline-primary mt-2 float-right">
-                                    <i class="bx bx-list-check"></i> Oy xarajatlari manbalari
+                                    <i class="bx bx-list-check"></i> @L.T("Mes_TanA_MonthSourcesTitle")
                                 </a>
                                 @if (changePermit)
                                 {
@@ -88,7 +88,7 @@
                                         <input type="hidden" name="month" value="@Model.Month" />
                                         <input type="hidden" name="returnTo" value="Dashboard" />
                                         <button type="submit" class="btn btn-success">
-                                            <i class="bx bx-refresh"></i> Fakt xarajatlarni yangilash
+                                            <i class="bx bx-refresh"></i> @L.T("Mes_TanA_UpdateActualBtn")
                                         </button>
                                     }
                                 }
@@ -106,13 +106,13 @@
                                 <div class="card-body">
                                     <div class="d-flex justify-content-between align-items-end">
                                         <div class="dashboard-content-left">
-                                            <p class="mb-0 text-muted">Material narxi</p>
+                                            <p class="mb-0 text-muted">@L.T("Mes_Tan_MaterialPrice")</p>
                                             <h2 class="font-weight-bolder mb-0" style="color: @(Model.MaterialPriceVariance >= 0 ? "#dc3545" : "#198754");">
                                                 @Model.MaterialPriceVariancePercent.ToString("N2")%
                                             </h2>
                                             <small class="text-muted">
-                                                Reja: @Model.TotalPlannedMaterialPrice.ToString("N0")<br />
-                                                Fakt: @Model.TotalActualMaterialPrice.ToString("N0")
+                                                @L.T("Mes_Plan"): @Model.TotalPlannedMaterialPrice.ToString("N0")<br />
+                                                @L.T("Mes_Actual"): @Model.TotalActualMaterialPrice.ToString("N0")
                                             </small>
                                         </div>
                                         <div class="dashboard-content-right">
@@ -135,13 +135,13 @@
                                 <div class="card-body">
                                     <div class="d-flex justify-content-between align-items-end">
                                         <div class="dashboard-content-left">
-                                            <p class="mb-0 text-muted">Ish haqi</p>
+                                            <p class="mb-0 text-muted">@L.T("Mes_TanA_Labor")</p>
                                             <h2 class="font-weight-bolder mb-0" style="color: @(Model.LaborCostVariance >= 0 ? "#dc3545" : "#198754");">
                                                 @Model.LaborCostVariancePercent.ToString("N2")%
                                             </h2>
                                             <small class="text-muted">
-                                                Reja: @Model.TotalPlannedLaborCost.ToString("N0")<br />
-                                                Fakt: @Model.TotalActualLaborCost.ToString("N0")
+                                                @L.T("Mes_Plan"): @Model.TotalPlannedLaborCost.ToString("N0")<br />
+                                                @L.T("Mes_Actual"): @Model.TotalActualLaborCost.ToString("N0")
                                             </small>
                                         </div>
                                         <div class="dashboard-content-right">
@@ -164,13 +164,13 @@
                                 <div class="card-body">
                                     <div class="d-flex justify-content-between align-items-end">
                                         <div class="dashboard-content-left">
-                                            <p class="mb-0 text-muted">EXW narxi</p>
+                                            <p class="mb-0 text-muted">@L.T("Mes_TanA_ExwPrice")</p>
                                             <h2 class="font-weight-bolder mb-0" style="color: @(Model.EXWVariance >= 0 ? "#198754" : "#dc3545");">
                                                 @Model.EXWVariancePercent.ToString("N2")%
                                             </h2>
                                             <small class="text-muted">
-                                                Reja: @Model.TotalPlannedEXWWithVAT.ToString("N0")<br />
-                                                Fakt: @Model.TotalActualEXWWithVAT.ToString("N0")
+                                                @L.T("Mes_Plan"): @Model.TotalPlannedEXWWithVAT.ToString("N0")<br />
+                                                @L.T("Mes_Actual"): @Model.TotalActualEXWWithVAT.ToString("N0")
                                             </small>
                                         </div>
                                         <div class="dashboard-content-right">
@@ -193,13 +193,13 @@
                                 <div class="card-body">
                                     <div class="d-flex justify-content-between align-items-end">
                                         <div class="dashboard-content-left">
-                                            <p class="mb-0 text-muted">CIP narxi</p>
+                                            <p class="mb-0 text-muted">@L.T("Mes_TanA_CipPrice")</p>
                                             <h2 class="font-weight-bolder mb-0" style="color: @(Model.CIPVariance >= 0 ? "#198754" : "#dc3545");">
                                                 @Model.CIPVariancePercent.ToString("N2")%
                                             </h2>
                                             <small class="text-muted">
-                                                Reja: @Model.TotalPlannedCIPWithVAT.ToString("N0")<br />
-                                                Fakt: @Model.TotalActualCIPWithVAT.ToString("N0")
+                                                @L.T("Mes_Plan"): @Model.TotalPlannedCIPWithVAT.ToString("N0")<br />
+                                                @L.T("Mes_Actual"): @Model.TotalActualCIPWithVAT.ToString("N0")
                                             </small>
                                         </div>
                                         <div class="dashboard-content-right">
@@ -222,7 +222,7 @@
                     <div class="col-lg-8 col-12">
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">Oylik trend (reja va fakt)</h4>
+                                <h4 class="card-title">@L.T("Mes_TanA_MonthlyTrend")</h4>
                             </div>
                             <div class="card-content">
                                 <div class="card-body">
@@ -235,7 +235,7 @@
                                         <div class="text-center text-muted" style="min-height: 350px; display: flex; align-items: center; justify-content: center;">
                                             <div>
                                                 <i class="bx bx-info-circle" style="font-size: 48px; margin-bottom: 10px;"></i>
-                                                <p class="mb-0">Grafikni ko‘rish uchun maxsulotni tanlang</p>
+                                                <p class="mb-0">@L.T("Mes_TanA_SelectProductForChart")</p>
                                             </div>
                                         </div>
                                     }
@@ -248,7 +248,7 @@
                     <div class="col-lg-4 col-12">
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">Eng katta farqlar (EXW)</h4>
+                                <h4 class="card-title">@L.T("Mes_TanA_TopVariances")</h4>
                             </div>
                             <div class="card-content">
                                 <div class="card-body">
@@ -256,8 +256,8 @@
                                         <table class="table table-sm">
                                             <thead>
                                                 <tr>
-                                                    <th>Maxsulot</th>
-                                                    <th>Farq %</th>
+                                                    <th>@L.T("Mes_Product")</th>
+                                                    <th>@L.T("Mes_TanA_VariancePct")</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -281,7 +281,7 @@
                                                 else
                                                 {
                                                     <tr>
-                                                        <td colspan="2" class="text-center text-muted">Ma'lumot yo'q</td>
+                                                        <td colspan="2" class="text-center text-muted">@L.T("NoData")</td>
                                                     </tr>
                                                 }
                                             </tbody>
@@ -298,28 +298,28 @@
                     <div class="col-12">
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">Umumiy statistika</h4>
+                                <h4 class="card-title">@L.T("Mes_TanA_Statistics")</h4>
                             </div>
                             <div class="card-content">
                                 <div class="card-body">
                                     <div class="row">
                                         <div class="col-md-3">
-                                            <p class="mb-0 text-muted">Jami Maxsulotlar</p>
+                                            <p class="mb-0 text-muted">@L.T("Mes_TanA_TotalProducts")</p>
                                             <h3 class="font-weight-bolder">@Model.TotalProducts</h3>
                                         </div>
                                         <div class="col-md-3">
-                                            <p class="mb-0 text-muted">Fakt bo'yicha ma'lumot</p>
+                                            <p class="mb-0 text-muted">@L.T("Mes_TanA_WithActualData")</p>
                                             <h3 class="font-weight-bolder">@Model.ProductsWithActualData</h3>
                                         </div>
                                         <div class="col-md-3">
-                                            <p class="mb-0 text-muted">To'ldirilgan foiz</p>
+                                            <p class="mb-0 text-muted">@L.T("Mes_TanA_FilledPct")</p>
                                             <h3 class="font-weight-bolder">
                                                 @(Model.TotalProducts > 0 ? ((Model.ProductsWithActualData * 100) / Model.TotalProducts).ToString("N1") : "0")%
                                             </h3>
                                         </div>
                                         <div class="col-md-3">
                                             <a href="@Url.Action("Report", "TannarxAnalytics", new { year = Model.Year, month = Model.Month })" class="btn btn-primary btn-block">
-                                                <i class="bx bx-file"></i> Batafsil hisobot
+                                                <i class="bx bx-file"></i> @L.T("Mes_TanA_DetailedReport")
                                             </a>
                                         </div>
                                     </div>
@@ -388,8 +388,8 @@ document.addEventListener('DOMContentLoaded', function () {
             },
             colors: ['#198754', '#dc3545'],
             series: [
-                { name: 'Reja', data: monthlyTrendData.planned },
-                { name: 'Fakt', data: monthlyTrendData.actual }
+                { name: '@L.Js("Mes_Plan")', data: monthlyTrendData.planned },
+                { name: '@L.Js("Mes_Actual")', data: monthlyTrendData.actual }
             ],
             xaxis: {
                 categories: monthlyTrendData.labels
@@ -397,7 +397,7 @@ document.addEventListener('DOMContentLoaded', function () {
             yaxis: {
                 labels: {
                     formatter: val =>
-                        Math.round(val).toLocaleString('uz-UZ') + " so'm"
+                        Math.round(val).toLocaleString('uz-UZ') + @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(" " + L.Sum))
                 }
             }
         };

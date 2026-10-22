@@ -1,8 +1,8 @@
 @model tahsinERP.ViewModels.FinanceReportsHubViewModel
 @{
-    ViewBag.Title = "Moliya hisobotlari (yadro)";
+    ViewBag.Title = L.T("Fin_HubTitle");
     Layout = "~/Views/Shared/_Layout.cshtml";
-    Func<decimal, string> fmtSom = v => string.Format("{0:N2}", v).Replace(",", " ").Replace(".", ",") + " so'm";
+    Func<decimal, string> fmtSom = v => string.Format("{0:N2}", v).Replace(",", " ").Replace(".", ",") + " " + L.Sum;
 }
 
 @* Ruxsat controller'dagi [Permission] filtrida tekshiriladi (FIN-M04) *@
@@ -16,8 +16,8 @@
                             <div class="breadcrumb-wrapper col-12">
                                 <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                     <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
-                                    <li class="breadcrumb-item">Moliya</li>
-                                    <li class="breadcrumb-item active">Yadro hisobotlar</li>
+                                    <li class="breadcrumb-item">@L.T("Menu_Finance")</li>
+                                    <li class="breadcrumb-item active">@L.T("Fin_CoreReports")</li>
                                 </ol>
                             </div>
                         </div>
@@ -29,17 +29,17 @@
                 <form method="get" action="@Url.Action("FinanceReportsHub")" class="mb-2">
                     <div class="row">
                         <div class="col-md-4">
-                            <label>Holat sanasi (As of date)</label>
+                            <label>@L.T("Fin_AsOfDate")</label>
                             <input type="date" name="asOfDate" class="form-control" value="@Model.AsOfDate.ToString("yyyy-MM-dd")" />
                         </div>
                         <div class="col-md-2">
                             <label>&nbsp;</label>
-                            <button type="submit" class="btn btn-primary btn-block">Ko'rsatish</button>
+                            <button type="submit" class="btn btn-primary btn-block">@L.T("Fin_Show")</button>
                         </div>
                         <div class="col-md-3">
                             <label>&nbsp;</label>
                             <button type="button" id="btnExportHubPdf" class="btn btn-danger btn-block">
-                                PDF yuklab olish (butun sahifa)
+                                @L.T("Fin_PdfDownloadWhole")
                             </button>
                         </div>
                     </div>
@@ -50,7 +50,7 @@
                         <div class="card">
                             <div class="card-body">
                 @Html.Partial("~/Views/FinDashboard/_CurrencyWarning.cshtml")
-                                <p class="mb-0 text-muted">Mijozlardan haqqimiz</p>
+                                <p class="mb-0 text-muted">@L.T("Fin_ReceivableFromCustomers")</p>
                                 <h4 class="mb-0 text-primary">@fmtSom(Model.TotalCustomerReceivables)</h4>
                             </div>
                         </div>
@@ -58,7 +58,7 @@
                     <div class="col-xl-3 col-md-6 col-12">
                         <div class="card">
                             <div class="card-body">
-                                <p class="mb-0 text-muted">Ta'minotchilardan qarzimiz</p>
+                                <p class="mb-0 text-muted">@L.T("Fin_PayableToSuppliers")</p>
                                 <h4 class="mb-0 text-danger">@fmtSom(Model.TotalSupplierPayables)</h4>
                             </div>
                         </div>
@@ -66,7 +66,7 @@
                     <div class="col-xl-3 col-md-6 col-12">
                         <div class="card">
                             <div class="card-body">
-                                <p class="mb-0 text-muted">Oylikdan qarzimiz</p>
+                                <p class="mb-0 text-muted">@L.T("Fin_PayrollDebt")</p>
                                 <h4 class="mb-0 text-warning">@fmtSom(Model.TotalPayrollDebt)</h4>
                             </div>
                         </div>
@@ -74,7 +74,7 @@
                     <div class="col-xl-3 col-md-6 col-12">
                         <div class="card">
                             <div class="card-body">
-                                <p class="mb-0 text-muted">To'lanmagan doimiy harajatlar</p>
+                                <p class="mb-0 text-muted">@L.T("Fin_UnpaidRecurring")</p>
                                 <h4 class="mb-0 text-info">@fmtSom(Model.TotalRecurringObligationDebt)</h4>
                             </div>
                         </div>
@@ -84,13 +84,13 @@
                 <div class="row">
                     <div class="col-lg-6 col-12">
                         <div class="card">
-                            <div class="card-header"><h5 class="mb-0">TOP mijozlar (haqqimiz)</h5></div>
+                            <div class="card-header"><h5 class="mb-0">@L.T("Fin_TopCustomers")</h5></div>
                             <div class="card-body"><canvas id="chartReceivables"></canvas></div>
                         </div>
                     </div>
                     <div class="col-lg-6 col-12">
                         <div class="card">
-                            <div class="card-header"><h5 class="mb-0">TOP ta'minotchilar (qarzimiz)</h5></div>
+                            <div class="card-header"><h5 class="mb-0">@L.T("Fin_TopSuppliers")</h5></div>
                             <div class="card-body"><canvas id="chartPayables"></canvas></div>
                         </div>
                     </div>
@@ -100,15 +100,15 @@
                     <div class="col-12">
                         <div class="card">
                             <div class="card-header">
-                                <h5 class="mb-0">Mijozlar bo'yicha haqqimiz</h5>
+                                <h5 class="mb-0">@L.T("Fin_ReceivablesByCustomers")</h5>
                             </div>
                             <div class="card-body p-0">
                                 <div class="table-responsive">
                                     <table class="table table-hover mb-0 finance-hub-table" id="tblReceivables">
                                         <thead>
                                             <tr>
-                                                <th>Korxona</th>
-                                                <th class="text-right">Haqqimiz</th>
+                                                <th>@L.T("Fin_Company")</th>
+                                                <th class="text-right">@L.T("Fin_Receivable")</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -124,7 +124,7 @@
                                             }
                                             else
                                             {
-                                                <tr><td colspan="2" class="text-center text-muted">Ma'lumot yo'q</td></tr>
+                                                <tr><td colspan="2" class="text-center text-muted">@L.T("NoData")</td></tr>
                                             }
                                         </tbody>
                                     </table>
@@ -138,15 +138,15 @@
                     <div class="col-12">
                         <div class="card">
                             <div class="card-header">
-                                <h5 class="mb-0">Ta'minotchilar bo'yicha qarzimiz</h5>
+                                <h5 class="mb-0">@L.T("Fin_PayablesBySuppliers")</h5>
                             </div>
                             <div class="card-body p-0">
                                 <div class="table-responsive">
                                     <table class="table table-hover mb-0 finance-hub-table" id="tblPayables">
                                         <thead>
                                             <tr>
-                                                <th>Tashkilot</th>
-                                                <th class="text-right">Qarzimiz</th>
+                                                <th>@L.T("Fin_Organization")</th>
+                                                <th class="text-right">@L.T("Fin_Payable")</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -162,7 +162,7 @@
                                             }
                                             else
                                             {
-                                                <tr><td colspan="2" class="text-center text-muted">Ma'lumot yo'q</td></tr>
+                                                <tr><td colspan="2" class="text-center text-muted">@L.T("NoData")</td></tr>
                                             }
                                         </tbody>
                                     </table>
@@ -176,17 +176,17 @@
                     <div class="col-12">
                         <div class="card">
                             <div class="card-header">
-                                <h5 class="mb-0">Oylikdan kimdan qancha qarzmiz (xodim kesimida)</h5>
+                                <h5 class="mb-0">@L.T("Fin_PayrollDebtByEmployee")</h5>
                             </div>
                             <div class="card-body p-0">
                                 <div class="table-responsive">
                                     <table class="table table-hover mb-0 finance-hub-table" id="tblPayrollDebts">
                                         <thead>
                                             <tr>
-                                                <th>Xodim</th>
-                                                <th class="text-right">Hisoblangan</th>
-                                                <th class="text-right">To'langan</th>
-                                                <th class="text-right">Qarz</th>
+                                                <th>@L.T("Fin_Employee")</th>
+                                                <th class="text-right">@L.T("Fin_Accrued")</th>
+                                                <th class="text-right">@L.T("Fin_Paid")</th>
+                                                <th class="text-right">@L.T("Fin_Debt")</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -204,7 +204,7 @@
                                             }
                                             else
                                             {
-                                                <tr><td colspan="4" class="text-center text-muted">Qarz aniqlanmadi</td></tr>
+                                                <tr><td colspan="4" class="text-center text-muted">@L.T("Fin_NoDebtFound")</td></tr>
                                             }
                                         </tbody>
                                     </table>
@@ -218,19 +218,19 @@
                     <div class="col-12">
                         <div class="card">
                             <div class="card-header">
-                                <h5 class="mb-0">Doimiy harajatlar: qaysilari to'lanmadi</h5>
+                                <h5 class="mb-0">@L.T("Fin_RecurringUnpaidTitle")</h5>
                             </div>
                             <div class="card-body p-0">
                                 <div class="table-responsive">
                                     <table class="table table-hover mb-0 finance-hub-table" id="tblRecurringDebts">
                                         <thead>
                                             <tr>
-                                                <th>Harajat nomi</th>
-                                                <th class="text-right">Oyiga</th>
-                                                <th class="text-right">Yig'ilgan oy</th>
-                                                <th class="text-right">Yig'ilgan</th>
-                                                <th class="text-right">To'langan</th>
-                                                <th class="text-right">Qoldiq qarz</th>
+                                                <th>@L.T("Fin_ExpenseName")</th>
+                                                <th class="text-right">@L.T("Fin_PerMonth")</th>
+                                                <th class="text-right">@L.T("Fin_AccumMonths")</th>
+                                                <th class="text-right">@L.T("Fin_Accumulated")</th>
+                                                <th class="text-right">@L.T("Fin_Paid")</th>
+                                                <th class="text-right">@L.T("Fin_RemainingDebt")</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -250,7 +250,7 @@
                                             }
                                             else
                                             {
-                                                <tr><td colspan="6" class="text-center text-muted">To'lanmagan doimiy harajat yo'q</td></tr>
+                                                <tr><td colspan="6" class="text-center text-muted">@L.T("Fin_NoUnpaidRecurring")</td></tr>
                                             }
                                         </tbody>
                                     </table>
@@ -276,7 +276,7 @@
                         type: 'bar',
                         data: {
                             labels: receivables.map(function (x) { return x.CustomerName; }),
-                            datasets: [{ label: "Haqqimiz", data: receivables.map(function (x) { return x.Amount; }), backgroundColor: 'rgba(54, 162, 235, 0.7)' }]
+                            datasets: [{ label: '@L.Js("Fin_Receivable")', data: receivables.map(function (x) { return x.Amount; }), backgroundColor: 'rgba(54, 162, 235, 0.7)' }]
                         },
                         options: { indexAxis: 'y', plugins: { legend: { display: false } } }
                     });
@@ -286,7 +286,7 @@
                         type: 'bar',
                         data: {
                             labels: payables.map(function (x) { return x.SupplierName; }),
-                            datasets: [{ label: "Qarzimiz", data: payables.map(function (x) { return x.Amount; }), backgroundColor: 'rgba(255, 99, 132, 0.7)' }]
+                            datasets: [{ label: '@L.Js("Fin_Payable")', data: payables.map(function (x) { return x.Amount; }), backgroundColor: 'rgba(255, 99, 132, 0.7)' }]
                         },
                         options: { indexAxis: 'y', plugins: { legend: { display: false } } }
                     });
@@ -295,17 +295,8 @@
                 if (window.jQuery && $.fn && $.fn.DataTable) {
                     var options = {
                         pageLength: 25,
-                        lengthMenu: [[25, 50, 100, -1], ["25", "50", "100", "Barchasi"]],
-                        order: [[1, "desc"]],
-                        language: {
-                            lengthMenu: "Ko'rsatish: _MENU_",
-                            info: "_TOTAL_ ta yozuvdan _START_ - _END_",
-                            infoEmpty: "Yozuv yo'q",
-                            infoFiltered: "(_MAX_ ta yozuvdan filtrlangan)",
-                            search: "Qidirish:",
-                            paginate: { first: "Birinchi", last: "Oxirgi", next: "Keyingi", previous: "Oldingi" },
-                            zeroRecords: "Hech narsa topilmadi"
-                        }
+                        lengthMenu: [[25, 50, 100, -1], ["25", "50", "100", "@L.Js("All")"]],
+                        order: [[1, "desc"]]
                     };
                     // Bo'sh jadvaldagi "Ma'lumot yo'q" (colspan) qatori DataTables'ni sindiradi — ular oddiy jadval bo'lib qoladi
                     $('.finance-hub-table').filter(function () {
@@ -340,7 +331,7 @@
                     try {
                         if (btn) {
                             btn.disabled = true;
-                            btn.textContent = 'PDF tayyorlanmoqda...';
+                            btn.textContent = '@L.Js("Fin_PdfPreparing")';
                         }
 
                         await loadScript('https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js');
@@ -380,11 +371,11 @@
                         var fileName = 'FinanceReportsHub' + (asOf ? ('_' + asOf) : '') + '.pdf';
                         pdf.save(fileName);
                     } catch (e) {
-                        alert('PDF exportda xatolik: ' + (e && e.message ? e.message : e));
+                        alert('@L.Js("Fin_PdfExportError") ' + (e && e.message ? e.message : e));
                     } finally {
                         if (btn) {
                             btn.disabled = false;
-                            btn.textContent = originalText || 'PDF yuklab olish (butun sahifa)';
+                            btn.textContent = originalText || '@L.Js("Fin_PdfDownloadWhole")';
                         }
                     }
                 }

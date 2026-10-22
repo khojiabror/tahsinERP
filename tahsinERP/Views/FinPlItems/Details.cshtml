@@ -1,7 +1,7 @@
 @model tahsinERP.Models.FIN_PL_ITEMS
 
 @{
-    ViewBag.Title = "P&L element tafsilotlari";
+    ViewBag.Title = L.T("Fin_PlItemDetails");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -20,8 +20,8 @@
                             <div class="breadcrumb-wrapper col-12">
                                 <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                     <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
-                                    <li class="breadcrumb-item"><a href="~/FinPlItems">P&L elementlar</a></li>
-                                    <li class="breadcrumb-item active">Tafsilotlar</li>
+                                    <li class="breadcrumb-item"><a href="~/FinPlItems">@L.T("Fin_PlItems")</a></li>
+                                    <li class="breadcrumb-item active">@L.T("Fin_Details")</li>
                                 </ol>
                             </div>
                         </div>
@@ -33,54 +33,54 @@
                     <div class="col-md-8">
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">P&L element tafsilotlari</h4>
+                                <h4 class="card-title">@L.T("Fin_PlItemDetails")</h4>
                                 @if (changePermit)
                                 {
                                     <div class="heading-elements">
-                                        <a href="@Url.Action("Edit", new { id = Model.ID })" class="btn btn-sm btn-primary">Tahrirlash</a>
-                                        <a href="@Url.Action("Delete", new { id = Model.ID })" class="btn btn-sm btn-danger">O'chirish</a>
-                                        <a href="@Url.Action("MapCategories", new { id = Model.ID })" class="btn btn-sm btn-info">Kategoriyalarni bog'lash</a>
+                                        <a href="@Url.Action("Edit", new { id = Model.ID })" class="btn btn-sm btn-primary">@L.T("Edit")</a>
+                                        <a href="@Url.Action("Delete", new { id = Model.ID })" class="btn btn-sm btn-danger">@L.T("Delete")</a>
+                                        <a href="@Url.Action("MapCategories", new { id = Model.ID })" class="btn btn-sm btn-info">@L.T("Fin_MapCategories")</a>
                                     </div>
                                 }
                             </div>
                             <div class="card-content">
                                 <div class="card-body">
                                     <dl class="row">
-                                        <dt class="col-sm-4">Kod:</dt>
+                                        <dt class="col-sm-4">@L.T("Code"):</dt>
                                         <dd class="col-sm-8">@(Model.Code ?? "-")</dd>
                                         
-                                        <dt class="col-sm-4">Nomi:</dt>
+                                        <dt class="col-sm-4">@L.T("Name"):</dt>
                                         <dd class="col-sm-8">@Model.Name</dd>
                                         
-                                        <dt class="col-sm-4">Belgi:</dt>
+                                        <dt class="col-sm-4">@L.T("Fin_Sign"):</dt>
                                         <dd class="col-sm-8">
                                             @if (Model.Sign == 1)
-                                            { <span class="badge badge-success">+ (Musbat)</span> }
+                                            { <span class="badge badge-success">+ (@L.T("Fin_Positive"))</span> }
                                             else
-                                            { <span class="badge badge-danger">- (Manfiy)</span> }
+                                            { <span class="badge badge-danger">- (@L.T("Fin_Negative"))</span> }
                                         </dd>
                                         
-                                        <dt class="col-sm-4">Ota element:</dt>
+                                        <dt class="col-sm-4">@L.T("Fin_ParentItem"):</dt>
                                         <dd class="col-sm-8">@(Model.FIN_PL_ITEMS2?.Name ?? "-")</dd>
                                         
-                                        <dt class="col-sm-4">Tartib raqami:</dt>
+                                        <dt class="col-sm-4">@L.T("Fin_SortOrder"):</dt>
                                         <dd class="col-sm-8">@Model.SortOrder</dd>
                                         
-                                        <dt class="col-sm-4">Holati:</dt>
+                                        <dt class="col-sm-4">@L.T("Fin_State"):</dt>
                                         <dd class="col-sm-8">
                                             @if (Model.IsActive)
-                                            { <span class="badge badge-success">Faol</span> }
+                                            { <span class="badge badge-success">@L.T("Active")</span> }
                                             else
-                                            { <span class="badge badge-danger">Nofaol</span> }
+                                            { <span class="badge badge-danger">@L.T("Inactive")</span> }
                                         </dd>
                                         
-                                        <dt class="col-sm-4">Rejalar soni:</dt>
-                                        <dd class="col-sm-8">@ViewBag.PlanCount ta</dd>
+                                        <dt class="col-sm-4">@L.T("Fin_PlanCount"):</dt>
+                                        <dd class="col-sm-8">@L.T("Fin_CountPcs", ViewBag.PlanCount)</dd>
                                     </dl>
                                     
                                     @if (ViewBag.ChildItems != null && ((List<tahsinERP.Models.FIN_PL_ITEMS>)ViewBag.ChildItems).Any())
                                     {
-                                        <h5 class="mt-3">Kichik elementlar:</h5>
+                                        <h5 class="mt-3">@L.T("Fin_SubItems"):</h5>
                                         <ul>
                                             @foreach (var child in (List<tahsinERP.Models.FIN_PL_ITEMS>)ViewBag.ChildItems)
                                             {
@@ -91,7 +91,7 @@
                                     
                                     @if (ViewBag.MappedCategories != null && ((List<tahsinERP.Models.FIN_CATEGORIES>)ViewBag.MappedCategories).Any())
                                     {
-                                        <h5 class="mt-3">Bog'langan kategoriyalar:</h5>
+                                        <h5 class="mt-3">@L.T("Fin_MappedCategories"):</h5>
                                         <ul>
                                             @foreach (var category in (List<tahsinERP.Models.FIN_CATEGORIES>)ViewBag.MappedCategories)
                                             {

@@ -6,6 +6,7 @@ using tahsinERP.Filters;
 using tahsinERP.Models;
 using tahsinERP.Services.Finance;
 using tahsinERP.ViewModels.Finance;
+using tahsinERP.I18n;
 
 namespace tahsinERP.Controllers.Finance
 {
@@ -103,7 +104,7 @@ namespace tahsinERP.Controllers.Finance
                 ViewBag.AsOfDate = asOfDate;
                 ViewBag.LiabilityDetails = details;
                 ViewBag.TotalAmount = details.Sum(d => d.Amount);
-                return DetailsView(details, "Passivlar va Kapital Tafsiloti", "Jami passivlar va kapital:", true);
+                return DetailsView(details, L.T("Fin_LiabilitiesEquityDetails"), L.T("Fin_TotalLiabilitiesAndEquity") + ":", true);
             }
         }
 
@@ -118,7 +119,7 @@ namespace tahsinERP.Controllers.Finance
                 ViewBag.AsOfDate = asOfDate;
                 ViewBag.AssetDetails = details;
                 ViewBag.TotalAmount = details.Sum(d => d.Amount);
-                return DetailsView(details, "Aktivlar Tafsiloti", "Jami aktivlar:", false);
+                return DetailsView(details, L.T("Fin_AssetsDetails"), L.T("Fin_TotalAssets") + ":", false);
             }
         }
 
@@ -130,7 +131,7 @@ namespace tahsinERP.Controllers.Finance
         {
             if (!CanView("FinDashboard"))
             {
-                return Json(new { success = false, message = "Ruxsat yo'q" }, JsonRequestBehavior.AllowGet);
+                return Json(new { success = false, message = L.T("Error_NotAuthorized") }, JsonRequestBehavior.AllowGet);
             }
 
             using (var db = new DBTHSNEntities())
@@ -257,10 +258,10 @@ namespace tahsinERP.Controllers.Finance
         {
             return DirectionAnalysisView(fromDate, toDate, 2, new DirectionAnalysisPage
             {
-                Title = "Chiqimlar tahlili",
+                Title = L.T("Menu_ExpenseAnalysis"),
                 Action = "ExpenseAnalysis",
-                Plural = "Chiqimlar",
-                TotalLabel = "Jami chiqim",
+                Plural = L.T("Fin_Expenses"),
+                TotalLabel = L.T("Fin_TotalExpense"),
                 IdPrefix = "expense",
                 CardClass = "stat-card-outflow",
                 LineRgb = "234, 84, 85",
@@ -274,10 +275,10 @@ namespace tahsinERP.Controllers.Finance
         {
             return DirectionAnalysisView(fromDate, toDate, 1, new DirectionAnalysisPage
             {
-                Title = "Kirimlar tahlili",
+                Title = L.T("Menu_IncomeAnalysis"),
                 Action = "IncomeAnalysis",
-                Plural = "Kirimlar",
-                TotalLabel = "Jami kirim",
+                Plural = L.T("Fin_Incomes"),
+                TotalLabel = L.T("Fin_TotalIncome"),
                 IdPrefix = "income",
                 CardClass = "stat-card-inflow",
                 LineRgb = "40, 199, 111",

@@ -8,7 +8,7 @@
 
 @if (Model == null || !Model.Any())
 {
-    <div class="alert alert-info">Kunlik reja ma'lumotlari mavjud emas</div>
+    <div class="alert alert-info">@L.T("Mes_Plan_NoDailyData")</div>
 }
 else
 {
@@ -17,14 +17,14 @@ else
         <table class="table table-bordered table-hover" id="dailyPlanTable">
             <thead>
                 <tr>
-                    <th>Sana</th>
-                    <th>Kunduzgi smena (Reja)</th>
-                    <th>Tungi smena (Reja)</th>
-                    <th>Jami (Reja)</th>
-                    <th>Kunduzgi smena (Fakt)</th>
-                    <th>Tungi smena (Fakt)</th>
-                    <th>Jami (Fakt)</th>
-                    <th>Farq</th>
+                    <th>@L.T("Date")</th>
+                    <th>@L.T("Mes_DayShift") (@L.T("Mes_Plan"))</th>
+                    <th>@L.T("Mes_NightShift") (@L.T("Mes_Plan"))</th>
+                    <th>@L.T("Total") (@L.T("Mes_Plan"))</th>
+                    <th>@L.T("Mes_DayShift") (@L.T("Mes_Actual"))</th>
+                    <th>@L.T("Mes_NightShift") (@L.T("Mes_Actual"))</th>
+                    <th>@L.T("Total") (@L.T("Mes_Actual"))</th>
+                    <th>@L.T("Mes_Variance")</th>
                 </tr>
             </thead>
             <tbody>
@@ -87,7 +87,7 @@ else
     {
         <div class="mt-3">
             <button type="button" id="saveDailyPlansBtn" class="btn btn-primary">
-                <i class="bx bx-save"></i> Kunlik rejalarni saqlash
+                <i class="bx bx-save"></i> @L.T("Mes_Plan_SaveDaily")
             </button>
             <span id="saveStatus" class="ml-2"></span>
         </div>
@@ -128,11 +128,11 @@ else
             // Save daily plans
             $('#saveDailyPlansBtn').on('click', function() {
                 if (changedItems.length === 0) {
-                    $('#saveStatus').html('<span class="text-warning">O\'zgarishlar yo\'q</span>');
+                    $('#saveStatus').html('<span class="text-warning">@L.Js("Mes_Plan_NoChanges")</span>');
                     return;
                 }
 
-                $('#saveDailyPlansBtn').prop('disabled', true).html('<i class="bx bx-loader bx-spin"></i> Saqlanmoqda...');
+                $('#saveDailyPlansBtn').prop('disabled', true).html('<i class="bx bx-loader bx-spin"></i> @L.Js("Mes_Plan_Saving")');
                 $('#saveStatus').html('');
 
                 $.ajax({
@@ -152,12 +152,12 @@ else
                             }, 1000);
                         } else {
                             $('#saveStatus').html('<span class="text-danger">' + response.message + '</span>');
-                            $('#saveDailyPlansBtn').prop('disabled', false).html('<i class="bx bx-save"></i> Kunlik rejalarni saqlash');
+                            $('#saveDailyPlansBtn').prop('disabled', false).html('<i class="bx bx-save"></i> @L.Js("Mes_Plan_SaveDaily")');
                         }
                     },
                     error: function() {
-                        $('#saveStatus').html('<span class="text-danger">Xatolik yuz berdi</span>');
-                        $('#saveDailyPlansBtn').prop('disabled', false).html('<i class="bx bx-save"></i> Kunlik rejalarni saqlash');
+                        $('#saveStatus').html('<span class="text-danger">@L.Js("Error_Generic")</span>');
+                        $('#saveDailyPlansBtn').prop('disabled', false).html('<i class="bx bx-save"></i> @L.Js("Mes_Plan_SaveDaily")');
                     }
                 });
             });

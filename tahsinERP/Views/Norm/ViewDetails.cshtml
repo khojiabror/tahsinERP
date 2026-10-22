@@ -1,6 +1,6 @@
 @model tahsinERP.ViewModels.ProductNormViewModel
 @{
-    ViewBag.Title = "Norma kiritish - Ko'rish";
+    ViewBag.Title = L.T("Mes_Norm_ViewTitle");
     Layout = "~/Views/Shared/_Layout.cshtml";
     var unitNameMap = ViewBag.UnitNameMap as Dictionary<int, string> ?? new Dictionary<int, string>();
 }
@@ -17,8 +17,8 @@
                             <div class="breadcrumb-wrapper col-12">
                                 <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                     <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
-                                    <li class="breadcrumb-item"><a href="~/Norm">Norma kiritish</a></li>
-                                    <li class="breadcrumb-item active">Ko'rish</li>
+                                    <li class="breadcrumb-item"><a href="~/Norm">@L.T("Mes_Norm_IndexTitle")</a></li>
+                                    <li class="breadcrumb-item active">@L.T("View")</li>
                                 </ol>
                             </div>
                         </div>
@@ -42,23 +42,23 @@
                                 <div class="card-content">
                                     <div class="card-body">
                                         <div id="normContent">
-                                        <h4 class="text-primary mb-3">Mahsulot ma'lumotlari</h4>
+                                        <h4 class="text-primary mb-3">@L.T("Mes_ProductInfo")</h4>
                                         <div class="row">
                                             <div class="col-md-4">
                                                 <div class="form-group">
-                                                    <label>Mahsulot raqami</label>
+                                                    <label>@L.T("Mes_ProductNo")</label>
                                                     <input type="text" class="form-control" value="@Model.ProductCode" readonly />
                                                 </div>
                                             </div>
                                             <div class="col-md-4">
                                                 <div class="form-group">
-                                                    <label>Mahsulot nomi</label>
+                                                    <label>@L.T("Mes_ProductName")</label>
                                                     <input type="text" class="form-control" value="@Model.ProductName" readonly />
                                                 </div>
                                             </div>
                                             <div class="col-md-4">
                                                 <div class="form-group">
-                                                    <label>Oy</label>
+                                                    <label>@L.T("Mes_Month")</label>
                                                     <input type="text" class="form-control" value="@Model.Period" readonly />
                                                 </div>
                                             </div>
@@ -67,43 +67,43 @@
                                         <div class="row">
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label>Samarali sanadan</label>
+                                                    <label>@L.T("Mes_Norm_EffectiveFrom")</label>
                                                     <input type="text" class="form-control" value="@(Model.EffectiveFrom?.ToString("yyyy-MM-dd") ?? "-")" readonly />
                                                 </div>
                                             </div>
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label>Samarali sanagacha</label>
+                                                    <label>@L.T("Mes_Norm_EffectiveTo")</label>
                                                     <input type="text" class="form-control" value="@(Model.EffectiveTo?.ToString("yyyy-MM-dd") ?? "-")" readonly />
                                                 </div>
                                             </div>
                                         </div>
 
                                         <div class="form-group">
-                                            <label>Izoh</label>
+                                            <label>@L.T("Comment")</label>
                                             <textarea class="form-control" rows="2" readonly>@Model.Comment</textarea>
                                         </div>
 
                                         <hr>
 
-                                        <h4 class="text-primary mb-3">Kesish variantlari</h4>
+                                        <h4 class="text-primary mb-3">@L.T("Mes_Norm_CuttingVariants")</h4>
                                         <div class="table-responsive">
                                             <table class="table table-striped table-bordered table-sm norm-details-table">
                                                 <thead class="thead-light">
                                                     <tr>
-                                                        <th>Material</th>
-                                                        <th>Material kodi</th>
-                                                        <th>Uzunlik (mm)</th>
-                                                        <th>Standart uzunlik (mm)</th>
-                                                        <th>Miqdori</th>
-                                                        <th>Birlik</th>
-                                                        <th>Sarf (m)</th>
-                                                        <th>Chiqindi (m)</th>
-                                                        <th>Narx</th>
-                                                        <th>Toza sarf summa</th>
-                                                        <th>Chiqindi summa</th>
-                                                        <th>Jami narx</th>
-                                                        <th>Kesish usuli</th>
+                                                        <th>@L.T("Mes_Norm_Material")</th>
+                                                        <th>@L.T("Mes_MaterialCode")</th>
+                                                        <th>@L.T("Mes_Norm_LengthMm")</th>
+                                                        <th>@L.T("Mes_Norm_StandardLengthMm")</th>
+                                                        <th>@L.T("Mes_Norm_Qty")</th>
+                                                        <th>@L.T("Unit")</th>
+                                                        <th>@L.T("Mes_Norm_ConsumptionM")</th>
+                                                        <th>@L.T("Mes_Norm_WasteM")</th>
+                                                        <th>@L.T("Price")</th>
+                                                        <th>@L.T("Mes_Norm_CleanConsumptionAmount")</th>
+                                                        <th>@L.T("Mes_Norm_WasteAmount")</th>
+                                                        <th>@L.T("Mes_Norm_TotalPrice")</th>
+                                                        <th>@L.T("Mes_Norm_CuttingMethod")</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
@@ -137,7 +137,7 @@
                                                     else
                                                     {
                                                         <tr>
-                                                            <td colspan="13" class="text-center text-muted">Kesish variantlari topilmadi.</td>
+                                                            <td colspan="13" class="text-center text-muted">@L.T("Mes_Norm_NoCuttingVariants")</td>
                                                         </tr>
                                                     }
                                                 </tbody>
@@ -146,14 +146,14 @@
 
                                         <hr>
 
-                                        <h4 class="text-primary mb-3">Jami hisoblar</h4>
+                                        <h4 class="text-primary mb-3">@L.T("Mes_Norm_TotalsHeader")</h4>
                                         <div class="row">
                                             <div class="col-md-4">
                                                 <div class="card text-white" style="background: linear-gradient(135deg, #a8e6cf 0%, #7dd3a0 100%); border: none;">
                                                     <div class="card-body">
-                                                        <h4>Umumiy norma Yo'goch (m)</h4>
+                                                        <h4>@L.T("Mes_Norm_TotalNormWoodM")</h4>
                                                         <br />
-                                                        <small>faqat yog'och uchun</small>
+                                                        <small>@L.T("Mes_Norm_WoodOnly")</small>
                                                         <h4>@Model.TotalNorm.ToString("F4")</h4>
                                                     </div>
                                                 </div>
@@ -161,9 +161,9 @@
                                             <div class="col-md-4">
                                                 <div class="card text-white" style="background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%); border: none;">
                                                     <div class="card-body">
-                                                        <h6>Umumiy chiqindi (m)</h6>
+                                                        <h6>@L.T("Mes_Norm_TotalWasteM")</h6>
                                                         <br />
-                                                        <small>faqat yog'och uchun</small>
+                                                        <small>@L.T("Mes_Norm_WoodOnly")</small>
                                                         <h4>@Model.TotalWaste.ToString("F4")</h4>
                                                     </div>
                                                 </div>
@@ -172,7 +172,7 @@
 
                                         <hr>
 
-                                        <h4 class="text-primary mb-3">Summa hisoblar</h4>
+                                        <h4 class="text-primary mb-3">@L.T("Mes_Norm_AmountsHeader")</h4>
                                         @{
                                             // Calculate sums from model - barcha elementlar uchun
                                             decimal totalSarfSumma = Model.CuttingLines
@@ -189,9 +189,9 @@
                                             <div class="col-md-4">
                                                 <div class="card text-white" style="background: linear-gradient(135deg, #a8e6cf 0%, #7dd3a0 100%); border: none;">
                                                     <div class="card-body">
-                                                        <h6>Umumiy toza sarf summa</h6>
+                                                        <h6>@L.T("Mes_Norm_TotalCleanConsumptionAmount")</h6>
                                                         <br />
-                                                        <small>barcha elementlar uchun</small>
+                                                        <small>@L.T("Mes_Norm_AllElements")</small>
                                                         <h4>@totalSarfSumma.ToString("F2")</h4>
                                                     </div>
                                                 </div>
@@ -199,9 +199,9 @@
                                             <div class="col-md-4">
                                                 <div class="card text-white" style="background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%); border: none;">
                                                     <div class="card-body">
-                                                        <h6>Umumiy chiqindi summa</h6>
+                                                        <h6>@L.T("Mes_Norm_TotalWasteAmountShort")</h6>
                                                         <br />
-                                                        <small>barcha elementlar uchun</small>
+                                                        <small>@L.T("Mes_Norm_AllElements")</small>
                                                         <h4>@totalChiqindiSumma.ToString("F2")</h4>
                                                     </div>
                                                 </div>
@@ -209,9 +209,9 @@
                                             <div class="col-md-4">
                                                 <div class="card" style="background-color: #ffeaa7; border-color: #fdcb6e;">
                                                     <div class="card-body">
-                                                        <h6>Umumiy summa</h6>
+                                                        <h6>@L.T("Mes_Norm_TotalAmount")</h6>
                                                         <br />
-                                                        <small class="text-muted">barcha elementlar uchun</small>
+                                                        <small class="text-muted">@L.T("Mes_Norm_AllElements")</small>
                                                         <h4>@umumiySumma.ToString("F2")</h4>
                                                     </div>
                                                 </div>
@@ -226,16 +226,16 @@
                                                     <i class='bx bx-save'></i> PDF
                                                 </button>
                                                 <button type="button" class="btn btn-outline-secondary" onclick="window.print();">
-                                                    <i class='bx bx-printer'></i> Chop etish
+                                                    <i class='bx bx-printer'></i> @L.T("Print")
                                                 </button>
                                                 @if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
                                                 {
                                                     <a href="@Url.Action("Edit", "Norm", new { normVersionId = Model.NormVersionID })" class="btn btn-primary">
-                                                        <i class="bx bx-edit"></i> Tahrirlash
+                                                        <i class="bx bx-edit"></i> @L.T("Edit")
                                                     </a>
                                                 }
                                                 <a href="@Url.Action("Details", "Norm", new { id = Model.ProductID })" class="btn btn-secondary">
-                                                    <i class="bx bx-arrow-back"></i> Orqaga
+                                                    <i class="bx bx-arrow-back"></i> @L.T("Back")
                                                 </a>
                                             </div>
                                         </div>
@@ -302,7 +302,7 @@
                                 callback();
                             } else if (attempts >= maxAttempts) {
                                 clearInterval(checkInterval);
-                                alert('PDF kutubxonasi yuklanmadi. Iltimos, sahifani yangilang.');
+                                alert('@L.Js("Mes_PdfLibNotLoaded")');
                             }
                         }, 100);
                     }
@@ -313,14 +313,14 @@
                         
                         var btn = $(this);
                         var originalHtml = btn.html();
-                        btn.prop('disabled', true).html('<i class="bx bx-loader-alt bx-spin"></i> PDF yaratilmoqda...');
+                        btn.prop('disabled', true).html('<i class="bx bx-loader-alt bx-spin"></i> ' + '@L.Js("Mes_PdfGenerating")');
 
                         waitForHtml2Pdf(function() {
                             // Get the content to convert to PDF - use the invoice-edit-wrapper
                             var element = document.getElementById('normContent');
                             
                             if (!element) {
-                                alert('PDF uchun kontent topilmadi. Element ID: normContent');
+                                alert('@L.Js("Mes_Norm_PdfNoContent")');
                                 btn.prop('disabled', false).html(originalHtml);
                                 return;
                             }
@@ -357,7 +357,7 @@
                                 btn.prop('disabled', false).html(originalHtml);
                             }).catch(function(error) {
                                 console.error('PDF yaratishda xatolik:', error);
-                                alert('PDF yaratishda xatolik yuz berdi: ' + (error.message || 'Noma\'lum xatolik'));
+                                alert('@L.Js("Mes_PdfError") ' + (error.message || '@L.Js("Mes_UnknownError")'));
                                 btn.prop('disabled', false).html(originalHtml);
                             });
                         }, 50);

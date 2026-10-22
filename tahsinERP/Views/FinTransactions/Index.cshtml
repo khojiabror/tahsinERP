@@ -1,5 +1,5 @@
 @{
-    ViewBag.Title = "Moliya tranzaksiyalari";
+    ViewBag.Title = L.T("Fin_FinanceTransactions");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -33,8 +33,8 @@
                             <div class="breadcrumb-wrapper col-12">
                                 <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                     <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
-                                    <li class="breadcrumb-item">Moliya</li>
-                                    <li class="breadcrumb-item active">Tranzaksiyalar</li>
+                                    <li class="breadcrumb-item">@L.T("Menu_Finance")</li>
+                                    <li class="breadcrumb-item active">@L.T("Fin_Transactions")</li>
                                 </ol>
                             </div>
                         </div>
@@ -47,14 +47,14 @@
                         @if (changePermit)
                         {
                             <a href="@Url.Action("Create")" class="btn btn-success mr-1 mb-1">
-                                <i class="bx bx-plus"></i> <span class="align-middle ml-25">Tranzaksiya qo'shish</span>
+                                <i class="bx bx-plus"></i> <span class="align-middle ml-25">@L.T("Fin_AddTx")</span>
                             </a>
                             <a href="@Url.Action("Import")" class="btn btn-warning mr-1 mb-1">
-                                <i class="bx bx-upload"></i> <span class="align-middle ml-25">Excel dan import</span>
+                                <i class="bx bx-upload"></i> <span class="align-middle ml-25">@L.T("Fin_ExcelImport")</span>
                             </a>
                         }
                         <a href="@Url.Action("ExportExcel", filter)" class="btn btn-info mr-1 mb-1">
-                            <i class="bx bx-download"></i> <span class="align-middle ml-25">Excel ga eksport</span>
+                            <i class="bx bx-download"></i> <span class="align-middle ml-25">@L.T("ExportExcel")</span>
                         </a>
                     </div>
 
@@ -89,29 +89,29 @@
                                     }
                                     <div class="row">
                                         <div class="col-md-2">
-                                            <label class="form-label small">Dan</label>
+                                            <label class="form-label small">@L.T("Fin_From")</label>
                                             <input type="date" name="fromDate" class="form-control form-control-sm" value="@filter.fromDate" />
                                         </div>
                                         <div class="col-md-2">
-                                            <label class="form-label small">Gacha</label>
+                                            <label class="form-label small">@L.T("Fin_To")</label>
                                             <input type="date" name="toDate" class="form-control form-control-sm" value="@filter.toDate" />
                                         </div>
                                         <div class="col-md-2">
-                                            <label class="form-label small">Hisob</label>
-                                            @Html.DropDownList("accountID", ViewBag.AccountList as SelectList, "Barcha", new { @class = "form-control form-control-sm" })
+                                            <label class="form-label small">@L.T("Fin_Account")</label>
+                                            @Html.DropDownList("accountID", ViewBag.AccountList as SelectList, L.T("Fin_AllOption"), new { @class = "form-control form-control-sm" })
                                         </div>
                                         <div class="col-md-2">
-                                            <label class="form-label small">Kategoriya</label>
-                                            @Html.DropDownList("categoryID", ViewBag.CategoryList as SelectList, "Barcha", new { @class = "form-control form-control-sm" })
+                                            <label class="form-label small">@L.T("Category")</label>
+                                            @Html.DropDownList("categoryID", ViewBag.CategoryList as SelectList, L.T("Fin_AllOption"), new { @class = "form-control form-control-sm" })
                                         </div>
                                         <div class="col-md-2">
-                                            <label class="form-label small">Yo'nalish</label>
+                                            <label class="form-label small">@L.T("Fin_Direction")</label>
                                             @Html.DropDownList("direction", ViewBag.DirectionList as SelectList, new { @class = "form-control form-control-sm" })
                                         </div>
                                         <div class="col-md-2">
                                             <label class="form-label small">&nbsp;</label>
                                             <button type="submit" class="btn btn-primary btn-sm btn-block">
-                                                <i class="bx bx-filter"></i> Filtrlash
+                                                <i class="bx bx-filter"></i> @L.T("Fin_DoFilter")
                                             </button>
                                         </div>
                                     </div>
@@ -121,15 +121,15 @@
                                     <table id="transactionsTable" class="table table-striped table-bordered" style="width:100%">
                                         <thead>
                                             <tr>
-                                                <th>Sana</th>
-                                                <th>Hisob</th>
-                                                <th>Kategoriya</th>
-                                                <th>Yo'nalish</th>
-                                                <th>Summa</th>
-                                                <th>Valyuta</th>
-                                                <th>Kontragent</th>
-                                                <th>Maqsad</th>
-                                                <th>Amallar</th>
+                                                <th>@L.T("Date")</th>
+                                                <th>@L.T("Fin_Account")</th>
+                                                <th>@L.T("Category")</th>
+                                                <th>@L.T("Fin_Direction")</th>
+                                                <th>@L.T("Amount")</th>
+                                                <th>@L.T("Currency")</th>
+                                                <th>@L.T("Fin_Counterparty")</th>
+                                                <th>@L.T("Fin_Purpose")</th>
+                                                <th>@L.T("Actions")</th>
                                             </tr>
                                         </thead>
                                         <tbody></tbody>
@@ -161,21 +161,6 @@
                 }
 
                 $('#transactionsTable').DataTable({
-                    "language": {
-                        "search": "Qidirish:",
-                        "lengthMenu": "_MENU_ ta ko'rsatish",
-                        "info": "_TOTAL_ ta yozuvdan _START_ dan _END_ gacha",
-                        "infoEmpty": "Yozuvlar yo'q",
-                        "infoFiltered": "(jami _MAX_ ta yozuvdan filtrlangan)",
-                        "processing": "Yuklanmoqda...",
-                        "paginate": {
-                            "first": "Birinchi",
-                            "last": "Oxirgi",
-                            "next": "Keyingi",
-                            "previous": "Oldingi"
-                        },
-                        "zeroRecords": "Ma'lumot topilmadi"
-                    },
                     "processing": true,
                     "serverSide": true,
                     "searchDelay": 400,
@@ -198,8 +183,8 @@
                             "data": "direction", "className": "text-center",
                             "render": function (data) {
                                 return data === 1
-                                    ? '<span class="badge badge-success">Kirim</span>'
-                                    : '<span class="badge badge-danger">Chiqim</span>';
+                                    ? '<span class="badge badge-success">@L.Js("Fin_Inflow")</span>'
+                                    : '<span class="badge badge-danger">@L.Js("Fin_Expense")</span>';
                             }
                         },
                         { "data": "amount", "className": "text-right", "render": renderText },
@@ -210,10 +195,10 @@
                             "data": null, "orderable": false, "className": "text-center",
                             "render": function (row) {
                                 var id = encodeURIComponent(row.id);
-                                var html = '<a href="' + detailsUrl + '/' + id + '" class="btn btn-sm btn-outline-info" title="Ko\'rish"><i class="bx bx-show"></i></a> ';
+                                var html = '<a href="' + detailsUrl + '/' + id + '" class="btn btn-sm btn-outline-info" title="@L.Js("View")"><i class="bx bx-show"></i></a> ';
                                 if (changePermit && row.editable) {
-                                    html += '<a href="' + editUrl + '/' + id + '" class="btn btn-sm btn-outline-primary" title="Tahrirlash"><i class="bx bx-edit"></i></a> ';
-                                    html += '<a href="' + deleteUrl + '/' + id + '" class="btn btn-sm btn-outline-danger" title="O\'chirish"><i class="bx bx-trash"></i></a>';
+                                    html += '<a href="' + editUrl + '/' + id + '" class="btn btn-sm btn-outline-primary" title="@L.Js("Edit")"><i class="bx bx-edit"></i></a> ';
+                                    html += '<a href="' + deleteUrl + '/' + id + '" class="btn btn-sm btn-outline-danger" title="@L.Js("Delete")"><i class="bx bx-trash"></i></a>';
                                 }
                                 return html;
                             }

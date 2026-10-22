@@ -1,7 +1,7 @@
 @model tahsinERP.Models.FIN_ACCOUNTS
 
 @{
-    ViewBag.Title = "Hisob tafsilotlari";
+    ViewBag.Title = L.T("Fin_AccountDetails");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -20,8 +20,8 @@
                             <div class="breadcrumb-wrapper col-12">
                                 <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                     <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
-                                    <li class="breadcrumb-item"><a href="~/FinAccounts">Hisoblar</a></li>
-                                    <li class="breadcrumb-item active">Tafsilotlar</li>
+                                    <li class="breadcrumb-item"><a href="~/FinAccounts">@L.T("Fin_Accounts")</a></li>
+                                    <li class="breadcrumb-item active">@L.T("Fin_Details")</li>
                                 </ol>
                             </div>
                         </div>
@@ -33,57 +33,57 @@
                     <div class="col-md-8">
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">Hisob tafsilotlari</h4>
+                                <h4 class="card-title">@L.T("Fin_AccountDetails")</h4>
                                 @if (changePermit)
                                 {
                                     <div class="heading-elements">
-                                        <a href="@Url.Action("Edit", new { id = Model.ID })" class="btn btn-sm btn-primary">Tahrirlash</a>
-                                        <a href="@Url.Action("Delete", new { id = Model.ID })" class="btn btn-sm btn-danger">O'chirish</a>
+                                        <a href="@Url.Action("Edit", new { id = Model.ID })" class="btn btn-sm btn-primary">@L.T("Edit")</a>
+                                        <a href="@Url.Action("Delete", new { id = Model.ID })" class="btn btn-sm btn-danger">@L.T("Delete")</a>
                                     </div>
                                 }
                             </div>
                             <div class="card-content">
                                 <div class="card-body">
                                     <dl class="row">
-                                        <dt class="col-sm-4">Kod:</dt>
+                                        <dt class="col-sm-4">@L.T("Code"):</dt>
                                         <dd class="col-sm-8">@Model.Code</dd>
                                         
-                                        <dt class="col-sm-4">Nomi:</dt>
+                                        <dt class="col-sm-4">@L.T("Name"):</dt>
                                         <dd class="col-sm-8">@Model.Name</dd>
                                         
-                                        <dt class="col-sm-4">Egasi:</dt>
+                                        <dt class="col-sm-4">@L.T("Fin_Owner"):</dt>
                                         <dd class="col-sm-8">@(Model.OwnerName ?? "-")</dd>
                                         
-                                        <dt class="col-sm-4">Valyuta:</dt>
+                                        <dt class="col-sm-4">@L.T("Currency"):</dt>
                                         <dd class="col-sm-8">@(Model.CURRENCy != null ? (!string.IsNullOrEmpty(Model.CURRENCy.Longname) ? string.Format("{0} ({1})", Model.CURRENCy.Longname, Model.CURRENCy.Shortname) : Model.CURRENCy.Shortname) : "-")</dd>
                                         
-                                        <dt class="col-sm-4">Turi:</dt>
+                                        <dt class="col-sm-4">@L.T("Type"):</dt>
                                         <dd class="col-sm-8">
                                             @if (Model.IsCash)
-                                            { <span class="badge badge-success">Naqd pul</span> }
+                                            { <span class="badge badge-success">@L.T("Fin_Cash")</span> }
                                             else if (Model.IsBank)
-                                            { <span class="badge badge-info">Bank</span> }
+                                            { <span class="badge badge-info">@L.T("Fin_Bank")</span> }
                                             else
-                                            { <span class="badge badge-secondary">Boshqa</span> }
+                                            { <span class="badge badge-secondary">@L.T("Fin_Other")</span> }
                                         </dd>
                                         
-                                        <dt class="col-sm-4">Holati:</dt>
+                                        <dt class="col-sm-4">@L.T("Fin_State"):</dt>
                                         <dd class="col-sm-8">
                                             @if (Model.IsActive)
-                                            { <span class="badge badge-success">Faol</span> }
+                                            { <span class="badge badge-success">@L.T("Active")</span> }
                                             else
-                                            { <span class="badge badge-danger">Nofaol</span> }
+                                            { <span class="badge badge-danger">@L.T("Inactive")</span> }
                                         </dd>
                                         
-                                        <dt class="col-sm-4">Tranzaksiyalar soni:</dt>
+                                        <dt class="col-sm-4">@L.T("Fin_TxCount"):</dt>
                                         <dd class="col-sm-8">
-                                            <a href="@Url.Action("Transactions", new { id = Model.ID })">@ViewBag.TransactionCount ta</a>
+                                            <a href="@Url.Action("Transactions", new { id = Model.ID })">@L.T("Fin_CountPcs", ViewBag.TransactionCount)</a>
                                         </dd>
                                         
-                                        <dt class="col-sm-4">Yaratilgan:</dt>
+                                        <dt class="col-sm-4">@L.T("CreatedAt"):</dt>
                                         <dd class="col-sm-8">@Model.CreatedDT.ToString("dd.MM.yyyy HH:mm")</dd>
                                         
-                                        <dt class="col-sm-4">Yaratgan foydalanuvchi:</dt>
+                                        <dt class="col-sm-4">@L.T("Fin_CreatedByUser"):</dt>
                                         <dd class="col-sm-8">@(Model.USER != null ? Model.USER.FullName : "-")</dd>
                                     </dl>
                                 </div>

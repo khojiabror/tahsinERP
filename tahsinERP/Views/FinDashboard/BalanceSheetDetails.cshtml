@@ -18,8 +18,8 @@
                             <div class="breadcrumb-wrapper col-12">
                                 <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                     <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
-                                    <li class="breadcrumb-item">Moliya</li>
-                                    <li class="breadcrumb-item"><a href="@Url.Action("BalanceSheet", new { asOfDate = ViewBag.AsOfDate != null ? ((DateTime)ViewBag.AsOfDate).ToString("yyyy-MM-dd") : null })">Balans</a></li>
+                                    <li class="breadcrumb-item">@L.T("Menu_Finance")</li>
+                                    <li class="breadcrumb-item"><a href="@Url.Action("BalanceSheet", new { asOfDate = ViewBag.AsOfDate != null ? ((DateTime)ViewBag.AsOfDate).ToString("yyyy-MM-dd") : null })">@L.T("Menu_Balance")</a></li>
                                     <li class="breadcrumb-item active">@ViewBag.Heading</li>
                                 </ol>
                             </div>
@@ -53,13 +53,13 @@
                                         <table class="table table-striped">
                                             <thead>
                                                 <tr>
-                                                    <th>Kategoriya</th>
-                                                    <th>Hisoblash usuli</th>
-                                                    <th>Izoh</th>
-                                                    <th class="text-right">Transaction soni</th>
-                                                    <th class="text-right">Qo'shilgan</th>
-                                                    <th class="text-right">Ayrilgan</th>
-                                                    <th class="text-right">Summa</th>
+                                                    <th>@L.T("Category")</th>
+                                                    <th>@L.T("Fin_CalculationMethod")</th>
+                                                    <th>@L.T("Comment")</th>
+                                                    <th class="text-right">@L.T("Fin_TxCount")</th>
+                                                    <th class="text-right">@L.T("Fin_Added")</th>
+                                                    <th class="text-right">@L.T("Fin_Subtracted")</th>
+                                                    <th class="text-right">@L.T("Amount")</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -75,7 +75,7 @@
                                                                     class="btn btn-sm btn-link p-0 ml-1 js-move-info"
                                                                     data-category-id="@item.Category.ID"
                                                                     data-category-name="@item.Category.Name"
-                                                                    title="Qo'shilgan/ayrilgan hujjatlar">
+                                                                    title="@L.T("Fin_AddedSubtractedDocs")">
                                                                 <i class="bx bx-info-circle"></i>
                                                             </button>
                                                         </td>
@@ -90,9 +90,9 @@
                                                 @if (totals != null)
                                                 {
                                                     <tr>
-                                                        <td>Taqsimlanmagan foyda (hisoblangan)</td>
-                                                        <td>Balanslovchi</td>
-                                                        <td>Aktiv @totals.Assets.ToString("N2") − majburiyatlar @totals.Liabilities.ToString("N2") − kiritilgan kapital @totals.Equity.ToString("N2")</td>
+                                                        <td>@L.T("Fin_RetainedEarningsCalc")</td>
+                                                        <td>@L.T("Fin_Balancing")</td>
+                                                        <td>@L.T("Fin_RetainedEarningsFormula", totals.Assets.ToString("N2"), totals.Liabilities.ToString("N2"), totals.Equity.ToString("N2"))</td>
                                                         <td></td>
                                                         <td></td>
                                                         <td></td>
@@ -107,28 +107,28 @@
                                         <div class="modal-dialog modal-lg" role="document">
                                             <div class="modal-content">
                                                 <div class="modal-header">
-                                                    <h5 class="modal-title">Kategoriya harakatlari</h5>
+                                                    <h5 class="modal-title">@L.T("Fin_CategoryMovements")</h5>
                                                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                                                         <span aria-hidden="true">&times;</span>
                                                     </button>
                                                 </div>
                                                 <div class="modal-body">
-                                                    <div id="movementLoading" class="text-muted">Yuklanmoqda...</div>
+                                                    <div id="movementLoading" class="text-muted">@L.T("Loading")</div>
                                                     <div id="movementBody" style="display:none;">
                                                         <div id="movementBreakdownWrap" style="display:none;" class="mb-3">
-                                                            <h6>Hisob-kitob (ombor × narx)</h6>
+                                                            <h6>@L.T("Fin_CalcWarehousePrice")</h6>
                                                             <p class="small text-muted mb-1" id="movementWarehouseNote"></p>
                                                             <div class="table-responsive">
                                                                 <table class="table table-sm table-bordered" id="tblBreakdown">
                                                                     <thead>
                                                                         <tr>
-                                                                            <th>Kod</th>
-                                                                            <th>Mahsulot</th>
-                                                                            <th class="text-right">Miqdor</th>
-                                                                            <th>Birlik</th>
-                                                                            <th class="text-right">Birlik narxi</th>
-                                                                            <th class="text-right">Summa</th>
-                                                                            <th>Izoh</th>
+                                                                            <th>@L.T("Code")</th>
+                                                                            <th>@L.T("Fin_Product")</th>
+                                                                            <th class="text-right">@L.T("Quantity")</th>
+                                                                            <th>@L.T("Unit")</th>
+                                                                            <th class="text-right">@L.T("Fin_UnitPrice")</th>
+                                                                            <th class="text-right">@L.T("Amount")</th>
+                                                                            <th>@L.T("Comment")</th>
                                                                         </tr>
                                                                     </thead>
                                                                     <tbody></tbody>
@@ -136,17 +136,17 @@
                                                             </div>
                                                         </div>
                                                         <div id="movementTxnWrap">
-                                                            <h6>Qo'shilgan (Top 20)</h6>
+                                                            <h6>@L.T("Fin_Added") (Top 20)</h6>
                                                             <div class="table-responsive mb-2">
                                                                 <table class="table table-sm table-bordered" id="tblAdded">
-                                                                    <thead><tr><th>Sana</th><th>Hujjat</th><th>Izoh</th><th class="text-right">Summa</th></tr></thead>
+                                                                    <thead><tr><th>@L.T("Date")</th><th>@L.T("Fin_Document")</th><th>@L.T("Comment")</th><th class="text-right">@L.T("Amount")</th></tr></thead>
                                                                     <tbody></tbody>
                                                                 </table>
                                                             </div>
-                                                            <h6>Ayrilgan (Top 20)</h6>
+                                                            <h6>@L.T("Fin_Subtracted") (Top 20)</h6>
                                                             <div class="table-responsive">
                                                                 <table class="table table-sm table-bordered" id="tblSubtracted">
-                                                                    <thead><tr><th>Sana</th><th>Hujjat</th><th>Izoh</th><th class="text-right">Summa</th></tr></thead>
+                                                                    <thead><tr><th>@L.T("Date")</th><th>@L.T("Fin_Document")</th><th>@L.T("Comment")</th><th class="text-right">@L.T("Amount")</th></tr></thead>
                                                                     <tbody></tbody>
                                                                 </table>
                                                             </div>
@@ -193,7 +193,7 @@
             function fillRows(tbody, rows) {
                 tbody.innerHTML = '';
                 if (!rows || !rows.length) {
-                    tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">Ma\'lumot yo\'q</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">@L.Js("NoData")</td></tr>';
                     return;
                 }
                 rows.forEach(function (r) {
@@ -206,7 +206,7 @@
             function fillBreakdown(tbody, rows) {
                 tbody.innerHTML = '';
                 if (!rows || !rows.length) {
-                    tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">Ma\'lumot yo\'q</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">@L.Js("NoData")</td></tr>';
                     return;
                 }
                 rows.forEach(function (r) {
@@ -231,7 +231,7 @@
                 btn.addEventListener('click', function () {
                     var categoryId = btn.getAttribute('data-category-id');
                     var asOf = '@(ViewBag.AsOfDate != null ? ((DateTime)ViewBag.AsOfDate).ToString("yyyy-MM-dd") : DateTime.Now.ToString("yyyy-MM-dd"))';
-                    document.querySelector('#movementModal .modal-title').textContent = (btn.getAttribute('data-category-name') || '') + ' - harakatlar';
+                    document.querySelector('#movementModal .modal-title').textContent = (btn.getAttribute('data-category-name') || '') + ' - @L.Js("Fin_MovementsLower")';
                     document.getElementById('movementLoading').style.display = 'block';
                     document.getElementById('movementBody').style.display = 'none';
                     $('#movementModal').modal('show');
@@ -247,14 +247,14 @@
                                 br.style.display = 'none';
                                 tx.style.display = 'block';
                                 whNote.textContent = '';
-                                document.querySelector('#tblAdded tbody').innerHTML = '<tr><td colspan="4" class="text-danger">Yuklashda xato</td></tr>';
-                                document.querySelector('#tblSubtracted tbody').innerHTML = '<tr><td colspan="4" class="text-danger">Yuklashda xato</td></tr>';
+                                document.querySelector('#tblAdded tbody').innerHTML = '<tr><td colspan="4" class="text-danger">@L.Js("Fin_LoadErrorShort")</td></tr>';
+                                document.querySelector('#tblSubtracted tbody').innerHTML = '<tr><td colspan="4" class="text-danger">@L.Js("Fin_LoadErrorShort")</td></tr>';
                                 return;
                             }
                             if (data.breakdownMode) {
                                 br.style.display = 'block';
                                 tx.style.display = 'none';
-                                whNote.textContent = data.warehouseName ? ('Ombor: ' + data.warehouseName) : '';
+                                whNote.textContent = data.warehouseName ? ('@L.Js("Fin_Warehouse"): ' + data.warehouseName) : '';
                                 fillBreakdown(document.querySelector('#tblBreakdown tbody'), data.breakdown || []);
                             } else {
                                 br.style.display = 'none';
@@ -270,8 +270,8 @@
                             document.getElementById('movementBreakdownWrap').style.display = 'none';
                             document.getElementById('movementTxnWrap').style.display = 'block';
                             document.getElementById('movementWarehouseNote').textContent = '';
-                            document.querySelector('#tblAdded tbody').innerHTML = '<tr><td colspan="4" class="text-danger">Yuklashda xato</td></tr>';
-                            document.querySelector('#tblSubtracted tbody').innerHTML = '<tr><td colspan="4" class="text-danger">Yuklashda xato</td></tr>';
+                            document.querySelector('#tblAdded tbody').innerHTML = '<tr><td colspan="4" class="text-danger">@L.Js("Fin_LoadErrorShort")</td></tr>';
+                            document.querySelector('#tblSubtracted tbody').innerHTML = '<tr><td colspan="4" class="text-danger">@L.Js("Fin_LoadErrorShort")</td></tr>';
                         });
                 });
             });

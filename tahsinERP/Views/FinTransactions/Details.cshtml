@@ -1,7 +1,7 @@
 @model tahsinERP.Models.FIN_TRANSACTIONS
 
 @{
-    ViewBag.Title = "Tranzaksiya tafsilotlari";
+    ViewBag.Title = L.T("Fin_TxDetails");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -20,8 +20,8 @@
                             <div class="breadcrumb-wrapper col-12">
                                 <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                     <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
-                                    <li class="breadcrumb-item"><a href="~/FinTransactions">Tranzaksiyalar</a></li>
-                                    <li class="breadcrumb-item active">Tafsilotlar</li>
+                                    <li class="breadcrumb-item"><a href="~/FinTransactions">@L.T("Fin_Transactions")</a></li>
+                                    <li class="breadcrumb-item active">@L.T("Fin_Details")</li>
                                 </ol>
                             </div>
                         </div>
@@ -33,64 +33,64 @@
                     <div class="col-md-10">
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">Tranzaksiya tafsilotlari</h4>
+                                <h4 class="card-title">@L.T("Fin_TxDetails")</h4>
                                 @if (changePermit && tahsinERP.Services.Finance.FinSelectLists.IsUserEditable(Model.SourceDocType))
                                 {
                                     <div class="heading-elements">
-                                        <a href="@Url.Action("Edit", new { id = Model.ID })" class="btn btn-sm btn-primary">Tahrirlash</a>
-                                        <a href="@Url.Action("Delete", new { id = Model.ID })" class="btn btn-sm btn-danger">O'chirish</a>
+                                        <a href="@Url.Action("Edit", new { id = Model.ID })" class="btn btn-sm btn-primary">@L.T("Edit")</a>
+                                        <a href="@Url.Action("Delete", new { id = Model.ID })" class="btn btn-sm btn-danger">@L.T("Delete")</a>
                                     </div>
                                 }
                             </div>
                             <div class="card-content">
                                 <div class="card-body">
                                     <dl class="row">
-                                        <dt class="col-sm-4">Sana:</dt>
+                                        <dt class="col-sm-4">@L.T("Date"):</dt>
                                         <dd class="col-sm-8">@Model.TxnDate.ToString("dd.MM.yyyy")</dd>
                                         
-                                        <dt class="col-sm-4">Hisob:</dt>
+                                        <dt class="col-sm-4">@L.T("Fin_Account"):</dt>
                                         <dd class="col-sm-8">@(Model.FIN_ACCOUNTS != null ? $"{Model.FIN_ACCOUNTS.Name} ({Model.FIN_ACCOUNTS.Code})" : "-")</dd>
                                         
-                                        <dt class="col-sm-4">Kategoriya:</dt>
+                                        <dt class="col-sm-4">@L.T("Category"):</dt>
                                         <dd class="col-sm-8">@(Model.FIN_CATEGORIES != null ? Model.FIN_CATEGORIES.Name : "-")</dd>
                                         
-                                        <dt class="col-sm-4">Yo'nalish:</dt>
+                                        <dt class="col-sm-4">@L.T("Fin_Direction"):</dt>
                                         <dd class="col-sm-8">
                                             @if (Model.Direction == 1)
-                                            { <span class="badge badge-success">Kirim</span> }
+                                            { <span class="badge badge-success">@L.T("Fin_Inflow")</span> }
                                             else
-                                            { <span class="badge badge-danger">Chiqim</span> }
+                                            { <span class="badge badge-danger">@L.T("Fin_Expense")</span> }
                                         </dd>
                                         
-                                        <dt class="col-sm-4">Summa:</dt>
+                                        <dt class="col-sm-4">@L.T("Amount"):</dt>
                                         <dd class="col-sm-8"><strong>@Model.Amount.ToString("N2") @(Model.CURRENCy != null ? Model.CURRENCy.Shortname : "")</strong></dd>
                                         
-                                        <dt class="col-sm-4">Kontragent:</dt>
+                                        <dt class="col-sm-4">@L.T("Fin_Counterparty"):</dt>
                                         <dd class="col-sm-8">@(Model.CounterpartyName ?? "-")</dd>
                                         
-                                        <dt class="col-sm-4">Maqsad:</dt>
+                                        <dt class="col-sm-4">@L.T("Fin_Purpose"):</dt>
                                         <dd class="col-sm-8">@(Model.Purpose ?? "-")</dd>
                                         
-                                        <dt class="col-sm-4">Manba hujjat:</dt>
+                                        <dt class="col-sm-4">@L.T("Fin_SourceDoc"):</dt>
                                         <dd class="col-sm-8">
                                             @if (!string.IsNullOrEmpty(Model.SourceDocType) && Model.SourceDocID.HasValue)
                                             {
                                                 <a href="@ViewBag.SourceDocLink" target="_blank">@Model.SourceDocType #@Model.SourceDocID</a>
                                             }
                                             else
-                                            { <span>Qo'lda kiritilgan</span> }
+                                            { <span>@L.T("Fin_EnteredManually")</span> }
                                         </dd>
                                         
-                                        <dt class="col-sm-4">Shartnoma raqami:</dt>
+                                        <dt class="col-sm-4">@L.T("Fin_ContractNo"):</dt>
                                         <dd class="col-sm-8">@(Model.ContractNo ?? "-")</dd>
                                         
-                                        <dt class="col-sm-4">Izoh:</dt>
+                                        <dt class="col-sm-4">@L.T("Comment"):</dt>
                                         <dd class="col-sm-8">@(Model.Comment ?? "-")</dd>
                                         
-                                        <dt class="col-sm-4">Yaratilgan:</dt>
+                                        <dt class="col-sm-4">@L.T("CreatedAt"):</dt>
                                         <dd class="col-sm-8">@Model.CreatedDT.ToString("dd.MM.yyyy HH:mm")</dd>
                                         
-                                        <dt class="col-sm-4">Yaratgan foydalanuvchi:</dt>
+                                        <dt class="col-sm-4">@L.T("Fin_CreatedByUser"):</dt>
                                         <dd class="col-sm-8">@(Model.USER != null ? Model.USER.FullName : "-")</dd>
                                     </dl>
                                 </div>

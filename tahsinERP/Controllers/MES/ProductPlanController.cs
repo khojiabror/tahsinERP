@@ -12,14 +12,15 @@ using tahsinERP.Controllers;
 using tahsinERP.Helpers;
 using tahsinERP.Services;
 using tahsinERP.Filters;
+using tahsinERP.I18n;
 
 namespace tahsinERP.Controllers.MES
 {
     [Permission]
     public class ProductPlanController : BaseController
     {
-        private const string OverlapMessage = "Ushbu mahsulot uchun tanlangan muddatlarda allaqachon reja mavjud.";
-        private const string OverlapOtherMessage = "Ushbu mahsulot uchun tanlangan muddatlarda boshqa reja mavjud.";
+        private static string OverlapMessage => L.T("Mes_Plan_Err_Overlap");
+        private static string OverlapOtherMessage => L.T("Mes_Plan_Err_OverlapOther");
 
         // Olish so'rovi: ProductPlan
         public async Task<ActionResult> Index(int? productID, DateTime? fromDate, DateTime? toDate)
@@ -167,7 +168,7 @@ namespace tahsinERP.Controllers.MES
             {
                 if (model.Rows == null || !model.Rows.Any())
                 {
-                    TempData["Error"] = "Saqlash uchun qator yo'q";
+                    TempData["Error"] = L.T("Mes_Plan_Err_NoRowsToSave");
                     LoadProductDropDown(db, null);
                     LoadSalesOrderDropDown(db, null);
                     return View(model);
@@ -218,7 +219,7 @@ namespace tahsinERP.Controllers.MES
 
                 if (created > 0)
                 {
-                    TempData["Success"] = $"{created} ta reja saqlandi.";
+                    TempData["Success"] = L.T("Mes_Plan_PlansSaved", created);
                 }
                 if (errors.Any())
                 {
@@ -282,7 +283,7 @@ namespace tahsinERP.Controllers.MES
             {
                 if (model.Rows == null || !model.Rows.Any())
                 {
-                    TempData["Error"] = "Saqlash uchun qator yo'q";
+                    TempData["Error"] = L.T("Mes_Plan_Err_NoRowsToSave");
                     return RedirectToAction("GridEdit", new { year = model.Year, month = model.Month });
                 }
 
@@ -363,7 +364,7 @@ namespace tahsinERP.Controllers.MES
 
                 if (updated > 0 || inserted > 0)
                 {
-                    TempData["Success"] = $"Yangilandi: {updated}, qo'shildi: {inserted}";
+                    TempData["Success"] = L.T("Mes_Plan_GridUpdated", updated, inserted);
                 }
                 if (errors.Any())
                 {
@@ -387,7 +388,7 @@ namespace tahsinERP.Controllers.MES
                         // Tekshirish date range
                         if (viewModel.EndDate < viewModel.StartDate)
                         {
-                            ModelState.AddModelError("", "Tugash sanasi boshlanish sanasidan kichik bo'lishi mumkin emas");
+                            ModelState.AddModelError("", L.T("Mes_Plan_Err_EndBeforeStart"));
                             LoadProductDropDown(db, viewModel.ProductID);
                             LoadSalesOrderDropDown(db, viewModel.SalesOrderID);
                             return View(viewModel);
@@ -437,7 +438,7 @@ namespace tahsinERP.Controllers.MES
                         LogHelper.LogToDatabase(User.Identity.Name, "ProductPlanController",
                             $"ProductPlan yaratildi: ID {plan.ID}, ProductID {plan.ProductID}, {(viewModel.EndDate - viewModel.StartDate).Days + 1} kunlik reja");
 
-                        TempData["Success"] = "Ishlab chiqarish rejasi muvaffaqiyatli yaratildi";
+                        TempData["Success"] = L.T("Mes_Plan_Created");
                         return RedirectToAction("Details", new { id = plan.ID });
                     }
                     catch (Exception ex)
@@ -517,7 +518,7 @@ namespace tahsinERP.Controllers.MES
                         // Tekshirish date range
                         if (viewModel.EndDate < viewModel.StartDate)
                         {
-                            ModelState.AddModelError("", "Tugash sanasi boshlanish sanasidan kichik bo'lishi mumkin emas");
+                            ModelState.AddModelError("", L.T("Mes_Plan_Err_EndBeforeStart"));
                             LoadProductDropDown(db, viewModel.ProductID);
                             LoadSalesOrderDropDown(db, viewModel.SalesOrderID);
                             return View(viewModel);
@@ -567,13 +568,13 @@ namespace tahsinERP.Controllers.MES
 
                             if (scheduleChanged)
                             {
-                                TempData["Info"] = "Muddat yoki miqdor o'zgargani uchun kunlik reja qayta taqsimlandi.";
+                                TempData["Info"] = L.T("Mes_Plan_DailyRedistributed");
                             }
                         }
 
                         LogHelper.LogToDatabase(User.Identity.Name, "ProductPlanController", $"ProductPlan tahrirlandi: ID {viewModel.ID}");
 
-                        TempData["Success"] = "Ishlab chiqarish rejasi muvaffaqiyatli yangilandi";
+                        TempData["Success"] = L.T("Mes_Plan_Updated");
                         return RedirectToAction("Details", new { id = viewModel.ID });
                     }
                     catch (Exception ex)
@@ -635,7 +636,7 @@ namespace tahsinERP.Controllers.MES
 
                 LogHelper.LogToDatabase(User.Identity.Name, "ProductPlanController", $"ProductPlan o'chirildi: ID {id}");
 
-                TempData["Success"] = "Ishlab chiqarish rejasi muvaffaqiyatli o'chirildi";
+                TempData["Success"] = L.T("Mes_Plan_Deleted");
                 return RedirectToAction("Index");
             }
         }
@@ -650,7 +651,7 @@ namespace tahsinERP.Controllers.MES
                 var plan = await db.PRODUCTPLANS.FirstOrDefaultAsync(p => p.ID == id && p.IsDeleted == false);
                 if (plan == null)
                 {
-                    TempData["Error"] = "Reja topilmadi";
+                    TempData["Error"] = L.T("Mes_Plan_Err_PlanNotFound");
                     return RedirectToAction("GridEdit", new { year, month });
                 }
 
@@ -658,7 +659,7 @@ namespace tahsinERP.Controllers.MES
                 await SoftDeleteReferenceService.AfterProductPlanSoftDeletedAsync(db, id);
                 await db.SaveChangesAsync();
 
-                TempData["Success"] = "Reja o'chirildi";
+                TempData["Success"] = L.T("Mes_Plan_PlanDeletedShort");
                 return RedirectToAction("GridEdit", new { year, month });
             }
         }
@@ -670,7 +671,7 @@ namespace tahsinERP.Controllers.MES
         {
             if (dailyPlans == null || !dailyPlans.Any())
             {
-                return Json(new { success = false, message = "Ma'lumotlar topilmadi" });
+                return Json(new { success = false, message = L.T("Mes_DataNotFound") });
             }
 
             using (DBTHSNEntities db = new DBTHSNEntities())
@@ -697,11 +698,11 @@ namespace tahsinERP.Controllers.MES
 
                     LogHelper.LogToDatabase(User.Identity.Name, "ProductPlanController", $"Kunlik reja yangilandi: Plan ID {planID}");
 
-                    return Json(new { success = true, message = "Kunlik reja muvaffaqiyatli yangilandi" });
+                    return Json(new { success = true, message = L.T("Mes_Plan_DailyUpdated") });
                 }
                 catch (Exception ex)
                 {
-                    return JsonError(ex, "Kunlik rejani saqlashda xatolik yuz berdi.");
+                    return JsonError(ex, L.T("Mes_Plan_Err_DailySave"));
                 }
             }
         }
@@ -794,12 +795,12 @@ namespace tahsinERP.Controllers.MES
         {
             if (row.TotalQty.Value <= 0)
             {
-                return "Miqdor 0 dan katta bo'lishi kerak.";
+                return L.T("Mes_Plan_Val_QtyPositive");
             }
 
             if (row.EndDate.Value < row.StartDate.Value)
             {
-                return "Tugash sanasi boshlanish sanasidan kichik bo'lishi mumkin emas.";
+                return L.T("Mes_Plan_Err_EndBeforeStart");
             }
 
             var soValidation = await ValidateSalesOrderContainsProductAsync(db, row.SalesOrderID, row.ProductID.Value, row.TotalQty);
@@ -813,7 +814,7 @@ namespace tahsinERP.Controllers.MES
                 && a.StartDate.Value <= row.EndDate.Value
                 && a.EndDate.Value >= row.StartDate.Value))
             {
-                return "Bir xil mahsulot uchun jadvalda ustma-ust tushadigan qatorlar bor.";
+                return L.T("Mes_Plan_Err_GridRowsOverlap");
             }
 
             // Bazadagi boshqa rejalar bilan (shu so'rovda tahrirlanayotgan rejalar ham bazadagi eski holati bilan solishtiriladi)
@@ -956,14 +957,14 @@ namespace tahsinERP.Controllers.MES
                 .Select(x => x.Amount)
                 .ToListAsync();
             if (!amounts.Any())
-                return "Xatolik: ushbu savdo buyurtmasida tanlangan mahsulot yo'q.";
+                return L.T("Mes_Plan_Err_ProductNotInOrder");
 
             if (planQty.HasValue)
             {
                 var orderedQty = amounts.Sum();
                 if (planQty.Value > (double)orderedQty)
                 {
-                    return $"Xatolik: reja miqdori ({planQty.Value:N2}) savdo buyurtmasi miqdoridan ({orderedQty:N2}) oshib ketdi.";
+                    return L.T("Mes_Plan_Err_QtyExceedsOrder", planQty.Value.ToString("N2"), orderedQty.ToString("N2"));
                 }
             }
 

@@ -12,6 +12,7 @@ using tahsinERP.Controllers;
 using ClosedXML.Excel;
 using System.IO;
 using System.Web;
+using tahsinERP.I18n;
 
 namespace tahsinERP.Controllers.Finance
 {
@@ -94,7 +95,7 @@ namespace tahsinERP.Controllers.Finance
 
                 if (existing != null && existing.IsDeleted != true)
                 {
-                    ModelState.AddModelError("", "Bu oy va element uchun reja allaqachon mavjud. Tahrirlash sahifasiga o'ting.");
+                    ModelState.AddModelError("", L.T("Fin_PlanExists"));
                 }
 
                 if (ModelState.IsValid)
@@ -176,7 +177,7 @@ namespace tahsinERP.Controllers.Finance
 
                         if (existing != null)
                         {
-                            ModelState.AddModelError("", "Bu oy va element uchun boshqa reja allaqachon mavjud.");
+                            ModelState.AddModelError("", L.T("Fin_PlanExistsOther"));
                             ViewBag.YearList = FinSelectLists.Years(plan.Year);
                             ViewBag.MonthList = FinSelectLists.Months(plan.Month);
                             ViewBag.ItemID = new SelectList(
@@ -354,9 +355,9 @@ namespace tahsinERP.Controllers.Finance
 
                 // FIN-D22: umumiy ExcelExport
                 var bytes = ExcelExport.Create("P&L Plans", plans,
-                    ExcelExport.Col<FIN_PL_PLANS>("Kod", x => x.FIN_PL_ITEMS.Code),
-                    ExcelExport.Col<FIN_PL_PLANS>("Nomi", x => x.FIN_PL_ITEMS.Name),
-                    ExcelExport.Col<FIN_PL_PLANS>("Reja summasi", x => x.AmountPlan));
+                    ExcelExport.Col<FIN_PL_PLANS>(L.T("Code"), x => x.FIN_PL_ITEMS.Code),
+                    ExcelExport.Col<FIN_PL_PLANS>(L.T("Name"), x => x.FIN_PL_ITEMS.Name),
+                    ExcelExport.Col<FIN_PL_PLANS>(L.T("Fin_PlanAmount"), x => x.AmountPlan));
                 return File(bytes, ExcelExport.ContentType, $"P&L_Plans_{year}_{month}.xlsx");
             }
         }

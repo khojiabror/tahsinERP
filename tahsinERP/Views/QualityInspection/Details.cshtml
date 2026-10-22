@@ -1,6 +1,6 @@
 @model tahsinERP.Models.QUALITY_INSPECTION
 @{
-    ViewBag.Title = "Sifat Nazorati Ma'lumotlari";
+    ViewBag.Title = L.T("Mes_Qi_DetailsTitle");
     Layout = "~/Views/Shared/_Layout.cshtml";
     bool changePermit = ViewBag.ChangePermit as bool? ?? false;
 }
@@ -18,9 +18,9 @@
                                         <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                     </li>
                                     <li class="breadcrumb-item">
-                                        <a href="~/QualityInspection/Index">Sifat Nazorati</a>
+                                        <a href="~/QualityInspection/Index">@L.T("Mes_Qi_Title")</a>
                                     </li>
-                                    <li class="breadcrumb-item active">Ma'lumotlar</li>
+                                    <li class="breadcrumb-item active">@L.T("Mes_Info")</li>
                                 </ol>
                             </div>
                         </div>
@@ -36,44 +36,44 @@
                                     <div class="card-body pb-0 mx-25">
                                         <div class="row invoice-info">
                                             <div class="col-lg-12 col-md-12 mt-25">
-                                                <h4 class="text-primary">Sifat Nazorati Ma'lumotlari</h4>
+                                                <h4 class="text-primary">@L.T("Mes_Qi_DetailsTitle")</h4>
                                                 <hr />
                                                 <div class="row">
                                                     <div class="col-md-6">
-                                                        <p><strong>Mahsulot:</strong> @(Model.PRODUCT?.PNo ?? Model.ProductID.ToString()) - @(Model.PRODUCT?.Name ?? "")</p>
-                                                        <p><strong>Tekshiruv sanasi:</strong> @Model.InspectionDate.ToString("dd.MM.yyyy")</p>
-                                                        <p><strong>Tekshirilgan miqdor:</strong> @Model.QtyInspected.ToString("N3")</p>
-                                                        <p><strong>Qabul qilingan miqdor:</strong> <span class="text-success">@Model.QtyAccepted.ToString("N3")</span></p>
-                                                        <p><strong>Rad etilgan miqdor:</strong> <span class="text-danger">@Model.QtyRejected.ToString("N3")</span></p>
+                                                        <p><strong>@L.T("Mes_Product"):</strong> @(Model.PRODUCT?.PNo ?? Model.ProductID.ToString()) - @(Model.PRODUCT?.Name ?? "")</p>
+                                                        <p><strong>@L.T("Mes_Qi_InspectionDate"):</strong> @Model.InspectionDate.ToString("dd.MM.yyyy")</p>
+                                                        <p><strong>@L.T("Mes_Qi_QtyInspected"):</strong> @Model.QtyInspected.ToString("N3")</p>
+                                                        <p><strong>@L.T("Mes_Qi_QtyAccepted"):</strong> <span class="text-success">@Model.QtyAccepted.ToString("N3")</span></p>
+                                                        <p><strong>@L.T("Mes_Qi_QtyRejected"):</strong> <span class="text-danger">@Model.QtyRejected.ToString("N3")</span></p>
                                                         @{ var defectTypeDisplay = Model.DEFECT_TYPES != null && !string.IsNullOrEmpty(Model.DEFECT_TYPES.DefectType) ? Model.DEFECT_TYPES.DefectType : "-"; }
-                                                        <p><strong>Nuqson turi:</strong> @defectTypeDisplay</p>
+                                                        <p><strong>@L.T("Mes_Dt_Name"):</strong> @defectTypeDisplay</p>
                                                     </div>
                                                     <div class="col-md-6">
-                                                        @{ var statusDisplay = Model.StatusCode == "APPROVED" ? "Tasdiqlangan" : Model.StatusCode == "REJECTED" ? "Rad etilgan" : Model.StatusCode == "DRAFT" ? "Qoralama" : Model.StatusCode ?? "-"; }
-                                                        <p><strong>Holat:</strong> 
+                                                        @{ var statusDisplay = Model.StatusCode == "APPROVED" ? L.T("Mes_Qi_Status_APPROVED") : Model.StatusCode == "REJECTED" ? L.T("Mes_Qi_Status_REJECTED") : Model.StatusCode == "DRAFT" ? L.T("Mes_Qi_Status_DRAFT") : Model.StatusCode ?? "-"; }
+                                                        <p><strong>@L.T("Status"):</strong> 
                                                             <span class="badge badge-@(Model.StatusCode == "APPROVED" ? "success" : Model.StatusCode == "REJECTED" ? "danger" : "warning")">
                                                                 @statusDisplay
                                                             </span>
                                                         </p>
                                                         @if (Model.ApprovalDate.HasValue)
                                                         {
-                                                            <p><strong>Tasdiqlash sanasi:</strong> @Model.ApprovalDate.Value.ToString("dd.MM.yyyy")</p>
+                                                            <p><strong>@L.T("Mes_Qi_ApprovalDate"):</strong> @Model.ApprovalDate.Value.ToString("dd.MM.yyyy")</p>
                                                         }
                                                         @if (Model.S_ORDERS != null)
                                                         {
-                                                            <p><strong>Buyurtma:</strong> 
+                                                            <p><strong>@L.T("Mes_Order"):</strong> 
                                                                 <a href="@Url.Action("Details", "SOrder", new { id = Model.SOrderID })">@Model.S_ORDERS.OrderNo</a>
                                                             </p>
                                                         }
                                                         @if (Model.PRODUCT_PRODUCTION != null && Model.ProductionID > 0)
                                                         {
-                                                            <p><strong>Ishlab chiqarish:</strong> 
+                                                            <p><strong>@L.T("Mes_Qi_Production"):</strong> 
                                                                 <a href="@Url.Action("Details", "ProductProduction", new { id = Model.ProductionID })">ID: @Model.ProductionID</a>
                                                             </p>
                                                         }
                                                         @if (!string.IsNullOrEmpty(Model.Notes))
                                                         {
-                                                            <p><strong>Izohlar:</strong> @Model.Notes</p>
+                                                            <p><strong>@L.T("Mes_Qi_Notes"):</strong> @Model.Notes</p>
                                                         }
                                                     </div>
                                                 </div>
@@ -81,19 +81,19 @@
                                                 <div class="row mt-3">
                                                     <div class="col-12">
                                                         <a href="@Url.Action("Index")" class="btn btn-secondary">
-                                                            <i class="bx bx-arrow-back"></i> Orqaga
+                                                            <i class="bx bx-arrow-back"></i> @L.T("Back")
                                                         </a>
                                                         @if (changePermit && Model.StatusCode != "APPROVED")
                                                         {
-                                                            using (Html.BeginForm("Delete", "QualityInspection", new { id = Model.ID }, FormMethod.Post, new { @class = "d-inline", onsubmit = "return confirm('Sifat nazorati yozuvini oʻchirasizmi?');" }))
+                                                            using (Html.BeginForm("Delete", "QualityInspection", new { id = Model.ID }, FormMethod.Post, new { @class = "d-inline", onsubmit = "return confirm('" + L.Js("Mes_Qi_ConfirmDelete") + "');" }))
                                                             {
                                                                 @Html.AntiForgeryToken()
-                                                                <button type="submit" class="btn btn-danger"><i class="bx bx-trash"></i> O'chirish</button>
+                                                                <button type="submit" class="btn btn-danger"><i class="bx bx-trash"></i> @L.T("Delete")</button>
                                                             }
-                                                            using (Html.BeginForm("Approve", "QualityInspection", new { id = Model.ID }, FormMethod.Post, new { @class = "d-inline", onsubmit = "return confirm('Sifat nazoratini tasdiqlaysizmi?');" }))
+                                                            using (Html.BeginForm("Approve", "QualityInspection", new { id = Model.ID }, FormMethod.Post, new { @class = "d-inline", onsubmit = "return confirm('" + L.Js("Mes_Qi_ConfirmApprove") + "');" }))
                                                             {
                                                                 @Html.AntiForgeryToken()
-                                                                <button type="submit" class="btn btn-success"><i class="bx bx-check"></i> Tasdiqlash</button>
+                                                                <button type="submit" class="btn btn-success"><i class="bx bx-check"></i> @L.T("Approve")</button>
                                                             }
                                                         }
                                                     </div>

@@ -1,7 +1,7 @@
 @model tahsinERP.Models.FIN_PL_PLANS
 
 @{
-    ViewBag.Title = "P&L rejasini o'chirish";
+    ViewBag.Title = L.T("Fin_DeletePlPlan");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -16,8 +16,8 @@
                             <div class="breadcrumb-wrapper col-12">
                                 <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                     <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
-                                    <li class="breadcrumb-item"><a href="~/FinPlPlans">P&L rejalar</a></li>
-                                    <li class="breadcrumb-item active">O'chirish</li>
+                                    <li class="breadcrumb-item"><a href="~/FinPlPlans">@L.T("Fin_PlPlans")</a></li>
+                                    <li class="breadcrumb-item active">@L.T("Delete")</li>
                                 </ol>
                             </div>
                         </div>
@@ -29,26 +29,26 @@
                     <div class="col-md-8">
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title text-danger">P&L rejasini o'chirish</h4>
+                                <h4 class="card-title text-danger">@L.T("Fin_DeletePlPlan")</h4>
                             </div>
                             <div class="card-content">
                                 <div class="card-body">
                                     <div class="alert alert-warning">
-                                        <h5>Diqqat!</h5>
-                                        <p>Ushbu rejani o'chirishni tasdiqlaysizmi?</p>
+                                        <h5>@L.T("Fin_Attention")</h5>
+                                        <p>@L.T("Fin_PlanDeleteConfirm")</p>
                                     </div>
                                     
                                     <dl class="row">
-                                        <dt class="col-sm-4">Yil:</dt>
+                                        <dt class="col-sm-4">@L.T("Fin_Year"):</dt>
                                         <dd class="col-sm-8">@Model.Year</dd>
                                         
-                                        <dt class="col-sm-4">Oy:</dt>
+                                        <dt class="col-sm-4">@L.T("Fin_Month"):</dt>
                                         <dd class="col-sm-8">@(new DateTime(2000, Model.Month, 1).ToString("MMMM"))</dd>
                                         
-                                        <dt class="col-sm-4">Element:</dt>
+                                        <dt class="col-sm-4">@L.T("Fin_Item"):</dt>
                                         <dd class="col-sm-8">@(Model.FIN_PL_ITEMS?.Name)</dd>
                                         
-                                        <dt class="col-sm-4">Reja summasi:</dt>
+                                        <dt class="col-sm-4">@L.T("Fin_PlanAmount"):</dt>
                                         <dd class="col-sm-8">@Model.AmountPlan.ToString("N2")</dd>
                                     </dl>
                                     
@@ -58,8 +58,8 @@
                                         @Html.Hidden("id", Model.ID)
                                         
                                         <div class="form-actions">
-                                            <button type="submit" class="btn btn-danger">Ha, o'chirish</button>
-                                            <a href="@Url.Action("Index", new { year = Model.Year, month = Model.Month })" class="btn btn-secondary">Bekor qilish</a>
+                                            <button type="submit" class="btn btn-danger">@L.T("Fin_YesDelete")</button>
+                                            <a href="@Url.Action("Index", new { year = Model.Year, month = Model.Month })" class="btn btn-secondary">@L.T("Cancel")</a>
                                         </div>
                                     }
                                 </div>

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using tahsinERP.Models;
 using tahsinERP.Services.Common;
+using tahsinERP.I18n;
 
 namespace tahsinERP.Helpers
 {
@@ -53,10 +54,10 @@ namespace tahsinERP.Helpers
 
             if (IsAssetColumn(c))
             {
-                return "Aktiv";
+                return L.T("Fin_Asset");
             }
 
-            return c.Type == 3 ? "Kapital" : "Passiv";
+            return c.Type == 3 ? L.T("Fin_Equity") : L.T("Fin_Liability");
         }
     }
 }

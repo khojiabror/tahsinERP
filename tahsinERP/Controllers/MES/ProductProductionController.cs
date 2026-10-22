@@ -13,14 +13,15 @@ using tahsinERP.Services.DlocFifo;
 using tahsinERP.Helpers;
 using tahsinERP.Filters;
 using tahsinERP.Services.Common;
+using tahsinERP.I18n;
 
 namespace tahsinERP.Controllers.MES
 {
     [Permission]
     public class ProductProductionController : BaseController
     {
-        private const string LockedMessageEdit = "Bu ishlab chiqarish sifat nazorati yoki lot o'tkazmasi (sotuvga transfer) bilan bog'langan. O'zgartirish mumkin emas.";
-        private const string LockedMessageDelete = "Bu ishlab chiqarish sifat nazorati yoki lot o'tkazmasi (sotuvga transfer) bilan bog'langan. O'chirish mumkin emas.";
+        private static string LockedMessageEdit => L.T("Mes_Prod_LockedEdit");
+        private static string LockedMessageDelete => L.T("Mes_Prod_LockedDelete");
 
         // Olish so'rovi: ProductProduction
         public async Task<ActionResult> Index(DateTime? fromDate, DateTime? toDate, int? shopID, int? productID)
@@ -142,14 +143,14 @@ namespace tahsinERP.Controllers.MES
                         if (lockedProductIds.Any())
                         {
                             var pnos = db.PRODUCTS.Where(p => lockedProductIds.Contains(p.ID)).Select(p => p.PNo).ToList();
-                            ModelState.AddModelError("", LockedMessageEdit + " Mahsulot(lar): " + string.Join(", ", pnos));
+                            ModelState.AddModelError("", LockedMessageEdit + " " + L.T("Mes_Prod_LockedProducts", string.Join(", ", pnos)));
                             transaction.Rollback();
                             goto RepopulateAfterCreateError;
                         }
 
                         if (!itemsToProcess.Any())
                         {
-                            ModelState.AddModelError("", "Kamida bitta mahsulot uchun jami miqdor (kunduzgi + tungi) 0 dan katta bo'lishi kerak.");
+                            ModelState.AddModelError("", L.T("Mes_Prod_AtLeastOneQty"));
                             transaction.Rollback();
                             goto RepopulateAfterCreateError;
                         }
@@ -191,7 +192,7 @@ namespace tahsinERP.Controllers.MES
                                 var oldProductionWH = WarehouseFlowService.GetProductionWarehouse(db, existing.ShopID);
                                 if (oldProductionWH == null)
                                 {
-                                    throw new Exception("Ishlab chiqarish ombori topilmadi (eski qoldiqni bekor qilish uchun).");
+                                    throw new Exception(L.T("Mes_Prod_WarehouseNotFoundForReversal"));
                                 }
 
                                 WarehouseFlowService.ReverseProductionIncome(
@@ -251,7 +252,7 @@ namespace tahsinERP.Controllers.MES
                         db.SaveChanges();
                         transaction.Commit();
 
-                        TempData["Success"] = "Ishlab chiqarish muvaffaqiyatli saqlandi";
+                        TempData["Success"] = L.T("Mes_Prod_Saved");
                         return RedirectToAction("Index");
                     }
                     catch (Exception ex)
@@ -377,7 +378,7 @@ namespace tahsinERP.Controllers.MES
                             var oldProductionWH = WarehouseFlowService.GetProductionWarehouse(db, production.ShopID);
                             if (oldProductionWH == null)
                             {
-                                throw new Exception("Ishlab chiqarish ombori topilmadi (eski qoldiqni bekor qilish uchun).");
+                                throw new Exception(L.T("Mes_Prod_WarehouseNotFoundForReversal"));
                             }
 
                             // Eski kirim/DLOC lotini to'liq bekor qilamiz, shundan keyingina yangi miqdorni qo'shamiz.
@@ -426,7 +427,7 @@ namespace tahsinERP.Controllers.MES
 
                     LogHelper.LogToDatabase(User.Identity.Name, "ProductProductionController", $"Ishlab chiqarish tahrirlandi: ID {viewModel.ID}");
 
-                    TempData["Success"] = "Ishlab chiqarish muvaffaqiyatli yangilandi";
+                    TempData["Success"] = L.T("Mes_Prod_Updated");
                     return RedirectToAction("Index");
                 }
             }
@@ -595,7 +596,7 @@ namespace tahsinERP.Controllers.MES
             catch (Exception ex)
             {
                 LogHelper.LogToDatabase(User.Identity.Name, "ProductProductionController.Details", $"Xatolik: {ex.Message}");
-                TempData["ErrorMessage"] = "Ma'lumotlarni yuklashda xatolik yuz berdi. Iltimos, qayta urinib ko'ring.";
+                TempData["ErrorMessage"] = L.T("Mes_Prod_LoadError");
                 return RedirectToAction("Index");
             }
         }
@@ -651,7 +652,7 @@ namespace tahsinERP.Controllers.MES
 
                 LogHelper.LogToDatabase(User.Identity.Name, "ProductProductionController", $"Ishlab chiqarish o'chirildi: ID {id}");
 
-                TempData["Success"] = "Ishlab chiqarish muvaffaqiyatli o'chirildi";
+                TempData["Success"] = L.T("Mes_Prod_Deleted");
                 return RedirectToAction("Index");
             }
         }
@@ -671,7 +672,7 @@ namespace tahsinERP.Controllers.MES
             var productionWarehouse = WarehouseFlowService.GetProductionWarehouse(db, shopId);
             if (productionWarehouse == null)
             {
-                return "Ishlab chiqarish ombori topilmadi";
+                return L.T("Mes_Prod_WarehouseNotFound");
             }
 
             // Tekshiruv mantiqi servisda (ConsumeMaterialsForProductionAsync ham shuni ishlatadi, MES-D23)
@@ -688,7 +689,7 @@ namespace tahsinERP.Controllers.MES
             var productionWarehouse = WarehouseFlowService.GetProductionWarehouse(db, shopId);
             if (productionWarehouse == null)
             {
-                throw new Exception("Ishlab chiqarish ombori topilmadi");
+                throw new Exception(L.T("Mes_Prod_WarehouseNotFound"));
             }
 
             var consumptionService = new ProductionConsumptionService(db);
@@ -777,7 +778,7 @@ namespace tahsinERP.Controllers.MES
                         var productionWarehouse = WarehouseFlowService.GetProductionWarehouse(db, production.ShopID);
                         if (productionWarehouse == null)
                         {
-                            throw new Exception("Ishlab chiqarish ombori topilmadi");
+                            throw new Exception(L.T("Mes_Prod_WarehouseNotFound"));
                         }
 
                         await consumptionService.ConsumeMaterialsForProductionAsync(
@@ -795,7 +796,7 @@ namespace tahsinERP.Controllers.MES
                 }
             }
 
-            var summary = $"Tuzatildi: {reconciled}, allaqachon to'g'ri: {alreadyOk}, o'tkazib yuborildi: {skipped}, xatolar: {errors.Count}.";
+            var summary = L.T("Mes_Prod_ReconcileSummary", reconciled, alreadyOk, skipped, errors.Count);
             if (errors.Any())
             {
                 TempData["Error"] = summary + " " + string.Join(" | ", errors.Take(5));
@@ -817,7 +818,7 @@ namespace tahsinERP.Controllers.MES
             {
                 if (!date.HasValue || !shopID.HasValue)
                 {
-                    return Json(new { success = false, message = "Sana va sex tanlanishi kerak" }, JsonRequestBehavior.AllowGet);
+                    return Json(new { success = false, message = L.T("Mes_Prod_DateShopRequired") }, JsonRequestBehavior.AllowGet);
                 }
 
                 using (DBTHSNEntities db = new DBTHSNEntities())

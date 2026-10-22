@@ -7,6 +7,7 @@ using tahsinERP.Models;
 using tahsinERP.Services.Common;
 using tahsinERP.Services.Crm;
 using tahsinERP.ViewModels.Finance;
+using tahsinERP.I18n;
 
 namespace tahsinERP.Services.Finance
 {
@@ -50,10 +51,10 @@ namespace tahsinERP.Services.Finance
         {
             switch (calculationType)
             {
-                case 1: return "Account-Based";
-                case 2: return "Transaction-Based";
-                case 3: return "Document-Based";
-                default: return "Noma'lum";
+                case 1: return L.T("Fin_CalcAccountBased");
+                case 2: return L.T("Fin_CalcTransactionBased");
+                case 3: return L.T("Fin_CalcDocumentBased");
+                default: return L.T("Fin_Unknown");
             }
         }
 
@@ -155,7 +156,7 @@ namespace tahsinERP.Services.Finance
                 {
                     detail.Amount = opening.Amount;
                     openingDate = opening.SnapshotDate.Date;
-                    detail.Explanation = $"Opening balans ({openingDate.Value:dd.MM.yyyy}) + keyingi harakatlar bo'yicha";
+                    detail.Explanation = L.T("Fin_Exp_OpeningPlusMoves", openingDate.Value.ToString("dd.MM.yyyy"));
                 }
 
                 // Kreditorlik/debitorlik — CalculationType'dan qat'i nazar hujjatlar bo'yicha (FIFO).
@@ -176,14 +177,14 @@ namespace tahsinERP.Services.Finance
                     if (!openingDate.HasValue)
                     {
                         detail.Amount = BalanceInventoryValuation.FinishedGoodsTotal(db, asOfDate);
-                        detail.CalculationTypeName = "Ombor + Tannarx";
+                        detail.CalculationTypeName = L.T("Fin_Calc_WarehouseCost");
                         detail.Explanation =
-                            "Ishlab chiqarish omboridagi tayyor maxsulot (IsFinishedGood) miqdori × shu mahsulot bo'yicha oxirgi Tannarx: SalesPriceCIPWithVAT (Sotuv narxi QQS bilan CIP).";
+                            L.T("Fin_Exp_FinishedGoods");
                     }
                     else
                     {
-                        detail.CalculationTypeName = "Opening balans";
-                        detail.Explanation = $"Opening balans ({openingDate.Value:dd.MM.yyyy}) qiymati (ombor hisobining o'rniga).";
+                        detail.CalculationTypeName = L.T("Fin_OpeningBalance");
+                        detail.Explanation = L.T("Fin_Exp_OpeningInsteadOfWarehouse", openingDate.Value.ToString("dd.MM.yyyy"));
                     }
                     continue;
                 }
@@ -192,14 +193,14 @@ namespace tahsinERP.Services.Finance
                     if (!openingDate.HasValue)
                     {
                         detail.Amount = BalanceInventoryValuation.RawMaterialTotal(db, asOfDate);
-                        detail.CalculationTypeName = "Ombor + oxirgi kirim";
+                        detail.CalculationTypeName = L.T("Fin_Calc_WarehouseLastIncome");
                         detail.Explanation =
-                            "Xomashyo ombori qoldig'i (mahsulot kategoriyasi «Jihoz» bo'lmaganlar) × shu omborga qilingan oxirgi kirim birlik narxi (TotalPrice/Amount yoki PiecePrice).";
+                            L.T("Fin_Exp_RawMaterials");
                     }
                     else
                     {
-                        detail.CalculationTypeName = "Opening balans";
-                        detail.Explanation = $"Opening balans ({openingDate.Value:dd.MM.yyyy}) qiymati (ombor hisobining o'rniga).";
+                        detail.CalculationTypeName = L.T("Fin_OpeningBalance");
+                        detail.Explanation = L.T("Fin_Exp_OpeningInsteadOfWarehouse", openingDate.Value.ToString("dd.MM.yyyy"));
                     }
                     continue;
                 }
@@ -224,12 +225,12 @@ namespace tahsinERP.Services.Finance
                             // Opening bo'lmasa: asOfDate gacha yakuniy qoldiq; bo'lsa: opening + keyingi harakatlar.
                             detail.Amount += PopulateTransactionStats(accountTxnQuery, detail).Net;
                             detail.Explanation = openingDate.HasValue
-                                ? $"Opening balans + hisob harakatlari: {mappedAccountIds.Count} ta hisob"
-                                : $"Hisoblar bo'yicha hisoblandi: {mappedAccountIds.Count} ta hisob";
+                                ? L.T("Fin_Exp_OpeningAccounts", mappedAccountIds.Count)
+                                : L.T("Fin_Exp_ByAccounts", mappedAccountIds.Count);
                         }
                         else
                         {
-                            detail.Explanation = "Hisoblar moslanmadi";
+                            detail.Explanation = L.T("Fin_Exp_NoAccounts");
                         }
                         break;
 
@@ -243,12 +244,12 @@ namespace tahsinERP.Services.Finance
                                             (!openingDate.HasValue || t.TxnDate > openingDate.Value));
                             detail.Amount += PopulateTransactionStats(txnQuery, detail).Net;
                             detail.Explanation = openingDate.HasValue
-                                ? $"Opening balans + kategoriyalar harakati: {categoryIds.Count} ta kategoriya"
-                                : $"Kategoriyalar bo'yicha hisoblandi: {categoryIds.Count} ta kategoriya";
+                                ? L.T("Fin_Exp_OpeningCategories", categoryIds.Count)
+                                : L.T("Fin_Exp_ByCategories", categoryIds.Count);
                         }
                         else
                         {
-                            detail.Explanation = "Kategoriya moslanmadi";
+                            detail.Explanation = L.T("Fin_Exp_NoCategories");
                         }
                         break;
 
@@ -260,8 +261,8 @@ namespace tahsinERP.Services.Finance
                             PopulateTransactionStats(payroll.PaymentQuery, detail);
                             detail.Amount = payroll.Total;
                             detail.Explanation = payroll.OpeningDate.HasValue
-                                ? $"Oylik opening ({payroll.OpeningDate.Value:dd.MM.yyyy}) {payroll.OpeningNet:N2} + hisoblangan {payroll.Accrued:N2} − to'langan {payroll.Paid:N2}"
-                                : $"Oyliklar bo'yicha: hisoblangan {payroll.Accrued:N2}, to'langan {payroll.Paid:N2}";
+                                ? L.T("Fin_Exp_PayrollOpening", payroll.OpeningDate.Value.ToString("dd.MM.yyyy"), payroll.OpeningNet.ToString("N2"), payroll.Accrued.ToString("N2"), payroll.Paid.ToString("N2"))
+                                : L.T("Fin_Exp_Payroll", payroll.Accrued.ToString("N2"), payroll.Paid.ToString("N2"));
                         }
                         else if (Is(category, SystemCodes.BalanceCategory.LogisticsDebt))
                         {
@@ -272,15 +273,15 @@ namespace tahsinERP.Services.Finance
                             }
                             detail.Amount = logistics.Amount;
                             detail.Explanation = logistics.OpeningDate.HasValue
-                                ? $"Opening balans ({logistics.OpeningDate.Value:dd.MM.yyyy}) + yo'l varaqalari {logistics.WaybillTotal:N2} − to'lovlar {logistics.Paid:N2}"
-                                : $"Yo'l varaqalari bo'yicha: {logistics.WaybillTotal:N2}, to'lovlar {logistics.Paid:N2}";
+                                ? L.T("Fin_Exp_LogisticsOpening", logistics.OpeningDate.Value.ToString("dd.MM.yyyy"), logistics.WaybillTotal.ToString("N2"), logistics.Paid.ToString("N2"))
+                                : L.T("Fin_Exp_Logistics", logistics.WaybillTotal.ToString("N2"), logistics.Paid.ToString("N2"));
                         }
                         else if (Is(category, SystemCodes.BalanceCategory.RecurringObligations))
                         {
                             // Avval faqat BalanceSheet'da bor edi, details/DCF/Liabilities'da yo'q edi (FIN-B02).
                             var recurring = FinLiabilities.RecurringObligationsLiability(db, category.ID, asOfDate, openingDate, includeUnassigned: true);
                             detail.Amount += recurring.Amount;
-                            detail.Explanation = $"Doimiy harajatlar: {recurring.Count} ta majburiyat, hisoblangan {recurring.Accrued:N2}, to'langan {recurring.Paid:N2}";
+                            detail.Explanation = L.T("Fin_Exp_Recurring", recurring.Count, recurring.Accrued.ToString("N2"), recurring.Paid.ToString("N2"));
                         }
                         break;
                 }
@@ -338,10 +339,10 @@ namespace tahsinERP.Services.Finance
             detail.TransactionCount = summary.Sum(s => s.InvoiceCount + s.PaymentCount);
             detail.AddedAmount = summary.Sum(s => s.InvoiceTotal);
             detail.SubtractedAmount = summary.Sum(s => s.PaymentTotal);
-            detail.CalculationTypeName = "Document-Based";
+            detail.CalculationTypeName = L.T("Fin_CalcDocumentBased");
             detail.Explanation = apOpening.HasValue
-                ? $"Opening balans ({apOpening.Value:dd.MM.yyyy}) + SUM(invoys) − SUM(to'lov). To'lov: PurchaseInvoicePayment yoki ta'minotchi + ContractNo bilan chiqim."
-                : "SUM(invoys) − SUM(to'lov). To'lov: PurchaseInvoicePayment yoki ta'minotchi + ContractNo bilan chiqim.";
+                ? L.T("Fin_Exp_ApOpening", apOpening.Value.ToString("dd.MM.yyyy"))
+                : L.T("Fin_Exp_Ap");
         }
 
         private void FillReceivables(BalanceCategoryDetailData detail, DateTime asOfDate)
@@ -352,10 +353,10 @@ namespace tahsinERP.Services.Finance
             detail.TransactionCount = summary.Sum(c => c.InvoiceCount + c.ReceiptCount);
             detail.AddedAmount = summary.Sum(c => c.InvoiceTotal);
             detail.SubtractedAmount = summary.Sum(c => c.ReceiptTotal);
-            detail.CalculationTypeName = "Document-Based";
+            detail.CalculationTypeName = L.T("Fin_CalcDocumentBased");
             detail.Explanation = arOpening.HasValue
-                ? $"Opening balans ({arOpening.Value:dd.MM.yyyy}) + sotuv invoyslari − mijozdan tushumlar (FIFO) bo'yicha hisoblandi"
-                : "Sotuv invoyslari va mijozdan tushumlar (FIFO) bo'yicha hisoblandi";
+                ? L.T("Fin_Exp_ArOpening", arOpening.Value.ToString("dd.MM.yyyy"))
+                : L.T("Fin_Exp_Ar");
         }
 
         private sealed class TxnStats
@@ -391,7 +392,7 @@ namespace tahsinERP.Services.Finance
             var category = db.FIN_BALANCE_CATEGORIES.AsNoTracking().FirstOrDefault(c => c.ID == categoryId && c.IsActive);
             if (category == null)
             {
-                return new { success = false, message = "Kategoriya topilmadi" };
+                return new { success = false, message = L.T("Fin_CategoryNotFound") };
             }
 
             if (Is(category, SystemCodes.BalanceCategory.FinishedGoods))

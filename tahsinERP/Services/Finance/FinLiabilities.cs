@@ -4,6 +4,7 @@ using System.Data.Entity;
 using System.Diagnostics;
 using System.Linq;
 using tahsinERP.Models;
+using tahsinERP.I18n;
 
 namespace tahsinERP.Services.Finance
 {
@@ -138,7 +139,7 @@ namespace tahsinERP.Services.Finance
                     byEmployee[n.ID].EmployeeName = n.FullName;
             }
             foreach (var e in byEmployee.Values.Where(e => string.IsNullOrEmpty(e.EmployeeName)))
-                e.EmployeeName = $"Xodim #{e.EmployeeID}";
+                e.EmployeeName = L.T("Fin_Employee") + " #" + e.EmployeeID;
 
             return new PayrollBreakdown
             {

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web.Mvc;
+using tahsinERP.I18n;
 
 namespace tahsinERP.Services.Finance
 {
@@ -18,17 +19,18 @@ namespace tahsinERP.Services.Finance
         /// <summary>Qo'lda kiritiladigan tranzaksiyada tanlash mumkin bo'lgan manba turlari.</summary>
         public static readonly string[] ManualSourceDocTypes = { Manual, RecurringObligationPayment, PurchaseInvoicePayment };
 
+        // Value — resurs kaliti (ko'rsatishda L.T orqali tarjima qilinadi)
         private static readonly KeyValuePair<string, string>[] SourceDocTypeNames =
         {
-            new KeyValuePair<string, string>(Manual, "Qo'lda"),
-            new KeyValuePair<string, string>(RecurringObligationPayment, "Doimiy harajat to'lovi (ijara, buxgalteriya va h.k.)"),
-            new KeyValuePair<string, string>(PurchaseInvoicePayment, "Ta'minotchiga to'lov (xarid invoysiga bog'lash)"),
-            new KeyValuePair<string, string>("SalesInvoice", "Sotuv invoysi"),
-            new KeyValuePair<string, string>("PurchaseInvoice", "Xarid invoysi"),
-            new KeyValuePair<string, string>("IncomeDoc", "Ombor kirimi"),
-            new KeyValuePair<string, string>("ExpenseDoc", "Ombor chiqimi"),
-            new KeyValuePair<string, string>("WaybillPayment", "Yo'l varaqasi to'lovi"),
-            new KeyValuePair<string, string>("ShareholderContribution", "Aksiyador hissasi")
+            new KeyValuePair<string, string>(Manual, "Fin_Manual"),
+            new KeyValuePair<string, string>(RecurringObligationPayment, "Fin_Src_RecurringPayment"),
+            new KeyValuePair<string, string>(PurchaseInvoicePayment, "Fin_Src_SupplierPayment"),
+            new KeyValuePair<string, string>("SalesInvoice", "Fin_Src_SalesInvoice"),
+            new KeyValuePair<string, string>("PurchaseInvoice", "Fin_Src_PurchaseInvoice"),
+            new KeyValuePair<string, string>("IncomeDoc", "Fin_Src_IncomeDoc"),
+            new KeyValuePair<string, string>("ExpenseDoc", "Fin_Src_ExpenseDoc"),
+            new KeyValuePair<string, string>("WaybillPayment", "Fin_Src_WaybillPayment"),
+            new KeyValuePair<string, string>("ShareholderContribution", "Fin_Src_ShareholderContribution")
         };
 
         /// <summary>Joriy yil ± 5.</summary>
@@ -49,8 +51,8 @@ namespace tahsinERP.Services.Finance
         {
             return new SelectList(new[]
             {
-                new { Value = (byte)1, Text = "Kirim" },
-                new { Value = (byte)2, Text = "Chiqim" }
+                new { Value = (byte)1, Text = L.T("Fin_Inflow") },
+                new { Value = (byte)2, Text = L.T("Fin_Expense") }
             }, "Value", "Text", selected);
         }
 
@@ -58,13 +60,13 @@ namespace tahsinERP.Services.Finance
         {
             return new SelectList(new[]
             {
-                new { Value = (byte?)null, Text = "Tanlanmagan" },
-                new { Value = (byte?)1, Text = "Mijoz" },
-                new { Value = (byte?)2, Text = "Ta'minotchi" },
-                new { Value = (byte?)3, Text = "Aksiyador" },
-                new { Value = (byte?)4, Text = "Forwarder" },
-                new { Value = (byte?)6, Text = "Xodim" },
-                new { Value = (byte?)5, Text = "Boshqa" }
+                new { Value = (byte?)null, Text = L.T("Fin_NotSelected") },
+                new { Value = (byte?)1, Text = L.T("Fin_Customer") },
+                new { Value = (byte?)2, Text = L.T("Fin_Supplier") },
+                new { Value = (byte?)3, Text = L.T("Fin_Shareholder") },
+                new { Value = (byte?)4, Text = L.T("Fin_CpForwarder") },
+                new { Value = (byte?)6, Text = L.T("Fin_Employee") },
+                new { Value = (byte?)5, Text = L.T("Fin_Other") }
             }, "Value", "Text", selected);
         }
 
@@ -73,7 +75,7 @@ namespace tahsinERP.Services.Finance
         {
             var items = SourceDocTypeNames
                 .Where(p => ManualSourceDocTypes.Contains(p.Key))
-                .Select(p => new { Value = p.Key, Text = p.Value })
+                .Select(p => new { Value = p.Key, Text = L.T(p.Value) })
                 .ToList();
             return new SelectList(items, "Value", "Text", string.IsNullOrWhiteSpace(selected) ? Manual : selected);
         }
@@ -81,11 +83,11 @@ namespace tahsinERP.Services.Finance
         /// <summary>Barcha ma'lum turlar (filtr va ko'rish); noma'lum joriy qiymat "(maxsus)" sifatida qo'shiladi.</summary>
         public static SelectList SourceDocTypeList(string current)
         {
-            var items = SourceDocTypeNames.Select(p => new { Value = p.Key, Text = p.Value }).ToList();
+            var items = SourceDocTypeNames.Select(p => new { Value = p.Key, Text = L.T(p.Value) }).ToList();
             var selected = string.IsNullOrWhiteSpace(current) ? Manual : current.Trim();
             if (!SourceDocTypeNames.Any(p => string.Equals(p.Key, selected, StringComparison.OrdinalIgnoreCase)))
             {
-                items.Insert(0, new { Value = selected, Text = selected + " (maxsus)" });
+                items.Insert(0, new { Value = selected, Text = selected + " (" + L.T("Fin_Custom") + ")" });
             }
             return new SelectList(items, "Value", "Text", selected);
         }

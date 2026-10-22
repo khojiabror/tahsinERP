@@ -1,8 +1,22 @@
 @model tahsinERP.ViewModels.Tannarx.TannarxMonthSourcesViewModel
 
 @{
-    ViewBag.Title = "Oy xarajatlari manbalari";
+    ViewBag.Title = L.T("Mes_TanA_MonthSourcesTitle");
     Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@functions {
+    // Engine Bucket qiymatlari (kodda solishtiriladi) — faqat ko'rsatish uchun tarjima
+    private static string BucketText(string bucket)
+    {
+        switch (bucket)
+        {
+            case "Material (PATH3)": return L.T("Mes_Tan_Bucket_Material");
+            case "B — Soliq va bank": return L.T("Mes_Tan_Bucket_TaxBank");
+            case "D — Boshqa": return L.T("Mes_Tan_Bucket_Other");
+            case "Chiqarildi": return L.T("Mes_TanA_Bucket_Excluded");
+            default: return bucket;
+        }
+    }
 }
 
 @if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "Tannarx"))
@@ -19,9 +33,9 @@
                             <div class="breadcrumb-wrapper col-12">
                                 <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                     <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
-                                    <li class="breadcrumb-item"><a href="~/Tannarx">Tannarx</a></li>
-                                    <li class="breadcrumb-item"><a href="@Url.Action("Dashboard", "TannarxAnalytics", new { year = Model.Year, month = Model.Month })">Tahlil</a></li>
-                                    <li class="breadcrumb-item active">Oy xarajatlari manbalari</li>
+                                    <li class="breadcrumb-item"><a href="~/Tannarx">@L.T("Mes_Tan_Title")</a></li>
+                                    <li class="breadcrumb-item"><a href="@Url.Action("Dashboard", "TannarxAnalytics", new { year = Model.Year, month = Model.Month })">@L.T("Mes_TanA_Analysis")</a></li>
+                                    <li class="breadcrumb-item active">@L.T("Mes_TanA_MonthSourcesTitle")</li>
                                 </ol>
                             </div>
                         </div>
@@ -37,19 +51,19 @@
                                 <form id="sourcesFilter" method="get" action="@Url.Action("MonthSources", "TannarxAnalytics")">
                                     <div class="row">
                                         <div class="col-md-3">
-                                            <label>Yil</label>
+                                            <label>@L.T("Mes_Year")</label>
                                             @Html.DropDownList("year", (SelectList)ViewBag.Years, new { @class = "form-control" })
                                         </div>
                                         <div class="col-md-3">
-                                            <label>Oy</label>
+                                            <label>@L.T("Mes_Month")</label>
                                             @Html.DropDownList("month", (SelectList)ViewBag.Months, new { @class = "form-control" })
                                         </div>
                                         <div class="col-md-6 d-flex align-items-end">
-                                            <button type="submit" class="btn btn-primary mr-1"><i class="bx bx-search"></i> Ko'rsatish</button>
+                                            <button type="submit" class="btn btn-primary mr-1"><i class="bx bx-search"></i> @L.T("Mes_Show")</button>
                                             @if (changePermit)
                                             {
                                                 <button type="submit" form="updateActualForm" class="btn btn-success">
-                                                    <i class="bx bx-refresh"></i> Shu natijani tannarxga yozish
+                                                    <i class="bx bx-refresh"></i> @L.T("Mes_TanA_WriteToCost")
                                                 </button>
                                             }
                                         </div>
@@ -66,8 +80,8 @@
                                     }
                                 }
                                 <p class="text-muted small mb-0 mt-1">
-                                    @Model.MonthString @Model.Year: barcha ishlab chiqarilgan miqdor — <b>@Model.MonthProducedQty.ToString("N2")</b> dona.
-                                    Valyuta: @(Model.BaseCurrencyCode ?? "barchasi (UZS topilmadi)"). Bu sahifa hech narsa yozmaydi — "yozish" tugmasi bir xil hisobni TANNARX ga saqlaydi.
+                                    @Model.MonthString @Model.Year: @L.T("Mes_TanA_AllProducedQty") — <b>@Model.MonthProducedQty.ToString("N2")</b> @L.T("Mes_TanA_PcsEnd")
+                                    @L.T("Currency"): @(Model.BaseCurrencyCode ?? L.T("Mes_TanA_AllCurrenciesNoUzs")). @L.T("Mes_TanA_ReadOnlyHint")
                                 </p>
                             </div>
                         </div>
@@ -82,18 +96,18 @@
                 <div class="row">
                     <div class="col-12">
                         <div class="card">
-                            <div class="card-header"><h4 class="card-title">Xarajat elementlari: manba → taqsimlangan</h4></div>
+                            <div class="card-header"><h4 class="card-title">@L.T("Mes_TanA_ElementsHeader")</h4></div>
                             <div class="card-body">
                                 <div class="table-responsive">
                                     <table class="table table-bordered table-sm mb-0">
                                         <thead>
                                             <tr>
-                                                <th>Element</th>
-                                                <th>Manba</th>
-                                                <th class="text-right">Manbada (oy jami)</th>
-                                                <th class="text-right">Tannarxga taqsimlangan</th>
-                                                <th class="text-right">Taqsimlanmagan</th>
-                                                <th>Izoh</th>
+                                                <th>@L.T("Mes_TanA_Element")</th>
+                                                <th>@L.T("Mes_TanA_Source")</th>
+                                                <th class="text-right">@L.T("Mes_TanA_InSource")</th>
+                                                <th class="text-right">@L.T("Mes_TanA_AllocatedToCost")</th>
+                                                <th class="text-right">@L.T("Mes_TanA_Unallocated")</th>
+                                                <th>@L.T("Comment")</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -121,7 +135,7 @@
                     <div class="col-12">
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">Mahsulotlar (1 dona uchun fakt)</h4>
+                                <h4 class="card-title">@L.T("Mes_TanA_ProductsActualPerUnit")</h4>
                                 <div class="small text-muted">
                                     @foreach (var kv in Model.MaterialPathCounts)
                                     {
@@ -134,17 +148,17 @@
                                     <table class="table table-bordered table-hover table-sm mb-0">
                                         <thead>
                                             <tr>
-                                                <th>Mahsulot</th>
-                                                <th class="text-right">Ishlab chiq.</th>
-                                                <th>Material algoritmi</th>
-                                                <th class="text-right">Material</th>
-                                                <th class="text-right">Mat. tashuvi</th>
-                                                <th class="text-right">A Ish haqi</th>
-                                                <th class="text-right">B Soliq/bank</th>
-                                                <th class="text-right">C Admin</th>
-                                                <th class="text-right">D Boshqa</th>
-                                                <th class="text-right">Jami xarajat</th>
-                                                <th class="text-right">T.M. tashuvi</th>
+                                                <th>@L.T("Mes_Product")</th>
+                                                <th class="text-right">@L.T("Mes_TanA_ProducedShort")</th>
+                                                <th>@L.T("Mes_TanA_MaterialAlgorithm")</th>
+                                                <th class="text-right">@L.T("Mes_Materials")</th>
+                                                <th class="text-right">@L.T("Mes_TanA_MatTransportShort")</th>
+                                                <th class="text-right">@L.T("Mes_TanA_ColLaborA")</th>
+                                                <th class="text-right">@L.T("Mes_TanA_ColTaxBankB")</th>
+                                                <th class="text-right">@L.T("Mes_TanA_ColAdminC")</th>
+                                                <th class="text-right">@L.T("Mes_TanA_ColOtherD")</th>
+                                                <th class="text-right">@L.T("Mes_TanA_TotalCost")</th>
+                                                <th class="text-right">@L.T("Mes_TanA_FgTransportShort")</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -159,7 +173,7 @@
                                                     <td class="small" title="@p.PathAttempts">
                                                         @if (p.ProducedQty <= 0)
                                                         {
-                                                            <span>Ishlab chiqarilmagan</span>
+                                                            <span>@L.T("Mes_TanA_NotProduced")</span>
                                                         }
                                                         else
                                                         {
@@ -179,7 +193,7 @@
                                         </tbody>
                                     </table>
                                 </div>
-                                <p class="small text-muted mb-0 mt-1">Material algoritmi ustiga sichqonchani olib borsangiz, barcha urinishlar va rad etilish sabablari ko'rinadi.</p>
+                                <p class="small text-muted mb-0 mt-1">@L.T("Mes_TanA_AlgorithmHoverHint")</p>
                             </div>
                         </div>
                     </div>
@@ -189,9 +203,9 @@
                     <div class="col-12">
                         <div class="card">
                             <div class="card-header d-flex justify-content-between align-items-center">
-                                <h4 class="card-title">Finance kategoriyalari (shu oy)</h4>
+                                <h4 class="card-title">@L.T("Mes_TanA_FinCategoriesMonth")</h4>
                                 <a href="@Url.Action("FinanceCategories", "TannarxAnalytics", new { year = Model.Year, month = Model.Month })" class="btn btn-sm btn-outline-primary">
-                                    <i class="bx bx-cog"></i> Kategoriya guruhlarini sozlash
+                                    <i class="bx bx-cog"></i> @L.T("Mes_TanA_ConfigureGroups")
                                 </a>
                             </div>
                             <div class="card-body">
@@ -199,23 +213,23 @@
                                     <table class="table table-bordered table-sm mb-0">
                                         <thead>
                                             <tr>
-                                                <th>Kategoriya</th>
-                                                <th>Qayerga</th>
-                                                <th>Sabab</th>
-                                                <th class="text-right">Tranzaksiya</th>
-                                                <th class="text-right">Summa (chiqim − qaytish)</th>
+                                                <th>@L.T("Category")</th>
+                                                <th>@L.T("Mes_TanA_Where")</th>
+                                                <th>@L.T("Mes_TanA_Reason")</th>
+                                                <th class="text-right">@L.T("Mes_TanA_Transactions")</th>
+                                                <th class="text-right">@L.T("Mes_TanA_AmountNet")</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             @if (!Model.FinanceLines.Any())
                                             {
-                                                <tr><td colspan="5" class="text-center text-muted">Shu oyda xarajat tranzaksiyalari yo'q.</td></tr>
+                                                <tr><td colspan="5" class="text-center text-muted">@L.T("Mes_TanA_NoExpenseTxns")</td></tr>
                                             }
                                             @foreach (var f in Model.FinanceLines)
                                             {
                                                 <tr class="@(f.Included ? "" : "text-muted")">
                                                     <td>@f.CategoryName</td>
-                                                    <td>@(f.Included ? f.Bucket : "Chiqarildi")</td>
+                                                    <td>@(f.Included ? BucketText(f.Bucket) : L.T("Mes_TanA_Bucket_Excluded"))</td>
                                                     <td class="small">@f.Reason</td>
                                                     <td class="text-right">@f.TransactionCount</td>
                                                     <td class="text-right">@f.Amount.ToString("N0")</td>
@@ -234,11 +248,11 @@
                     <div class="row">
                         <div class="col-12">
                             <div class="card border-warning">
-                                <div class="card-header"><h4 class="card-title text-warning">Ishlab chiqarilgan, lekin tannarx qatori yo'q</h4></div>
+                                <div class="card-header"><h4 class="card-title text-warning">@L.T("Mes_TanA_ProducedNoCostRow")</h4></div>
                                 <div class="card-body">
                                     <div class="table-responsive">
                                         <table class="table table-bordered table-sm mb-0">
-                                            <thead><tr><th>Mahsulot</th><th>Nomi</th><th class="text-right">Ishlab chiqarilgan</th></tr></thead>
+                                            <thead><tr><th>@L.T("Mes_Product")</th><th>@L.T("Name")</th><th class="text-right">@L.T("Mes_Produced")</th></tr></thead>
                                             <tbody>
                                                 @foreach (var p in Model.ProducedWithoutTannarx)
                                                 {

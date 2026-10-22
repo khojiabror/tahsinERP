@@ -1,5 +1,5 @@
 @{
-    ViewBag.Title = "EBITDA hisoboti";
+    ViewBag.Title = L.T("Fin_EbitdaReport");
     Layout = "~/Views/Shared/_Layout.cshtml";
     var ebitda = ViewBag.Ebitda as tahsinERP.ViewModels.Finance.EbitdaData;
 }
@@ -15,7 +15,7 @@
                             <div class="breadcrumb-wrapper col-12">
                                 <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                     <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
-                                    <li class="breadcrumb-item">Moliya</li>
+                                    <li class="breadcrumb-item">@L.T("Menu_Finance")</li>
                                     <li class="breadcrumb-item active">EBITDA</li>
                                 </ol>
                             </div>
@@ -36,15 +36,15 @@
                                     <form method="get" action="@Url.Action("EBITDA")" class="mb-3">
                                         <div class="row align-items-end">
                                             <div class="col-md-3">
-                                                <label class="control-label">Boshlanish:</label>
+                                                <label class="control-label">@L.T("Fin_PeriodStart"):</label>
                                                 <input type="date" name="fromDate" class="form-control" value="@(((DateTime)ViewBag.FromDate).ToString("yyyy-MM-dd"))" />
                                             </div>
                                             <div class="col-md-3">
-                                                <label class="control-label">Tugash:</label>
+                                                <label class="control-label">@L.T("Fin_PeriodEnd"):</label>
                                                 <input type="date" name="toDate" class="form-control" value="@(((DateTime)ViewBag.ToDate).ToString("yyyy-MM-dd"))" />
                                             </div>
                                             <div class="col-md-2">
-                                                <button type="submit" class="btn btn-primary btn-block">Ko'rsatish</button>
+                                                <button type="submit" class="btn btn-primary btn-block">@L.T("Fin_Show")</button>
                                             </div>
                                         </div>
                                     </form>
@@ -66,27 +66,27 @@
                                             <table class="table table-bordered">
                                                 <tbody>
                                                     <tr>
-                                                        <td>Operatsion daromad</td>
+                                                        <td>@L.T("Fin_OperatingIncome")</td>
                                                         <td class="text-right">@ebitda.OperatingIncome.ToString("N2")</td>
                                                     </tr>
                                                     <tr>
-                                                        <td>Operatsion xarajatlar</td>
+                                                        <td>@L.T("Fin_OperatingExpenses")</td>
                                                         <td class="text-right">-@ebitda.OperatingExpenses.ToString("N2")</td>
                                                     </tr>
                                                     <tr class="font-weight-bold">
-                                                        <td>Operatsion foyda</td>
+                                                        <td>@L.T("Fin_OperatingProfit")</td>
                                                         <td class="text-right">@ebitda.OperatingProfit.ToString("N2")</td>
                                                     </tr>
                                                     <tr>
-                                                        <td>Qaytarib qo'shiladi: soliqlar (Taxes)</td>
+                                                        <td>@L.T("Fin_AddBackTaxes")</td>
                                                         <td class="text-right">+@ebitda.TaxExpense.ToString("N2")</td>
                                                     </tr>
                                                     <tr>
-                                                        <td>Qaytarib qo'shiladi: foiz/kredit (Interest)</td>
+                                                        <td>@L.T("Fin_AddBackInterest")</td>
                                                         <td class="text-right">+@ebitda.InterestExpense.ToString("N2")</td>
                                                     </tr>
                                                     <tr>
-                                                        <td>Qaytarib qo'shiladi: amortizatsiya (Depreciation &amp; Amortization)</td>
+                                                        <td>@L.T("Fin_AddBackDepreciation")</td>
                                                         <td class="text-right">+@ebitda.DepreciationExpense.ToString("N2")</td>
                                                     </tr>
                                                     <tr class="font-weight-bold table-success">
@@ -98,10 +98,10 @@
                                         </div>
                                         <p class="text-muted mt-2 mb-0">
                                             <small>
-                                                EBITDA — foiz, soliq va amortizatsiya xarajatlarigacha bo'lgan operatsion foyda.
-                                                Daromad va xarajatlar P&amp;L bandlariga bog'langan kategoriyalar bo'yicha olinadi (dividend, qarz olish, ichki o'tkazmalar va aksiyador hissasi kirmaydi). Soliq, foiz/kredit va amortizatsiya xarajatlari kategoriya nomi bo'yicha aniqlanadi.
-                                                Kompaniya qiymatini EBITDA × multiplikator (Ishlab chiqarish: 3–6x) usulida hisoblash uchun
-                                                <a href="@Url.Action("ShareholderValue", new { method = "ebitda" })">Kompaniya qiymati</a> sahifasiga o'ting.
+                                                @L.T("Fin_EbitdaHint1")
+                                                @L.T("Fin_EbitdaHint2")
+                                                @L.T("Fin_EbitdaHint3")
+                                                <a href="@Url.Action("ShareholderValue", new { method = "ebitda" })">@L.T("Fin_CompanyValue")</a> @L.T("Fin_EbitdaHint4")
                                             </small>
                                         </p>
                                     }

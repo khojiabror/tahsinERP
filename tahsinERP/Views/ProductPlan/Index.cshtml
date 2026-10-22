@@ -1,6 +1,6 @@
 @model tahsinERP.ViewModels.ProductPlanListViewModel
 @{
-    ViewBag.Title = "Ishlab Chiqarish Rejasi";
+    ViewBag.Title = L.T("Mes_Plan_Title");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -20,7 +20,7 @@
                                     <li class="breadcrumb-item">
                                         <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                     </li>
-                                    <li class="breadcrumb-item active">Ishlab Chiqarish Rejasi</li>
+                                    <li class="breadcrumb-item active">@L.T("Mes_Plan_Title")</li>
                                 </ol>
                             </div>
                         </div>
@@ -33,13 +33,13 @@
                     {
                         <div class="invoice-create-btn mb-1">
                             <a href="@Url.Action("Create", "ProductPlan")" class="btn btn-success bg-light invoice-create" role="button">
-                                <i class="bx bx-plus"></i> Yangi Reja
+                                <i class="bx bx-plus"></i> @L.T("Mes_Plan_NewPlan")
                             </a>
                             <a href="@Url.Action("GridCreate", "ProductPlan")" class="btn btn-primary bg-light invoice-create ml-1" role="button">
-                                <i class="bx bx-table"></i> Jadvalda kiritish
+                                <i class="bx bx-table"></i> @L.T("Mes_Plan_GridEntry")
                             </a>
                             <a href="@Url.Action("GridEdit", "ProductPlan")" class="btn btn-warning bg-light invoice-create ml-1" role="button">
-                                <i class="bx bx-edit-alt"></i> Jadvalda tahrirlash
+                                <i class="bx bx-edit-alt"></i> @L.T("Mes_Plan_GridEditBtn")
                             </a>
                         </div>
                     }
@@ -61,20 +61,20 @@
                                         <form method="get" action="@Url.Action("Index")">
                                             <div class="row border rounded py-2 mb-2">
                                                 <div class="col-12 col-sm-6 col-lg-3">
-                                                    <label>Mahsulot</label>
-                                                    @Html.DropDownList("productID", ViewBag.Products as SelectList, "Barchasi", new { @class = "form-control" })
+                                                    <label>@L.T("Mes_Product")</label>
+                                                    @Html.DropDownList("productID", ViewBag.Products as SelectList, L.T("All"), new { @class = "form-control" })
                                                 </div>
                                                 <div class="col-12 col-sm-6 col-lg-3">
-                                                    <label>Dan</label>
+                                                    <label>@L.T("Mes_From")</label>
                                                     <input type="date" name="fromDate" class="form-control" value="@(Model.FromDate?.ToString("yyyy-MM-dd") ?? "")" />
                                                 </div>
                                                 <div class="col-12 col-sm-6 col-lg-3">
-                                                    <label>Gacha</label>
+                                                    <label>@L.T("Mes_To")</label>
                                                     <input type="date" name="toDate" class="form-control" value="@(Model.ToDate?.ToString("yyyy-MM-dd") ?? "")" />
                                                 </div>
                                                 <div class="col-12 col-sm-6 col-lg-3">
                                                     <label>&nbsp;</label>
-                                                    <button type="submit" class="btn btn-primary btn-block">Qidirish</button>
+                                                    <button type="submit" class="btn btn-primary btn-block">@L.T("Search")</button>
                                                 </div>
                                             </div>
                                         </form>
@@ -85,13 +85,13 @@
                                         <table id="productPlanTable" class="table table-striped table-bordered" style="width:100%">
                                             <thead>
                                                 <tr>
-                                                    <th>Mahsulot</th>
-                                                    <th>Reja miqdori</th>
-                                                    <th>Savdo buyurtmasi</th>
-                                                    <th>Boshlanish sanasi</th>
-                                                    <th>Tugash sanasi</th>
-                                                    <th>Kunlar soni</th>
-                                                    <th>Amallar</th>
+                                                    <th>@L.T("Mes_Product")</th>
+                                                    <th>@L.T("Mes_Plan_PlanQty")</th>
+                                                    <th>@L.T("Mes_Plan_SalesOrder")</th>
+                                                    <th>@L.T("Mes_Plan_StartDate")</th>
+                                                    <th>@L.T("Mes_Plan_EndDate")</th>
+                                                    <th>@L.T("Mes_Plan_DaysCount")</th>
+                                                    <th>@L.T("Actions")</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -153,7 +153,7 @@ else
                 "order": [[2, "desc"]],
                 "pageLength": 25,
                 dom: 'lBfrtip',
-                buttons: erpDataTable.buttons({ small: true })
+                buttons: erpDataTable.buttons({ small: true, fileName: '@L.Js("Mes_Plan_Title")' })
             });
         });
     </script>

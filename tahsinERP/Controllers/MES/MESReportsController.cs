@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Web.Mvc;
 using tahsinERP.Models;
 using tahsinERP.Services;
+using tahsinERP.I18n;
 using tahsinERP.ViewModels;
 
 namespace tahsinERP.Controllers.MES
@@ -199,7 +200,7 @@ namespace tahsinERP.Controllers.MES
                     .Select(g => new TopDefectRow
                     {
                         DefectTypeID = g.Key.DefectTypeID,
-                        DefectName = string.IsNullOrWhiteSpace(g.Key.Name) ? ("Nuqson #" + g.Key.DefectTypeID) : g.Key.Name,
+                        DefectName = string.IsNullOrWhiteSpace(g.Key.Name) ? L.T("Mes_Qi_DefectNo", g.Key.DefectTypeID) : g.Key.Name,
                         RejectedQty = (double)g.Sum(x => x.QtyRejected),
                         Count = g.Count()
                     })

@@ -18,22 +18,8 @@
         }
         
         $('#' + tableId).DataTable({
-            "language": {
-                "search": "Qidirish:",
-                "lengthMenu": "_MENU_ ta ko'rsatish",
-                "info": "_TOTAL_ ta yozuvdan _START_ dan _END_ gacha",
-                "infoEmpty": "Yozuvlar yo'q",
-                "infoFiltered": "(jami _MAX_ ta yozuvdan filtrlangan)",
-                "paginate": {
-                    "first": "Birinchi",
-                    "last": "Oxirgi",
-                    "next": "Keyingi",
-                    "previous": "Oldingi"
-                },
-                "zeroRecords": "Ma'lumot topilmadi"
-            },
             "pageLength": 25,
-            "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Barchasi"]],
+            "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "@L.Js("All")"]],
             "order": [[0, "asc"]],
             "columnDefs": columnDefs,
             "dom": 'lBfrtip',

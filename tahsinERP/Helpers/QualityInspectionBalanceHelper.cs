@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
+using tahsinERP.I18n;
 using tahsinERP.Models;
 
 namespace tahsinERP.Helpers
@@ -86,7 +87,7 @@ namespace tahsinERP.Helpers
             errorMessage = null;
             if (production == null)
             {
-                errorMessage = "Ishlab chiqarish topilmadi";
+                errorMessage = L.T("Mes_Qi_ProductionNotFound");
                 return false;
             }
 
@@ -112,7 +113,7 @@ namespace tahsinERP.Helpers
             errorMessage = null;
             if (production == null)
             {
-                errorMessage = "Ishlab chiqarish topilmadi";
+                errorMessage = L.T("Mes_Qi_ProductionNotFound");
                 return false;
             }
 
@@ -125,10 +126,9 @@ namespace tahsinERP.Helpers
             var remaining = production.Total - acceptedSoFar;
             if (inspectedQty > remaining)
             {
-                errorMessage =
-                    $"Tekshirilgan miqdor ishlab chiqarilgan qoldiqdan oshib ketdi. " +
-                    $"Mahsulot: {production.PRODUCT?.PNo}, Ishlab chiqarildi: {production.Total:N3}, " +
-                    $"Qabul qilingan (oldingi): {acceptedSoFar:N3}, Qoldiq: {remaining:N3}";
+                errorMessage = L.T("Mes_Qi_QtyExceedsRemaining",
+                    production.PRODUCT?.PNo, production.Total.ToString("N3"),
+                    acceptedSoFar.ToString("N3"), remaining.ToString("N3"));
                 return false;
             }
 

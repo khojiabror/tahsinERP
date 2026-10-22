@@ -8,6 +8,7 @@ using tahsinERP.Filters;
 using tahsinERP.ViewModels.Finance;
 using tahsinERP.Services.Common;
 using tahsinERP.Services.Finance;
+using tahsinERP.I18n;
 
 namespace tahsinERP.Controllers.Finance
 {
@@ -81,11 +82,11 @@ namespace tahsinERP.Controllers.Finance
             }
             catch (Exception ex)
             {
-                TempData["Error"] = "Saqlashda xatolik: " + ErrorChain(ex);
+                TempData["Error"] = L.T("Fin_SaveErrorWith", ErrorChain(ex));
                 return RedirectToAction("Edit", new { snapshotDate = model.SnapshotDate.ToString("yyyy-MM-dd") });
             }
 
-            TempData["Success"] = "Opening balans muvaffaqiyatli saqlandi.";
+            TempData["Success"] = L.T("Fin_OpeningSaved");
             return RedirectToAction("Edit", new { snapshotDate = model.SnapshotDate.ToString("yyyy-MM-dd") });
         }
 
@@ -102,11 +103,11 @@ namespace tahsinERP.Controllers.Finance
                     tx.Commit();
                 }
 
-                TempData["Success"] = "Auto-fill bajarildi: current balances asosida detailed opening qatorlari yangilandi.";
+                TempData["Success"] = L.T("Fin_AutoFillDone");
             }
             catch (Exception ex)
             {
-                TempData["Error"] = "Auto-fill xatoligi: " + ex.Message;
+                TempData["Error"] = L.T("Fin_AutoFillError", ex.Message);
             }
 
             return RedirectToAction("Edit", new { snapshotDate = snapshotDate.ToString("yyyy-MM-dd") });
@@ -129,7 +130,7 @@ namespace tahsinERP.Controllers.Finance
             using (var db = new DBTHSNEntities())
             {
                 var data = new FinCounterpartyLookupService(db).Contracts(type, counterpartyId)
-                    .Select(c => new { id = c.ID, text = c.ContractNo ?? ("Shartnoma #" + c.ID) })
+                    .Select(c => new { id = c.ID, text = c.ContractNo ?? (L.T("Fin_Contract") + " #" + c.ID) })
                     .ToList();
                 return Json(new { success = true, data = data }, JsonRequestBehavior.AllowGet);
             }
@@ -139,7 +140,7 @@ namespace tahsinERP.Controllers.Finance
         {
             if (counterpartyId <= 0 || !contractId.HasValue || contractId.Value <= 0)
             {
-                return Json(new { success = false, message = "Invalid parameters" }, JsonRequestBehavior.AllowGet);
+                return Json(new { success = false, message = L.T("Fin_InvalidParameters") }, JsonRequestBehavior.AllowGet);
             }
 
             var date = (snapshotDate ?? DateTime.Today).Date;
@@ -212,11 +213,11 @@ namespace tahsinERP.Controllers.Finance
             var file = Request.Files["file"];
             if (file == null || file.ContentLength <= 0)
             {
-                return Json(new { success = false, message = "Fayl tanlanmagan." });
+                return Json(new { success = false, message = L.T("Fin_FileNotSelected") });
             }
             if (Path.GetExtension(file.FileName ?? "").ToLowerInvariant() != ".xlsx")
             {
-                return Json(new { success = false, message = "Faqat .xlsx format qabul qilinadi." });
+                return Json(new { success = false, message = L.T("Fin_OnlyXlsx") });
             }
 
             using (var db = new DBTHSNEntities())
@@ -249,7 +250,7 @@ namespace tahsinERP.Controllers.Finance
                 var lineCount = new OpeningBalanceService(db).LineCount(date);
                 if (lineCount == 0)
                 {
-                    TempData["Error"] = "Tanlangan sana uchun opening balans yozuvlari topilmadi.";
+                    TempData["Error"] = L.T("Fin_OpeningNotFoundForDate");
                     return RedirectToAction("Index");
                 }
 
@@ -273,7 +274,7 @@ namespace tahsinERP.Controllers.Finance
                 tx.Commit();
             }
 
-            TempData["Success"] = $"Opening balans ({date:yyyy-MM-dd}) o'chirildi.";
+            TempData["Success"] = L.T("Fin_OpeningDeleted", date.ToString("yyyy-MM-dd"));
             return RedirectToAction("Index");
         }
     }

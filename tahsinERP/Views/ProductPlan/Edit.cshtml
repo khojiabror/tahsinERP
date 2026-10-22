@@ -1,6 +1,6 @@
 @model tahsinERP.ViewModels.ProductPlanViewModel
 @{
-    ViewBag.Title = "Ishlab Chiqarish Rejasini Tahrirlash";
+    ViewBag.Title = L.T("Mes_Plan_EditTitle");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -24,9 +24,9 @@
                                             <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                         </li>
                                         <li class="breadcrumb-item">
-                                            <a href="~/ProductPlan/Index">Ishlab Chiqarish Rejasi</a>
+                                            <a href="~/ProductPlan/Index">@L.T("Mes_Plan_Title")</a>
                                         </li>
-                                        <li class="breadcrumb-item active">Tahrirlash</li>
+                                        <li class="breadcrumb-item active">@L.T("Edit")</li>
                                     </ol>
                                 </div>
                             </div>
@@ -45,40 +45,39 @@
                                                     @Html.ValidationSummary(true, "", new { @class = "text-danger" })
                                                     <hr>
                                                     
-                                                    <h6 class="invoice-to">Mahsulot *</h6>
+                                                    <h6 class="invoice-to">@L.T("Mes_Product") *</h6>
                                                     <fieldset class="invoice-address form-group">
-                                                        @Html.DropDownListFor(model => model.ProductID, ViewBag.Products as SelectList, "Mahsulotni tanlang", new { @class = "form-control", @required = "required" })
+                                                        @Html.DropDownListFor(model => model.ProductID, ViewBag.Products as SelectList, L.T("Mes_Val_SelectProduct"), new { @class = "form-control", @required = "required" })
                                                         @Html.ValidationMessageFor(model => model.ProductID, "", new { @class = "text-danger" })
                                                     </fieldset>
 
-                                                    <h6 class="invoice-to">Reja miqdori (Jami) *</h6>
+                                                    <h6 class="invoice-to">@L.T("Mes_Plan_PlanQtyTotal") *</h6>
                                                     <fieldset class="invoice-address form-group">
                                                         @Html.TextBoxFor(model => model.TotalQty, new { @class = "form-control", @type = "number", @step = "0.01", @min = "0.01", @required = "required" })
                                                         @Html.ValidationMessageFor(model => model.TotalQty, "", new { @class = "text-danger" })
                                                     </fieldset>
 
-                                                    <h6 class="invoice-to">Boshlanish sanasi *</h6>
+                                                    <h6 class="invoice-to">@L.T("Mes_Plan_StartDate") *</h6>
                                                     <fieldset class="invoice-address form-group">
                                                         @Html.TextBoxFor(model => model.StartDate, "{0:yyyy-MM-dd}", new { @class = "form-control", @type = "date", @required = "required" })
                                                         @Html.ValidationMessageFor(model => model.StartDate, "", new { @class = "text-danger" })
                                                     </fieldset>
 
-                                                    <h6 class="invoice-to">Tugash sanasi *</h6>
+                                                    <h6 class="invoice-to">@L.T("Mes_Plan_EndDate") *</h6>
                                                     <fieldset class="invoice-address form-group">
                                                         @Html.TextBoxFor(model => model.EndDate, "{0:yyyy-MM-dd}", new { @class = "form-control", @type = "date", @required = "required" })
                                                         @Html.ValidationMessageFor(model => model.EndDate, "", new { @class = "text-danger" })
                                                     </fieldset>
 
-                                                    <h6 class="invoice-to">Savdo buyurtmasi (ixtiyoriy)</h6>
+                                                    <h6 class="invoice-to">@L.T("Mes_Plan_SalesOrder") (@L.T("Optional"))</h6>
                                                     <fieldset class="invoice-address form-group">
-                                                        @Html.DropDownListFor(model => model.SalesOrderID, ViewBag.SalesOrders as SelectList, "-- ixtiyoriy bog'lash --", new { @class = "form-control select2" })
+                                                        @Html.DropDownListFor(model => model.SalesOrderID, ViewBag.SalesOrders as SelectList, L.T("Mes_Plan_OptionalLink"), new { @class = "form-control select2" })
                                                         @Html.ValidationMessageFor(model => model.SalesOrderID, "", new { @class = "text-danger" })
                                                     </fieldset>
 
                                                     <div class="alert alert-warning mt-2">
                                                         <i class="bx bx-info-circle"></i> 
-                                                        Sanalar o'zgarganda, kunlik rejalar qayta yaratilmaydi. 
-                                                        Faqat asosiy reja ma'lumotlari yangilanadi.
+                                                        @L.T("Mes_Plan_EditHint")
                                                     </div>
                                                 </div>
                                             </div>
@@ -91,10 +90,10 @@
                             <div class="row">
                                 <div class="col-12">
                                     <button type="submit" class="btn btn-primary mr-1">
-                                        <i class="bx bx-save"></i> Saqlash
+                                        <i class="bx bx-save"></i> @L.T("Save")
                                     </button>
                                     <a href="@Url.Action("Details", new { id = Model.ID })" class="btn btn-secondary">
-                                        <i class="bx bx-x"></i> Bekor qilish
+                                        <i class="bx bx-x"></i> @L.T("Cancel")
                                     </a>
                                 </div>
                             </div>

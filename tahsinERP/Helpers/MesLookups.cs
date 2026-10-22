@@ -3,6 +3,7 @@ using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
+using tahsinERP.I18n;
 using tahsinERP.Models;
 
 namespace tahsinERP.Helpers
@@ -21,13 +22,13 @@ namespace tahsinERP.Helpers
 
         public static string Get(int month)
         {
-            return month >= 1 && month <= 12 ? Names[month - 1] : month.ToString();
+            return month >= 1 && month <= 12 ? L.T("Month_" + month) : month.ToString();
         }
 
         public static SelectList SelectList(object selectedValue)
         {
             var items = Enumerable.Range(1, 12)
-                .Select(m => new SelectListItem { Value = m.ToString(), Text = Names[m - 1] })
+                .Select(m => new SelectListItem { Value = m.ToString(), Text = L.T("Month_" + m) })
                 .ToList();
             return new SelectList(items, "Value", "Text", selectedValue);
         }

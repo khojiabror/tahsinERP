@@ -9,6 +9,7 @@ using tahsinERP.Filters;
 using tahsinERP.Controllers;
 using tahsinERP.Services;
 using tahsinERP.Services.Common;
+using tahsinERP.I18n;
 
 namespace tahsinERP.Controllers.Finance
 {
@@ -238,12 +239,12 @@ namespace tahsinERP.Controllers.Finance
             // FIN-B24: xato TempData orqali ko'rsatiladi (avval ModelState'ga yozilib redirect'da yo'qolardi)
             if (sharePercent <= 0 || sharePercent > 100)
             {
-                TempData["Error"] = "Ulush 0% dan katta va 100% dan oshmasligi kerak.";
+                TempData["Error"] = L.T("Fin_ShareRangeError");
                 return RedirectToAction("ManageSharePeriods", new { id = shareholderID });
             }
             if (toDate.HasValue && toDate.Value < fromDate)
             {
-                TempData["Error"] = "Tugash sanasi boshlanish sanasidan oldin bo'lishi mumkin emas.";
+                TempData["Error"] = L.T("Fin_EndBeforeStart");
                 return RedirectToAction("ManageSharePeriods", new { id = shareholderID });
             }
 
@@ -260,8 +261,7 @@ namespace tahsinERP.Controllers.Finance
 
                 if (totalShares + sharePercent > 100)
                 {
-                    TempData["Error"] = $"Jami aksiyalar 100% dan oshib ketdi (shu davrda band: {totalShares:0.##}%). " +
-                                        "Aksiyadorning avvalgi davri bo'lsa, avval uning tugash sanasini belgilang.";
+                    TempData["Error"] = L.T("Fin_SharesOver100", totalShares.ToString("0.##"));
                     return RedirectToAction("ManageSharePeriods", new { id = shareholderID });
                 }
 
@@ -279,7 +279,7 @@ namespace tahsinERP.Controllers.Finance
                 LogHelper.LogToDatabase(User.Identity.Name, "Shareholder", "AddSharePeriod",
                     $"Aksiyador ulushi qo'shildi: {shareholderID}, {sharePercent}%");
 
-                TempData["Success"] = "Ulush davri qo'shildi.";
+                TempData["Success"] = L.T("Fin_SharePeriodAdded");
                 return RedirectToAction("ManageSharePeriods", new { id = shareholderID });
             }
         }
@@ -304,11 +304,11 @@ namespace tahsinERP.Controllers.Finance
                 ViewBag.Shareholder = shareholder;
                 ViewBag.CurrencyID = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname");
                 ViewBag.ContributionTypeList = new SelectList(new[] {
-                    new { Value = (byte)1, Text = "Naqd pul" },
-                    new { Value = (byte)2, Text = "Tovarlar" },
-                    new { Value = (byte)3, Text = "Xomashyo" },
-                    new { Value = (byte)4, Text = "Tayyor mahsulot" },
-                    new { Value = (byte)5, Text = "Boshqa" }
+                    new { Value = (byte)1, Text = L.T("Fin_Cash") },
+                    new { Value = (byte)2, Text = L.T("Fin_Goods") },
+                    new { Value = (byte)3, Text = L.T("Fin_RawMaterials") },
+                    new { Value = (byte)4, Text = L.T("Fin_FinishedProducts") },
+                    new { Value = (byte)5, Text = L.T("Fin_Other") }
                 }, "Value", "Text");
 
                 var model = new SHAREHOLDER_CONTRIBUTIONS
@@ -362,7 +362,7 @@ namespace tahsinERP.Controllers.Finance
                             else
                             {
                                 // Avval jimgina tranzaksiyasiz saqlanardi
-                                warning = "Shu valyutadagi faol kassa hisobi topilmadi — hissa saqlandi, lekin kassaga kirim yozilmadi.";
+                                warning = L.T("Fin_NoCashAccountWarn");
                             }
                         }
 
@@ -384,11 +384,11 @@ namespace tahsinERP.Controllers.Finance
 
                 ViewBag.CurrencyID = new SelectList(db.CURRENCIES.ToList(), "ID", "Shortname", contribution.CurrencyID);
                 ViewBag.ContributionTypeList = new SelectList(new[] {
-                    new { Value = (byte)1, Text = "Naqd pul" },
-                    new { Value = (byte)2, Text = "Tovarlar" },
-                    new { Value = (byte)3, Text = "Xomashyo" },
-                    new { Value = (byte)4, Text = "Tayyor mahsulot" },
-                    new { Value = (byte)5, Text = "Boshqa" }
+                    new { Value = (byte)1, Text = L.T("Fin_Cash") },
+                    new { Value = (byte)2, Text = L.T("Fin_Goods") },
+                    new { Value = (byte)3, Text = L.T("Fin_RawMaterials") },
+                    new { Value = (byte)4, Text = L.T("Fin_FinishedProducts") },
+                    new { Value = (byte)5, Text = L.T("Fin_Other") }
                 }, "Value", "Text", contribution.ContributionType);
 
                 var shareholder = db.SHAREHOLDERS.Find(contribution.ShareholderID);

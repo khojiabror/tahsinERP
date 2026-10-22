@@ -7,6 +7,7 @@ using System.Web.Mvc;
 using tahsinERP.Models;
 using tahsinERP.ViewModels;
 using tahsinERP.Filters;
+using tahsinERP.I18n;
 
 namespace tahsinERP.Controllers.MES
 {
@@ -41,22 +42,22 @@ namespace tahsinERP.Controllers.MES
                 {
                     startDate = new DateTime(selectedYear, selectedMonth.Value, selectedDay.Value);
                     endDate = startDate;
-                    primaryLabel = "Tanlangan kun";
-                    secondaryLabel = "Tanlangan oy";
+                    primaryLabel = L.T("Mes_Dash_SelectedDay");
+                    secondaryLabel = L.T("Mes_Dash_SelectedMonth");
                 }
                 else if (selectedMonth.HasValue)
                 {
                     startDate = new DateTime(selectedYear, selectedMonth.Value, 1);
                     endDate = startDate.AddMonths(1).AddDays(-1);
-                    primaryLabel = "Tanlangan oy";
-                    secondaryLabel = "Tanlangan yil";
+                    primaryLabel = L.T("Mes_Dash_SelectedMonth");
+                    secondaryLabel = L.T("Mes_Dash_SelectedYear");
                 }
                 else
                 {
                     startDate = new DateTime(selectedYear, 1, 1);
                     endDate = new DateTime(selectedYear, 12, 31);
-                    primaryLabel = "Tanlangan yil";
-                    secondaryLabel = "Tanlangan yil";
+                    primaryLabel = L.T("Mes_Dash_SelectedYear");
+                    secondaryLabel = L.T("Mes_Dash_SelectedYear");
                 }
 
                 // Primary period KPIs
@@ -225,7 +226,7 @@ namespace tahsinERP.Controllers.MES
                     .Select(g => new TopDefectData
                     {
                         DefectTypeID = g.Key.DefectTypeID,
-                        DefectName = string.IsNullOrWhiteSpace(g.Key.DefectName) ? ("Nuqson #" + g.Key.DefectTypeID) : g.Key.DefectName,
+                        DefectName = string.IsNullOrWhiteSpace(g.Key.DefectName) ? L.T("Mes_Qi_DefectNo", g.Key.DefectTypeID) : g.Key.DefectName,
                         RejectedQty = (double)g.Sum(x => x.QtyRejected),
                         InspectionCount = g.Count()
                     })
@@ -301,15 +302,15 @@ namespace tahsinERP.Controllers.MES
                     string note;
                     if (needToProduce > 0)
                     {
-                        note = $"Ishlab chiqarish kerak: {needToProduce:N3}";
+                        note = L.T("Mes_Dash_NeedToProduce", needToProduce.ToString("N3"));
                     }
                     else if (needToInspect > 0)
                     {
-                        note = $"Sifat nazoratdan o'tkazish kerak: {needToInspect:N3}";
+                        note = L.T("Mes_Dash_NeedToInspect", needToInspect.ToString("N3"));
                     }
                     else
                     {
-                        note = $"Sotuv hujjatini qilish / jo'natish mumkin: {remainingQty:N3}";
+                        note = L.T("Mes_Dash_ReadyToShip", remainingQty.ToString("N3"));
                     }
 
                     bottlenecks.Add(new OrderBottleneck

@@ -1,6 +1,6 @@
 @model tahsinERP.Models.PRODUCTIONPROCESS
 @{
-    ViewBag.Title = "O'chirish";
+    ViewBag.Title = L.T("Delete");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -22,10 +22,10 @@
                                             <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                         </li>
                                         <li class="breadcrumb-item ">
-                                            <a href="~/ProductionProcess">Production processlar</a>
+                                            <a href="~/ProductionProcess">@L.T("Mes_Pp_Title")</a>
                                         </li>
                                         <li class="breadcrumb-item active">
-                                            @Model.ProcessName ma'lumotlarini o'chirish'
+                                            @L.T("Mes_DeleteDataOf", Model.ProcessName)
                                         </li>
                                     </ol>
                                 </div>
@@ -45,11 +45,11 @@
                                             <div class="row invoice-info">
                                                 <div class="col-lg-12 col-md-6 mt-25">
                                                     @Html.ValidationSummary(true, "", new { @class = "text-danger" })
-                                                    <h4 class="text-primary">Production Process ma'lumotlari</h4>
+                                                    <h4 class="text-primary">@L.T("Mes_Pp_Info")</h4>
                                                     <hr />
-                                                    <span><b>Process nomi</b>: @Html.DisplayFor(model => model.ProcessName, new { @class = "form-control" })</span>
+                                                    <span><b>@L.T("Mes_Pp_Name")</b>: @Html.DisplayFor(model => model.ProcessName, new { @class = "form-control" })</span>
                                                     <br />
-                                                    <span><b>Batafsil</b>: @Html.DisplayFor(model => model.Description, new { @class = "form-control" })</span>
+                                                    <span><b>@L.T("Mes_DescriptionField")</b>: @Html.DisplayFor(model => model.Description, new { @class = "form-control" })</span>
                                                     <hr />
                                                     <br />
                                                 </div>
@@ -57,7 +57,7 @@
                                                     <li class="list-group-item border-0 pb-0">
                                                         <button class="btn btn-danger bg-light btn-block subtotal-preview-btn" name="delete" type="submit" value="Delete">
                                                             <i class='bx bx-trash'></i>
-                                                            O'chirish
+                                                            @L.T("Delete")
                                                         </button>
                                                     </li>
                                                 </ul>

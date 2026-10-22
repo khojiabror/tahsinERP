@@ -4,6 +4,7 @@ using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
+using tahsinERP.I18n;
 using tahsinERP.Models;
 using tahsinERP.Services;
 using tahsinERP.ViewModels.BOM;
@@ -100,7 +101,7 @@ namespace tahsinERP.Controllers.Engineering
 
             if (product == null)
             {
-                TempData["Error"] = "Mahsulot topilmadi.";
+                TempData["Error"] = L.T("Mes_ProductNotFound");
                 return RedirectToAction("Index");
             }
 
@@ -110,7 +111,7 @@ namespace tahsinERP.Controllers.Engineering
 
             if (bomHeader == null)
             {
-                TempData["Error"] = "Bu mahsulot uchun BOM topilmadi.";
+                TempData["Error"] = L.T("Mes_Bom_NotFoundForProduct");
                 return RedirectToAction("Index");
             }
 

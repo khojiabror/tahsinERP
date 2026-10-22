@@ -13,7 +13,7 @@
             function materialSelect2Options() {
                 return {
                     width: '100%',
-                    placeholder: 'Tanlang',
+                    placeholder: '@L.Js("Select")',
                     allowClear: true,
                     minimumInputLength: 0,
                     ajax: {
@@ -38,7 +38,7 @@
 
             function getUnitDropdownHtml(lineIndex, selectedId) {
                 var html = '<select name="CuttingLines[' + lineIndex + '].UnitID" id="normLineUnit_' + lineIndex + '" class="form-control form-control-sm unit-select unit-select2" style="min-width:90px" data-norm-unit="1">';
-                html += '<option value="">Tanlang</option>';
+                html += '<option value="">@L.Js("Select")</option>';
                 if (unitsJson && unitsJson.length > 0) {
                     for (var j = 0; j < unitsJson.length; j++) {
                         var sel = (selectedId && String(selectedId) === String(unitsJson[j].id)) ? ' selected' : '';
@@ -54,7 +54,7 @@
             $('#loadTemplateNormBtn').on('click', function () {
                 var templateId = $('#templateNormVersionId').val();
                 if (!templateId) {
-                    alert('Iltimos, oldingi normani tanlang.');
+                    alert('@L.Js("Mes_Norm_SelectPreviousNorm")');
                     return;
                 }
                 var url = normTemplateUrlPrefix;
@@ -89,7 +89,7 @@
                     if ($s.hasClass('select2-hidden-accessible')) return;
                     $s.select2({
                         width: '100%',
-                        placeholder: 'Birlik',
+                        placeholder: '@L.Js("Unit")',
                         allowClear: true,
                         minimumResultsForSearch: 8
                     });
@@ -180,7 +180,7 @@
                     '<td><span class="clean-cost">0.00</span></td>' +
                     '<td><span class="waste-cost">0.00</span></td>' +
                     '<td><span class="total-cost">0.00</span><input type="hidden" name="CuttingLines[' + lineIndex + '].TotalCostPerProduct" value="0" /></td>' +
-                    '<td><input type="text" name="CuttingLines[' + lineIndex + '].CuttingMethod" class="form-control cutting-method-input" placeholder="Kesish usuli" /></td>' +
+                    '<td><input type="text" name="CuttingLines[' + lineIndex + '].CuttingMethod" class="form-control cutting-method-input" placeholder="@L.Js("Mes_Norm_CuttingMethod")" /></td>' +
                     '<td><button type="button" class="btn btn-sm btn-danger remove-line"><i class="bx bx-trash"></i></button></td>' +
                     '<input type="hidden" name="CuttingLines[' + lineIndex + '].ID" value="0" />' +
                     '</tr>';
@@ -431,7 +431,7 @@
         function getMaterialDropdown(index) {
             // Variantlar select2 orqali serverdan yuklanadi (MES-P15)
             return '<select name="CuttingLines[' + index + '].MaterialID" class="form-control material-select select2" required>' +
-                '<option value="">Tanlang</option></select>';
+                '<option value="">@L.Js("Select")</option></select>';
         }
 
         function loadMaterialData(materialId, row, options) {
@@ -446,7 +446,7 @@
                 return;
             }
 
-            row.find('.material-code').text('Loading...');
+            row.find('.material-code').text('@L.Js("Loading")');
             
             $.ajax({
                 url: '@Url.Action("GetMaterialData", "Norm")',
@@ -642,7 +642,7 @@
                         // Use note from server response
                         var note = line.note || '';
                         if (!note && lineIndex > 0 && line.wastePerProduct === 0) {
-                            note = 'Tepadagi pozitsiyaning chiqindisidan foydalanilgan';
+                            note = '@L.Js("Mes_Norm_UsedWasteFromAbove")';
                         }
 
                         var price = line.unitPrice || 0;
@@ -736,7 +736,7 @@
             
             
             // Show loading indicator
-            $('#calculateBtn').prop('disabled', true).html('<i class="bx bx-loader-alt bx-spin"></i> Hisoblanmoqda...');
+            $('#calculateBtn').prop('disabled', true).html('<i class="bx bx-loader-alt bx-spin"></i> ' + '@L.Js("Mes_Norm_Calculating")');
             
             $.ajax({
                 url: '@Url.Action("Calculate", "Norm")',
@@ -746,7 +746,7 @@
                 headers: { 'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').first().val() },
                 data: JSON.stringify(viewModel),
                 success: function (response) {
-                    $('#calculateBtn').prop('disabled', false).html('<i class="bx bx-calculator"></i> Optimizatsiya qilish');
+                    $('#calculateBtn').prop('disabled', false).html('<i class="bx bx-calculator"></i> ' + '@L.Js("Mes_Norm_Optimize")');
                     
                     // Check if response is a string (needs parsing)
                     if (typeof response === 'string') {
@@ -754,7 +754,7 @@
                             response = JSON.parse(response);
                         } catch (e) {
                             console.error('Failed to parse response:', e);
-                            alert('Xatolik: Server javobini tahlil qilishda muammo yuz berdi.');
+                            alert('@L.Js("Mes_Norm_ResponseParseError")');
                             return;
                         }
                     }
@@ -785,14 +785,14 @@
                         
                         $('#optimizationSection').show();
                     } else {
-                        var errorMsg = response && response.message ? response.message : 'Noma\'lum xatolik yuz berdi.';
-                        alert('Xatolik: ' + errorMsg);
+                        var errorMsg = response && response.message ? response.message : '@L.Js("Mes_Norm_UnknownErrorOccurred")';
+                        alert('@L.Js("Mes_Norm_ErrorPrefix")' + errorMsg);
                         console.error('Optimize error response:', response);
                     }
                 },
                 error: function (xhr, status, error) {
-                    $('#calculateBtn').prop('disabled', false).html('<i class="bx bx-calculator"></i> Optimizatsiya qilish');
-                    var errorMessage = 'Server xatosi yuz berdi.';
+                    $('#calculateBtn').prop('disabled', false).html('<i class="bx bx-calculator"></i> ' + '@L.Js("Mes_Norm_Optimize")');
+                    var errorMessage = '@L.Js("Mes_Norm_ServerError")';
                     if (xhr.responseJSON && xhr.responseJSON.message) {
                         errorMessage = xhr.responseJSON.message;
                     } else if (xhr.responseText) {
@@ -802,7 +802,7 @@
                                 errorMessage = errorObj.message;
                             }
                         } catch (e) {
-                            errorMessage = 'Xatolik: ' + error;
+                            errorMessage = '@L.Js("Mes_Norm_ErrorPrefix")' + error;
                         }
                     }
                     alert(errorMessage);

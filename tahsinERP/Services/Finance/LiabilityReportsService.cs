@@ -5,6 +5,7 @@ using System.Linq;
 using tahsinERP.Models;
 using tahsinERP.ViewModels;
 using tahsinERP.ViewModels.Finance;
+using tahsinERP.I18n;
 
 namespace tahsinERP.Services.Finance
 {
@@ -39,7 +40,7 @@ namespace tahsinERP.Services.Finance
             var customerNames = customerIds.Count == 0
                 ? new Dictionary<int, string>()
                 : db.CUSTOMERS.Where(c => customerIds.Contains(c.ID)).Select(c => new { c.ID, c.Name }).ToList()
-                    .ToDictionary(c => c.ID, c => c.Name ?? "Noma'lum");
+                    .ToDictionary(c => c.ID, c => c.Name ?? L.T("Fin_Unknown"));
 
             model.CustomerReceivables = customerSummary
                 .Where(x => x.Outstanding > 0)
@@ -48,7 +49,7 @@ namespace tahsinERP.Services.Finance
                 .Select(x => new FinanceCustomerReceivableItem
                 {
                     CustomerID = x.CustomerID,
-                    CustomerName = customerNames.ContainsKey(x.CustomerID) ? customerNames[x.CustomerID] : $"Customer #{x.CustomerID}",
+                    CustomerName = customerNames.ContainsKey(x.CustomerID) ? customerNames[x.CustomerID] : L.T("Fin_CustomerNum", x.CustomerID),
                     Amount = x.Outstanding
                 })
                 .ToList();
@@ -60,7 +61,7 @@ namespace tahsinERP.Services.Finance
             var supplierNames = supplierIds.Count == 0
                 ? new Dictionary<int, string>()
                 : db.SUPPLIERS.Where(s => supplierIds.Contains(s.ID)).Select(s => new { s.ID, s.Name }).ToList()
-                    .ToDictionary(s => s.ID, s => s.Name ?? "Noma'lum");
+                    .ToDictionary(s => s.ID, s => s.Name ?? L.T("Fin_Unknown"));
 
             model.SupplierPayables = supplierSummary
                 .Where(x => x.Outstanding > 0)
@@ -69,7 +70,7 @@ namespace tahsinERP.Services.Finance
                 .Select(x => new FinanceSupplierPayableItem
                 {
                     SupplierID = x.SupplierID,
-                    SupplierName = supplierNames.ContainsKey(x.SupplierID) ? supplierNames[x.SupplierID] : $"Supplier #{x.SupplierID}",
+                    SupplierName = supplierNames.ContainsKey(x.SupplierID) ? supplierNames[x.SupplierID] : L.T("Fin_SupplierNum", x.SupplierID),
                     Amount = x.Outstanding
                 })
                 .ToList();
@@ -161,7 +162,7 @@ namespace tahsinERP.Services.Finance
                 obligationDebts.Add(new FinanceRecurringObligationDebtItem
                 {
                     ObligationID = ob.ID,
-                    Name = ob.Name ?? "Noma'lum",
+                    Name = ob.Name ?? L.T("Fin_Unknown"),
                     MonthlyAmount = ob.MonthlyAmount,
                     AccruedMonths = monthsCount,
                     AccruedAmount = accrued,
@@ -249,7 +250,7 @@ namespace tahsinERP.Services.Finance
             result.PayablesBySupplier = supplierSummary
                 .Select(s => new SupplierAmount
                 {
-                    SupplierName = supplierNames.ContainsKey(s.SupplierID) ? supplierNames[s.SupplierID] : $"Supplier #{s.SupplierID}",
+                    SupplierName = supplierNames.ContainsKey(s.SupplierID) ? supplierNames[s.SupplierID] : L.T("Fin_SupplierNum", s.SupplierID),
                     Amount = s.Outstanding,
                     TransactionCount = s.InvoiceCount + s.PaymentCount
                 })
@@ -262,7 +263,7 @@ namespace tahsinERP.Services.Finance
                 .Where(c => c.Outstanding != 0m)
                 .Select(c => new CustomerAmount
                 {
-                    CustomerName = customerNames.ContainsKey(c.CustomerID) ? customerNames[c.CustomerID] : $"Customer #{c.CustomerID}",
+                    CustomerName = customerNames.ContainsKey(c.CustomerID) ? customerNames[c.CustomerID] : L.T("Fin_CustomerNum", c.CustomerID),
                     Amount = c.Outstanding,
                     TransactionCount = c.InvoiceCount + c.ReceiptCount
                 })

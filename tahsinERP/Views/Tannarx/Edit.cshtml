@@ -1,7 +1,7 @@
 @model tahsinERP.ViewModels.Tannarx.TannarxEditViewModel
 
 @{
-    ViewBag.Title = "Tannarxni tahrirlash";
+    ViewBag.Title = L.T("Mes_Tan_EditTitle");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -17,8 +17,8 @@
                             <div class="breadcrumb-wrapper col-12">
                                 <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                     <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
-                                    <li class="breadcrumb-item"><a href="~/Tannarx">Tannarx</a></li>
-                                    <li class="breadcrumb-item active">Tahrirlash</li>
+                                    <li class="breadcrumb-item"><a href="~/Tannarx">@L.T("Mes_Tan_Title")</a></li>
+                                    <li class="breadcrumb-item active">@L.T("Edit")</li>
                                 </ol>
                             </div>
                         </div>
@@ -57,17 +57,17 @@
 
                                         <div class="row">
                                             <div class="col-md-12">
-                                                <h6 class="mb-2">Mahsulot ma'lumotlari</h6>
+                                                <h6 class="mb-2">@L.T("Mes_ProductInfo")</h6>
                                                 <div class="form-group">
-                                                    <label>Maxsulot raqami:</label>
+                                                    <label>@L.T("Mes_ProductNo"):</label>
                                                     <input type="text" class="form-control" value="@Model.ProductPNo" readonly />
                                                 </div>
                                                 <div class="form-group">
-                                                    <label>Maxsulot nomi:</label>
+                                                    <label>@L.T("Mes_ProductName"):</label>
                                                     <input type="text" class="form-control" value="@Model.ProductName" readonly />
                                                 </div>
                                                 <div class="form-group">
-                                                    <label>Oy:</label>
+                                                    <label>@L.T("Mes_Month"):</label>
                                                     <input type="text" class="form-control" value="@Model.MonthString" readonly />
                                                 </div>
                                             </div>
@@ -77,20 +77,20 @@
 
                                         <div class="row">
                                             <div class="col-md-12">
-                                                <h6 class="mb-2">Material xarajatlari</h6>
+                                                <h6 class="mb-2">@L.T("Mes_Tan_MaterialCosts")</h6>
                                                 <div class="form-group">
-                                                    <label>Material narxi:</label>
-                                                    <input type="text" class="form-control" value="@Model.MaterialPrice.ToString("N0") so'm" readonly />
+                                                    <label>@L.T("Mes_Tan_MaterialPrice"):</label>
+                                                    <input type="text" class="form-control" value="@Model.MaterialPrice.ToString("N0") @L.Sum" readonly />
                                                 </div>
                                                 <div class="form-group">
                                                     <button type="submit" name="refreshMaterial" value="1" class="btn btn-outline-info btn-sm">
-                                                        <i class="bx bx-refresh"></i> Shu oydagi normadan material narxini yangilash
+                                                        <i class="bx bx-refresh"></i> @L.T("Mes_Tan_RefreshMaterial")
                                                     </button>
-                                                    <small class="form-text text-muted">Norm/ViewDetails dagi umumiy summa asosida qayta hisoblanadi</small>
+                                                    <small class="form-text text-muted">@L.T("Mes_Tan_RefreshMaterialHint")</small>
                                                 </div>
                                                 <div class="form-group">
-                                                    <label>Material tashuvi narxi (2%):</label>
-                                                    <input type="text" class="form-control" value="@Model.MaterialTransportCost.ToString("N0") so'm" readonly />
+                                                    <label>@L.T("Mes_Tan_MaterialTransport2"):</label>
+                                                    <input type="text" class="form-control" value="@Model.MaterialTransportCost.ToString("N0") @L.Sum" readonly />
                                                 </div>
                                             </div>
                                         </div>
@@ -99,12 +99,12 @@
 
                                         <div class="row">
                                             <div class="col-md-12">
-                                                <h6 class="mb-2">Ish haqi va xarajatlar</h6>
+                                                <h6 class="mb-2">@L.T("Mes_Tan_LaborAndExpenses")</h6>
                                                 <div class="form-group">
                                                     @Html.LabelFor(m => m.LaborCost, new { @class = "form-label" })
                                                     @Html.TextBoxFor(m => m.LaborCost, new { @class = "form-control", @type = "number", @step = "0.01" })
                                                     @Html.ValidationMessageFor(m => m.LaborCost, "", new { @class = "text-danger" })
-                                                    <small class="form-text text-muted">HR_PIECE_RATE_TARIFFS dan avtomatik hisoblanadi, lekin tahrirlash mumkin</small>
+                                                    <small class="form-text text-muted">@L.T("Mes_Tan_LaborHint")</small>
                                                 </div>
                                             </div>
                                         </div>
@@ -119,8 +119,8 @@
                                             </div>
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label>B - Soliq va bank (so'm):</label>
-                                                    <input type="text" class="form-control" value="@Model.TaxAndBank.ToString("N0") so'm" readonly />
+                                                    <label>@L.T("Mes_Tan_TaxBankB") (@L.Sum):</label>
+                                                    <input type="text" class="form-control" value="@Model.TaxAndBank.ToString("N0") @L.Sum" readonly />
                                                 </div>
                                             </div>
                                         </div>
@@ -135,8 +135,8 @@
                                             </div>
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label>C - Adminstrativ harajatlar (so'm):</label>
-                                                    <input type="text" class="form-control" value="@Model.AdministrativeExpenses.ToString("N0") so'm" readonly />
+                                                    <label>@L.T("Mes_Tan_AdminC") (@L.Sum):</label>
+                                                    <input type="text" class="form-control" value="@Model.AdministrativeExpenses.ToString("N0") @L.Sum" readonly />
                                                 </div>
                                             </div>
                                         </div>
@@ -151,8 +151,8 @@
                                             </div>
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label>D - Boshqa xarajatlar (so'm):</label>
-                                                    <input type="text" class="form-control" value="@Model.OtherExpenses.ToString("N0") so'm" readonly />
+                                                    <label>@L.T("Mes_Tan_OtherD") (@L.Sum):</label>
+                                                    <input type="text" class="form-control" value="@Model.OtherExpenses.ToString("N0") @L.Sum" readonly />
                                                 </div>
                                             </div>
                                         </div>
@@ -167,8 +167,8 @@
                                             </div>
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label>E - Foyda (so'm):</label>
-                                                    <input type="text" class="form-control" value="@Model.Profit.ToString("N0") so'm" readonly />
+                                                    <label>@L.T("Mes_Tan_ProfitE") (@L.Sum):</label>
+                                                    <input type="text" class="form-control" value="@Model.Profit.ToString("N0") @L.Sum" readonly />
                                                 </div>
                                             </div>
                                         </div>
@@ -177,20 +177,20 @@
 
                                         <div class="row">
                                             <div class="col-md-12">
-                                                <h6 class="mb-2">EXW narxlari</h6>
+                                                <h6 class="mb-2">@L.T("Mes_Tan_ExwPrices")</h6>
                                                 <div class="form-group">
-                                                    <label>Sotuv narxi EXW QQS siz:</label>
-                                                    <input type="text" class="form-control" value="@Model.SalesPriceEXWWithoutVAT.ToString("N0") so'm" readonly />
+                                                    <label>@L.T("Mes_Tan_SalesExwNoVat"):</label>
+                                                    <input type="text" class="form-control" value="@Model.SalesPriceEXWWithoutVAT.ToString("N0") @L.Sum" readonly />
                                                 </div>
                                                 <div class="form-group">
-                                                    <label>Sotuv narxi QQS bilan EXW:</label>
-                                                    <input type="text" class="form-control" value="@Model.SalesPriceEXWWithVAT.ToString("N0") so'm" readonly />
+                                                    <label>@L.T("Mes_Tan_SalesExwVat"):</label>
+                                                    <input type="text" class="form-control" value="@Model.SalesPriceEXWWithVAT.ToString("N0") @L.Sum" readonly />
                                                 </div>
                                                 <div class="form-group">
                                                     @Html.LabelFor(m => m.SetPriceEXWWithVAT, new { @class = "form-label" })
                                                     @Html.TextBoxFor(m => m.SetPriceEXWWithVAT, new { @class = "form-control", @type = "number", @step = "0.01" })
                                                     @Html.ValidationMessageFor(m => m.SetPriceEXWWithVAT, "", new { @class = "text-danger" })
-                                                    <small class="form-text text-muted">Tizim taklif qilgan narx, lekin tahrirlash mumkin</small>
+                                                    <small class="form-text text-muted">@L.T("Mes_Tan_SuggestedPriceHint")</small>
                                                 </div>
                                             </div>
                                         </div>
@@ -199,12 +199,12 @@
 
                                         <div class="row">
                                             <div class="col-md-12">
-                                                <h6 class="mb-2">Tayyor maxsulot tashuvi</h6>
+                                                <h6 class="mb-2">@L.T("Mes_Tan_FinishedTransport")</h6>
                                                 <div class="form-group">
                                                     @Html.LabelFor(m => m.FinishedProductTransportCost, new { @class = "form-label" })
                                                     @Html.TextBoxFor(m => m.FinishedProductTransportCost, new { @class = "form-control", @type = "number", @step = "0.01" })
                                                     @Html.ValidationMessageFor(m => m.FinishedProductTransportCost, "", new { @class = "text-danger" })
-                                                    <small class="form-text text-muted">Keyinchalik Forwarders modulidan avtomatik olinadi</small>
+                                                    <small class="form-text text-muted">@L.T("Mes_Tan_TransportHint")</small>
                                                 </div>
                                             </div>
                                         </div>
@@ -213,30 +213,30 @@
 
                                         <div class="row">
                                             <div class="col-md-12">
-                                                <h6 class="mb-2">CIP narxlari</h6>
+                                                <h6 class="mb-2">@L.T("Mes_Tan_CipPrices")</h6>
                                                 <div class="form-group">
-                                                    <label>Sotuv narxi CIP QQS siz:</label>
-                                                    <input type="text" class="form-control" value="@Model.SalesPriceCIPWithoutVAT.ToString("N0") so'm" readonly />
+                                                    <label>@L.T("Mes_Tan_SalesCipNoVat"):</label>
+                                                    <input type="text" class="form-control" value="@Model.SalesPriceCIPWithoutVAT.ToString("N0") @L.Sum" readonly />
                                                 </div>
                                                 <div class="form-group">
-                                                    <label>Sotuv narxi QQS bilan CIP:</label>
-                                                    <input type="text" class="form-control" value="@Model.SalesPriceCIPWithVAT.ToString("N0") so'm" readonly />
+                                                    <label>@L.T("Mes_Tan_SalesCipVat"):</label>
+                                                    <input type="text" class="form-control" value="@Model.SalesPriceCIPWithVAT.ToString("N0") @L.Sum" readonly />
                                                 </div>
                                                 <div class="form-group">
                                                     @Html.LabelFor(m => m.SetPriceCIPWithVAT, new { @class = "form-label" })
                                                     @Html.TextBoxFor(m => m.SetPriceCIPWithVAT, new { @class = "form-control", @type = "number", @step = "0.01" })
                                                     @Html.ValidationMessageFor(m => m.SetPriceCIPWithVAT, "", new { @class = "text-danger" })
-                                                    <small class="form-text text-muted">Tizim taklif qilgan narx, lekin tahrirlash mumkin</small>
+                                                    <small class="form-text text-muted">@L.T("Mes_Tan_SuggestedPriceHint")</small>
                                                 </div>
                                             </div>
                                         </div>
 
                                         <div class="form-actions">
                                             <button type="submit" class="btn btn-primary">
-                                                <i class="bx bx-save"></i> Saqlash
+                                                <i class="bx bx-save"></i> @L.T("Save")
                                             </button>
                                             <a href="@Url.Action("Index", "Tannarx", new { year = Model.Year, month = Model.Month })" class="btn btn-secondary">
-                                                <i class="bx bx-x"></i> Bekor qilish
+                                                <i class="bx bx-x"></i> @L.T("Cancel")
                                             </a>
                                         </div>
                                     }

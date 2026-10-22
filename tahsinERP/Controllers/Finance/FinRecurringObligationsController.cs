@@ -7,6 +7,7 @@ using tahsinERP.Models;
 using tahsinERP.Filters;
 using tahsinERP.Controllers;
 using tahsinERP.Services.Common;
+using tahsinERP.I18n;
 
 namespace tahsinERP.Controllers.Finance
 {
@@ -38,7 +39,7 @@ namespace tahsinERP.Controllers.Finance
             }
             catch (Exception ex)
             {
-                ViewBag.Error = "Doimiy harajatlar jadvali topilmadi. Database/Migrations/003_FIN_RECURRING_OBLIGATIONS.sql qo'llanganini tekshiring (Database/tools/Invoke-DbMigrations.ps1). " + ex.Message;
+                ViewBag.Error = L.T("Fin_RecurringTableMissing") + " " + ex.Message;
                 return View(new List<RecurringObligationViewModel>());
             }
         }
@@ -91,7 +92,7 @@ namespace tahsinERP.Controllers.Finance
                 }
                 catch (Exception ex)
                 {
-                    ModelState.AddModelError("", "Saqlash xatosi: " + ex.Message);
+                    ModelState.AddModelError("", L.T("Fin_SaveError", ex.Message));
                 }
             }
 
@@ -129,7 +130,7 @@ namespace tahsinERP.Controllers.Finance
             {
                 // FIN-B20: SQL xatosi "topilmadi" deb yashirilmaydi
                 LogHelper.LogToDatabase(User.Identity.Name, "FinRecurringObligations", "Edit", "Doimiy harajatni o'qishda xatolik: " + ex.Message);
-                TempData["Error"] = "Doimiy harajatni o'qishda xatolik: " + ex.Message;
+                TempData["Error"] = L.T("Fin_RecurringReadError", ex.Message);
                 return RedirectToAction("Index");
             }
         }
@@ -160,7 +161,7 @@ namespace tahsinERP.Controllers.Finance
                 }
                 catch (Exception ex)
                 {
-                    ModelState.AddModelError("", "Saqlash xatosi: " + ex.Message);
+                    ModelState.AddModelError("", L.T("Fin_SaveError", ex.Message));
                 }
             }
 
@@ -190,7 +191,7 @@ namespace tahsinERP.Controllers.Finance
             {
                 // FIN-B20: avval xato yutilib, o'chirilmagan yozuv "o'chirildi" kabi ko'rinardi
                 LogHelper.LogToDatabase(User.Identity.Name, "FinRecurringObligations", "Delete", "O'chirishda xatolik, ID: " + id + ". " + ex.Message);
-                TempData["Error"] = "O'chirishda xatolik: " + ex.Message;
+                TempData["Error"] = L.T("Fin_DeleteError", ex.Message);
             }
             return RedirectToAction("Index");
         }

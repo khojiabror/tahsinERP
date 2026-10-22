@@ -1,5 +1,5 @@
 @{
-    ViewBag.Title = "Tranzaksiyalarni Excel dan import qilish";
+    ViewBag.Title = L.T("Fin_TxImportTitle");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -14,9 +14,9 @@
                             <div class="breadcrumb-wrapper col-12">
                                 <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                     <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
-                                    <li class="breadcrumb-item">Moliya</li>
-                                    <li class="breadcrumb-item"><a href="@Url.Action("Index")">Tranzaksiyalar</a></li>
-                                    <li class="breadcrumb-item active">Excel dan import</li>
+                                    <li class="breadcrumb-item">@L.T("Menu_Finance")</li>
+                                    <li class="breadcrumb-item"><a href="@Url.Action("Index")">@L.T("Fin_Transactions")</a></li>
+                                    <li class="breadcrumb-item active">@L.T("Fin_ExcelImport")</li>
                                 </ol>
                             </div>
                         </div>
@@ -28,14 +28,14 @@
                     <div class="col-12">
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">Tranzaksiyalarni Excel dan import qilish</h4>
+                                <h4 class="card-title">@L.T("Fin_TxImportTitle")</h4>
                             </div>
                             <div class="card-content">
                                 <div class="card-body">
                                     @if (ViewBag.Success != null)
                                     {
                                         <div class="alert alert-success alert-dismissible fade show" role="alert">
-                                            <strong>Muvaffaqiyat!</strong> @ViewBag.Success
+                                            <strong>@L.T("Fin_SuccessExcl")</strong> @ViewBag.Success
                                             <button type="button" class="close" data-dismiss="alert">
                                                 <span>&times;</span>
                                             </button>
@@ -45,7 +45,7 @@
                                     @if (ViewBag.Warning != null)
                                     {
                                         <div class="alert alert-warning alert-dismissible fade show" role="alert">
-                                            <strong>Ogohlantirish!</strong> @ViewBag.Warning
+                                            <strong>@L.T("Fin_WarningExcl")</strong> @ViewBag.Warning
                                             <button type="button" class="close" data-dismiss="alert">
                                                 <span>&times;</span>
                                             </button>
@@ -55,7 +55,7 @@
                                     @if (ViewBag.Error != null)
                                     {
                                         <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                                            <strong>Xatolik!</strong> 
+                                            <strong>@L.T("Fin_ErrorExcl")</strong> 
                                             <div style="white-space: pre-wrap; word-wrap: break-word; max-height: 300px; overflow-y: auto;">@ViewBag.Error</div>
                                             <button type="button" class="close" data-dismiss="alert">
                                                 <span>&times;</span>
@@ -66,7 +66,7 @@
                                     @if (ViewBag.Errors != null)
                                     {
                                         <div class="alert alert-info">
-                                            <h5>Xatoliklar ro'yxati:</h5>
+                                            <h5>@L.T("Fin_ErrorList"):</h5>
                                             <ul class="mb-0" style="max-height: 300px; overflow-y: auto;">
                                                 @foreach (var error in (List<string>)ViewBag.Errors)
                                                 {
@@ -79,13 +79,13 @@
                                     <div class="row">
                                         <div class="col-md-12">
                                             <div class="alert alert-info">
-                                                <h5>Ko'rsatmalar:</h5>
+                                                <h5>@L.T("Fin_Instructions"):</h5>
                                                 <ol>
-                                                    <li>Avval shablon faylni yuklab oling</li>
-                                                    <li>Shablon faylni to'ldiring (birinchi qator - misol, uni o'chirib tashlang)</li>
-                                                    <li>To'ldirilgan faylni yuklang</li>
+                                                    <li>@L.T("Fin_ImportStep1")</li>
+                                                    <li>@L.T("Fin_ImportStep2")</li>
+                                                    <li>@L.T("Fin_ImportStep3")</li>
                                                 </ol>
-                                                <p class="mb-0"><strong>Eslatma:</strong> Hisob kodi, Kategoriya nomi va Valyuta qisqa nomi bazada mavjud bo'lishi kerak. Shablon faylda "Hisoblar", "Kategoriyalar" va "Valyutalar" varaqlarida mavjud qiymatlar ko'rsatilgan.</p>
+                                                <p class="mb-0"><strong>@L.T("Note"):</strong> @L.T("Fin_ImportNote")</p>
                                             </div>
                                         </div>
                                     </div>
@@ -93,18 +93,18 @@
                                     <div class="row">
                                         <div class="col-md-6">
                                             <a href="@Url.Action("DownloadTemplate")" class="btn btn-success btn-lg btn-block">
-                                                <i class="bx bx-download"></i> Shablon faylni yuklab olish
+                                                <i class="bx bx-download"></i> @L.T("Fin_DownloadTemplate")
                                             </a>
                                         </div>
                                         <div class="col-md-6">
                                             <form method="post" action="@Url.Action("Import")" enctype="multipart/form-data">
                                                 @Html.AntiForgeryToken()
                                                 <div class="form-group">
-                                                    <label>Excel faylni tanlang (.xlsx):</label>
+                                                    <label>@L.T("Fin_SelectExcelFile"):</label>
                                                     <input type="file" name="file" class="form-control" accept=".xlsx" required />
                                                 </div>
                                                 <button type="submit" class="btn btn-primary btn-lg btn-block">
-                                                    <i class="bx bx-upload"></i> Faylni yuklash va import qilish
+                                                    <i class="bx bx-upload"></i> @L.T("Fin_UploadAndImport")
                                                 </button>
                                             </form>
                                         </div>
@@ -112,80 +112,80 @@
 
                                     <div class="row mt-3">
                                         <div class="col-md-12">
-                                            <h5>Shablon fayl ustunlari:</h5>
+                                            <h5>@L.T("Fin_TemplateColumns"):</h5>
                                             <table class="table table-bordered">
                                                 <thead>
                                                     <tr>
-                                                        <th>Ustun</th>
-                                                        <th>Tavsif</th>
-                                                        <th>Majburiy</th>
+                                                        <th>@L.T("Fin_Column")</th>
+                                                        <th>@L.T("Description")</th>
+                                                        <th>@L.T("Fin_Mandatory")</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
                                                     <tr>
-                                                        <td>Sana (DD.MM.YYYY)</td>
-                                                        <td>Tranzaksiya sanasi</td>
-                                                        <td><span class="badge badge-danger">Ha</span></td>
+                                                        <td>@L.T("Fin_ColDate")</td>
+                                                        <td>@L.T("Fin_TxDate")</td>
+                                                        <td><span class="badge badge-danger">@L.T("Yes")</span></td>
                                                     </tr>
                                                     <tr>
-                                                        <td>Vaqt (HH:mm)</td>
-                                                        <td>Tranzaksiya vaqti</td>
-                                                        <td><span class="badge badge-success">Yo'q</span></td>
+                                                        <td>@L.T("Fin_ColTime")</td>
+                                                        <td>@L.T("Fin_TxTime")</td>
+                                                        <td><span class="badge badge-success">@L.T("No")</span></td>
                                                     </tr>
                                                     <tr>
-                                                        <td>Hisob kodi</td>
-                                                        <td>Hisob raqami (masalan: 9000)</td>
-                                                        <td><span class="badge badge-danger">Ha</span></td>
+                                                        <td>@L.T("Fin_AccountCode")</td>
+                                                        <td>@L.T("Fin_AccountCodeHint")</td>
+                                                        <td><span class="badge badge-danger">@L.T("Yes")</span></td>
                                                     </tr>
                                                     <tr>
-                                                        <td>Kategoriya nomi</td>
-                                                        <td>Kategoriya nomi (masalan: Sotuv)</td>
-                                                        <td><span class="badge badge-danger">Ha</span></td>
+                                                        <td>@L.T("Fin_CategoryName")</td>
+                                                        <td>@L.T("Fin_CategoryNameHint")</td>
+                                                        <td><span class="badge badge-danger">@L.T("Yes")</span></td>
                                                     </tr>
                                                     <tr>
-                                                        <td>Yo'nalish</td>
-                                                        <td>1 = Kirim, 2 = Chiqim</td>
-                                                        <td><span class="badge badge-danger">Ha</span></td>
+                                                        <td>@L.T("Fin_Direction")</td>
+                                                        <td>1 = @L.T("Fin_Inflow"), 2 = @L.T("Fin_Expense")</td>
+                                                        <td><span class="badge badge-danger">@L.T("Yes")</span></td>
                                                     </tr>
                                                     <tr>
-                                                        <td>Summa</td>
-                                                        <td>Tranzaksiya summasi</td>
-                                                        <td><span class="badge badge-danger">Ha</span></td>
+                                                        <td>@L.T("Amount")</td>
+                                                        <td>@L.T("Fin_TxAmount")</td>
+                                                        <td><span class="badge badge-danger">@L.T("Yes")</span></td>
                                                     </tr>
                                                     <tr>
-                                                        <td>Valyuta qisqa nomi</td>
-                                                        <td>Valyuta qisqa nomi (masalan: @(ViewBag.CurrencyShortname ?? "UZS"))</td>
-                                                        <td><span class="badge badge-danger">Ha</span></td>
+                                                        <td>@L.T("Fin_CurrencyShortName")</td>
+                                                        <td>@L.T("Fin_CurrencyShortNameHint", (string)(ViewBag.CurrencyShortname ?? "UZS"))</td>
+                                                        <td><span class="badge badge-danger">@L.T("Yes")</span></td>
                                                     </tr>
                                                     <tr>
-                                                        <td>Kontragent nomi</td>
-                                                        <td>Kontragent nomi</td>
-                                                        <td><span class="badge badge-success">Yo'q</span></td>
+                                                        <td>@L.T("Fin_CounterpartyName")</td>
+                                                        <td>@L.T("Fin_CounterpartyName")</td>
+                                                        <td><span class="badge badge-success">@L.T("No")</span></td>
                                                     </tr>
                                                     <tr>
-                                                        <td>Maqsad</td>
-                                                        <td>Tranzaksiya maqsadi</td>
-                                                        <td><span class="badge badge-success">Yo'q</span></td>
+                                                        <td>@L.T("Fin_Purpose")</td>
+                                                        <td>@L.T("Fin_TxPurpose")</td>
+                                                        <td><span class="badge badge-success">@L.T("No")</span></td>
                                                     </tr>
                                                     <tr>
-                                                        <td>Shartnoma raqami</td>
-                                                        <td>Shartnoma raqami</td>
-                                                        <td><span class="badge badge-success">Yo'q</span></td>
+                                                        <td>@L.T("Fin_ContractNo")</td>
+                                                        <td>@L.T("Fin_ContractNo")</td>
+                                                        <td><span class="badge badge-success">@L.T("No")</span></td>
                                                     </tr>
                                                     <tr>
-                                                        <td>Izoh</td>
-                                                        <td>Qo'shimcha izoh</td>
-                                                        <td><span class="badge badge-success">Yo'q</span></td>
+                                                        <td>@L.T("Comment")</td>
+                                                        <td>@L.T("Fin_AdditionalComment")</td>
+                                                        <td><span class="badge badge-success">@L.T("No")</span></td>
                                                     </tr>
                                                     <tr>
-                                                        <td>Miqdor</td>
-                                                        <td>Miqdor (ixtiyoriy)</td>
-                                                        <td><span class="badge badge-success">Yo'q</span></td>
+                                                        <td>@L.T("Quantity")</td>
+                                                        <td>@L.T("Quantity") (@L.T("Optional"))</td>
+                                                        <td><span class="badge badge-success">@L.T("No")</span></td>
                                                     </tr>
                                                     <tr>
-                                                        <td>Narx birligi</td>
-                                                        <td>Narx birligi (ixtiyoriy)</td>
-                                                        <td><span class="badge badge-success">Yo'q</span></td>
+                                                        <td>@L.T("Fin_UnitPrice")</td>
+                                                        <td>@L.T("Fin_UnitPrice") (@L.T("Optional"))</td>
+                                                        <td><span class="badge badge-success">@L.T("No")</span></td>
                                                     </tr>
                                                 </tbody>
                                             </table>

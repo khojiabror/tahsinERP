@@ -1,7 +1,7 @@
 @model tahsinERP.Models.FIN_ACCOUNTS
 
 @{
-    ViewBag.Title = "Yangi hisob qo'shish";
+    ViewBag.Title = L.T("Fin_AddAccountTitle");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -16,8 +16,8 @@
                             <div class="breadcrumb-wrapper col-12">
                                 <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                     <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
-                                    <li class="breadcrumb-item"><a href="~/FinAccounts">Hisoblar</a></li>
-                                    <li class="breadcrumb-item active">Yangi hisob</li>
+                                    <li class="breadcrumb-item"><a href="~/FinAccounts">@L.T("Fin_Accounts")</a></li>
+                                    <li class="breadcrumb-item active">@L.T("Fin_NewAccount")</li>
                                 </ol>
                             </div>
                         </div>
@@ -29,7 +29,7 @@
                     <div class="col-md-8">
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">Yangi hisob qo'shish</h4>
+                                <h4 class="card-title">@L.T("Fin_AddAccountTitle")</h4>
                             </div>
                             <div class="card-content">
                                 <div class="card-body">
@@ -39,51 +39,51 @@
                                         @Html.ValidationSummary(true, "", new { @class = "text-danger" })
                                         
                                         <div class="form-group">
-                                            @Html.LabelFor(m => m.Code, "Kod *", new { @class = "control-label" })
+                                            @Html.LabelFor(m => m.Code, L.T("Code") + " *", new { @class = "control-label" })
                                             @Html.TextBoxFor(m => m.Code, new { @class = "form-control", required = "required" })
                                             @Html.ValidationMessageFor(m => m.Code, "", new { @class = "text-danger" })
                                         </div>
                                         
                                         <div class="form-group">
-                                            @Html.LabelFor(m => m.Name, "Nomi *", new { @class = "control-label" })
+                                            @Html.LabelFor(m => m.Name, L.T("Name") + " *", new { @class = "control-label" })
                                             @Html.TextBoxFor(m => m.Name, new { @class = "form-control", required = "required" })
                                             @Html.ValidationMessageFor(m => m.Name, "", new { @class = "text-danger" })
                                         </div>
                                         
                                         <div class="form-group">
-                                            @Html.LabelFor(m => m.OwnerName, "Egasi", new { @class = "control-label" })
+                                            @Html.LabelFor(m => m.OwnerName, L.T("Fin_Owner"), new { @class = "control-label" })
                                             @Html.TextBoxFor(m => m.OwnerName, new { @class = "form-control" })
                                         </div>
                                         
                                         <div class="form-group">
-                                            @Html.LabelFor(m => m.CurrencyID, "Valyuta *", new { @class = "control-label" })
-                                            @Html.DropDownListFor(m => m.CurrencyID, ViewBag.CurrencyID as SelectList, "Tanlang...", new { @class = "form-control", required = "required" })
+                                            @Html.LabelFor(m => m.CurrencyID, L.T("Currency") + " *", new { @class = "control-label" })
+                                            @Html.DropDownListFor(m => m.CurrencyID, ViewBag.CurrencyID as SelectList, L.T("Fin_SelectDots"), new { @class = "form-control", required = "required" })
                                             @Html.ValidationMessageFor(m => m.CurrencyID, "", new { @class = "text-danger" })
                                         </div>
                                         
                                         <div class="form-group">
                                             <div class="custom-control custom-checkbox">
                                                 @Html.CheckBoxFor(m => m.IsCash, new { @class = "custom-control-input", id = "IsCash" })
-                                                <label class="custom-control-label" for="IsCash">Naqd pul</label>
+                                                <label class="custom-control-label" for="IsCash">@L.T("Fin_Cash")</label>
                                             </div>
                                         </div>
                                         
                                         <div class="form-group">
                                             <div class="custom-control custom-checkbox">
                                                 @Html.CheckBoxFor(m => m.IsBank, new { @class = "custom-control-input", id = "IsBank" })
-                                                <label class="custom-control-label" for="IsBank">Bank</label>
+                                                <label class="custom-control-label" for="IsBank">@L.T("Fin_Bank")</label>
                                             </div>
                                         </div>
                                         
                                         <div class="form-group">
-                                            @Html.LabelFor(m => m.BalanceCategoryID, "Balans kategoriyasi", new { @class = "control-label" })
-                                            @Html.DropDownListFor(m => m.BalanceCategoryID, ViewBag.BalanceCategoryID as SelectList, "Tanlang... (ixtiyoriy)", new { @class = "form-control" })
-                                            <small class="form-text text-muted">Hisobni balans hisobotida qaysi kategoriyaga qo'shishni belgilang</small>
+                                            @Html.LabelFor(m => m.BalanceCategoryID, L.T("Fin_BalanceCategory"), new { @class = "control-label" })
+                                            @Html.DropDownListFor(m => m.BalanceCategoryID, ViewBag.BalanceCategoryID as SelectList, L.T("Fin_SelectOptional"), new { @class = "form-control" })
+                                            <small class="form-text text-muted">@L.T("Fin_AccountBalanceCatHint")</small>
                                         </div>
                                         
                                         <div class="form-actions">
-                                            <button type="submit" class="btn btn-primary">Saqlash</button>
-                                            <a href="@Url.Action("Index")" class="btn btn-secondary">Bekor qilish</a>
+                                            <button type="submit" class="btn btn-primary">@L.T("Save")</button>
+                                            <a href="@Url.Action("Index")" class="btn btn-secondary">@L.T("Cancel")</a>
                                         </div>
                                     }
                                 </div>

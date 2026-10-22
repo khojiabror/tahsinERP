@@ -16,8 +16,8 @@
                             <div class="breadcrumb-wrapper col-12">
                                 <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                     <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
-                                    <li class="breadcrumb-item">Dashboard</li>
-                                    <li class="breadcrumb-item">Moliya Dashboard</li>
+                                    <li class="breadcrumb-item">@L.T("Menu_Dashboard")</li>
+                                    <li class="breadcrumb-item">@L.T("Menu_DashFinance")</li>
                                     <li class="breadcrumb-item active">@Model.Title</li>
                                 </ol>
                             </div>
@@ -38,16 +38,16 @@
                                     <form method="get" action="@Url.Action(Model.Action)" class="mb-3">
                                         <div class="row">
                                             <div class="col-md-4">
-                                                <label class="control-label">Dan sana:</label>
+                                                <label class="control-label">@L.T("Fin_DateFrom"):</label>
                                                 <input type="date" name="fromDate" class="form-control" value="@(ViewBag.FromDate?.ToString("yyyy-MM-dd"))" />
                                             </div>
                                             <div class="col-md-4">
-                                                <label class="control-label">Gacha sana:</label>
+                                                <label class="control-label">@L.T("Fin_DateTo"):</label>
                                                 <input type="date" name="toDate" class="form-control" value="@(ViewBag.ToDate?.ToString("yyyy-MM-dd"))" />
                                             </div>
                                             <div class="col-md-4">
                                                 <label class="control-label">&nbsp;</label>
-                                                <button type="submit" class="btn btn-primary btn-block">Ko'rsatish</button>
+                                                <button type="submit" class="btn btn-primary btn-block">@L.T("Fin_Show")</button>
                                             </div>
                                         </div>
                                     </form>
@@ -68,7 +68,7 @@
                                         <div class="col-md-6">
                                             <div class="card">
                                                 <div class="card-header">
-                                                    <h5>@Model.Plural bo'yicha kategoriyalar (Pie Chart)</h5>
+                                                    <h5>@L.T("Fin_PluralByCategoriesPie", Model.Plural)</h5>
                                                 </div>
                                                 <div class="card-body">
                                                     <canvas id="@(Model.IdPrefix)CategoryPieChart"></canvas>
@@ -78,7 +78,7 @@
                                         <div class="col-md-6">
                                             <div class="card">
                                                 <div class="card-header">
-                                                    <h5>@Model.Plural bo'yicha hisoblar (Pie Chart)</h5>
+                                                    <h5>@L.T("Fin_PluralByAccountsPie", Model.Plural)</h5>
                                                 </div>
                                                 <div class="card-body">
                                                     <canvas id="@(Model.IdPrefix)AccountPieChart"></canvas>
@@ -91,7 +91,7 @@
                                         <div class="col-md-12">
                                             <div class="card">
                                                 <div class="card-header">
-                                                    <h5>Oylik @Model.Plural.ToLower() trendi</h5>
+                                                    <h5>@L.T("Fin_PluralMonthlyTrend", Model.Plural.ToLower())</h5>
                                                 </div>
                                                 <div class="card-body">
                                                     <canvas id="@(Model.IdPrefix)MonthlyChart"></canvas>
@@ -104,7 +104,7 @@
                                         <div class="col-md-12">
                                             <div class="card">
                                                 <div class="card-header">
-                                                    <h5>@Model.Plural jadvali</h5>
+                                                    <h5>@L.T("Fin_PluralTable", Model.Plural)</h5>
                                                 </div>
                                                 <div class="card-body">
                                                     <div class="table-responsive">
@@ -112,9 +112,9 @@
                                                             <thead>
                                                                 <tr>
                                                                     <th class="text-center">Nº</th>
-                                                                    <th>Kategoriya</th>
-                                                                    <th class="text-right">Summa</th>
-                                                                    <th class="text-right">Foiz</th>
+                                                                    <th>@L.T("Category")</th>
+                                                                    <th class="text-right">@L.T("Amount")</th>
+                                                                    <th class="text-right">@L.T("Fin_Percent")</th>
                                                                 </tr>
                                                             </thead>
                                                             <tbody>
@@ -245,7 +245,7 @@
                 $('#' + idPrefix + 'Table').DataTable({
                     "order": [[2, "desc"]], // Sort by Amount column
                     "pageLength": 25,
-                    "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Barchasi"]],
+                    "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "@L.Js("All")"]],
                     "columnDefs": [
                         { "orderable": true, "targets": [0, 1, 2, 3] },
                         { "type": "num", "targets": [0] },

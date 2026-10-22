@@ -1,7 +1,7 @@
 @model List<tahsinERP.Models.FIN_ACCOUNTS>
 
 @{
-    ViewBag.Title = "Moliya hisoblari";
+    ViewBag.Title = L.T("Fin_FinanceAccounts");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -20,8 +20,8 @@
                             <div class="breadcrumb-wrapper col-12">
                                 <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                     <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
-                                    <li class="breadcrumb-item">Moliya</li>
-                                    <li class="breadcrumb-item active">Hisoblar</li>
+                                    <li class="breadcrumb-item">@L.T("Menu_Finance")</li>
+                                    <li class="breadcrumb-item active">@L.T("Fin_Accounts")</li>
                                 </ol>
                             </div>
                         </div>
@@ -34,7 +34,7 @@
                     {
                         <div class="invoice-create-btn mb-1">
                             <button type="button" class="btn btn-outline-success mr-1 mb-1" onclick="window.location.href='/FinAccounts/Create';">
-                                <span class="align-middle ml-25">Hisob qo'shish</span>
+                                <span class="align-middle ml-25">@L.T("Fin_AddAccount")</span>
                             </button>
                         </div>
                     }
@@ -46,15 +46,15 @@
                                     <table id="accountsTable" class="table table-striped table-bordered" style="width:100%">
                                         <thead>
                                             <tr>
-                                                <th>Kod</th>
-                                                <th>Nomi</th>
-                                                <th>Egasi</th>
-                                                <th>Valyuta</th>
-                                                <th>Turi</th>
-                                                <th>Holati</th>
+                                                <th>@L.T("Code")</th>
+                                                <th>@L.T("Name")</th>
+                                                <th>@L.T("Fin_Owner")</th>
+                                                <th>@L.T("Currency")</th>
+                                                <th>@L.T("Type")</th>
+                                                <th>@L.T("Fin_State")</th>
                                                 @if (changePermit)
                                                 {
-                                                    <th>Amallar</th>
+                                                    <th>@L.T("Actions")</th>
                                                 }
                                             </tr>
                                         </thead>
@@ -68,31 +68,31 @@
                                                     <td>@(item.CURRENCy != null ? item.CURRENCy.Shortname : "-")</td>
                                                     <td>
                                                         @if (item.IsCash)
-                                                        { <span class="badge badge-success">Naqd pul</span> }
+                                                        { <span class="badge badge-success">@L.T("Fin_Cash")</span> }
                                                         else if (item.IsBank)
-                                                        { <span class="badge badge-info">Bank</span> }
+                                                        { <span class="badge badge-info">@L.T("Fin_Bank")</span> }
                                                         else
-                                                        { <span class="badge badge-secondary">Boshqa</span> }
+                                                        { <span class="badge badge-secondary">@L.T("Fin_Other")</span> }
                                                     </td>
                                                     <td>
                                                         @if (item.IsActive)
-                                                        { <span class="badge badge-success">Faol</span> }
+                                                        { <span class="badge badge-success">@L.T("Active")</span> }
                                                         else
-                                                        { <span class="badge badge-danger">Nofaol</span> }
+                                                        { <span class="badge badge-danger">@L.T("Inactive")</span> }
                                                     </td>
                     @if (changePermit)
                     {
                         <td class="text-center">
-                            <a href="@Url.Action("Details", new { id = item.ID })" class="btn btn-sm btn-outline-info" title="Ko'rish">
+                            <a href="@Url.Action("Details", new { id = item.ID })" class="btn btn-sm btn-outline-info" title="@L.T("View")">
                                 <i class="bx bx-show"></i>
                             </a>
-                            <a href="@Url.Action("Edit", new { id = item.ID })" class="btn btn-sm btn-outline-primary" title="Tahrirlash">
+                            <a href="@Url.Action("Edit", new { id = item.ID })" class="btn btn-sm btn-outline-primary" title="@L.T("Edit")">
                                 <i class="bx bx-edit"></i>
                             </a>
-                            <a href="@Url.Action("Delete", new { id = item.ID })" class="btn btn-sm btn-outline-danger" title="O'chirish">
+                            <a href="@Url.Action("Delete", new { id = item.ID })" class="btn btn-sm btn-outline-danger" title="@L.T("Delete")">
                                 <i class="bx bx-trash"></i>
                             </a>
-                            <a href="@Url.Action("Transactions", new { id = item.ID })" class="btn btn-sm btn-outline-secondary" title="Tranzaksiyalar">
+                            <a href="@Url.Action("Transactions", new { id = item.ID })" class="btn btn-sm btn-outline-secondary" title="@L.T("Fin_Transactions")">
                                 <i class="bx bx-list-ul"></i>
                             </a>
                         </td>
@@ -123,22 +123,8 @@
                 }
                 
                 $('#accountsTable').DataTable({
-                    "language": {
-                        "search": "Qidirish:",
-                        "lengthMenu": "_MENU_ ta ko'rsatish",
-                        "info": "_TOTAL_ ta yozuvdan _START_ dan _END_ gacha",
-                        "infoEmpty": "Yozuvlar yo'q",
-                        "infoFiltered": "(jami _MAX_ ta yozuvdan filtrlangan)",
-                        "paginate": {
-                            "first": "Birinchi",
-                            "last": "Oxirgi",
-                            "next": "Keyingi",
-                            "previous": "Oldingi"
-                        },
-                        "zeroRecords": "Ma'lumot topilmadi"
-                    },
                     "pageLength": 25,
-                    "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Barchasi"]],
+                    "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "@L.Js("All")"]],
                     "order": [[0, "asc"]],
                     "columnDefs": columnDefs,
                     "dom": 'lBfrtip',

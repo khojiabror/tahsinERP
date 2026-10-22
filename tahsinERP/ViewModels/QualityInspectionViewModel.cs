@@ -9,51 +9,51 @@ namespace tahsinERP.ViewModels
     {
         public long ID { get; set; }
         
-        [Display(Name = "Buyurtma")]
+        [Display(Name = "Mes_Order")]
         public int? SOrderID { get; set; }
         
-        [Display(Name = "Yetkazib berish jadvali")]
+        [Display(Name = "Mes_Qi_DeliverySchedule")]
         public long? DeliveryScheduleID { get; set; }
         
-        [Display(Name = "Kunlik reja")]
+        [Display(Name = "Mes_Qi_DailyPlan")]
         public int? ProductPlanDailyID { get; set; }
         
-        [Display(Name = "Ishlab chiqarish")]
+        [Display(Name = "Mes_Qi_Production")]
         public int? ProductionID { get; set; }
         
-        [Required(ErrorMessage = "Mahsulotni tanlang")]
-        [Display(Name = "Mahsulot")]
+        [Required(ErrorMessage = "Mes_Val_SelectProduct")]
+        [Display(Name = "Mes_Product")]
         public int ProductID { get; set; }
         
-        [Required(ErrorMessage = "Tekshirilgan miqdorni kiriting")]
-        [Display(Name = "Tekshirilgan miqdor")]
-        [Range(0.01, double.MaxValue, ErrorMessage = "Miqdor 0 dan katta bo'lishi kerak")]
+        [Required(ErrorMessage = "Mes_Qi_Val_EnterInspected")]
+        [Display(Name = "Mes_Qi_QtyInspected")]
+        [Range(0.01, double.MaxValue, ErrorMessage = "Mes_Qi_Val_QtyPositive")]
         public decimal QtyInspected { get; set; }
         
-        [Required(ErrorMessage = "Qabul qilingan miqdorni kiriting")]
-        [Display(Name = "Qabul qilingan miqdor")]
-        [Range(0, double.MaxValue, ErrorMessage = "Miqdor 0 yoki undan katta bo'lishi kerak")]
+        [Required(ErrorMessage = "Mes_Qi_Val_EnterAccepted")]
+        [Display(Name = "Mes_Qi_QtyAccepted")]
+        [Range(0, double.MaxValue, ErrorMessage = "Mes_Val_QtyNonNegative")]
         public decimal QtyAccepted { get; set; }
         
-        [Required(ErrorMessage = "Rad etilgan miqdorni kiriting")]
-        [Display(Name = "Rad etilgan miqdor")]
-        [Range(0, double.MaxValue, ErrorMessage = "Miqdor 0 yoki undan katta bo'lishi kerak")]
+        [Required(ErrorMessage = "Mes_Qi_Val_EnterRejected")]
+        [Display(Name = "Mes_Qi_QtyRejected")]
+        [Range(0, double.MaxValue, ErrorMessage = "Mes_Val_QtyNonNegative")]
         public decimal QtyRejected { get; set; }
         
-        [Display(Name = "Nuqson turi")]
+        [Display(Name = "Mes_Dt_Name")]
         public int? DefectTypeID { get; set; }
         
-        [Display(Name = "Holat")]
+        [Display(Name = "Status")]
         public string StatusCode { get; set; }
         
-        [Display(Name = "Izohlar")]
+        [Display(Name = "Mes_Qi_Notes")]
         public string Notes { get; set; }
         
-        [Display(Name = "Tekshiruv sanasi")]
+        [Display(Name = "Mes_Qi_InspectionDate")]
         [DataType(DataType.Date)]
         public DateTime InspectionDate { get; set; }
         
-        [Display(Name = "Tasdiqlash sanasi")]
+        [Display(Name = "Mes_Qi_ApprovalDate")]
         [DataType(DataType.Date)]
         public DateTime? ApprovalDate { get; set; }
         
@@ -78,7 +78,7 @@ namespace tahsinERP.ViewModels
 
     public class QualityInspectionDailyViewModel
     {
-        [Display(Name = "Tekshiruv sanasi")]
+        [Display(Name = "Mes_Qi_InspectionDate")]
         [DataType(DataType.Date)]
         public DateTime InspectionDate { get; set; }
 
@@ -101,18 +101,18 @@ namespace tahsinERP.ViewModels
         public decimal AlreadyInspectedQty { get; set; }
         public decimal RemainingQty { get; set; }
 
-        [Display(Name = "Qabul qilingan miqdor")]
-        [Range(0, double.MaxValue, ErrorMessage = "Miqdor 0 yoki undan katta bo'lishi kerak")]
+        [Display(Name = "Mes_Qi_QtyAccepted")]
+        [Range(0, double.MaxValue, ErrorMessage = "Mes_Val_QtyNonNegative")]
         public decimal QtyAccepted { get; set; }
 
-        [Display(Name = "Rad etilgan miqdor")]
-        [Range(0, double.MaxValue, ErrorMessage = "Miqdor 0 yoki undan katta bo'lishi kerak")]
+        [Display(Name = "Mes_Qi_QtyRejected")]
+        [Range(0, double.MaxValue, ErrorMessage = "Mes_Val_QtyNonNegative")]
         public decimal QtyRejected { get; set; }
 
-        [Display(Name = "Nuqson turi")]
+        [Display(Name = "Mes_Dt_Name")]
         public int? DefectTypeID { get; set; }
 
-        [Display(Name = "Izohlar")]
+        [Display(Name = "Mes_Qi_Notes")]
         public string Notes { get; set; }
     }
 }

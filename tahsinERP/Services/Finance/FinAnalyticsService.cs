@@ -4,6 +4,7 @@ using System.Data.Entity;
 using System.Linq;
 using tahsinERP.Models;
 using tahsinERP.ViewModels.Finance;
+using tahsinERP.I18n;
 
 namespace tahsinERP.Services.Finance
 {
@@ -252,7 +253,7 @@ namespace tahsinERP.Services.Finance
                         AccountID = a.ID,
                         AccountName = a.Name ?? "",
                         AccountCode = a.Code ?? "",
-                        AccountType = a.IsCash ? "Naqd pul" : (a.IsBank ? "Bank" : "Boshqa"),
+                        AccountType = a.IsCash ? L.T("Fin_Cash") : (a.IsBank ? L.T("Fin_Bank") : L.T("Fin_Other")),
                         TotalInflow = inflow,
                         TotalOutflow = outflow,
                         TransactionCount = g.Sum(b => b.Count),

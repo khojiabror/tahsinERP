@@ -6171,4 +6171,3679 @@
   <data name="Log_ActualDeliveryDate" xml:space="preserve">
     <value>Фактическая дата доставки</value>
   </data>
+  <data name="Fin_AccBalHint1" xml:space="preserve">
+    <value>Если счёт привязан к</value>
+  </data>
+  <data name="Fin_AccBalHint10" xml:space="preserve">
+    <value>до даты начального баланса</value>
+  </data>
+  <data name="Fin_AccBalHint11" xml:space="preserve">
+    <value>в остаток не включаются.</value>
+  </data>
+  <data name="Fin_AccBalHint2" xml:space="preserve">
+    <value>категории баланса</value>
+  </data>
+  <data name="Fin_AccBalHint3" xml:space="preserve">
+    <value>(например,</value>
+  </data>
+  <data name="Fin_AccBalHint4" xml:space="preserve">
+    <value>Задолженность поставщикам),</value>
+  </data>
+  <data name="Fin_AccBalHint5" xml:space="preserve">
+    <value>начальный остаток счёта (вводится по счетам на странице «Начальный баланс»)</value>
+  </data>
+  <data name="Fin_AccBalHint6" xml:space="preserve">
+    <value>после даты начального баланса</value>
+  </data>
+  <data name="Fin_AccBalHint7" xml:space="preserve">
+    <value>операции. Если остаток по счёту не введён, начальный остаток категории делится поровну между счетами — такой остаток отмечен знаком</value>
+  </data>
+  <data name="Fin_AccBalHint8" xml:space="preserve">
+    <value>(приблизительно).</value>
+  </data>
+  <data name="Fin_AccBalHint9" xml:space="preserve">
+    <value>Операции</value>
+  </data>
+  <data name="Fin_Account" xml:space="preserve">
+    <value>Счёт</value>
+  </data>
+  <data name="Fin_AccountAnalysisTitle" xml:space="preserve">
+    <value>Анализ по счетам</value>
+  </data>
+  <data name="Fin_AccountBalanceCatHint" xml:space="preserve">
+    <value>Укажите, в какую категорию баланса включить счёт</value>
+  </data>
+  <data name="Fin_AccountCode" xml:space="preserve">
+    <value>Код счёта</value>
+  </data>
+  <data name="Fin_AccountCodeExists" xml:space="preserve">
+    <value>Счёт с таким кодом уже существует.</value>
+  </data>
+  <data name="Fin_AccountCodeHint" xml:space="preserve">
+    <value>Номер счёта (например: 9000)</value>
+  </data>
+  <data name="Fin_AccountDeleteConfirm" xml:space="preserve">
+    <value>Подтверждаете удаление этого счёта?</value>
+  </data>
+  <data name="Fin_AccountDetails" xml:space="preserve">
+    <value>Сведения о счёте</value>
+  </data>
+  <data name="Fin_AccountHasTxDeactivate" xml:space="preserve">
+    <value>По этому счёту есть операции. При удалении он будет деактивирован.</value>
+  </data>
+  <data name="Fin_AccountName" xml:space="preserve">
+    <value>Наименование счёта</value>
+  </data>
+  <data name="Fin_AccountNo" xml:space="preserve">
+    <value>Номер счёта</value>
+  </data>
+  <data name="Fin_AccountType" xml:space="preserve">
+    <value>Тип счёта</value>
+  </data>
+  <data name="Fin_Accounts" xml:space="preserve">
+    <value>Счета</value>
+  </data>
+  <data name="Fin_Accrued" xml:space="preserve">
+    <value>Начислено</value>
+  </data>
+  <data name="Fin_AccumMonths" xml:space="preserve">
+    <value>Накоплено месяцев</value>
+  </data>
+  <data name="Fin_Accumulated" xml:space="preserve">
+    <value>Накоплено</value>
+  </data>
+  <data name="Fin_Actual" xml:space="preserve">
+    <value>Факт</value>
+  </data>
+  <data name="Fin_AddAccount" xml:space="preserve">
+    <value>Добавить счёт</value>
+  </data>
+  <data name="Fin_AddAccountTitle" xml:space="preserve">
+    <value>Добавление нового счёта</value>
+  </data>
+  <data name="Fin_AddBackDepreciation" xml:space="preserve">
+    <value>Прибавляется обратно: амортизация (Depreciation &amp; Amortization)</value>
+  </data>
+  <data name="Fin_AddBackDepreciationShort" xml:space="preserve">
+    <value>Прибавляется обратно: амортизация</value>
+  </data>
+  <data name="Fin_AddBackInterest" xml:space="preserve">
+    <value>Прибавляется обратно: проценты/кредиты (Interest)</value>
+  </data>
+  <data name="Fin_AddBackInterestShort" xml:space="preserve">
+    <value>Прибавляется обратно: расходы на проценты/кредиты</value>
+  </data>
+  <data name="Fin_AddBackTaxes" xml:space="preserve">
+    <value>Прибавляется обратно: налоги (Taxes)</value>
+  </data>
+  <data name="Fin_AddBackTaxesShort" xml:space="preserve">
+    <value>Прибавляется обратно: налоги</value>
+  </data>
+  <data name="Fin_AddBalanceCategoryTitle" xml:space="preserve">
+    <value>Добавление категории баланса</value>
+  </data>
+  <data name="Fin_AddCategory" xml:space="preserve">
+    <value>Добавить категорию</value>
+  </data>
+  <data name="Fin_AddCategoryTitle" xml:space="preserve">
+    <value>Добавление новой категории</value>
+  </data>
+  <data name="Fin_AddContribution" xml:space="preserve">
+    <value>Добавить взнос</value>
+  </data>
+  <data name="Fin_AddPlItem" xml:space="preserve">
+    <value>Добавить статью P&amp;L</value>
+  </data>
+  <data name="Fin_AddPlItemTitle" xml:space="preserve">
+    <value>Добавление статьи P&amp;L</value>
+  </data>
+  <data name="Fin_AddPlPlanTitle" xml:space="preserve">
+    <value>Добавление плана P&amp;L</value>
+  </data>
+  <data name="Fin_AddPlan" xml:space="preserve">
+    <value>Добавить план</value>
+  </data>
+  <data name="Fin_AddRecurring" xml:space="preserve">
+    <value>Добавить регулярный расход</value>
+  </data>
+  <data name="Fin_AddRecurringLong" xml:space="preserve">
+    <value>Добавить регулярный расход (аренда, бухгалтерия и т. п.)</value>
+  </data>
+  <data name="Fin_AddRow" xml:space="preserve">
+    <value>Добавить строку</value>
+  </data>
+  <data name="Fin_AddSharePeriod" xml:space="preserve">
+    <value>Добавить новый период доли</value>
+  </data>
+  <data name="Fin_AddShareholder" xml:space="preserve">
+    <value>Добавить акционера</value>
+  </data>
+  <data name="Fin_AddShareholderTitle" xml:space="preserve">
+    <value>Добавление нового акционера</value>
+  </data>
+  <data name="Fin_AddSubCategory" xml:space="preserve">
+    <value>Добавить подкатегорию</value>
+  </data>
+  <data name="Fin_AddSubItem" xml:space="preserve">
+    <value>Добавить подстатью</value>
+  </data>
+  <data name="Fin_AddTx" xml:space="preserve">
+    <value>Добавить операцию</value>
+  </data>
+  <data name="Fin_AddTxTitle" xml:space="preserve">
+    <value>Добавление новой операции</value>
+  </data>
+  <data name="Fin_Added" xml:space="preserve">
+    <value>Добавлено</value>
+  </data>
+  <data name="Fin_AddedSubtractedDocs" xml:space="preserve">
+    <value>Добавленные/вычтенные документы</value>
+  </data>
+  <data name="Fin_AdditionalComment" xml:space="preserve">
+    <value>Дополнительный комментарий</value>
+  </data>
+  <data name="Fin_AllAccounts" xml:space="preserve">
+    <value>Все счета</value>
+  </data>
+  <data name="Fin_AllCategories" xml:space="preserve">
+    <value>Все категории</value>
+  </data>
+  <data name="Fin_AllOption" xml:space="preserve">
+    <value>Все</value>
+  </data>
+  <data name="Fin_AmountOf" xml:space="preserve">
+    <value>Сумма</value>
+  </data>
+  <data name="Fin_AnalyticsGroup" xml:space="preserve">
+    <value>Аналитическая группа</value>
+  </data>
+  <data name="Fin_AnalyticsGroupHint" xml:space="preserve">
+    <value>EBITDA (налоги, проценты, амортизация, дивиденды) и фактическая себестоимость определяются по этой группе, а не по названию категории.</value>
+  </data>
+  <data name="Fin_AnnualIncome12m" xml:space="preserve">
+    <value>Годовой доход (последние 12 месяцев)</value>
+  </data>
+  <data name="Fin_AnnualProfitFormula" xml:space="preserve">
+    <value>Годовая прибыль = доход × маржа</value>
+  </data>
+  <data name="Fin_ApByContract" xml:space="preserve">
+    <value>Кредиторская задолженность поставщикам (AP) — в разрезе договоров</value>
+  </data>
+  <data name="Fin_ApTitle" xml:space="preserve">
+    <value>Кредиторская задолженность поставщикам (AP)</value>
+  </data>
+  <data name="Fin_ArByContract" xml:space="preserve">
+    <value>Дебиторская задолженность покупателей (AR) — в разрезе договоров</value>
+  </data>
+  <data name="Fin_ArTitle" xml:space="preserve">
+    <value>Дебиторская задолженность покупателей (AR)</value>
+  </data>
+  <data name="Fin_AsOfDate" xml:space="preserve">
+    <value>Дата состояния (As of date)</value>
+  </data>
+  <data name="Fin_Asset" xml:space="preserve">
+    <value>Актив</value>
+  </data>
+  <data name="Fin_Assets" xml:space="preserve">
+    <value>Активы</value>
+  </data>
+  <data name="Fin_AssetsDetails" xml:space="preserve">
+    <value>Детализация активов</value>
+  </data>
+  <data name="Fin_Attention" xml:space="preserve">
+    <value>Внимание!</value>
+  </data>
+  <data name="Fin_AttentionRecommended" xml:space="preserve">
+    <value>Внимание (настоятельная рекомендация)</value>
+  </data>
+  <data name="Fin_AutoFillConfirm" xml:space="preserve">
+    <value>Пересчитать и перезаписать строки начального баланса по текущим остаткам?</value>
+  </data>
+  <data name="Fin_AutoFillCurrent" xml:space="preserve">
+    <value>Заполнить по текущим остаткам</value>
+  </data>
+  <data name="Fin_AutoFillDone" xml:space="preserve">
+    <value>Автозаполнение выполнено: строки начального баланса обновлены по текущим остаткам.</value>
+  </data>
+  <data name="Fin_AutoFillError" xml:space="preserve">
+    <value>Ошибка автозаполнения: {0}</value>
+  </data>
+  <data name="Fin_AvgMarginCost" xml:space="preserve">
+    <value>Средняя маржа из модуля себестоимости</value>
+  </data>
+  <data name="Fin_Balance" xml:space="preserve">
+    <value>Остаток</value>
+  </data>
+  <data name="Fin_BalanceCategories" xml:space="preserve">
+    <value>Категории баланса</value>
+  </data>
+  <data name="Fin_BalanceCategory" xml:space="preserve">
+    <value>Категория баланса</value>
+  </data>
+  <data name="Fin_BalanceCategoryDetails" xml:space="preserve">
+    <value>Сведения о категории баланса</value>
+  </data>
+  <data name="Fin_BalanceCategoryLiabilities" xml:space="preserve">
+    <value>Категория баланса (пассивы)</value>
+  </data>
+  <data name="Fin_BalanceDetails" xml:space="preserve">
+    <value>Детализация остатков</value>
+  </data>
+  <data name="Fin_BalanceEquation" xml:space="preserve">
+    <value>Балансовое равенство: активы {0} = обязательства {1} + капитал {2} + нераспределённая прибыль {3}</value>
+  </data>
+  <data name="Fin_BalancePayable" xml:space="preserve">
+    <value>Остаток (кредиторская)</value>
+  </data>
+  <data name="Fin_BalanceReceivable" xml:space="preserve">
+    <value>Остаток (дебиторская)</value>
+  </data>
+  <data name="Fin_BalanceReport" xml:space="preserve">
+    <value>Балансовый отчёт</value>
+  </data>
+  <data name="Fin_Balancing" xml:space="preserve">
+    <value>Балансирующая</value>
+  </data>
+  <data name="Fin_Bank" xml:space="preserve">
+    <value>Банк</value>
+  </data>
+  <data name="Fin_BankBalance" xml:space="preserve">
+    <value>Остаток в банке</value>
+  </data>
+  <data name="Fin_Begin" xml:space="preserve">
+    <value>Начать</value>
+  </data>
+  <data name="Fin_BulkEdit" xml:space="preserve">
+    <value>Групповое редактирование</value>
+  </data>
+  <data name="Fin_ByCustomersPie" xml:space="preserve">
+    <value>По покупателям (круговая диаграмма)</value>
+  </data>
+  <data name="Fin_BySuppliersPie" xml:space="preserve">
+    <value>По поставщикам (круговая диаграмма)</value>
+  </data>
+  <data name="Fin_CalcAccountBased" xml:space="preserve">
+    <value>По счетам</value>
+  </data>
+  <data name="Fin_CalcByAccount" xml:space="preserve">
+    <value>По счетам</value>
+  </data>
+  <data name="Fin_CalcByAccountHint" xml:space="preserve">
+    <value>Сумма остатков на счетах (наличные, банк)</value>
+  </data>
+  <data name="Fin_CalcByAccountLong" xml:space="preserve">
+    <value>По счетам (Account-Based)</value>
+  </data>
+  <data name="Fin_CalcByDocument" xml:space="preserve">
+    <value>По документам</value>
+  </data>
+  <data name="Fin_CalcByDocumentHint" xml:space="preserve">
+    <value>Напрямую из документов (долги, задолженности)</value>
+  </data>
+  <data name="Fin_CalcByDocumentLong" xml:space="preserve">
+    <value>По документам (Document-Based)</value>
+  </data>
+  <data name="Fin_CalcByTransaction" xml:space="preserve">
+    <value>По операциям</value>
+  </data>
+  <data name="Fin_CalcByTransactionHint" xml:space="preserve">
+    <value>Операции по категориям (уставный капитал)</value>
+  </data>
+  <data name="Fin_CalcByTransactionLong" xml:space="preserve">
+    <value>По операциям (Transaction-Based)</value>
+  </data>
+  <data name="Fin_CalcDocumentBased" xml:space="preserve">
+    <value>По документам</value>
+  </data>
+  <data name="Fin_CalcMethod" xml:space="preserve">
+    <value>Метод расчёта</value>
+  </data>
+  <data name="Fin_CalcTransactionBased" xml:space="preserve">
+    <value>По операциям</value>
+  </data>
+  <data name="Fin_CalcWarehousePrice" xml:space="preserve">
+    <value>Расчёт (склад × цена)</value>
+  </data>
+  <data name="Fin_Calc_WarehouseCost" xml:space="preserve">
+    <value>Склад + себестоимость</value>
+  </data>
+  <data name="Fin_Calc_WarehouseLastIncome" xml:space="preserve">
+    <value>Склад + последний приход</value>
+  </data>
+  <data name="Fin_CalculationMethod" xml:space="preserve">
+    <value>Способ расчёта</value>
+  </data>
+  <data name="Fin_CalculationType" xml:space="preserve">
+    <value>Способ расчёта</value>
+  </data>
+  <data name="Fin_Cash" xml:space="preserve">
+    <value>Наличные</value>
+  </data>
+  <data name="Fin_CashBalance" xml:space="preserve">
+    <value>Остаток наличных</value>
+  </data>
+  <data name="Fin_CashContributionHint" xml:space="preserve">
+    <value>Для денежного взноса автоматически создаётся финансовая операция.</value>
+  </data>
+  <data name="Fin_Categories" xml:space="preserve">
+    <value>Категории</value>
+  </data>
+  <data name="Fin_CategoryAnalysisTitle" xml:space="preserve">
+    <value>Анализ по категориям</value>
+  </data>
+  <data name="Fin_CategoryDeleteConfirm" xml:space="preserve">
+    <value>Подтверждаете удаление этой категории?</value>
+  </data>
+  <data name="Fin_CategoryDetails" xml:space="preserve">
+    <value>Сведения о категории</value>
+  </data>
+  <data name="Fin_CategoryHasChildren" xml:space="preserve">
+    <value>У этой категории есть подкатегории.</value>
+  </data>
+  <data name="Fin_CategoryHasSnapshots" xml:space="preserve">
+    <value>По этой категории есть снимки. При удалении она будет деактивирована.</value>
+  </data>
+  <data name="Fin_CategoryHasTxDeactivate" xml:space="preserve">
+    <value>По этой категории есть операции. При удалении она будет деактивирована.</value>
+  </data>
+  <data name="Fin_CategoryMovements" xml:space="preserve">
+    <value>Движения по категории</value>
+  </data>
+  <data name="Fin_CategoryName" xml:space="preserve">
+    <value>Наименование категории</value>
+  </data>
+  <data name="Fin_CategoryNameHint" xml:space="preserve">
+    <value>Наименование категории (например: Продажи)</value>
+  </data>
+  <data name="Fin_CategoryNotFound" xml:space="preserve">
+    <value>Категория не найдена</value>
+  </data>
+  <data name="Fin_ColDate" xml:space="preserve">
+    <value>Дата (ДД.ММ.ГГГГ)</value>
+  </data>
+  <data name="Fin_ColDirection" xml:space="preserve">
+    <value>Направление (1={0}, 2={1})</value>
+  </data>
+  <data name="Fin_ColTime" xml:space="preserve">
+    <value>Время (ЧЧ:мм)</value>
+  </data>
+  <data name="Fin_Column" xml:space="preserve">
+    <value>Столбец</value>
+  </data>
+  <data name="Fin_Company" xml:space="preserve">
+    <value>Предприятие</value>
+  </data>
+  <data name="Fin_CompanyValue" xml:space="preserve">
+    <value>Стоимость компании</value>
+  </data>
+  <data name="Fin_ConfirmDeleteQ" xml:space="preserve">
+    <value>Удалить?</value>
+  </data>
+  <data name="Fin_Contract" xml:space="preserve">
+    <value>Договор</value>
+  </data>
+  <data name="Fin_ContractForwarder" xml:space="preserve">
+    <value>Договор (экспедитор)</value>
+  </data>
+  <data name="Fin_ContractListHint" xml:space="preserve">
+    <value>При выборе поставщика — список договоров, как в инвойсах закупки.</value>
+  </data>
+  <data name="Fin_ContractNo" xml:space="preserve">
+    <value>Номер договора</value>
+  </data>
+  <data name="Fin_ContractNoPh" xml:space="preserve">
+    <value>Заполняется автоматически при выборе договора</value>
+  </data>
+  <data name="Fin_ContractPurchase" xml:space="preserve">
+    <value>Договор (закупка)</value>
+  </data>
+  <data name="Fin_ContractSale" xml:space="preserve">
+    <value>Договор (продажа)</value>
+  </data>
+  <data name="Fin_ContributionType" xml:space="preserve">
+    <value>Вид взноса</value>
+  </data>
+  <data name="Fin_Contributions" xml:space="preserve">
+    <value>Взносы</value>
+  </data>
+  <data name="Fin_CoreReports" xml:space="preserve">
+    <value>Основные отчёты</value>
+  </data>
+  <data name="Fin_CountPcs" xml:space="preserve">
+    <value>{0} шт.</value>
+  </data>
+  <data name="Fin_Counterparty" xml:space="preserve">
+    <value>Контрагент</value>
+  </data>
+  <data name="Fin_CounterpartyLoadHint" xml:space="preserve">
+    <value>Загружаются активные (не удалённые) контрагенты выбранного типа.</value>
+  </data>
+  <data name="Fin_CounterpartyName" xml:space="preserve">
+    <value>Наименование контрагента</value>
+  </data>
+  <data name="Fin_CounterpartyRecommendHint" xml:space="preserve">
+    <value>При оплатах за материалы, зарплату и авансы заполните «Тип контрагента» и «Контрагент». Список контрагентов загружается автоматически по типу.</value>
+  </data>
+  <data name="Fin_CounterpartyType" xml:space="preserve">
+    <value>Тип контрагента</value>
+  </data>
+  <data name="Fin_CounterpartyTypeHint" xml:space="preserve">
+    <value>Материалы: поставщик | Зарплата/аванс: сотрудник. В зависимости от выбора ниже появится список контрагентов.</value>
+  </data>
+  <data name="Fin_CpForwarder" xml:space="preserve">
+    <value>Экспедитор</value>
+  </data>
+  <data name="Fin_CreatedByUser" xml:space="preserve">
+    <value>Создал пользователь</value>
+  </data>
+  <data name="Fin_Currencies" xml:space="preserve">
+    <value>Валюты</value>
+  </data>
+  <data name="Fin_CurrencyMismatch" xml:space="preserve">
+    <value>Валюта операции не совпадает с валютой счёта.</value>
+  </data>
+  <data name="Fin_CurrencyShortName" xml:space="preserve">
+    <value>Краткое наименование валюты</value>
+  </data>
+  <data name="Fin_CurrencyShortNameHint" xml:space="preserve">
+    <value>Краткое наименование валюты (например: {0})</value>
+  </data>
+  <data name="Fin_CurrentBalance" xml:space="preserve">
+    <value>Текущий остаток</value>
+  </data>
+  <data name="Fin_CurrentShare" xml:space="preserve">
+    <value>Текущая доля</value>
+  </data>
+  <data name="Fin_Custom" xml:space="preserve">
+    <value>особый</value>
+  </data>
+  <data name="Fin_Customer" xml:space="preserve">
+    <value>Покупатель</value>
+  </data>
+  <data name="Fin_CustomerEn" xml:space="preserve">
+    <value>Покупатель</value>
+  </data>
+  <data name="Fin_CustomerNum" xml:space="preserve">
+    <value>Покупатель #{0}</value>
+  </data>
+  <data name="Fin_DateFrom" xml:space="preserve">
+    <value>Дата с</value>
+  </data>
+  <data name="Fin_DateTo" xml:space="preserve">
+    <value>Дата по</value>
+  </data>
+  <data name="Fin_DbUpdateError" xml:space="preserve">
+    <value>Ошибка обновления базы данных: {0}</value>
+  </data>
+  <data name="Fin_DcfMethod" xml:space="preserve">
+    <value>метод DCF</value>
+  </data>
+  <data name="Fin_DcfValueFormula" xml:space="preserve">
+    <value>Стоимость компании = Чистые активы + Будущая прибыль</value>
+  </data>
+  <data name="Fin_Debt" xml:space="preserve">
+    <value>Долг</value>
+  </data>
+  <data name="Fin_DeleteAccount" xml:space="preserve">
+    <value>Удаление счёта</value>
+  </data>
+  <data name="Fin_DeleteBalanceCategory" xml:space="preserve">
+    <value>Удаление категории баланса</value>
+  </data>
+  <data name="Fin_DeleteCategory" xml:space="preserve">
+    <value>Удаление категории</value>
+  </data>
+  <data name="Fin_DeleteError" xml:space="preserve">
+    <value>Ошибка при удалении: {0}</value>
+  </data>
+  <data name="Fin_DeleteOpeningBalance" xml:space="preserve">
+    <value>Удаление начального баланса</value>
+  </data>
+  <data name="Fin_DeletePlItem" xml:space="preserve">
+    <value>Удаление статьи P&amp;L</value>
+  </data>
+  <data name="Fin_DeletePlPlan" xml:space="preserve">
+    <value>Удаление плана P&amp;L</value>
+  </data>
+  <data name="Fin_DeleteShareholder" xml:space="preserve">
+    <value>Удаление акционера</value>
+  </data>
+  <data name="Fin_DeleteShort" xml:space="preserve">
+    <value>Удал.</value>
+  </data>
+  <data name="Fin_DeleteTx" xml:space="preserve">
+    <value>Удаление операции</value>
+  </data>
+  <data name="Fin_Details" xml:space="preserve">
+    <value>Подробности</value>
+  </data>
+  <data name="Fin_Direction" xml:space="preserve">
+    <value>Направление</value>
+  </data>
+  <data name="Fin_DoFilter" xml:space="preserve">
+    <value>Фильтровать</value>
+  </data>
+  <data name="Fin_Document" xml:space="preserve">
+    <value>Документ</value>
+  </data>
+  <data name="Fin_DownloadTemplate" xml:space="preserve">
+    <value>Скачать файл шаблона</value>
+  </data>
+  <data name="Fin_EbitdaHint1" xml:space="preserve">
+    <value>EBITDA — операционная прибыль до вычета процентов, налогов и амортизации.</value>
+  </data>
+  <data name="Fin_EbitdaHint2" xml:space="preserve">
+    <value>Доходы и расходы берутся по категориям, привязанным к статьям P&amp;L (дивиденды, получение займов, внутренние переводы и взносы акционеров не включаются). Расходы на налоги, проценты/кредиты и амортизацию определяются по названию категории.</value>
+  </data>
+  <data name="Fin_EbitdaHint3" xml:space="preserve">
+    <value>Чтобы рассчитать стоимость компании методом EBITDA × мультипликатор (производство: 3–6x), перейдите на страницу</value>
+  </data>
+  <data name="Fin_EbitdaHint4" xml:space="preserve">
+    <value>.</value>
+  </data>
+  <data name="Fin_EbitdaMethod" xml:space="preserve">
+    <value>метод EBITDA</value>
+  </data>
+  <data name="Fin_EbitdaMultiple" xml:space="preserve">
+    <value>Мультипликатор EBITDA (3-6x)</value>
+  </data>
+  <data name="Fin_EbitdaReport" xml:space="preserve">
+    <value>Отчёт EBITDA</value>
+  </data>
+  <data name="Fin_EditAccount" xml:space="preserve">
+    <value>Редактирование счёта</value>
+  </data>
+  <data name="Fin_EditBalanceCategory" xml:space="preserve">
+    <value>Редактирование категории баланса</value>
+  </data>
+  <data name="Fin_EditCategory" xml:space="preserve">
+    <value>Редактирование категории</value>
+  </data>
+  <data name="Fin_EditPlItem" xml:space="preserve">
+    <value>Редактирование статьи P&amp;L</value>
+  </data>
+  <data name="Fin_EditPlPlan" xml:space="preserve">
+    <value>Редактирование плана P&amp;L</value>
+  </data>
+  <data name="Fin_EditRecurring" xml:space="preserve">
+    <value>Редактирование регулярного расхода</value>
+  </data>
+  <data name="Fin_EditShareholder" xml:space="preserve">
+    <value>Редактирование акционера</value>
+  </data>
+  <data name="Fin_EditShort" xml:space="preserve">
+    <value>Изменить</value>
+  </data>
+  <data name="Fin_EditTx" xml:space="preserve">
+    <value>Редактирование операции</value>
+  </data>
+  <data name="Fin_Employee" xml:space="preserve">
+    <value>Сотрудник</value>
+  </data>
+  <data name="Fin_EmptyMeansNow" xml:space="preserve">
+    <value>Если не заполнено — по настоящее время</value>
+  </data>
+  <data name="Fin_EndBeforeStart" xml:space="preserve">
+    <value>Дата окончания не может быть раньше даты начала.</value>
+  </data>
+  <data name="Fin_EnteredManually" xml:space="preserve">
+    <value>Введено вручную</value>
+  </data>
+  <data name="Fin_Equity" xml:space="preserve">
+    <value>Капитал</value>
+  </data>
+  <data name="Fin_ErrorExcl" xml:space="preserve">
+    <value>Ошибка!</value>
+  </data>
+  <data name="Fin_ErrorList" xml:space="preserve">
+    <value>Список ошибок</value>
+  </data>
+  <data name="Fin_ExcelImport" xml:space="preserve">
+    <value>Импорт из Excel</value>
+  </data>
+  <data name="Fin_ExcelImportArAp" xml:space="preserve">
+    <value>Импорт из Excel (AR/AP)</value>
+  </data>
+  <data name="Fin_ExcelNoData" xml:space="preserve">
+    <value>В файле Excel нет данных!</value>
+  </data>
+  <data name="Fin_ExcelTemplate" xml:space="preserve">
+    <value>Шаблон Excel</value>
+  </data>
+  <data name="Fin_ExistingSharePeriods" xml:space="preserve">
+    <value>Существующие периоды долей</value>
+  </data>
+  <data name="Fin_Exp_Ap" xml:space="preserve">
+    <value>SUM(инвойсы) − SUM(оплаты). Оплата: PurchaseInvoicePayment или расход с поставщиком + ContractNo.</value>
+  </data>
+  <data name="Fin_Exp_ApOpening" xml:space="preserve">
+    <value>Начальный баланс ({0}) + SUM(инвойсы) − SUM(оплаты). Оплата: PurchaseInvoicePayment или расход с поставщиком + ContractNo.</value>
+  </data>
+  <data name="Fin_Exp_Ar" xml:space="preserve">
+    <value>Рассчитано по инвойсам продажи и поступлениям от покупателей (FIFO)</value>
+  </data>
+  <data name="Fin_Exp_ArOpening" xml:space="preserve">
+    <value>Рассчитано: начальный баланс ({0}) + инвойсы продажи − поступления от покупателей (FIFO)</value>
+  </data>
+  <data name="Fin_Exp_ByAccounts" xml:space="preserve">
+    <value>Рассчитано по счетам: счетов — {0}</value>
+  </data>
+  <data name="Fin_Exp_ByCategories" xml:space="preserve">
+    <value>Рассчитано по категориям: категорий — {0}</value>
+  </data>
+  <data name="Fin_Exp_FinishedGoods" xml:space="preserve">
+    <value>Количество готовой продукции (IsFinishedGood) на производственном складе × последняя себестоимость по этому товару: SalesPriceCIPWithVAT (цена продажи CIP с НДС).</value>
+  </data>
+  <data name="Fin_Exp_Logistics" xml:space="preserve">
+    <value>По путевым листам: {0}, оплаты {1}</value>
+  </data>
+  <data name="Fin_Exp_LogisticsOpening" xml:space="preserve">
+    <value>Начальный баланс ({0}) + путевые листы {1} − оплаты {2}</value>
+  </data>
+  <data name="Fin_Exp_NoAccounts" xml:space="preserve">
+    <value>Счета не привязаны</value>
+  </data>
+  <data name="Fin_Exp_NoCategories" xml:space="preserve">
+    <value>Категории не привязаны</value>
+  </data>
+  <data name="Fin_Exp_OpeningAccounts" xml:space="preserve">
+    <value>Начальный баланс + движения по счетам: счетов — {0}</value>
+  </data>
+  <data name="Fin_Exp_OpeningCategories" xml:space="preserve">
+    <value>Начальный баланс + движения по категориям: категорий — {0}</value>
+  </data>
+  <data name="Fin_Exp_OpeningInsteadOfWarehouse" xml:space="preserve">
+    <value>Значение начального баланса ({0}) (вместо расчёта по складу).</value>
+  </data>
+  <data name="Fin_Exp_OpeningPlusMoves" xml:space="preserve">
+    <value>Начальный баланс ({0}) + последующие движения</value>
+  </data>
+  <data name="Fin_Exp_Payroll" xml:space="preserve">
+    <value>По зарплате: начислено {0}, выплачено {1}</value>
+  </data>
+  <data name="Fin_Exp_PayrollOpening" xml:space="preserve">
+    <value>Начальный остаток по зарплате ({0}) {1} + начислено {2} − выплачено {3}</value>
+  </data>
+  <data name="Fin_Exp_RawMaterials" xml:space="preserve">
+    <value>Остаток склада сырья (товары не категории «Оборудование») × цена единицы последнего прихода на этот склад (TotalPrice/Amount или PiecePrice).</value>
+  </data>
+  <data name="Fin_Exp_Recurring" xml:space="preserve">
+    <value>Регулярные расходы: обязательств — {0}, начислено {1}, оплачено {2}</value>
+  </data>
+  <data name="Fin_Expense" xml:space="preserve">
+    <value>Расход</value>
+  </data>
+  <data name="Fin_ExpenseName" xml:space="preserve">
+    <value>Наименование расхода</value>
+  </data>
+  <data name="Fin_Expenses" xml:space="preserve">
+    <value>Расходы</value>
+  </data>
+  <data name="Fin_FieldError" xml:space="preserve">
+    <value>Поле: {0}, ошибка: {1}</value>
+  </data>
+  <data name="Fin_FileEmpty" xml:space="preserve">
+    <value>Файл не загружен или пуст!</value>
+  </data>
+  <data name="Fin_FileNotSelected" xml:space="preserve">
+    <value>Файл не выбран.</value>
+  </data>
+  <data name="Fin_FinanceAccounts" xml:space="preserve">
+    <value>Финансовые счета</value>
+  </data>
+  <data name="Fin_FinanceCategories" xml:space="preserve">
+    <value>Финансовые категории</value>
+  </data>
+  <data name="Fin_FinanceTransactions" xml:space="preserve">
+    <value>Финансовые операции</value>
+  </data>
+  <data name="Fin_FinishedProducts" xml:space="preserve">
+    <value>Готовая продукция</value>
+  </data>
+  <data name="Fin_Forwarder" xml:space="preserve">
+    <value>Экспедитор</value>
+  </data>
+  <data name="Fin_From" xml:space="preserve">
+    <value>С</value>
+  </data>
+  <data name="Fin_FullName" xml:space="preserve">
+    <value>Полное имя</value>
+  </data>
+  <data name="Fin_FullNameOf" xml:space="preserve">
+    <value>Полное наименование</value>
+  </data>
+  <data name="Fin_FutureProfitFormula" xml:space="preserve">
+    <value>Будущая прибыль = годовая прибыль × {0} лет</value>
+  </data>
+  <data name="Fin_Goods" xml:space="preserve">
+    <value>Товары</value>
+  </data>
+  <data name="Fin_HubTitle" xml:space="preserve">
+    <value>Финансовые отчёты (основные)</value>
+  </data>
+  <data name="Fin_IdShownOnPage" xml:space="preserve">
+    <value>— на этой странице указан ID.</value>
+  </data>
+  <data name="Fin_Imp_AccountCurrencyMismatch" xml:space="preserve">
+    <value>Строка {0}: валюта счёта ({1}) не {2}</value>
+  </data>
+  <data name="Fin_Imp_AccountNotFound" xml:space="preserve">
+    <value>Строка {0}: код счёта не найден — {1}</value>
+  </data>
+  <data name="Fin_Imp_AlreadyExists" xml:space="preserve">
+    <value>Строка {0}: такая операция уже есть в базе (пропущена)</value>
+  </data>
+  <data name="Fin_Imp_BadAmount" xml:space="preserve">
+    <value>Строка {0}: неверная сумма — {1}</value>
+  </data>
+  <data name="Fin_Imp_BadDate" xml:space="preserve">
+    <value>Строка {0}: неверный формат даты — {1}</value>
+  </data>
+  <data name="Fin_Imp_BadDirection" xml:space="preserve">
+    <value>Строка {0}: неверное направление (должно быть 1 или 2) — {1}</value>
+  </data>
+  <data name="Fin_Imp_CategoryNotFound" xml:space="preserve">
+    <value>Строка {0}: категория не найдена — {1}</value>
+  </data>
+  <data name="Fin_Imp_CurrencyNotFound" xml:space="preserve">
+    <value>Строка {0}: валюта не найдена — {1}</value>
+  </data>
+  <data name="Fin_Imp_DuplicateRow" xml:space="preserve">
+    <value>Строка {0}: совпадает со строкой {1} (будут импортированы обе)</value>
+  </data>
+  <data name="Fin_Imp_RowError" xml:space="preserve">
+    <value>Строка {0}: {1}</value>
+  </data>
+  <data name="Fin_ImportConnError" xml:space="preserve">
+    <value>Ошибка связи с сервером во время импорта.</value>
+  </data>
+  <data name="Fin_ImportDoneSave" xml:space="preserve">
+    <value>Импорт успешно завершён. Теперь нажмите «Сохранить».</value>
+  </data>
+  <data name="Fin_ImportDoneWithErrors" xml:space="preserve">
+    <value>Импорт завершён, в некоторых строках есть ошибки:</value>
+  </data>
+  <data name="Fin_ImportErrWarnCount" xml:space="preserve">
+    <value>Строк с ошибками: {0}, предупреждений: {1}.</value>
+  </data>
+  <data name="Fin_ImportError" xml:space="preserve">
+    <value>Ошибка импорта.</value>
+  </data>
+  <data name="Fin_ImportNote" xml:space="preserve">
+    <value>Код счёта, наименование категории и краткое наименование валюты должны существовать в базе. Допустимые значения приведены в шаблоне на листах «Счета», «Категории» и «Валюты».</value>
+  </data>
+  <data name="Fin_ImportProcessError" xml:space="preserve">
+    <value>Ошибка в процессе импорта: {0}</value>
+  </data>
+  <data name="Fin_ImportStep1" xml:space="preserve">
+    <value>Сначала скачайте файл шаблона</value>
+  </data>
+  <data name="Fin_ImportStep2" xml:space="preserve">
+    <value>Заполните шаблон (первая строка — пример, удалите её)</value>
+  </data>
+  <data name="Fin_ImportStep3" xml:space="preserve">
+    <value>Загрузите заполненный файл</value>
+  </data>
+  <data name="Fin_InOutByAccountsChart" xml:space="preserve">
+    <value>Приход/расход по счетам (столбчатая диаграмма)</value>
+  </data>
+  <data name="Fin_Income" xml:space="preserve">
+    <value>Доход</value>
+  </data>
+  <data name="Fin_Incomes" xml:space="preserve">
+    <value>Поступления</value>
+  </data>
+  <data name="Fin_Inflow" xml:space="preserve">
+    <value>Приход</value>
+  </data>
+  <data name="Fin_InnerError" xml:space="preserve">
+    <value>Внутренняя ошибка: {0}</value>
+  </data>
+  <data name="Fin_Instructions" xml:space="preserve">
+    <value>Инструкция</value>
+  </data>
+  <data name="Fin_Inv_CostNote" xml:space="preserve">
+    <value>Себестоимость: {0}/{1}, SalesPriceCIPWithVAT</value>
+  </data>
+  <data name="Fin_Inv_LastIncomeNote" xml:space="preserve">
+    <value>Остаток × цена последнего прихода: {0} {1}</value>
+  </data>
+  <data name="Fin_Inv_NoCost" xml:space="preserve">
+    <value>Себестоимость на дату не найдена</value>
+  </data>
+  <data name="Fin_Inv_NoFinishedStock" xml:space="preserve">
+    <value>На этом складе нет остатка готовой продукции (IsFinishedGood).</value>
+  </data>
+  <data name="Fin_Inv_NoLastIncome" xml:space="preserve">
+    <value>Последний приход (этот склад, на дату) не найден</value>
+  </data>
+  <data name="Fin_Inv_NoPrice" xml:space="preserve">
+    <value>В строке прихода нет цены (PiecePrice / TotalPrice)</value>
+  </data>
+  <data name="Fin_Inv_NoProductionWh" xml:space="preserve">
+    <value>Производственный склад не найден (Настройки → Склады: тип склада должен быть «Производство»).</value>
+  </data>
+  <data name="Fin_Inv_NoRawStock" xml:space="preserve">
+    <value>На этом складе нет остатка сырья.</value>
+  </data>
+  <data name="Fin_Inv_NoRawWh" xml:space="preserve">
+    <value>Склад сырья не найден (Настройки → Склады: тип склада должен быть «Сырьё (снабжение)»).</value>
+  </data>
+  <data name="Fin_InvalidParameters" xml:space="preserve">
+    <value>Неверные параметры</value>
+  </data>
+  <data name="Fin_Item" xml:space="preserve">
+    <value>Статья</value>
+  </data>
+  <data name="Fin_ItemDeleteConfirm" xml:space="preserve">
+    <value>Подтверждаете удаление этой статьи?</value>
+  </data>
+  <data name="Fin_ItemHasCategories" xml:space="preserve">
+    <value>К этой статье привязаны категории.</value>
+  </data>
+  <data name="Fin_ItemHasChildren" xml:space="preserve">
+    <value>У этой статьи есть подстатьи.</value>
+  </data>
+  <data name="Fin_ItemHasPlans" xml:space="preserve">
+    <value>По этой статье есть планы.</value>
+  </data>
+  <data name="Fin_ItemName" xml:space="preserve">
+    <value>Наименование статьи</value>
+  </data>
+  <data name="Fin_LeaveApEmpty" xml:space="preserve">
+    <value>Оставить раздел AP пустым (не сохранять)</value>
+  </data>
+  <data name="Fin_LeaveArEmpty" xml:space="preserve">
+    <value>Оставить раздел AR пустым (не сохранять)</value>
+  </data>
+  <data name="Fin_LeaveEmpty" xml:space="preserve">
+    <value>Оставить пустым</value>
+  </data>
+  <data name="Fin_LeaveEmptyHint1" xml:space="preserve">
+    <value>если отмечено и в сумме указано</value>
+  </data>
+  <data name="Fin_LeaveEmptyHint2" xml:space="preserve">
+    <value>, запись начального баланса для этой категории не сохраняется.</value>
+  </data>
+  <data name="Fin_LeaveEmptyTitle" xml:space="preserve">
+    <value>Не записывать снимок при 0</value>
+  </data>
+  <data name="Fin_LeaveLogisticsEmpty" xml:space="preserve">
+    <value>Оставить раздел логистики пустым (не сохранять)</value>
+  </data>
+  <data name="Fin_LeavePayrollEmpty" xml:space="preserve">
+    <value>Оставить раздел зарплаты пустым (не сохранять)</value>
+  </data>
+  <data name="Fin_LiabilitiesAndEquity" xml:space="preserve">
+    <value>Пассивы и капитал</value>
+  </data>
+  <data name="Fin_LiabilitiesEquityDetails" xml:space="preserve">
+    <value>Детализация пассивов и капитала</value>
+  </data>
+  <data name="Fin_Liability" xml:space="preserve">
+    <value>Пассив</value>
+  </data>
+  <data name="Fin_LineCount" xml:space="preserve">
+    <value>Количество строк</value>
+  </data>
+  <data name="Fin_Lines" xml:space="preserve">
+    <value>Строки</value>
+  </data>
+  <data name="Fin_Load" xml:space="preserve">
+    <value>Загрузить</value>
+  </data>
+  <data name="Fin_LoadError" xml:space="preserve">
+    <value>Ошибка загрузки</value>
+  </data>
+  <data name="Fin_LoadErrorShort" xml:space="preserve">
+    <value>Ошибка загрузки</value>
+  </data>
+  <data name="Fin_LogisticsByContract" xml:space="preserve">
+    <value>Задолженность по логистике — в разрезе договоров экспедиторов</value>
+  </data>
+  <data name="Fin_LogisticsDebtTitle" xml:space="preserve">
+    <value>Задолженность по логистике</value>
+  </data>
+  <data name="Fin_ManageShares" xml:space="preserve">
+    <value>Управление долями</value>
+  </data>
+  <data name="Fin_Mandatory" xml:space="preserve">
+    <value>Обязательно</value>
+  </data>
+  <data name="Fin_Manual" xml:space="preserve">
+    <value>Вручную</value>
+  </data>
+  <data name="Fin_MapCategories" xml:space="preserve">
+    <value>Связать категории</value>
+  </data>
+  <data name="Fin_MappedCategories" xml:space="preserve">
+    <value>Связанные категории</value>
+  </data>
+  <data name="Fin_Month" xml:space="preserve">
+    <value>Месяц</value>
+  </data>
+  <data name="Fin_MonthlyAmount" xml:space="preserve">
+    <value>Ежемесячная сумма</value>
+  </data>
+  <data name="Fin_MonthlyTrend" xml:space="preserve">
+    <value>Помесячная динамика</value>
+  </data>
+  <data name="Fin_MovementsLower" xml:space="preserve">
+    <value>движения</value>
+  </data>
+  <data name="Fin_Negative" xml:space="preserve">
+    <value>Отрицательный</value>
+  </data>
+  <data name="Fin_NetAmount" xml:space="preserve">
+    <value>Чистая сумма</value>
+  </data>
+  <data name="Fin_NetAssets" xml:space="preserve">
+    <value>Чистые активы</value>
+  </data>
+  <data name="Fin_NetCashflow" xml:space="preserve">
+    <value>Чистый денежный поток</value>
+  </data>
+  <data name="Fin_NewAccount" xml:space="preserve">
+    <value>Новый счёт</value>
+  </data>
+  <data name="Fin_NewCategory" xml:space="preserve">
+    <value>Новая категория</value>
+  </data>
+  <data name="Fin_NewEditToday" xml:space="preserve">
+    <value>Создать / изменить (на сегодня)</value>
+  </data>
+  <data name="Fin_NewItem" xml:space="preserve">
+    <value>Новая статья</value>
+  </data>
+  <data name="Fin_NewPlan" xml:space="preserve">
+    <value>Новый план</value>
+  </data>
+  <data name="Fin_NewShareholder" xml:space="preserve">
+    <value>Новый акционер</value>
+  </data>
+  <data name="Fin_NewTx" xml:space="preserve">
+    <value>Новая операция</value>
+  </data>
+  <data name="Fin_NoActiveAccountsLinked" xml:space="preserve">
+    <value>Нет активных счетов, привязанных к категории баланса</value>
+  </data>
+  <data name="Fin_NoCashAccountWarn" xml:space="preserve">
+    <value>Активный кассовый счёт в этой валюте не найден — взнос сохранён, но приход в кассу не записан.</value>
+  </data>
+  <data name="Fin_NoContractSelected" xml:space="preserve">
+    <value>Договор не выбран</value>
+  </data>
+  <data name="Fin_NoContributions" xml:space="preserve">
+    <value>Взносов нет</value>
+  </data>
+  <data name="Fin_NoDataFound" xml:space="preserve">
+    <value>Данные не найдены</value>
+  </data>
+  <data name="Fin_NoDebtFound" xml:space="preserve">
+    <value>Задолженность не выявлена</value>
+  </data>
+  <data name="Fin_NoOpeningYet" xml:space="preserve">
+    <value>Сохранённых записей начального баланса пока нет.</value>
+  </data>
+  <data name="Fin_NoParentCategory" xml:space="preserve">
+    <value>Без родительской категории</value>
+  </data>
+  <data name="Fin_NoParentItem" xml:space="preserve">
+    <value>Без родительской статьи</value>
+  </data>
+  <data name="Fin_NoSelectRecurringDebt" xml:space="preserve">
+    <value>-Не выбирать (задолженность по регулярным расходам)</value>
+  </data>
+  <data name="Fin_NoUnpaidRecurring" xml:space="preserve">
+    <value>Неоплаченных регулярных расходов нет</value>
+  </data>
+  <data name="Fin_NoValidTx" xml:space="preserve">
+    <value>Не найдено ни одной корректной операции!</value>
+  </data>
+  <data name="Fin_NotEntered" xml:space="preserve">
+    <value>Не введено</value>
+  </data>
+  <data name="Fin_NotSelected" xml:space="preserve">
+    <value>Не выбрано</value>
+  </data>
+  <data name="Fin_NotSetDash" xml:space="preserve">
+    <value>— не указано —</value>
+  </data>
+  <data name="Fin_ObImp_ContractMismatch" xml:space="preserve">
+    <value>{0}, строка {1}: договор не соответствует контрагенту.</value>
+  </data>
+  <data name="Fin_ObImp_ContractNotFound" xml:space="preserve">
+    <value>{0}, строка {1}: договор не найден.</value>
+  </data>
+  <data name="Fin_ObImp_CounterpartyNotFound" xml:space="preserve">
+    <value>{0}, строка {1}: контрагент не найден.</value>
+  </data>
+  <data name="Fin_Obligation" xml:space="preserve">
+    <value>Обязательство</value>
+  </data>
+  <data name="Fin_OnlyXlsx" xml:space="preserve">
+    <value>Принимается только формат .xlsx.</value>
+  </data>
+  <data name="Fin_OnlyXlsxUpload" xml:space="preserve">
+    <value>Можно загружать только файлы формата .xlsx!</value>
+  </data>
+  <data name="Fin_OpeningAccountsHint1" xml:space="preserve">
+    <value>Начальный остаток каждого счёта. Если введён, начальный остаток категории этих счетов сохраняется равным их</value>
+  </data>
+  <data name="Fin_OpeningAccountsHint2" xml:space="preserve">
+    <value>сумме</value>
+  </data>
+  <data name="Fin_OpeningAccountsHint3" xml:space="preserve">
+    <value>(вместо суммы выше). Для незаполненного счёта запись не сохраняется.</value>
+  </data>
+  <data name="Fin_OpeningAndBalance" xml:space="preserve">
+    <value>Начальный баланс и остаток</value>
+  </data>
+  <data name="Fin_OpeningArApHint1" xml:space="preserve">
+    <value>В разделах AR/AP</value>
+  </data>
+  <data name="Fin_OpeningArApHint2" xml:space="preserve">
+    <value>берётся из данных системы (только чтение).</value>
+  </data>
+  <data name="Fin_OpeningArApHint3" xml:space="preserve">
+    <value>Вводите только</value>
+  </data>
+  <data name="Fin_OpeningArApHint4" xml:space="preserve">
+    <value>сумму.</value>
+  </data>
+  <data name="Fin_OpeningBalance" xml:space="preserve">
+    <value>Начальный баланс</value>
+  </data>
+  <data name="Fin_OpeningBalanceAmount" xml:space="preserve">
+    <value>Начальный остаток</value>
+  </data>
+  <data name="Fin_OpeningByAccounts" xml:space="preserve">
+    <value>Начальные остатки по счетам</value>
+  </data>
+  <data name="Fin_OpeningByAccountsCashBank" xml:space="preserve">
+    <value>Начальные остатки по счетам (касса, банк)</value>
+  </data>
+  <data name="Fin_OpeningDate" xml:space="preserve">
+    <value>Дата начального баланса</value>
+  </data>
+  <data name="Fin_OpeningDateHint" xml:space="preserve">
+    <value>Все остатки вводятся впервые по состоянию на эту дату.</value>
+  </data>
+  <data name="Fin_OpeningDates" xml:space="preserve">
+    <value>Начальный баланс — даты</value>
+  </data>
+  <data name="Fin_OpeningDeleteWarn" xml:space="preserve">
+    <value>Все записи начального баланса на эту дату будут удалены.</value>
+  </data>
+  <data name="Fin_OpeningDeleted" xml:space="preserve">
+    <value>Начальный баланс ({0}) удалён.</value>
+  </data>
+  <data name="Fin_OpeningDetailsHeader" xml:space="preserve">
+    <value>Начальный баланс — подробный просмотр</value>
+  </data>
+  <data name="Fin_OpeningDetailsTitle" xml:space="preserve">
+    <value>Начальный баланс — подробно</value>
+  </data>
+  <data name="Fin_OpeningEditHeader" xml:space="preserve">
+    <value>Начальный баланс — входящие остатки</value>
+  </data>
+  <data name="Fin_OpeningEditTitle" xml:space="preserve">
+    <value>Начальный баланс — редактирование</value>
+  </data>
+  <data name="Fin_OpeningNotFoundForDate" xml:space="preserve">
+    <value>Записи начального баланса на выбранную дату не найдены.</value>
+  </data>
+  <data name="Fin_OpeningSaved" xml:space="preserve">
+    <value>Начальный баланс успешно сохранён.</value>
+  </data>
+  <data name="Fin_OperatingExpenses" xml:space="preserve">
+    <value>Операционные расходы</value>
+  </data>
+  <data name="Fin_OperatingIncome" xml:space="preserve">
+    <value>Операционный доход</value>
+  </data>
+  <data name="Fin_OperatingIncome12m" xml:space="preserve">
+    <value>Операционный доход (последние 12 месяцев)</value>
+  </data>
+  <data name="Fin_OperatingProfit" xml:space="preserve">
+    <value>Операционная прибыль</value>
+  </data>
+  <data name="Fin_OptionalCap" xml:space="preserve">
+    <value>Необязательно</value>
+  </data>
+  <data name="Fin_Order" xml:space="preserve">
+    <value>Порядок</value>
+  </data>
+  <data name="Fin_Organization" xml:space="preserve">
+    <value>Организация</value>
+  </data>
+  <data name="Fin_Other" xml:space="preserve">
+    <value>Другое</value>
+  </data>
+  <data name="Fin_OtherBalanceCategories" xml:space="preserve">
+    <value>Прочие категории баланса</value>
+  </data>
+  <data name="Fin_OtherCategoriesManual" xml:space="preserve">
+    <value>Прочие категории баланса (ручной ввод)</value>
+  </data>
+  <data name="Fin_OverviewTitle" xml:space="preserve">
+    <value>Финансовый дашборд — общий обзор</value>
+  </data>
+  <data name="Fin_Owner" xml:space="preserve">
+    <value>Владелец</value>
+  </data>
+  <data name="Fin_Paid" xml:space="preserve">
+    <value>Оплачено</value>
+  </data>
+  <data name="Fin_PaidMoney" xml:space="preserve">
+    <value>Оплачено нами</value>
+  </data>
+  <data name="Fin_PaidReceived" xml:space="preserve">
+    <value>оплаченную/полученную</value>
+  </data>
+  <data name="Fin_ParentCategory" xml:space="preserve">
+    <value>Родительская категория</value>
+  </data>
+  <data name="Fin_ParentCycleCategory" xml:space="preserve">
+    <value>Нельзя выбрать в качестве родительской саму категорию или её дочернюю категорию.</value>
+  </data>
+  <data name="Fin_ParentCycleItem" xml:space="preserve">
+    <value>Нельзя выбрать в качестве родительской саму статью или её дочернюю статью.</value>
+  </data>
+  <data name="Fin_ParentItem" xml:space="preserve">
+    <value>Родительская статья</value>
+  </data>
+  <data name="Fin_Payable" xml:space="preserve">
+    <value>Мы должны</value>
+  </data>
+  <data name="Fin_PayableToSuppliers" xml:space="preserve">
+    <value>Кредиторская задолженность поставщикам</value>
+  </data>
+  <data name="Fin_PayablesAccountBalances" xml:space="preserve">
+    <value>Остатки по счетам кредиторской задолженности</value>
+  </data>
+  <data name="Fin_PayablesBySuppliers" xml:space="preserve">
+    <value>Кредиторская задолженность по поставщикам</value>
+  </data>
+  <data name="Fin_PayablesTitle" xml:space="preserve">
+    <value>Задолженность поставщикам (Payables)</value>
+  </data>
+  <data name="Fin_PayablesToSuppliers" xml:space="preserve">
+    <value>Задолженность поставщикам</value>
+  </data>
+  <data name="Fin_PayrollByEmployee" xml:space="preserve">
+    <value>Задолженность по заработной плате (HRM) — в разрезе сотрудников</value>
+  </data>
+  <data name="Fin_PayrollDebt" xml:space="preserve">
+    <value>Задолженность по зарплате</value>
+  </data>
+  <data name="Fin_PayrollDebtByEmployee" xml:space="preserve">
+    <value>Задолженность по зарплате (в разрезе сотрудников)</value>
+  </data>
+  <data name="Fin_PayrollDebtPlural" xml:space="preserve">
+    <value>Задолженность по зарплате</value>
+  </data>
+  <data name="Fin_PayrollDebtTitle" xml:space="preserve">
+    <value>Задолженность по заработной плате (HRM)</value>
+  </data>
+  <data name="Fin_PayrollDebtTrend" xml:space="preserve">
+    <value>Задолженность по зарплате (динамика)</value>
+  </data>
+  <data name="Fin_PdfDownloadWhole" xml:space="preserve">
+    <value>Скачать PDF (вся страница)</value>
+  </data>
+  <data name="Fin_PdfExportError" xml:space="preserve">
+    <value>Ошибка экспорта PDF:</value>
+  </data>
+  <data name="Fin_PdfPreparing" xml:space="preserve">
+    <value>Подготовка PDF...</value>
+  </data>
+  <data name="Fin_PerMonth" xml:space="preserve">
+    <value>В месяц</value>
+  </data>
+  <data name="Fin_Percent" xml:space="preserve">
+    <value>Процент</value>
+  </data>
+  <data name="Fin_PeriodEnd" xml:space="preserve">
+    <value>Окончание</value>
+  </data>
+  <data name="Fin_PeriodStart" xml:space="preserve">
+    <value>Начало</value>
+  </data>
+  <data name="Fin_PlBulkEditTitle" xml:space="preserve">
+    <value>Групповое редактирование планов P&amp;L</value>
+  </data>
+  <data name="Fin_PlBulkEditTitleFor" xml:space="preserve">
+    <value>Групповое редактирование планов P&amp;L — {0} год, {1}</value>
+  </data>
+  <data name="Fin_PlItem" xml:space="preserve">
+    <value>Статья P&amp;L</value>
+  </data>
+  <data name="Fin_PlItemDetails" xml:space="preserve">
+    <value>Сведения о статье P&amp;L</value>
+  </data>
+  <data name="Fin_PlItems" xml:space="preserve">
+    <value>Статьи P&amp;L</value>
+  </data>
+  <data name="Fin_PlPlans" xml:space="preserve">
+    <value>Планы P&amp;L</value>
+  </data>
+  <data name="Fin_PlReport" xml:space="preserve">
+    <value>Отчёт о прибылях и убытках</value>
+  </data>
+  <data name="Fin_Plan" xml:space="preserve">
+    <value>План</value>
+  </data>
+  <data name="Fin_PlanAmount" xml:space="preserve">
+    <value>Плановая сумма</value>
+  </data>
+  <data name="Fin_PlanCount" xml:space="preserve">
+    <value>Количество планов</value>
+  </data>
+  <data name="Fin_PlanDeleteConfirm" xml:space="preserve">
+    <value>Подтверждаете удаление этого плана?</value>
+  </data>
+  <data name="Fin_PlanExists" xml:space="preserve">
+    <value>План на этот месяц и статью уже существует. Перейдите на страницу редактирования.</value>
+  </data>
+  <data name="Fin_PlanExistsOther" xml:space="preserve">
+    <value>Для этого месяца и статьи уже существует другой план.</value>
+  </data>
+  <data name="Fin_PluralByAccountsPie" xml:space="preserve">
+    <value>{0} по счетам (круговая диаграмма)</value>
+  </data>
+  <data name="Fin_PluralByCategoriesBar" xml:space="preserve">
+    <value>{0} по категориям (столбчатая диаграмма)</value>
+  </data>
+  <data name="Fin_PluralByCategoriesPie" xml:space="preserve">
+    <value>{0} по категориям (круговая диаграмма)</value>
+  </data>
+  <data name="Fin_PluralMonthlyTrend" xml:space="preserve">
+    <value>Помесячная динамика: {0}</value>
+  </data>
+  <data name="Fin_PluralTable" xml:space="preserve">
+    <value>Таблица: {0}</value>
+  </data>
+  <data name="Fin_Positive" xml:space="preserve">
+    <value>Положительный</value>
+  </data>
+  <data name="Fin_Product" xml:space="preserve">
+    <value>Товар</value>
+  </data>
+  <data name="Fin_ProjectionYears" xml:space="preserve">
+    <value>Горизонт прогноза, лет (2-5)</value>
+  </data>
+  <data name="Fin_Purpose" xml:space="preserve">
+    <value>Назначение</value>
+  </data>
+  <data name="Fin_RawMaterials" xml:space="preserve">
+    <value>Сырьё</value>
+  </data>
+  <data name="Fin_Receivable" xml:space="preserve">
+    <value>Нам должны</value>
+  </data>
+  <data name="Fin_ReceivableFromCustomers" xml:space="preserve">
+    <value>Дебиторская задолженность покупателей</value>
+  </data>
+  <data name="Fin_ReceivablesAccountBalances" xml:space="preserve">
+    <value>Остатки по счетам дебиторской задолженности</value>
+  </data>
+  <data name="Fin_ReceivablesByCustomers" xml:space="preserve">
+    <value>Дебиторская задолженность по покупателям</value>
+  </data>
+  <data name="Fin_ReceivablesFromBuyers" xml:space="preserve">
+    <value>Задолженность покупателей</value>
+  </data>
+  <data name="Fin_ReceivablesTitle" xml:space="preserve">
+    <value>Задолженность покупателей (Receivables)</value>
+  </data>
+  <data name="Fin_Received" xml:space="preserve">
+    <value>Получено</value>
+  </data>
+  <data name="Fin_ReceivedMoney" xml:space="preserve">
+    <value>Получено нами</value>
+  </data>
+  <data name="Fin_RecurringCatHint" xml:space="preserve">
+    <value>Обычно выбирайте «Задолженность по регулярным расходам» (в балансе отображается под ней).</value>
+  </data>
+  <data name="Fin_RecurringExpenses" xml:space="preserve">
+    <value>Регулярные расходы</value>
+  </data>
+  <data name="Fin_RecurringExpensesLong" xml:space="preserve">
+    <value>Регулярные расходы (аренда, бухгалтерия и т. п.)</value>
+  </data>
+  <data name="Fin_RecurringInfo1" xml:space="preserve">
+    <value>Расходы из этого списка ежемесячно формируются в балансе как «Задолженность по регулярным расходам». При вводе оплаты через</value>
+  </data>
+  <data name="Fin_RecurringInfo2" xml:space="preserve">
+    <value>укажите</value>
+  </data>
+  <data name="Fin_RecurringInfo3" xml:space="preserve">
+    <value>ID обязательства из списка ниже.</value>
+  </data>
+  <data name="Fin_RecurringNamePh" xml:space="preserve">
+    <value>Например: арендная плата, бухгалтерские услуги</value>
+  </data>
+  <data name="Fin_RecurringReadError" xml:space="preserve">
+    <value>Ошибка чтения регулярного расхода: {0}</value>
+  </data>
+  <data name="Fin_RecurringTableMissing" xml:space="preserve">
+    <value>Таблица регулярных расходов не найдена. Проверьте, применена ли миграция Database/Migrations/003_FIN_RECURRING_OBLIGATIONS.sql (Database/tools/Invoke-DbMigrations.ps1).</value>
+  </data>
+  <data name="Fin_RecurringUnpaidTitle" xml:space="preserve">
+    <value>Регулярные расходы: что не оплачено</value>
+  </data>
+  <data name="Fin_RemainingDebt" xml:space="preserve">
+    <value>Остаток долга</value>
+  </data>
+  <data name="Fin_RetainedEarningsCalc" xml:space="preserve">
+    <value>Нераспределённая прибыль (расчётная)</value>
+  </data>
+  <data name="Fin_RetainedEarningsFormula" xml:space="preserve">
+    <value>Активы {0} − обязательства {1} − внесённый капитал {2}</value>
+  </data>
+  <data name="Fin_RetainedEarningsHint" xml:space="preserve">
+    <value>Активы − обязательства − внесённый капитал; балансирующая строка</value>
+  </data>
+  <data name="Fin_SaveError" xml:space="preserve">
+    <value>Ошибка сохранения: {0}</value>
+  </data>
+  <data name="Fin_SaveErrorWith" xml:space="preserve">
+    <value>Ошибка при сохранении: {0}</value>
+  </data>
+  <data name="Fin_SelectCounterpartyTypeFirst" xml:space="preserve">
+    <value>Сначала выберите тип контрагента</value>
+  </data>
+  <data name="Fin_SelectDateFirst" xml:space="preserve">
+    <value>Сначала выберите дату.</value>
+  </data>
+  <data name="Fin_SelectDots" xml:space="preserve">
+    <value>Выберите...</value>
+  </data>
+  <data name="Fin_SelectExcelFile" xml:space="preserve">
+    <value>Выберите файл Excel (.xlsx)</value>
+  </data>
+  <data name="Fin_SelectOptional" xml:space="preserve">
+    <value>Выберите... (необязательно)</value>
+  </data>
+  <data name="Fin_SelectSupplier" xml:space="preserve">
+    <value>Выберите поставщика</value>
+  </data>
+  <data name="Fin_SharePct" xml:space="preserve">
+    <value>Доля, %</value>
+  </data>
+  <data name="Fin_SharePeriodAdded" xml:space="preserve">
+    <value>Период доли добавлен.</value>
+  </data>
+  <data name="Fin_ShareRangeError" xml:space="preserve">
+    <value>Доля должна быть больше 0% и не превышать 100%.</value>
+  </data>
+  <data name="Fin_Shareholder" xml:space="preserve">
+    <value>Акционер</value>
+  </data>
+  <data name="Fin_ShareholderDeleteConfirm" xml:space="preserve">
+    <value>Подтверждаете удаление этого акционера?</value>
+  </data>
+  <data name="Fin_ShareholderDetails" xml:space="preserve">
+    <value>Сведения об акционере</value>
+  </data>
+  <data name="Fin_ShareholderHasContributions" xml:space="preserve">
+    <value>У этого акционера есть взносы.</value>
+  </data>
+  <data name="Fin_ShareholderHasPeriods" xml:space="preserve">
+    <value>У этого акционера есть периоды долей. При удалении он будет деактивирован.</value>
+  </data>
+  <data name="Fin_Shareholders" xml:space="preserve">
+    <value>Акционеры</value>
+  </data>
+  <data name="Fin_SharesOver100" xml:space="preserve">
+    <value>Сумма долей превышает 100% (занято в этом периоде: {0}%). Если у акционера есть предыдущий период, сначала укажите его дату окончания.</value>
+  </data>
+  <data name="Fin_ShortName" xml:space="preserve">
+    <value>Краткое наименование</value>
+  </data>
+  <data name="Fin_Show" xml:space="preserve">
+    <value>Показать</value>
+  </data>
+  <data name="Fin_Sign" xml:space="preserve">
+    <value>Знак</value>
+  </data>
+  <data name="Fin_SnapshotCount" xml:space="preserve">
+    <value>Количество снимков</value>
+  </data>
+  <data name="Fin_SortOrder" xml:space="preserve">
+    <value>Порядковый номер</value>
+  </data>
+  <data name="Fin_Source" xml:space="preserve">
+    <value>Источник</value>
+  </data>
+  <data name="Fin_SourceDoc" xml:space="preserve">
+    <value>Документ-основание</value>
+  </data>
+  <data name="Fin_SourceDocId" xml:space="preserve">
+    <value>ID документа-основания</value>
+  </data>
+  <data name="Fin_SourceDocIdLong" xml:space="preserve">
+    <value>ID документа-основания (ID обязательства или инвойса закупки)</value>
+  </data>
+  <data name="Fin_SourceDocType" xml:space="preserve">
+    <value>Тип документа-основания</value>
+  </data>
+  <data name="Fin_SourceTypeNotManual" xml:space="preserve">
+    <value>Этот тип документа-основания нельзя выбрать вручную.</value>
+  </data>
+  <data name="Fin_Src_ExpenseDoc" xml:space="preserve">
+    <value>Расход со склада</value>
+  </data>
+  <data name="Fin_Src_IncomeDoc" xml:space="preserve">
+    <value>Приход на склад</value>
+  </data>
+  <data name="Fin_Src_PurchaseInvoice" xml:space="preserve">
+    <value>Инвойс закупки</value>
+  </data>
+  <data name="Fin_Src_RecurringPayment" xml:space="preserve">
+    <value>Оплата регулярного расхода (аренда, бухгалтерия и т. п.)</value>
+  </data>
+  <data name="Fin_Src_SalesInvoice" xml:space="preserve">
+    <value>Инвойс продажи</value>
+  </data>
+  <data name="Fin_Src_ShareholderContribution" xml:space="preserve">
+    <value>Взнос акционера</value>
+  </data>
+  <data name="Fin_Src_SupplierPayment" xml:space="preserve">
+    <value>Оплата поставщику (с привязкой к инвойсу закупки)</value>
+  </data>
+  <data name="Fin_Src_WaybillPayment" xml:space="preserve">
+    <value>Оплата путевого листа</value>
+  </data>
+  <data name="Fin_Start" xml:space="preserve">
+    <value>Начало</value>
+  </data>
+  <data name="Fin_StartMonth" xml:space="preserve">
+    <value>Месяц начала</value>
+  </data>
+  <data name="Fin_StartYear" xml:space="preserve">
+    <value>Год начала</value>
+  </data>
+  <data name="Fin_State" xml:space="preserve">
+    <value>Статус</value>
+  </data>
+  <data name="Fin_SubCategories" xml:space="preserve">
+    <value>Подкатегории</value>
+  </data>
+  <data name="Fin_SubItems" xml:space="preserve">
+    <value>Подстатьи</value>
+  </data>
+  <data name="Fin_Subtracted" xml:space="preserve">
+    <value>Вычтено</value>
+  </data>
+  <data name="Fin_SuccessExcl" xml:space="preserve">
+    <value>Успешно!</value>
+  </data>
+  <data name="Fin_Supplier" xml:space="preserve">
+    <value>Поставщик</value>
+  </data>
+  <data name="Fin_SupplierEn" xml:space="preserve">
+    <value>Поставщик</value>
+  </data>
+  <data name="Fin_SupplierNum" xml:space="preserve">
+    <value>Поставщик #{0}</value>
+  </data>
+  <data name="Fin_SupplierPayCounterpartyRequired" xml:space="preserve">
+    <value>Для оплаты поставщику необходимо выбрать контрагента (ID).</value>
+  </data>
+  <data name="Fin_SupplierPayDocRequired" xml:space="preserve">
+    <value>Для оплаты поставщику необходимо указать ID документа-основания (ID инвойса закупки).</value>
+  </data>
+  <data name="Fin_SupplierPayTypeRequired" xml:space="preserve">
+    <value>Для оплаты поставщику тип контрагента должен быть «Поставщик».</value>
+  </data>
+  <data name="Fin_SupplierPaymentHint" xml:space="preserve">
+    <value>При оплате поставщику: выберите «Оплата поставщику», Тип контрагента = Поставщик, ID контрагента = ID поставщика, ID документа-основания = ID инвойса закупки (для списания в балансе).</value>
+  </data>
+  <data name="Fin_TemplateColumns" xml:space="preserve">
+    <value>Столбцы файла шаблона</value>
+  </data>
+  <data name="Fin_To" xml:space="preserve">
+    <value>По</value>
+  </data>
+  <data name="Fin_ToList" xml:space="preserve">
+    <value>К списку</value>
+  </data>
+  <data name="Fin_TopCustomers" xml:space="preserve">
+    <value>ТОП покупателей (дебиторская задолженность)</value>
+  </data>
+  <data name="Fin_TopExpenseCategories" xml:space="preserve">
+    <value>Категории с наибольшими расходами</value>
+  </data>
+  <data name="Fin_TopIncomeCategories" xml:space="preserve">
+    <value>Категории с наибольшими поступлениями</value>
+  </data>
+  <data name="Fin_TopSuppliers" xml:space="preserve">
+    <value>ТОП поставщиков (кредиторская задолженность)</value>
+  </data>
+  <data name="Fin_TotalAccrued" xml:space="preserve">
+    <value>Всего начислено</value>
+  </data>
+  <data name="Fin_TotalAmt" xml:space="preserve">
+    <value>Всего</value>
+  </data>
+  <data name="Fin_TotalAssets" xml:space="preserve">
+    <value>Итого активы</value>
+  </data>
+  <data name="Fin_TotalBalance" xml:space="preserve">
+    <value>Общий остаток</value>
+  </data>
+  <data name="Fin_TotalCompanyValue" xml:space="preserve">
+    <value>Итоговая стоимость компании</value>
+  </data>
+  <data name="Fin_TotalExpense" xml:space="preserve">
+    <value>Итого расход</value>
+  </data>
+  <data name="Fin_TotalIncome" xml:space="preserve">
+    <value>Итого приход</value>
+  </data>
+  <data name="Fin_TotalLiabilitiesAndEquity" xml:space="preserve">
+    <value>Итого пассивы и капитал</value>
+  </data>
+  <data name="Fin_TotalLiabilitiesObl" xml:space="preserve">
+    <value>Итого пассивы (обязательства)</value>
+  </data>
+  <data name="Fin_TotalLogisticsDebt" xml:space="preserve">
+    <value>Итого задолженность по логистике</value>
+  </data>
+  <data name="Fin_TotalPayable" xml:space="preserve">
+    <value>Итого кредиторская задолженность</value>
+  </data>
+  <data name="Fin_TotalPayrollDebt" xml:space="preserve">
+    <value>Итого задолженность по зарплате</value>
+  </data>
+  <data name="Fin_TotalReceivable" xml:space="preserve">
+    <value>Итого дебиторская задолженность</value>
+  </data>
+  <data name="Fin_TotalTurnover" xml:space="preserve">
+    <value>Общий оборот</value>
+  </data>
+  <data name="Fin_Transactions" xml:space="preserve">
+    <value>Операции</value>
+  </data>
+  <data name="Fin_TxAmount" xml:space="preserve">
+    <value>Сумма операции</value>
+  </data>
+  <data name="Fin_TxAutoCreated1" xml:space="preserve">
+    <value>Эта операция создана автоматически из документа</value>
+  </data>
+  <data name="Fin_TxAutoCreated2" xml:space="preserve">
+    <value>— удалить её нельзя.</value>
+  </data>
+  <data name="Fin_TxAutoCreatedHint" xml:space="preserve">
+    <value>Чтобы удалить её, удалите или отмените исходный документ.</value>
+  </data>
+  <data name="Fin_TxByAccounts" xml:space="preserve">
+    <value>Операции по счетам</value>
+  </data>
+  <data name="Fin_TxCategories" xml:space="preserve">
+    <value>Категории операций</value>
+  </data>
+  <data name="Fin_TxCount" xml:space="preserve">
+    <value>Количество операций</value>
+  </data>
+  <data name="Fin_TxDate" xml:space="preserve">
+    <value>Дата операции</value>
+  </data>
+  <data name="Fin_TxDeleteConfirm" xml:space="preserve">
+    <value>Подтверждаете удаление этой операции?</value>
+  </data>
+  <data name="Fin_TxDeleted" xml:space="preserve">
+    <value>Операция успешно удалена.</value>
+  </data>
+  <data name="Fin_TxDetails" xml:space="preserve">
+    <value>Сведения об операции</value>
+  </data>
+  <data name="Fin_TxFromDocEditViaSource" xml:space="preserve">
+    <value>Эта операция создана из документа «{0}». Изменяйте её через исходный документ.</value>
+  </data>
+  <data name="Fin_TxFromDocNoDelete" xml:space="preserve">
+    <value>Эта операция создана из документа «{0}». Удаление невозможно.</value>
+  </data>
+  <data name="Fin_TxFromDocNoEdit" xml:space="preserve">
+    <value>Эта операция создана из документа «{0}». Редактирование невозможно.</value>
+  </data>
+  <data name="Fin_TxImportTitle" xml:space="preserve">
+    <value>Импорт операций из Excel</value>
+  </data>
+  <data name="Fin_TxImported" xml:space="preserve">
+    <value>Успешно импортировано операций: {0}!</value>
+  </data>
+  <data name="Fin_TxNotFoundOrDeleted" xml:space="preserve">
+    <value>Операция не найдена или уже удалена.</value>
+  </data>
+  <data name="Fin_TxPurpose" xml:space="preserve">
+    <value>Назначение операции</value>
+  </data>
+  <data name="Fin_TxTime" xml:space="preserve">
+    <value>Время операции</value>
+  </data>
+  <data name="Fin_UnitPrice" xml:space="preserve">
+    <value>Цена за единицу</value>
+  </data>
+  <data name="Fin_Unknown" xml:space="preserve">
+    <value>Неизвестно</value>
+  </data>
+  <data name="Fin_UnpaidRecurring" xml:space="preserve">
+    <value>Неоплаченные регулярные расходы</value>
+  </data>
+  <data name="Fin_UntilNow" xml:space="preserve">
+    <value>По настоящее время</value>
+  </data>
+  <data name="Fin_UploadAndImport" xml:space="preserve">
+    <value>Загрузить файл и импортировать</value>
+  </data>
+  <data name="Fin_UserNotFound" xml:space="preserve">
+    <value>Пользователь не найден: {0}. Ошибка: {1}. Войдите в систему заново или обратитесь к администратору.</value>
+  </data>
+  <data name="Fin_ValidationFailed" xml:space="preserve">
+    <value>Данные не прошли проверку: {0}</value>
+  </data>
+  <data name="Fin_ValueOf" xml:space="preserve">
+    <value>Стоимость</value>
+  </data>
+  <data name="Fin_Variance" xml:space="preserve">
+    <value>Отклонение</value>
+  </data>
+  <data name="Fin_VariancePct" xml:space="preserve">
+    <value>Отклонение, %</value>
+  </data>
+  <data name="Fin_Warehouse" xml:space="preserve">
+    <value>Склад</value>
+  </data>
+  <data name="Fin_WarningExcl" xml:space="preserve">
+    <value>Предупреждение!</value>
+  </data>
+  <data name="Fin_WithDcf" xml:space="preserve">
+    <value>По DCF</value>
+  </data>
+  <data name="Fin_WithEbitda" xml:space="preserve">
+    <value>По EBITDA</value>
+  </data>
+  <data name="Fin_Year" xml:space="preserve">
+    <value>Год</value>
+  </data>
+  <data name="Fin_YesDelete" xml:space="preserve">
+    <value>Да, удалить</value>
+  </data>
+  <data name="Mes_List" xml:space="preserve">
+    <value>Список</value>
+  </data>
+  <data name="Mes_Product" xml:space="preserve">
+    <value>Продукция</value>
+  </data>
+  <data name="Mes_ProductNo" xml:space="preserve">
+    <value>Номер продукции</value>
+  </data>
+  <data name="Mes_ProductName" xml:space="preserve">
+    <value>Наименование продукции</value>
+  </data>
+  <data name="Mes_ProductCode" xml:space="preserve">
+    <value>Код продукции</value>
+  </data>
+  <data name="Mes_ProductInfo" xml:space="preserve">
+    <value>Данные продукции</value>
+  </data>
+  <data name="Mes_ProductNotFound" xml:space="preserve">
+    <value>Продукция не найдена.</value>
+  </data>
+  <data name="Mes_MaterialCode" xml:space="preserve">
+    <value>Код материала</value>
+  </data>
+  <data name="Mes_MaterialName" xml:space="preserve">
+    <value>Наименование материала</value>
+  </data>
+  <data name="Mes_Actual" xml:space="preserve">
+    <value>Факт</value>
+  </data>
+  <data name="Mes_DataNotFound" xml:space="preserve">
+    <value>Данные не найдены</value>
+  </data>
+  <data name="Mes_DayShift" xml:space="preserve">
+    <value>Дневная смена</value>
+  </data>
+  <data name="Mes_FactProductionDate" xml:space="preserve">
+    <value>Фактическая дата производства</value>
+  </data>
+  <data name="Mes_From" xml:space="preserve">
+    <value>С</value>
+  </data>
+  <data name="Mes_Info" xml:space="preserve">
+    <value>Сведения</value>
+  </data>
+  <data name="Mes_Load" xml:space="preserve">
+    <value>Загрузить</value>
+  </data>
+  <data name="Mes_Materials" xml:space="preserve">
+    <value>Материалы</value>
+  </data>
+  <data name="Mes_Month" xml:space="preserve">
+    <value>Месяц</value>
+  </data>
+  <data name="Mes_NightShift" xml:space="preserve">
+    <value>Ночная смена</value>
+  </data>
+  <data name="Mes_Order" xml:space="preserve">
+    <value>Заказ</value>
+  </data>
+  <data name="Mes_Plan" xml:space="preserve">
+    <value>План</value>
+  </data>
+  <data name="Mes_Produced" xml:space="preserve">
+    <value>Произведено</value>
+  </data>
+  <data name="Mes_Show" xml:space="preserve">
+    <value>Показать</value>
+  </data>
+  <data name="Mes_To" xml:space="preserve">
+    <value>По</value>
+  </data>
+  <data name="Mes_Val_QtyNonNegative" xml:space="preserve">
+    <value>Количество должно быть не меньше 0</value>
+  </data>
+  <data name="Mes_Val_SelectProduct" xml:space="preserve">
+    <value>Выберите продукцию</value>
+  </data>
+  <data name="Mes_Variance" xml:space="preserve">
+    <value>Отклонение</value>
+  </data>
+  <data name="Mes_Year" xml:space="preserve">
+    <value>Год</value>
+  </data>
+  <data name="Mes_YesDelete" xml:space="preserve">
+    <value>Да, удалить</value>
+  </data>
+  <data name="Mes_Dt_Name" xml:space="preserve">
+    <value>Вид дефекта</value>
+  </data>
+  <data name="Mes_PdfError" xml:space="preserve">
+    <value>Ошибка при формировании PDF:</value>
+  </data>
+  <data name="Mes_PdfGenerating" xml:space="preserve">
+    <value>Формирование PDF...</value>
+  </data>
+  <data name="Mes_PdfLibNotLoaded" xml:space="preserve">
+    <value>Библиотека PDF не загружена. Пожалуйста, обновите страницу.</value>
+  </data>
+  <data name="Mes_Qi_Status_REJECTED" xml:space="preserve">
+    <value>Отклонено</value>
+  </data>
+  <data name="Mes_UnknownError" xml:space="preserve">
+    <value>Неизвестная ошибка</value>
+  </data>
+  <data name="Mes_UnitOfMeasure" xml:space="preserve">
+    <value>Единица измерения</value>
+  </data>
+  <data name="Mes_NoImage" xml:space="preserve">
+    <value>Нет изображения</value>
+  </data>
+  <data name="Mes_PdfNoContent" xml:space="preserve">
+    <value>Не найдено содержимое для PDF. ID элемента: bomContent</value>
+  </data>
+  <data name="Mes_DescriptionField" xml:space="preserve">
+    <value>Описание</value>
+  </data>
+  <data name="Mes_DataOf" xml:space="preserve">
+    <value>Данные: {0}</value>
+  </data>
+  <data name="Mes_EditDataOf" xml:space="preserve">
+    <value>Редактирование: {0}</value>
+  </data>
+  <data name="Mes_DeleteDataOf" xml:space="preserve">
+    <value>Удаление: {0}</value>
+  </data>
+  <data name="Mes_Bom_Title" xml:space="preserve">
+    <value>Спецификация (BOM)</value>
+  </data>
+  <data name="Mes_Bom_DetailsTitle" xml:space="preserve">
+    <value>Детали спецификации (BOM)</value>
+  </data>
+  <data name="Mes_Bom_NormVersion" xml:space="preserve">
+    <value>Версия нормы</value>
+  </data>
+  <data name="Mes_Bom_View" xml:space="preserve">
+    <value>Просмотр BOM</value>
+  </data>
+  <data name="Mes_Bom_NotFoundShort" xml:space="preserve">
+    <value>BOM не найдена</value>
+  </data>
+  <data name="Mes_Bom_NotFoundForProduct" xml:space="preserve">
+    <value>Для этой продукции BOM не найдена.</value>
+  </data>
+  <data name="Mes_Bom_Structure" xml:space="preserve">
+    <value>Структура BOM</value>
+  </data>
+  <data name="Mes_Bom_NoComponents" xml:space="preserve">
+    <value>Для этой продукции компоненты BOM не найдены.</value>
+  </data>
+  <data name="Mes_Bom_MaterialSummary" xml:space="preserve">
+    <value>Расход и сумма по материалам</value>
+  </data>
+  <data name="Mes_Bom_MaterialConsumption" xml:space="preserve">
+    <value>Расход сырья</value>
+  </data>
+  <data name="Mes_Bom_MaterialAmount" xml:space="preserve">
+    <value>Сумма сырья</value>
+  </data>
+  <data name="Mes_Bom_NoMaterials" xml:space="preserve">
+    <value>Материалы не найдены.</value>
+  </data>
+  <data name="Mes_Bom_NoData" xml:space="preserve">
+    <value>Данные BOM не найдены.</value>
+  </data>
+  <data name="Mes_Pp_Title" xml:space="preserve">
+    <value>Производственные процессы</value>
+  </data>
+  <data name="Mes_Pp_Add" xml:space="preserve">
+    <value>Добавить процесс</value>
+  </data>
+  <data name="Mes_Pp_Name" xml:space="preserve">
+    <value>Наименование процесса</value>
+  </data>
+  <data name="Mes_Pp_Info" xml:space="preserve">
+    <value>Данные производственного процесса</value>
+  </data>
+  <data name="Mes_Dt_Title" xml:space="preserve">
+    <value>Виды дефектов</value>
+  </data>
+  <data name="Mes_Dt_Add" xml:space="preserve">
+    <value>Добавить вид дефекта</value>
+  </data>
+  <data name="Mes_Dt_EnterName" xml:space="preserve">
+    <value>Введите вид дефекта</value>
+  </data>
+  <data name="Mes_Dt_Edit" xml:space="preserve">
+    <value>Редактирование вида дефекта</value>
+  </data>
+  <data name="Mes_Dt_Info" xml:space="preserve">
+    <value>Данные вида дефекта</value>
+  </data>
+  <data name="Mes_Norm_IndexTitle" xml:space="preserve">
+    <value>Ввод норм</value>
+  </data>
+  <data name="Mes_Norm_CreateTitle" xml:space="preserve">
+    <value>Ввод новой нормы</value>
+  </data>
+  <data name="Mes_Norm_EditTitle" xml:space="preserve">
+    <value>Редактирование нормы</value>
+  </data>
+  <data name="Mes_Norm_DetailsTitle" xml:space="preserve">
+    <value>Ввод норм - Нормы изделия</value>
+  </data>
+  <data name="Mes_Norm_ViewTitle" xml:space="preserve">
+    <value>Ввод норм - Просмотр</value>
+  </data>
+  <data name="Mes_Norm_Material" xml:space="preserve">
+    <value>Материал</value>
+  </data>
+  <data name="Mes_Norm_MaterialType" xml:space="preserve">
+    <value>Тип материала</value>
+  </data>
+  <data name="Mes_Norm_LengthMm" xml:space="preserve">
+    <value>Длина (мм)</value>
+  </data>
+  <data name="Mes_Norm_WidthMm" xml:space="preserve">
+    <value>Ширина (мм)</value>
+  </data>
+  <data name="Mes_Norm_ThicknessMm" xml:space="preserve">
+    <value>Толщина (мм)</value>
+  </data>
+  <data name="Mes_Norm_StandardLengthMm" xml:space="preserve">
+    <value>Стандартная длина (мм)</value>
+  </data>
+  <data name="Mes_Norm_CalcMm" xml:space="preserve">
+    <value>Расчёт (мм)</value>
+  </data>
+  <data name="Mes_Norm_CalcM" xml:space="preserve">
+    <value>Расчёт (м)</value>
+  </data>
+  <data name="Mes_Norm_QuantityPcs" xml:space="preserve">
+    <value>Количество (шт.)</value>
+  </data>
+  <data name="Mes_Norm_Qty" xml:space="preserve">
+    <value>Количество</value>
+  </data>
+  <data name="Mes_Norm_PiecesPerBar" xml:space="preserve">
+    <value>Штук из одного прутка/листа</value>
+  </data>
+  <data name="Mes_Norm_ConsumptionPerProduct" xml:space="preserve">
+    <value>Расход на одно изделие (м)</value>
+  </data>
+  <data name="Mes_Norm_WastePerProduct" xml:space="preserve">
+    <value>Отходы на одно изделие (м)</value>
+  </data>
+  <data name="Mes_Norm_Norma" xml:space="preserve">
+    <value>Норма</value>
+  </data>
+  <data name="Mes_Norm_Waste" xml:space="preserve">
+    <value>Отходы</value>
+  </data>
+  <data name="Mes_Norm_TotalCostPerProduct" xml:space="preserve">
+    <value>Общая стоимость на одно изделие</value>
+  </data>
+  <data name="Mes_Norm_CuttingMethod" xml:space="preserve">
+    <value>Способ раскроя</value>
+  </data>
+  <data name="Mes_Norm_Version" xml:space="preserve">
+    <value>Версия</value>
+  </data>
+  <data name="Mes_Norm_VersionId" xml:space="preserve">
+    <value>ID версии</value>
+  </data>
+  <data name="Mes_Norm_EffectiveFrom" xml:space="preserve">
+    <value>Действует с</value>
+  </data>
+  <data name="Mes_Norm_EffectiveTo" xml:space="preserve">
+    <value>Действует по</value>
+  </data>
+  <data name="Mes_Norm_EffectiveFromThis" xml:space="preserve">
+    <value>Действует с даты</value>
+  </data>
+  <data name="Mes_Norm_EffectiveToThis" xml:space="preserve">
+    <value>Действует по дату</value>
+  </data>
+  <data name="Mes_Norm_TotalNorm" xml:space="preserve">
+    <value>Общая норма</value>
+  </data>
+  <data name="Mes_Norm_TotalWaste" xml:space="preserve">
+    <value>Общие отходы</value>
+  </data>
+  <data name="Mes_Norm_TotalAmount" xml:space="preserve">
+    <value>Общая сумма</value>
+  </data>
+  <data name="Mes_Norm_SelectMaterial" xml:space="preserve">
+    <value>Выберите материал</value>
+  </data>
+  <data name="Mes_Norm_SelectMonth" xml:space="preserve">
+    <value>Выберите месяц</value>
+  </data>
+  <data name="Mes_Norm_Val_QtyNonNegative" xml:space="preserve">
+    <value>Количество не может быть отрицательным</value>
+  </data>
+  <data name="Mes_Norm_Val_PiecesMin1" xml:space="preserve">
+    <value>Количество штук должно быть не меньше 1</value>
+  </data>
+  <data name="Mes_Norm_NormCount" xml:space="preserve">
+    <value>Количество норм</value>
+  </data>
+  <data name="Mes_Norm_CountPcs" xml:space="preserve">
+    <value>{0} шт.</value>
+  </data>
+  <data name="Mes_Norm_ViewNorms" xml:space="preserve">
+    <value>Просмотр норм</value>
+  </data>
+  <data name="Mes_Norm_Norms" xml:space="preserve">
+    <value>Нормы</value>
+  </data>
+  <data name="Mes_Norm_AddNewNorm" xml:space="preserve">
+    <value>Добавить новую НОРМУ</value>
+  </data>
+  <data name="Mes_Norm_NewNorm" xml:space="preserve">
+    <value>Новая НОРМА</value>
+  </data>
+  <data name="Mes_Norm_NewNormCaps" xml:space="preserve">
+    <value>Новая НОРМА</value>
+  </data>
+  <data name="Mes_Norm_NoProducts" xml:space="preserve">
+    <value>Изделия не найдены</value>
+  </data>
+  <data name="Mes_Norm_ProductLabel" xml:space="preserve">
+    <value>Изделие:</value>
+  </data>
+  <data name="Mes_Norm_NormMonth" xml:space="preserve">
+    <value>Месяц нормы</value>
+  </data>
+  <data name="Mes_Norm_TotalConsumptionAmount" xml:space="preserve">
+    <value>Сумма по общему расходу</value>
+  </data>
+  <data name="Mes_Norm_TotalWasteAmount" xml:space="preserve">
+    <value>Сумма по общим отходам</value>
+  </data>
+  <data name="Mes_Norm_ConfirmDeleteNorm" xml:space="preserve">
+    <value>Подтверждаете удаление этой НОРМЫ?</value>
+  </data>
+  <data name="Mes_Norm_NoNormsForProduct" xml:space="preserve">
+    <value>Для этого изделия нормы не найдены.</value>
+  </data>
+  <data name="Mes_Norm_AddFirstNorm" xml:space="preserve">
+    <value>Добавить первую НОРМУ</value>
+  </data>
+  <data name="Mes_Norm_LoadFromPrevious" xml:space="preserve">
+    <value>Загрузить из нормы предыдущих месяцев</value>
+  </data>
+  <data name="Mes_Norm_CuttingVariants" xml:space="preserve">
+    <value>Варианты раскроя</value>
+  </data>
+  <data name="Mes_Norm_NoCuttingVariants" xml:space="preserve">
+    <value>Варианты раскроя не найдены.</value>
+  </data>
+  <data name="Mes_Norm_AutoPriceFromWarehouse" xml:space="preserve">
+    <value>автоматически подтягивать цены материалов со склада</value>
+  </data>
+  <data name="Mes_Norm_ConsumptionM" xml:space="preserve">
+    <value>Расход (м)</value>
+  </data>
+  <data name="Mes_Norm_WasteM" xml:space="preserve">
+    <value>Отходы (м)</value>
+  </data>
+  <data name="Mes_Norm_CleanConsumptionAmount" xml:space="preserve">
+    <value>Сумма чистого расхода</value>
+  </data>
+  <data name="Mes_Norm_WasteAmount" xml:space="preserve">
+    <value>Сумма отходов</value>
+  </data>
+  <data name="Mes_Norm_TotalPrice" xml:space="preserve">
+    <value>Итоговая стоимость</value>
+  </data>
+  <data name="Mes_Norm_AddRow" xml:space="preserve">
+    <value>Добавить строку</value>
+  </data>
+  <data name="Mes_Norm_TotalsHeader" xml:space="preserve">
+    <value>Итоговые расчёты</value>
+  </data>
+  <data name="Mes_Norm_TotalNormM" xml:space="preserve">
+    <value>Общая норма (м)</value>
+  </data>
+  <data name="Mes_Norm_TotalNormWoodM" xml:space="preserve">
+    <value>Общая норма, древесина (м)</value>
+  </data>
+  <data name="Mes_Norm_WoodOnly" xml:space="preserve">
+    <value>только для древесины</value>
+  </data>
+  <data name="Mes_Norm_CutOnly" xml:space="preserve">
+    <value>только для раскраиваемых</value>
+  </data>
+  <data name="Mes_Norm_AllElements" xml:space="preserve">
+    <value>для всех элементов</value>
+  </data>
+  <data name="Mes_Norm_TotalWasteM" xml:space="preserve">
+    <value>Общие отходы (м)</value>
+  </data>
+  <data name="Mes_Norm_AmountsHeader" xml:space="preserve">
+    <value>Расчёт сумм</value>
+  </data>
+  <data name="Mes_Norm_TotalCleanConsumptionAmount" xml:space="preserve">
+    <value>Общая сумма чистого расхода</value>
+  </data>
+  <data name="Mes_Norm_TotalWasteAmountShort" xml:space="preserve">
+    <value>Общая сумма отходов</value>
+  </data>
+  <data name="Mes_Norm_OptSuggestion" xml:space="preserve">
+    <value>Предложение по оптимизации</value>
+  </data>
+  <data name="Mes_Norm_SuggestedNormM" xml:space="preserve">
+    <value>Предлагаемая норма (м)</value>
+  </data>
+  <data name="Mes_Norm_SuggestedWasteM" xml:space="preserve">
+    <value>Предлагаемые отходы (м)</value>
+  </data>
+  <data name="Mes_Norm_SuggestedAmount" xml:space="preserve">
+    <value>Предлагаемая сумма</value>
+  </data>
+  <data name="Mes_Norm_OptimizedPositions" xml:space="preserve">
+    <value>Оптимизированные позиции</value>
+  </data>
+  <data name="Mes_Norm_RawMaterialCode" xml:space="preserve">
+    <value>Код сырья</value>
+  </data>
+  <data name="Mes_Norm_RawMaterialName" xml:space="preserve">
+    <value>Наименование сырья</value>
+  </data>
+  <data name="Mes_Norm_OptimizeConsumption" xml:space="preserve">
+    <value>Оптимизация расхода (использование отходов)</value>
+  </data>
+  <data name="Mes_Norm_SaveAndConfirm" xml:space="preserve">
+    <value>Сохранить и утвердить</value>
+  </data>
+  <data name="Mes_Norm_PdfNoContent" xml:space="preserve">
+    <value>Не найдено содержимое для PDF. Element ID: normContent</value>
+  </data>
+  <data name="Mes_Norm_UnknownErrorOccurred" xml:space="preserve">
+    <value>Произошла неизвестная ошибка.</value>
+  </data>
+  <data name="Mes_Norm_SelectPreviousNorm" xml:space="preserve">
+    <value>Пожалуйста, выберите предыдущую норму.</value>
+  </data>
+  <data name="Mes_Norm_UsedWasteFromAbove" xml:space="preserve">
+    <value>Использованы отходы вышестоящей позиции</value>
+  </data>
+  <data name="Mes_Norm_Calculating" xml:space="preserve">
+    <value>Выполняется расчёт...</value>
+  </data>
+  <data name="Mes_Norm_Optimize" xml:space="preserve">
+    <value>Оптимизировать</value>
+  </data>
+  <data name="Mes_Norm_ResponseParseError" xml:space="preserve">
+    <value>Ошибка: не удалось разобрать ответ сервера.</value>
+  </data>
+  <data name="Mes_Norm_ErrorPrefix" xml:space="preserve">
+    <value>Ошибка: </value>
+  </data>
+  <data name="Mes_Norm_ServerError" xml:space="preserve">
+    <value>Произошла ошибка сервера.</value>
+  </data>
+  <data name="Mes_Norm_ProductIdMissing" xml:space="preserve">
+    <value>Не указан ID изделия.</value>
+  </data>
+  <data name="Mes_Norm_VersionIdMissing" xml:space="preserve">
+    <value>Не указан ID версии нормы.</value>
+  </data>
+  <data name="Mes_Norm_VersionNotFound" xml:space="preserve">
+    <value>Версия нормы не найдена.</value>
+  </data>
+  <data name="Mes_Norm_Deleted" xml:space="preserve">
+    <value>НОРМА успешно удалена.</value>
+  </data>
+  <data name="Mes_Norm_Saved" xml:space="preserve">
+    <value>НОРМА успешно сохранена.</value>
+  </data>
+  <data name="Mes_Norm_AlreadyExistsForMonth" xml:space="preserve">
+    <value>Для этого изделия норма за месяц {0} уже существует. Отредактируйте существующую норму или выберите другой месяц.</value>
+  </data>
+  <data name="Mes_Norm_TemplateNotFound" xml:space="preserve">
+    <value>Выбранная предыдущая норма не найдена или не относится к этому изделию.</value>
+  </data>
+  <data name="Mes_Norm_MaterialNotFound" xml:space="preserve">
+    <value>Материал не найден</value>
+  </data>
+  <data name="Mes_Norm_JsonDataNotFound" xml:space="preserve">
+    <value>Данные JSON не найдены</value>
+  </data>
+  <data name="Mes_Norm_JsonFormatInvalid" xml:space="preserve">
+    <value>Неверный формат данных (JSON).</value>
+  </data>
+  <data name="Mes_Norm_ModelDataNotFound" xml:space="preserve">
+    <value>Данные модели не найдены</value>
+  </data>
+  <data name="Mes_Norm_NoCuttingVariantsShort" xml:space="preserve">
+    <value>Варианты раскроя не найдены</value>
+  </data>
+  <data name="Mes_Norm_OptResultReused" xml:space="preserve">
+    <value>Оптимизация: из отходов взято резов: {0} (расход 0). Общая норма {1} м, общие отходы {2} м, общая сумма {3}.</value>
+  </data>
+  <data name="Mes_Norm_OptResultNone" xml:space="preserve">
+    <value>Оптимизация: возможность повторного использования отходов не найдена. Общая норма {0} м, общие отходы {1} м, общая сумма {2}.</value>
+  </data>
+  <data name="Mes_Norm_CalcError" xml:space="preserve">
+    <value>Ошибка при расчёте.</value>
+  </data>
+  <data name="Mes_Norm_BomDeactivated" xml:space="preserve">
+    <value>У изделия не осталось норм — спецификация (BOM) деактивирована.</value>
+  </data>
+  <data name="Mes_Norm_BomUnchanged" xml:space="preserve">
+    <value>Спецификация (BOM) не изменилась: она остаётся по последней норме ({0}).</value>
+  </data>
+  <data name="Mes_Norm_BomUpdated" xml:space="preserve">
+    <value>Спецификация (BOM) обновлена по последней норме ({0}).</value>
+  </data>
+  <data name="Mes_Norm_NoMonth" xml:space="preserve">
+    <value>Без месяца</value>
+  </data>
+  <data name="Mes_Norm_OptNoteNotCut" xml:space="preserve">
+    <value>Нераскраиваемый материал — оптимизация не применялась.</value>
+  </data>
+  <data name="Mes_Norm_OptNoteNoStdLength" xml:space="preserve">
+    <value>Нет стандартной длины — оптимизация не применялась.</value>
+  </data>
+  <data name="Mes_Norm_OptNoteFromWaste" xml:space="preserve">
+    <value>{0} мм × {1} шт. берётся из отходов реза {3} мм в строке {2}. Расход обнулён.</value>
+  </data>
+  <data name="Mes_Norm_OptNoteWasteUsed" xml:space="preserve">
+    <value>Из отходов {0} мм использовано на другие короткие резы. Остаток отходов {1} мм.</value>
+  </data>
+  <data name="Mes_Norm_OptNoteWasteUnused" xml:space="preserve">
+    <value>Отходы {0} мм (на другие резы не использованы).</value>
+  </data>
+  <data name="Mes_Plan_Title" xml:space="preserve">
+    <value>План производства</value>
+  </data>
+  <data name="Mes_Plan_NewTitle" xml:space="preserve">
+    <value>Новый план производства</value>
+  </data>
+  <data name="Mes_Plan_EditTitle" xml:space="preserve">
+    <value>Редактирование плана производства</value>
+  </data>
+  <data name="Mes_Plan_DeleteTitle" xml:space="preserve">
+    <value>Удаление плана производства</value>
+  </data>
+  <data name="Mes_Plan_DetailsTitle" xml:space="preserve">
+    <value>Сведения о плане производства</value>
+  </data>
+  <data name="Mes_Plan_GridCreateTitle" xml:space="preserve">
+    <value>Ввод плана в таблице</value>
+  </data>
+  <data name="Mes_Plan_GridEditTitle" xml:space="preserve">
+    <value>Редактирование плана в таблице</value>
+  </data>
+  <data name="Mes_Plan_GridCreateHeader" xml:space="preserve">
+    <value>Ввод плана производства в таблице</value>
+  </data>
+  <data name="Mes_Plan_GridEditHeader" xml:space="preserve">
+    <value>Редактирование плана производства в таблице</value>
+  </data>
+  <data name="Mes_Plan_NewPlan" xml:space="preserve">
+    <value>Новый план</value>
+  </data>
+  <data name="Mes_Plan_GridEntry" xml:space="preserve">
+    <value>Ввод в таблице</value>
+  </data>
+  <data name="Mes_Plan_GridEditBtn" xml:space="preserve">
+    <value>Редактировать в таблице</value>
+  </data>
+  <data name="Mes_Plan_PlanQty" xml:space="preserve">
+    <value>Плановое количество</value>
+  </data>
+  <data name="Mes_Plan_PlanQtyTotal" xml:space="preserve">
+    <value>Плановое количество (итого)</value>
+  </data>
+  <data name="Mes_Plan_StartDate" xml:space="preserve">
+    <value>Дата начала</value>
+  </data>
+  <data name="Mes_Plan_EndDate" xml:space="preserve">
+    <value>Дата окончания</value>
+  </data>
+  <data name="Mes_Plan_IsDeleted" xml:space="preserve">
+    <value>Удалён</value>
+  </data>
+  <data name="Mes_Plan_SalesOrder" xml:space="preserve">
+    <value>Заказ покупателя</value>
+  </data>
+  <data name="Mes_Plan_DaysCount" xml:space="preserve">
+    <value>Количество дней</value>
+  </data>
+  <data name="Mes_Plan_ApplyMonth" xml:space="preserve">
+    <value>Применить месяц</value>
+  </data>
+  <data name="Mes_Plan_AddRow" xml:space="preserve">
+    <value>Добавить строку</value>
+  </data>
+  <data name="Mes_Plan_OptionalLink" xml:space="preserve">
+    <value>-- привязка (необязательно) --</value>
+  </data>
+  <data name="Mes_Plan_LinkedSchedules" xml:space="preserve">
+    <value>Связанные графики поставок</value>
+  </data>
+  <data name="Mes_Plan_DailyPlanInline" xml:space="preserve">
+    <value>Дневной план (редактирование в строке)</value>
+  </data>
+  <data name="Mes_Plan_PlanVsActualDaily" xml:space="preserve">
+    <value>План и факт (по дням)</value>
+  </data>
+  <data name="Mes_Plan_NoDailyData" xml:space="preserve">
+    <value>Нет данных дневного плана</value>
+  </data>
+  <data name="Mes_Plan_SaveDaily" xml:space="preserve">
+    <value>Сохранить дневные планы</value>
+  </data>
+  <data name="Mes_Plan_NoChanges" xml:space="preserve">
+    <value>Изменений нет</value>
+  </data>
+  <data name="Mes_Plan_Saving" xml:space="preserve">
+    <value>Сохранение...</value>
+  </data>
+  <data name="Mes_Plan_CreateHint" xml:space="preserve">
+    <value>После создания плана для каждого дня автоматически создаётся дневной план. Дневные планы можно отредактировать позже.</value>
+  </data>
+  <data name="Mes_Plan_EditHint" xml:space="preserve">
+    <value>При изменении дат дневные планы не пересоздаются. Обновляются только основные данные плана.</value>
+  </data>
+  <data name="Mes_Plan_DeleteConfirm" xml:space="preserve">
+    <value>Вы действительно хотите удалить этот план?</value>
+  </data>
+  <data name="Mes_Plan_ConfirmDeletePlan" xml:space="preserve">
+    <value>Удалить план?</value>
+  </data>
+  <data name="Mes_Plan_TokenNotFound" xml:space="preserve">
+    <value>Токен не найден</value>
+  </data>
+  <data name="Mes_Plan_DeleteError" xml:space="preserve">
+    <value>Ошибка при удалении</value>
+  </data>
+  <data name="Mes_Plan_NetworkError" xml:space="preserve">
+    <value>Ошибка сети</value>
+  </data>
+  <data name="Mes_Plan_Val_EnterPlanQty" xml:space="preserve">
+    <value>Введите плановое количество</value>
+  </data>
+  <data name="Mes_Plan_Val_QtyPositive" xml:space="preserve">
+    <value>Количество должно быть больше 0.</value>
+  </data>
+  <data name="Mes_Plan_Val_EnterStartDate" xml:space="preserve">
+    <value>Введите дату начала</value>
+  </data>
+  <data name="Mes_Plan_Val_EnterEndDate" xml:space="preserve">
+    <value>Введите дату окончания</value>
+  </data>
+  <data name="Mes_Plan_Err_Overlap" xml:space="preserve">
+    <value>Для этой продукции на выбранный период уже есть план.</value>
+  </data>
+  <data name="Mes_Plan_Err_OverlapOther" xml:space="preserve">
+    <value>Для этой продукции на выбранный период есть другой план.</value>
+  </data>
+  <data name="Mes_Plan_Err_NoRowsToSave" xml:space="preserve">
+    <value>Нет строк для сохранения</value>
+  </data>
+  <data name="Mes_Plan_PlansSaved" xml:space="preserve">
+    <value>Сохранено планов: {0}.</value>
+  </data>
+  <data name="Mes_Plan_GridUpdated" xml:space="preserve">
+    <value>Обновлено: {0}, добавлено: {1}</value>
+  </data>
+  <data name="Mes_Plan_Err_EndBeforeStart" xml:space="preserve">
+    <value>Дата окончания не может быть раньше даты начала.</value>
+  </data>
+  <data name="Mes_Plan_Created" xml:space="preserve">
+    <value>План производства успешно создан</value>
+  </data>
+  <data name="Mes_Plan_Updated" xml:space="preserve">
+    <value>План производства успешно обновлён</value>
+  </data>
+  <data name="Mes_Plan_Deleted" xml:space="preserve">
+    <value>План производства успешно удалён</value>
+  </data>
+  <data name="Mes_Plan_DailyRedistributed" xml:space="preserve">
+    <value>Из-за изменения срока или количества дневной план перераспределён.</value>
+  </data>
+  <data name="Mes_Plan_Err_PlanNotFound" xml:space="preserve">
+    <value>План не найден</value>
+  </data>
+  <data name="Mes_Plan_PlanDeletedShort" xml:space="preserve">
+    <value>План удалён</value>
+  </data>
+  <data name="Mes_Plan_DailyUpdated" xml:space="preserve">
+    <value>Дневной план успешно обновлён</value>
+  </data>
+  <data name="Mes_Plan_Err_DailySave" xml:space="preserve">
+    <value>Ошибка при сохранении дневного плана.</value>
+  </data>
+  <data name="Mes_Plan_Err_GridRowsOverlap" xml:space="preserve">
+    <value>В таблице есть пересекающиеся строки для одной и той же продукции.</value>
+  </data>
+  <data name="Mes_Plan_Err_ProductNotInOrder" xml:space="preserve">
+    <value>Ошибка: в этом заказе покупателя нет выбранной продукции.</value>
+  </data>
+  <data name="Mes_Plan_Err_QtyExceedsOrder" xml:space="preserve">
+    <value>Ошибка: плановое количество ({0}) превышает количество в заказе покупателя ({1}).</value>
+  </data>
+  <data name="Mes_Prod_Title" xml:space="preserve">
+    <value>Производство</value>
+  </data>
+  <data name="Mes_Prod_New" xml:space="preserve">
+    <value>Новый выпуск продукции</value>
+  </data>
+  <data name="Mes_Prod_FileName" xml:space="preserve">
+    <value>Производство</value>
+  </data>
+  <data name="Mes_Prod_DailyEntryTitle" xml:space="preserve">
+    <value>Ввод суточного выпуска продукции</value>
+  </data>
+  <data name="Mes_Prod_Daily" xml:space="preserve">
+    <value>Суточный выпуск</value>
+  </data>
+  <data name="Mes_Prod_EditTitle" xml:space="preserve">
+    <value>Редактирование выпуска продукции</value>
+  </data>
+  <data name="Mes_Prod_DetailsTitle" xml:space="preserve">
+    <value>Сведения о выпуске продукции</value>
+  </data>
+  <data name="Mes_Prod_Shop" xml:space="preserve">
+    <value>Цех</value>
+  </data>
+  <data name="Mes_Prod_Day" xml:space="preserve">
+    <value>Дневная</value>
+  </data>
+  <data name="Mes_Prod_Night" xml:space="preserve">
+    <value>Ночная</value>
+  </data>
+  <data name="Mes_Prod_PlanDate" xml:space="preserve">
+    <value>Дата плана</value>
+  </data>
+  <data name="Mes_Prod_PlanDay" xml:space="preserve">
+    <value>План (дневная)</value>
+  </data>
+  <data name="Mes_Prod_PlanNight" xml:space="preserve">
+    <value>План (ночная)</value>
+  </data>
+  <data name="Mes_Prod_PlanTotal" xml:space="preserve">
+    <value>План (итого)</value>
+  </data>
+  <data name="Mes_Prod_Planned" xml:space="preserve">
+    <value>Запланировано</value>
+  </data>
+  <data name="Mes_Prod_LoadPlanned" xml:space="preserve">
+    <value>Загрузить запланированную продукцию</value>
+  </data>
+  <data name="Mes_Prod_SelectDateShopHint" xml:space="preserve">
+    <value>Выберите дату и цех и нажмите «Загрузить запланированную продукцию»</value>
+  </data>
+  <data name="Mes_Prod_PleaseSelectDateShop" xml:space="preserve">
+    <value>Пожалуйста, выберите дату и цех</value>
+  </data>
+  <data name="Mes_Prod_NoPlannedProducts" xml:space="preserve">
+    <value>Запланированная продукция не найдена</value>
+  </data>
+  <data name="Mes_Prod_ErrorOccurred" xml:space="preserve">
+    <value>Произошла ошибка:</value>
+  </data>
+  <data name="Mes_Prod_ReconcileConfirm" xml:space="preserve">
+    <value>Пересчитать расход сырья по каждому выпуску по формуле «выпущенное количество × BOM»?</value>
+  </data>
+  <data name="Mes_Prod_ReconcileHint" xml:space="preserve">
+    <value>Пересчитать автоматический расход сырья по BOM</value>
+  </data>
+  <data name="Mes_Prod_ReconcileButton" xml:space="preserve">
+    <value>Исправить расход (BOM)</value>
+  </data>
+  <data name="Mes_Prod_ReconcileSummary" xml:space="preserve">
+    <value>Исправлено: {0}, уже корректно: {1}, пропущено: {2}, ошибок: {3}.</value>
+  </data>
+  <data name="Mes_Prod_DeleteConfirm" xml:space="preserve">
+    <value>Подтвердить удаление выпуска? Приход и расход сырья будут отменены.</value>
+  </data>
+  <data name="Mes_Prod_DocRef" xml:space="preserve">
+    <value>Ссылка на документ:</value>
+  </data>
+  <data name="Mes_Prod_BomConsumptionTitle" xml:space="preserve">
+    <value>Расход по BOM/норме (потребность в сырье)</value>
+  </data>
+  <data name="Mes_Prod_BomLinesCount" xml:space="preserve">
+    <value>Всего позиций сырья (BOM/норма): &lt;b&gt;{0}&lt;/b&gt;.</value>
+  </data>
+  <data name="Mes_Prod_MaterialName" xml:space="preserve">
+    <value>Наименование сырья</value>
+  </data>
+  <data name="Mes_Prod_RequiredPcs" xml:space="preserve">
+    <value>Потребность (шт.)</value>
+  </data>
+  <data name="Mes_Prod_TotalConsumption" xml:space="preserve">
+    <value>Общий расход</value>
+  </data>
+  <data name="Mes_Prod_PiecePrice" xml:space="preserve">
+    <value>Цена за шт.</value>
+  </data>
+  <data name="Mes_Prod_AmountMoney" xml:space="preserve">
+    <value>Сумма (деньги)</value>
+  </data>
+  <data name="Mes_Prod_NoBomLines" xml:space="preserve">
+    <value>Для этой продукции не найдены BOM/норма или нет строк расхода.</value>
+  </data>
+  <data name="Mes_Prod_ExpenseDocsTitle" xml:space="preserve">
+    <value>Расходные документы (списание сырья на производство)</value>
+  </data>
+  <data name="Mes_Prod_ExpensePageUrl" xml:space="preserve">
+    <value>URL страницы расхода:</value>
+  </data>
+  <data name="Mes_Prod_ExpenseLinkHint" xml:space="preserve">
+    <value>В таблице ниже перейдите к расходному документу кнопкой &lt;b&gt;Расход&lt;/b&gt; или по ссылке в строке.</value>
+  </data>
+  <data name="Mes_Prod_ExpenseDocsCount" xml:space="preserve">
+    <value>Расходных документов по этому выпуску: &lt;b&gt;{0}&lt;/b&gt;.</value>
+  </data>
+  <data name="Mes_Prod_DocNo" xml:space="preserve">
+    <value>Номер документа</value>
+  </data>
+  <data name="Mes_Prod_DateTime" xml:space="preserve">
+    <value>Дата и время</value>
+  </data>
+  <data name="Mes_Prod_ProductCount" xml:space="preserve">
+    <value>Количество позиций</value>
+  </data>
+  <data name="Mes_Prod_TotalQty" xml:space="preserve">
+    <value>Общее количество</value>
+  </data>
+  <data name="Mes_Prod_ExpenseUrl" xml:space="preserve">
+    <value>URL расхода</value>
+  </data>
+  <data name="Mes_Prod_GoToExpense" xml:space="preserve">
+    <value>Перейти к расходному документу</value>
+  </data>
+  <data name="Mes_Prod_Expense" xml:space="preserve">
+    <value>Расход</value>
+  </data>
+  <data name="Mes_Prod_NoExpenseDocs" xml:space="preserve">
+    <value>Расходные документы по этому выпуску не найдены (расхода по BOM не было или это старые записи).</value>
+  </data>
+  <data name="Mes_Prod_Val_SelectShop" xml:space="preserve">
+    <value>Выберите цех</value>
+  </data>
+  <data name="Mes_Prod_Val_EnterDate" xml:space="preserve">
+    <value>Введите дату</value>
+  </data>
+  <data name="Mes_Prod_Val_SelectPlanDate" xml:space="preserve">
+    <value>Выберите дату плана</value>
+  </data>
+  <data name="Mes_Prod_Val_SelectProductionDate" xml:space="preserve">
+    <value>Выберите фактическую дату производства</value>
+  </data>
+  <data name="Mes_Prod_LockedEdit" xml:space="preserve">
+    <value>Этот выпуск связан с контролем качества или передачей партии (перемещение на продажу). Изменение невозможно.</value>
+  </data>
+  <data name="Mes_Prod_LockedDelete" xml:space="preserve">
+    <value>Этот выпуск связан с контролем качества или передачей партии (перемещение на продажу). Удаление невозможно.</value>
+  </data>
+  <data name="Mes_Prod_LockedProducts" xml:space="preserve">
+    <value>Продукция: {0}</value>
+  </data>
+  <data name="Mes_Prod_AtLeastOneQty" xml:space="preserve">
+    <value>Хотя бы для одной позиции общее количество (дневная + ночная смена) должно быть больше 0.</value>
+  </data>
+  <data name="Mes_Prod_WarehouseNotFound" xml:space="preserve">
+    <value>Производственный склад не найден</value>
+  </data>
+  <data name="Mes_Prod_WarehouseNotFoundForReversal" xml:space="preserve">
+    <value>Производственный склад не найден (для отмены прежнего остатка).</value>
+  </data>
+  <data name="Mes_Prod_Saved" xml:space="preserve">
+    <value>Выпуск продукции успешно сохранён</value>
+  </data>
+  <data name="Mes_Prod_Updated" xml:space="preserve">
+    <value>Выпуск продукции успешно обновлён</value>
+  </data>
+  <data name="Mes_Prod_Deleted" xml:space="preserve">
+    <value>Выпуск продукции успешно удалён</value>
+  </data>
+  <data name="Mes_Prod_LoadError" xml:space="preserve">
+    <value>Ошибка при загрузке данных. Пожалуйста, повторите попытку.</value>
+  </data>
+  <data name="Mes_Prod_DateShopRequired" xml:space="preserve">
+    <value>Необходимо выбрать дату и цех</value>
+  </data>
+  <data name="Mes_Prod_KgUnitNotFound" xml:space="preserve">
+    <value>В справочнике единиц (UNITS) не найдена единица «кг» (продукция: {0}).</value>
+  </data>
+  <data name="Mes_Prod_StockShortage" xml:space="preserve">
+    <value>Не удалось сохранить выпуск: недостаточно сырья. Номенклатура: {0}, на складе {1}, требуется {2}.</value>
+  </data>
+  <data name="Mes_Prod_LotDisplay" xml:space="preserve">
+    <value>Партия {0} ({1}) — остаток: {2}</value>
+  </data>
+  <data name="Mes_Prod_LotInsufficientAccepted" xml:space="preserve">
+    <value>Недостаточно принятого количества по партии (выпуск №{0}, {1}). Принято всего: {2}, ранее передано: {3}, запрошено сейчас: {4}.</value>
+  </data>
+  <data name="Mes_Prod_ErrorPrefix" xml:space="preserve">
+    <value>Ошибка: {0}</value>
+  </data>
+  <data name="Mes_Prod_InnerError" xml:space="preserve">
+    <value>Внутренняя ошибка</value>
+  </data>
+  <data name="Mes_Qi_Title" xml:space="preserve">
+    <value>Контроль качества</value>
+  </data>
+  <data name="Mes_Qi_New" xml:space="preserve">
+    <value>Новый контроль качества</value>
+  </data>
+  <data name="Mes_Qi_DetailsTitle" xml:space="preserve">
+    <value>Данные контроля качества</value>
+  </data>
+  <data name="Mes_Qi_PickDateAndLoad" xml:space="preserve">
+    <value>Выберите дату и загрузите</value>
+  </data>
+  <data name="Mes_Qi_NoRemainingForDay" xml:space="preserve">
+    <value>За этот день есть записи фактического производства, но остатка для проверки нет (лимит рассчитывается только по количеству &lt;strong&gt;Product Production&lt;/strong&gt;; план не учитывается).</value>
+  </data>
+  <data name="Mes_Qi_NoProductionForDay" xml:space="preserve">
+    <value>За выбранный календарный день записи фактического производства (ProductProduction) не найдены, либо продукция не является готовой (IsFinishedGood).</value>
+  </data>
+  <data name="Mes_Qi_Produced" xml:space="preserve">
+    <value>Произведено</value>
+  </data>
+  <data name="Mes_Qi_Inspected" xml:space="preserve">
+    <value>Проверено</value>
+  </data>
+  <data name="Mes_Qi_InspectedCol" xml:space="preserve">
+    <value>Проверено</value>
+  </data>
+  <data name="Mes_Qi_Remaining" xml:space="preserve">
+    <value>Остаток</value>
+  </data>
+  <data name="Mes_Qi_RemainingWithValue" xml:space="preserve">
+    <value>Остаток: {0}</value>
+  </data>
+  <data name="Mes_Qi_AcceptShort" xml:space="preserve">
+    <value>Принято</value>
+  </data>
+  <data name="Mes_Qi_RejectShort" xml:space="preserve">
+    <value>Брак</value>
+  </data>
+  <data name="Mes_Qi_Accepted" xml:space="preserve">
+    <value>Принято</value>
+  </data>
+  <data name="Mes_Qi_DefectNo" xml:space="preserve">
+    <value>Дефект #{0}</value>
+  </data>
+  <data name="Mes_Qi_RemoveRow" xml:space="preserve">
+    <value>Убрать</value>
+  </data>
+  <data name="Mes_Qi_InspectionDate" xml:space="preserve">
+    <value>Дата проверки</value>
+  </data>
+  <data name="Mes_Qi_QtyInspected" xml:space="preserve">
+    <value>Проверенное количество</value>
+  </data>
+  <data name="Mes_Qi_QtyAccepted" xml:space="preserve">
+    <value>Принятое количество</value>
+  </data>
+  <data name="Mes_Qi_QtyRejected" xml:space="preserve">
+    <value>Отклонённое количество</value>
+  </data>
+  <data name="Mes_Qi_ApprovalDate" xml:space="preserve">
+    <value>Дата утверждения</value>
+  </data>
+  <data name="Mes_Qi_Production" xml:space="preserve">
+    <value>Производство</value>
+  </data>
+  <data name="Mes_Qi_Notes" xml:space="preserve">
+    <value>Примечания</value>
+  </data>
+  <data name="Mes_Qi_DeliverySchedule" xml:space="preserve">
+    <value>График поставки</value>
+  </data>
+  <data name="Mes_Qi_DailyPlan" xml:space="preserve">
+    <value>Дневной план</value>
+  </data>
+  <data name="Mes_Qi_SearchPlaceholder" xml:space="preserve">
+    <value>Продукция, комментарий...</value>
+  </data>
+  <data name="Mes_Qi_Status_DRAFT" xml:space="preserve">
+    <value>Черновик</value>
+  </data>
+  <data name="Mes_Qi_Status_APPROVED" xml:space="preserve">
+    <value>Утверждено</value>
+  </data>
+  <data name="Mes_Qi_ConfirmDelete" xml:space="preserve">
+    <value>Удалить запись контроля качества?</value>
+  </data>
+  <data name="Mes_Qi_ConfirmApprove" xml:space="preserve">
+    <value>Утвердить контроль качества?</value>
+  </data>
+  <data name="Mes_Qi_ProductionNotFound" xml:space="preserve">
+    <value>Запись производства не найдена</value>
+  </data>
+  <data name="Mes_Qi_ProductionNotFoundId" xml:space="preserve">
+    <value>Запись производства не найдена: ID {0}</value>
+  </data>
+  <data name="Mes_Qi_NoQtyEntered" xml:space="preserve">
+    <value>Не введено количество для проверки</value>
+  </data>
+  <data name="Mes_Qi_Created" xml:space="preserve">
+    <value>Контроль качества успешно создан</value>
+  </data>
+  <data name="Mes_Qi_AlreadyApproved" xml:space="preserve">
+    <value>Этот контроль качества уже утверждён</value>
+  </data>
+  <data name="Mes_Qi_ApprovedOk" xml:space="preserve">
+    <value>Контроль качества успешно утверждён</value>
+  </data>
+  <data name="Mes_Qi_CannotDeleteApproved" xml:space="preserve">
+    <value>Нельзя удалить утверждённый контроль качества</value>
+  </data>
+  <data name="Mes_Qi_DeletedOk" xml:space="preserve">
+    <value>Контроль качества успешно удалён</value>
+  </data>
+  <data name="Mes_Qi_QtyExceedsRemaining" xml:space="preserve">
+    <value>Проверенное количество превышает остаток произведённого. Продукция: {0}, Произведено: {1}, Принято (ранее): {2}, Остаток: {3}</value>
+  </data>
+  <data name="Mes_Qi_Val_EnterInspected" xml:space="preserve">
+    <value>Введите проверенное количество</value>
+  </data>
+  <data name="Mes_Qi_Val_EnterAccepted" xml:space="preserve">
+    <value>Введите принятое количество</value>
+  </data>
+  <data name="Mes_Qi_Val_EnterRejected" xml:space="preserve">
+    <value>Введите отклонённое количество</value>
+  </data>
+  <data name="Mes_Qi_Val_QtyPositive" xml:space="preserve">
+    <value>Количество должно быть больше 0</value>
+  </data>
+  <data name="Mes_Dash_Day" xml:space="preserve">
+    <value>День</value>
+  </data>
+  <data name="Mes_Dash_SelectedDay" xml:space="preserve">
+    <value>Выбранный день</value>
+  </data>
+  <data name="Mes_Dash_SelectedMonth" xml:space="preserve">
+    <value>Выбранный месяц</value>
+  </data>
+  <data name="Mes_Dash_SelectedYear" xml:space="preserve">
+    <value>Выбранный год</value>
+  </data>
+  <data name="Mes_Dash_SelectedPeriod" xml:space="preserve">
+    <value>Выбранный период</value>
+  </data>
+  <data name="Mes_Dash_PeriodPlan" xml:space="preserve">
+    <value>{0}: план</value>
+  </data>
+  <data name="Mes_Dash_PeriodFact" xml:space="preserve">
+    <value>{0}: факт</value>
+  </data>
+  <data name="Mes_Dash_PeriodPlanVsFact" xml:space="preserve">
+    <value>{0}: план/факт</value>
+  </data>
+  <data name="Mes_Dash_DailyPlanVsFact" xml:space="preserve">
+    <value>План и факт по дням</value>
+  </data>
+  <data name="Mes_Dash_ProductionByShop" xml:space="preserve">
+    <value>Производство по цехам</value>
+  </data>
+  <data name="Mes_Dash_QualitySummary" xml:space="preserve">
+    <value>Сводка контроля качества</value>
+  </data>
+  <data name="Mes_Dash_TotalInspections" xml:space="preserve">
+    <value>Всего проверок</value>
+  </data>
+  <data name="Mes_Dash_DefectQty" xml:space="preserve">
+    <value>Количество брака</value>
+  </data>
+  <data name="Mes_Dash_Defect" xml:space="preserve">
+    <value>Брак</value>
+  </data>
+  <data name="Mes_Dash_InspectionsWithDefects" xml:space="preserve">
+    <value>Проверки с браком</value>
+  </data>
+  <data name="Mes_Dash_OrderBottlenecks" xml:space="preserve">
+    <value>Узкие места по заказам (Топ-10)</value>
+  </data>
+  <data name="Mes_Dash_BottleneckHint" xml:space="preserve">
+    <value>Остаток = Заказ (план) − Выставлено по инвойсам. Факт = всего произведено по продукции (без привязки 1:1 к заказу).</value>
+  </data>
+  <data name="Mes_Dash_Top3Defects" xml:space="preserve">
+    <value>Топ-3 дефекта (количество брака)</value>
+  </data>
+  <data name="Mes_Dash_NeedToProduce" xml:space="preserve">
+    <value>Необходимо произвести: {0}</value>
+  </data>
+  <data name="Mes_Dash_NeedToInspect" xml:space="preserve">
+    <value>Необходимо пройти контроль качества: {0}</value>
+  </data>
+  <data name="Mes_Dash_ReadyToShip" xml:space="preserve">
+    <value>Можно оформить продажу / отгрузить: {0}</value>
+  </data>
+  <data name="Mes_Rep_Mes" xml:space="preserve">
+    <value>MES</value>
+  </data>
+  <data name="Mes_Rep_ProductionStock" xml:space="preserve">
+    <value>Остаток (склад производства)</value>
+  </data>
+  <data name="Mes_Rep_ProductionMonthly" xml:space="preserve">
+    <value>Ежемесячный отчёт по производству</value>
+  </data>
+  <data name="Mes_Rep_QualityMonthly" xml:space="preserve">
+    <value>Ежемесячный отчёт по качеству</value>
+  </data>
+  <data name="Mes_Rep_Compiled" xml:space="preserve">
+    <value>Составлено: {0}</value>
+  </data>
+  <data name="Mes_Rep_ProductionHead" xml:space="preserve">
+    <value>Начальник производства</value>
+  </data>
+  <data name="Mes_Rep_QualityResponsible" xml:space="preserve">
+    <value>Ответственный за контроль качества</value>
+  </data>
+  <data name="Mes_Rep_ByProduct" xml:space="preserve">
+    <value>По продукции</value>
+  </data>
+  <data name="Mes_Rep_InspectionCount" xml:space="preserve">
+    <value>Количество проверок</value>
+  </data>
+  <data name="Mes_Rep_TopDefectTypes" xml:space="preserve">
+    <value>Наиболее частые виды дефектов</value>
+  </data>
+  <data name="Mes_Tan_Title" xml:space="preserve">
+    <value>Себестоимость</value>
+  </data>
+  <data name="Mes_Tan_DetailsTitle" xml:space="preserve">
+    <value>Данные себестоимости</value>
+  </data>
+  <data name="Mes_Tan_EditTitle" xml:space="preserve">
+    <value>Редактирование себестоимости</value>
+  </data>
+  <data name="Mes_Tan_DeleteTitle" xml:space="preserve">
+    <value>Удаление себестоимости</value>
+  </data>
+  <data name="Mes_Tan_Attention" xml:space="preserve">
+    <value>Внимание!</value>
+  </data>
+  <data name="Mes_Tan_DeleteConfirmText" xml:space="preserve">
+    <value>Вы собираетесь удалить следующую себестоимость:</value>
+  </data>
+  <data name="Mes_Tan_IrreversibleTitle" xml:space="preserve">
+    <value>Это действие нельзя отменить!</value>
+  </data>
+  <data name="Mes_Tan_IrreversibleText" xml:space="preserve">
+    <value>После удаления себестоимость восстановить невозможно.</value>
+  </data>
+  <data name="Mes_Tan_ProductId" xml:space="preserve">
+    <value>ID продукции</value>
+  </data>
+  <data name="Mes_Tan_Dimensions" xml:space="preserve">
+    <value>Размеры</value>
+  </data>
+  <data name="Mes_Tan_MaterialCosts" xml:space="preserve">
+    <value>Материальные затраты</value>
+  </data>
+  <data name="Mes_Tan_MaterialPrice" xml:space="preserve">
+    <value>Стоимость материалов</value>
+  </data>
+  <data name="Mes_Tan_MaterialTransport" xml:space="preserve">
+    <value>Стоимость доставки материалов</value>
+  </data>
+  <data name="Mes_Tan_MaterialTransport2" xml:space="preserve">
+    <value>Стоимость доставки материалов (2%)</value>
+  </data>
+  <data name="Mes_Tan_MaterialTransportPlanned" xml:space="preserve">
+    <value>Стоимость доставки материалов (план)</value>
+  </data>
+  <data name="Mes_Tan_LaborAndExpenses" xml:space="preserve">
+    <value>Заработная плата и расходы</value>
+  </data>
+  <data name="Mes_Tan_LaborA" xml:space="preserve">
+    <value>A - Заработная плата (только рабочие)</value>
+  </data>
+  <data name="Mes_Tan_TaxBankB" xml:space="preserve">
+    <value>B - Налоги и банк</value>
+  </data>
+  <data name="Mes_Tan_AdminC" xml:space="preserve">
+    <value>C - Административные расходы</value>
+  </data>
+  <data name="Mes_Tan_OtherD" xml:space="preserve">
+    <value>D - Прочие расходы</value>
+  </data>
+  <data name="Mes_Tan_ProfitE" xml:space="preserve">
+    <value>E - Прибыль</value>
+  </data>
+  <data name="Mes_Tan_TaxBankBPct" xml:space="preserve">
+    <value>B - Налоги и банк (%)</value>
+  </data>
+  <data name="Mes_Tan_AdminCPct" xml:space="preserve">
+    <value>C - Административные расходы (%)</value>
+  </data>
+  <data name="Mes_Tan_OtherDPct" xml:space="preserve">
+    <value>D - Прочие расходы (%)</value>
+  </data>
+  <data name="Mes_Tan_ProfitEPct" xml:space="preserve">
+    <value>E - Прибыль (%)</value>
+  </data>
+  <data name="Mes_Tan_ColLabor" xml:space="preserve">
+    <value>A Заработная плата (только рабочие)</value>
+  </data>
+  <data name="Mes_Tan_ColTaxBank" xml:space="preserve">
+    <value>B Налоги и банк</value>
+  </data>
+  <data name="Mes_Tan_ColAdmin" xml:space="preserve">
+    <value>Административные расходы</value>
+  </data>
+  <data name="Mes_Tan_ColOther" xml:space="preserve">
+    <value>C Прочие расходы</value>
+  </data>
+  <data name="Mes_Tan_ColProfit" xml:space="preserve">
+    <value>D Прибыль</value>
+  </data>
+  <data name="Mes_Tan_ExwPrices" xml:space="preserve">
+    <value>Цены EXW</value>
+  </data>
+  <data name="Mes_Tan_SalesExwNoVat" xml:space="preserve">
+    <value>Цена продажи EXW без НДС</value>
+  </data>
+  <data name="Mes_Tan_SalesExwVat" xml:space="preserve">
+    <value>Цена продажи EXW с НДС</value>
+  </data>
+  <data name="Mes_Tan_SetExwVat" xml:space="preserve">
+    <value>Установленная цена EXW с НДС</value>
+  </data>
+  <data name="Mes_Tan_FinishedTransport" xml:space="preserve">
+    <value>Доставка готовой продукции</value>
+  </data>
+  <data name="Mes_Tan_FinishedTransportPrice" xml:space="preserve">
+    <value>Стоимость доставки готовой продукции</value>
+  </data>
+  <data name="Mes_Tan_FinishedTransportPlanned" xml:space="preserve">
+    <value>Стоимость доставки готовой продукции (план)</value>
+  </data>
+  <data name="Mes_Tan_CipPrices" xml:space="preserve">
+    <value>Цены CIP</value>
+  </data>
+  <data name="Mes_Tan_SalesCipNoVat" xml:space="preserve">
+    <value>Цена продажи CIP без НДС</value>
+  </data>
+  <data name="Mes_Tan_SalesCipVat" xml:space="preserve">
+    <value>Цена продажи CIP с НДС</value>
+  </data>
+  <data name="Mes_Tan_SetCipVat" xml:space="preserve">
+    <value>Установленная цена CIP с НДС</value>
+  </data>
+  <data name="Mes_Tan_AuditInfo" xml:space="preserve">
+    <value>Данные аудита</value>
+  </data>
+  <data name="Mes_Tan_CreatedByUser" xml:space="preserve">
+    <value>Создал</value>
+  </data>
+  <data name="Mes_Tan_CreatedAt" xml:space="preserve">
+    <value>Дата создания</value>
+  </data>
+  <data name="Mes_Tan_ModifiedByUser" xml:space="preserve">
+    <value>Изменил</value>
+  </data>
+  <data name="Mes_Tan_ModifiedAt" xml:space="preserve">
+    <value>Дата изменения</value>
+  </data>
+  <data name="Mes_Tan_RefreshMaterial" xml:space="preserve">
+    <value>Обновить стоимость материалов по норме этого месяца</value>
+  </data>
+  <data name="Mes_Tan_RefreshMaterialHint" xml:space="preserve">
+    <value>Пересчитывается по общей сумме из Norm/ViewDetails</value>
+  </data>
+  <data name="Mes_Tan_LaborHint" xml:space="preserve">
+    <value>Рассчитывается автоматически по HR_PIECE_RATE_TARIFFS, но можно изменить</value>
+  </data>
+  <data name="Mes_Tan_SuggestedPriceHint" xml:space="preserve">
+    <value>Цена, предложенная системой, но её можно изменить</value>
+  </data>
+  <data name="Mes_Tan_TransportHint" xml:space="preserve">
+    <value>В дальнейшем будет подтягиваться автоматически из модуля Forwarders</value>
+  </data>
+  <data name="Mes_Tan_Generate" xml:space="preserve">
+    <value>Сформировать себестоимость</value>
+  </data>
+  <data name="Mes_Tan_CountsLine" xml:space="preserve">
+    <value>Продукция с нормами: {0} | Себестоимость есть: {1} | Себестоимости нет: {2}</value>
+  </data>
+  <data name="Mes_Tan_EmptyTable" xml:space="preserve">
+    <value>Данные себестоимости не найдены</value>
+  </data>
+  <data name="Mes_Tan_Generated" xml:space="preserve">
+    <value>Успешно создано себестоимостей: {0}.</value>
+  </data>
+  <data name="Mes_Tan_NoNormProducts" xml:space="preserve">
+    <value>Продукция с нормами за этот месяц не найдена.</value>
+  </data>
+  <data name="Mes_Tan_NoneGeneratedAllExist" xml:space="preserve">
+    <value>Новая себестоимость не создана. Для продукции с нормами себестоимость уже создана.</value>
+  </data>
+  <data name="Mes_Tan_NoneGeneratedCheck" xml:space="preserve">
+    <value>Новая себестоимость не создана. Проверьте период норм и данные продукции.</value>
+  </data>
+  <data name="Mes_Tan_GenerateError" xml:space="preserve">
+    <value>Ошибка при создании себестоимости: {0}</value>
+  </data>
+  <data name="Mes_Tan_NotFound" xml:space="preserve">
+    <value>Себестоимость не найдена.</value>
+  </data>
+  <data name="Mes_Tan_MaterialRefreshed" xml:space="preserve">
+    <value>Стоимость материалов обновлена по норме.</value>
+  </data>
+  <data name="Mes_Tan_Updated" xml:space="preserve">
+    <value>Себестоимость успешно обновлена.</value>
+  </data>
+  <data name="Mes_Tan_UpdateError" xml:space="preserve">
+    <value>Ошибка при обновлении себестоимости: {0}</value>
+  </data>
+  <data name="Mes_Tan_Deleted" xml:space="preserve">
+    <value>Себестоимость успешно удалена.</value>
+  </data>
+  <data name="Mes_Tan_DeleteError" xml:space="preserve">
+    <value>Ошибка при удалении себестоимости: {0}</value>
+  </data>
+  <data name="Mes_Tan_Val_ProductRequired" xml:space="preserve">
+    <value>Необходимо выбрать продукцию</value>
+  </data>
+  <data name="Mes_Tan_Val_YearRequired" xml:space="preserve">
+    <value>Необходимо выбрать год</value>
+  </data>
+  <data name="Mes_Tan_Val_YearInvalid" xml:space="preserve">
+    <value>Неверный год</value>
+  </data>
+  <data name="Mes_Tan_Val_MonthRequired" xml:space="preserve">
+    <value>Необходимо выбрать месяц</value>
+  </data>
+  <data name="Mes_Tan_Val_MonthRange" xml:space="preserve">
+    <value>Месяц должен быть от 1 до 12</value>
+  </data>
+  <data name="Mes_Tan_Val_MaterialPriceRequired" xml:space="preserve">
+    <value>Необходимо указать стоимость материалов</value>
+  </data>
+  <data name="Mes_Tan_Val_MaterialPriceNegative" xml:space="preserve">
+    <value>Стоимость материалов не может быть отрицательной</value>
+  </data>
+  <data name="Mes_Tan_Val_LaborRequired" xml:space="preserve">
+    <value>Необходимо указать заработную плату</value>
+  </data>
+  <data name="Mes_Tan_Val_LaborNegative" xml:space="preserve">
+    <value>Заработная плата не может быть отрицательной</value>
+  </data>
+  <data name="Mes_Tan_Val_PercentRange" xml:space="preserve">
+    <value>Процент должен быть от 0 до 100</value>
+  </data>
+  <data name="Mes_Tan_Val_PriceNegative" xml:space="preserve">
+    <value>Цена не может быть отрицательной</value>
+  </data>
+  <data name="Mes_Tan_Val_TransportNegative" xml:space="preserve">
+    <value>Стоимость доставки не может быть отрицательной</value>
+  </data>
+  <data name="Mes_Tan_Bucket_Material" xml:space="preserve">
+    <value>Материалы (PATH3)</value>
+  </data>
+  <data name="Mes_Tan_Bucket_TaxBank" xml:space="preserve">
+    <value>B — Налоги и банк</value>
+  </data>
+  <data name="Mes_Tan_Bucket_Other" xml:space="preserve">
+    <value>D — Прочее</value>
+  </data>
+  <data name="Mes_Tan_Bucket_OtherAuto" xml:space="preserve">
+    <value>D — Прочее (автоматически)</value>
+  </data>
+  <data name="Mes_Tan_Bucket_Exclude" xml:space="preserve">
+    <value>Исключить</value>
+  </data>
+  <data name="Mes_Tan_Excl_Financing" xml:space="preserve">
+    <value>Финансовое движение (кредит/перевод/наличные/заём)</value>
+  </data>
+  <data name="Mes_Tan_Excl_Dividend" xml:space="preserve">
+    <value>Распределение прибыли (дивиденды/акционер)</value>
+  </data>
+  <data name="Mes_Tan_Excl_Vat" xml:space="preserve">
+    <value>НДС — не себестоимость</value>
+  </data>
+  <data name="Mes_Tan_Excl_Capex" xml:space="preserve">
+    <value>Капитальные затраты (основные средства/оборудование/строительство)</value>
+  </data>
+  <data name="Mes_Tan_Excl_Logistics" xml:space="preserve">
+    <value>Транспорт — учитывается через путевые листы</value>
+  </data>
+  <data name="Mes_Tan_Excl_Payroll" xml:space="preserve">
+    <value>Заработная плата — учитывается через расчёт зарплаты HR</value>
+  </data>
+  <data name="Mes_Tan_Excl_Purchase" xml:space="preserve">
+    <value>Закупка — материалы учитываются через склад/PI</value>
+  </data>
+  <data name="Mes_Tan_Reason_TaxBank" xml:space="preserve">
+    <value>Налоги и банк</value>
+  </data>
+  <data name="Mes_Tan_Reason_Other" xml:space="preserve">
+    <value>Прочее</value>
+  </data>
+  <data name="Mes_Tan_Reason_ManualExcluded" xml:space="preserve">
+    <value>Вручную: не входит в себестоимость</value>
+  </data>
+  <data name="Mes_Tan_Reason_Manual" xml:space="preserve">
+    <value>Задано вручную</value>
+  </data>
+  <data name="Mes_Tan_Reason_Undefined" xml:space="preserve">
+    <value>Неопределённый расход → Прочее</value>
+  </data>
+  <data name="Mes_Tan_Reason_Accrual" xml:space="preserve">
+    <value>Начисление по инвойсу (оплата поступает отдельно)</value>
+  </data>
+  <data name="Mes_Tan_Reason_ForeignCurrency" xml:space="preserve">
+    <value>Другая валюта ({0}) — не конвертируется</value>
+  </data>
+  <data name="Mes_Tan_Reason_CoveredElsewhere" xml:space="preserve">
+    <value>Учитывается в другом месте ({0})</value>
+  </data>
+  <data name="Mes_TanA_DashboardTitle" xml:space="preserve">
+    <value>Анализ себестоимости</value>
+  </data>
+  <data name="Mes_TanA_ReportTitle" xml:space="preserve">
+    <value>Отчёт по анализу себестоимости</value>
+  </data>
+  <data name="Mes_TanA_ProductDetailsTitle" xml:space="preserve">
+    <value>Анализ себестоимости — детали по продукции</value>
+  </data>
+  <data name="Mes_TanA_MonthSourcesTitle" xml:space="preserve">
+    <value>Источники затрат месяца</value>
+  </data>
+  <data name="Mes_TanA_FinCatTitle" xml:space="preserve">
+    <value>Себестоимость: категории Finance</value>
+  </data>
+  <data name="Mes_TanA_Analysis" xml:space="preserve">
+    <value>Анализ</value>
+  </data>
+  <data name="Mes_TanA_Report" xml:space="preserve">
+    <value>Отчёт</value>
+  </data>
+  <data name="Mes_TanA_DetailsCrumb" xml:space="preserve">
+    <value>Детали</value>
+  </data>
+  <data name="Mes_TanA_FinCategories" xml:space="preserve">
+    <value>Категории Finance</value>
+  </data>
+  <data name="Mes_TanA_VariancePct" xml:space="preserve">
+    <value>Отклонение %</value>
+  </data>
+  <data name="Mes_TanA_Labor" xml:space="preserve">
+    <value>Заработная плата</value>
+  </data>
+  <data name="Mes_TanA_ExwPrice" xml:space="preserve">
+    <value>Цена EXW</value>
+  </data>
+  <data name="Mes_TanA_CipPrice" xml:space="preserve">
+    <value>Цена CIP</value>
+  </data>
+  <data name="Mes_TanA_UpdateActualBtn" xml:space="preserve">
+    <value>Обновить фактические затраты</value>
+  </data>
+  <data name="Mes_TanA_WriteToCost" xml:space="preserve">
+    <value>Записать этот результат в себестоимость</value>
+  </data>
+  <data name="Mes_TanA_Transactions" xml:space="preserve">
+    <value>Транзакции</value>
+  </data>
+  <data name="Mes_TanA_MonthlyTrend" xml:space="preserve">
+    <value>Помесячная динамика (план и факт)</value>
+  </data>
+  <data name="Mes_TanA_SelectProductForChart" xml:space="preserve">
+    <value>Выберите продукцию, чтобы увидеть график</value>
+  </data>
+  <data name="Mes_TanA_TopVariances" xml:space="preserve">
+    <value>Наибольшие отклонения (EXW)</value>
+  </data>
+  <data name="Mes_TanA_Statistics" xml:space="preserve">
+    <value>Общая статистика</value>
+  </data>
+  <data name="Mes_TanA_Summary" xml:space="preserve">
+    <value>Общая сводка</value>
+  </data>
+  <data name="Mes_TanA_TotalProducts" xml:space="preserve">
+    <value>Всего продукции</value>
+  </data>
+  <data name="Mes_TanA_WithActualData" xml:space="preserve">
+    <value>С фактическими данными</value>
+  </data>
+  <data name="Mes_TanA_FilledPct" xml:space="preserve">
+    <value>Процент заполнения</value>
+  </data>
+  <data name="Mes_TanA_DetailedReport" xml:space="preserve">
+    <value>Подробный отчёт</value>
+  </data>
+  <data name="Mes_TanA_TotalVariance" xml:space="preserve">
+    <value>Общее отклонение</value>
+  </data>
+  <data name="Mes_TanA_AvgVariance" xml:space="preserve">
+    <value>Среднее отклонение</value>
+  </data>
+  <data name="Mes_TanA_PlanVsActual" xml:space="preserve">
+    <value>Себестоимость — план и факт</value>
+  </data>
+  <data name="Mes_TanA_CostType" xml:space="preserve">
+    <value>Вид затрат</value>
+  </data>
+  <data name="Mes_TanA_PriceType" xml:space="preserve">
+    <value>Вид цены</value>
+  </data>
+  <data name="Mes_TanA_Indicator" xml:space="preserve">
+    <value>Показатель</value>
+  </data>
+  <data name="Mes_TanA_NoteMaterial" xml:space="preserve">
+    <value>Пояснение к расчёту фактической стоимости материалов</value>
+  </data>
+  <data name="Mes_TanA_NoteMatTransport" xml:space="preserve">
+    <value>Пояснение к расчёту доставки материалов</value>
+  </data>
+  <data name="Mes_TanA_NoteOverhead" xml:space="preserve">
+    <value>Пояснение к расчёту зарплаты и расходов (Finance)</value>
+  </data>
+  <data name="Mes_TanA_NoteFinishedTransport" xml:space="preserve">
+    <value>Пояснение к расчёту доставки готовой продукции</value>
+  </data>
+  <data name="Mes_TanA_NoNote" xml:space="preserve">
+    <value>Пояснение к расчёту отсутствует.</value>
+  </data>
+  <data name="Mes_TanA_ExwNoVat" xml:space="preserve">
+    <value>EXW без НДС</value>
+  </data>
+  <data name="Mes_TanA_ExwVat" xml:space="preserve">
+    <value>EXW с НДС</value>
+  </data>
+  <data name="Mes_TanA_CipNoVat" xml:space="preserve">
+    <value>CIP без НДС</value>
+  </data>
+  <data name="Mes_TanA_CipVat" xml:space="preserve">
+    <value>CIP с НДС</value>
+  </data>
+  <data name="Mes_TanA_DeliveryPerUnit" xml:space="preserve">
+    <value>Доставка (на единицу)</value>
+  </data>
+  <data name="Mes_TanA_ProfitE" xml:space="preserve">
+    <value>E — Прибыль</value>
+  </data>
+  <data name="Mes_TanA_PlanActualProfit" xml:space="preserve">
+    <value>Плановая / фактическая прибыль</value>
+  </data>
+  <data name="Mes_TanA_PlanPriceExwVat" xml:space="preserve">
+    <value>Плановая цена (EXW с НДС)</value>
+  </data>
+  <data name="Mes_TanA_Tip" xml:space="preserve">
+    <value>Совет</value>
+  </data>
+  <data name="Mes_TanA_Tip_Material" xml:space="preserve">
+    <value>затраты на материалы превысили плановую норму, проработайте их снижение</value>
+  </data>
+  <data name="Mes_TanA_Tip_MatTransport" xml:space="preserve">
+    <value>затраты на доставку материалов превысили план, оптимизируйте логистические расходы</value>
+  </data>
+  <data name="Mes_TanA_Tip_Labor" xml:space="preserve">
+    <value>затраты на заработную плату превысили план, повысьте производительность труда</value>
+  </data>
+  <data name="Mes_TanA_Tip_TaxBank" xml:space="preserve">
+    <value>налоговые или банковские расходы превысили план, пересмотрите ставки и платежи</value>
+  </data>
+  <data name="Mes_TanA_Tip_Admin" xml:space="preserve">
+    <value>административные расходы превысили план, сократите внутренние затраты</value>
+  </data>
+  <data name="Mes_TanA_Tip_Other" xml:space="preserve">
+    <value>прочие расходы превысили план, выясните причину и ограничьте их</value>
+  </data>
+  <data name="Mes_TanA_Tip_Exw" xml:space="preserve">
+    <value>цена EXW оказалась выше плановой, проработайте снижение превышенных статей выше</value>
+  </data>
+  <data name="Mes_TanA_Tip_FinishedTransport" xml:space="preserve">
+    <value>доставка готовой продукции превысила план, оптимизируйте расходы на доставку</value>
+  </data>
+  <data name="Mes_TanA_Tip_Cip" xml:space="preserve">
+    <value>цена CIP оказалась выше плановой, проработайте снижение EXW и транспортных расходов</value>
+  </data>
+  <data name="Mes_TanA_PrintContentNotFound" xml:space="preserve">
+    <value>Содержимое для печати не найдено (#printArea).</value>
+  </data>
+  <data name="Mes_TanA_PrintWindowBlocked" xml:space="preserve">
+    <value>Не удалось открыть окно печати. Возможно, браузер заблокировал всплывающее окно.</value>
+  </data>
+  <data name="Mes_TanA_PrintTitle" xml:space="preserve">
+    <value>Печать себестоимости</value>
+  </data>
+  <data name="Mes_TanA_AllProducedQty" xml:space="preserve">
+    <value>общий объём выпуска</value>
+  </data>
+  <data name="Mes_TanA_PcsEnd" xml:space="preserve">
+    <value>шт.</value>
+  </data>
+  <data name="Mes_TanA_AllCurrenciesNoUzs" xml:space="preserve">
+    <value>все (UZS не найден)</value>
+  </data>
+  <data name="Mes_TanA_ReadOnlyHint" xml:space="preserve">
+    <value>Эта страница ничего не записывает — кнопка «записать» сохраняет тот же расчёт в TANNARX.</value>
+  </data>
+  <data name="Mes_TanA_ElementsHeader" xml:space="preserve">
+    <value>Элементы затрат: источник → распределено</value>
+  </data>
+  <data name="Mes_TanA_Element" xml:space="preserve">
+    <value>Элемент</value>
+  </data>
+  <data name="Mes_TanA_Source" xml:space="preserve">
+    <value>Источник</value>
+  </data>
+  <data name="Mes_TanA_InSource" xml:space="preserve">
+    <value>В источнике (итого за месяц)</value>
+  </data>
+  <data name="Mes_TanA_AllocatedToCost" xml:space="preserve">
+    <value>Распределено на себестоимость</value>
+  </data>
+  <data name="Mes_TanA_Unallocated" xml:space="preserve">
+    <value>Не распределено</value>
+  </data>
+  <data name="Mes_TanA_ProductsActualPerUnit" xml:space="preserve">
+    <value>Продукция (факт на 1 шт.)</value>
+  </data>
+  <data name="Mes_TanA_ProducedShort" xml:space="preserve">
+    <value>Выпуск</value>
+  </data>
+  <data name="Mes_TanA_MaterialAlgorithm" xml:space="preserve">
+    <value>Алгоритм по материалам</value>
+  </data>
+  <data name="Mes_TanA_MatTransportShort" xml:space="preserve">
+    <value>Дост. мат.</value>
+  </data>
+  <data name="Mes_TanA_ColLaborA" xml:space="preserve">
+    <value>A Зарплата</value>
+  </data>
+  <data name="Mes_TanA_ColTaxBankB" xml:space="preserve">
+    <value>B Налоги/банк</value>
+  </data>
+  <data name="Mes_TanA_ColAdminC" xml:space="preserve">
+    <value>C Админ.</value>
+  </data>
+  <data name="Mes_TanA_ColOtherD" xml:space="preserve">
+    <value>D Прочее</value>
+  </data>
+  <data name="Mes_TanA_TotalCost" xml:space="preserve">
+    <value>Итого затрат</value>
+  </data>
+  <data name="Mes_TanA_FgTransportShort" xml:space="preserve">
+    <value>Дост. ГП</value>
+  </data>
+  <data name="Mes_TanA_NotProduced" xml:space="preserve">
+    <value>Не производилось</value>
+  </data>
+  <data name="Mes_TanA_AlgorithmHoverHint" xml:space="preserve">
+    <value>Наведите курсор на алгоритм по материалам, чтобы увидеть все попытки и причины отклонения.</value>
+  </data>
+  <data name="Mes_TanA_FinCategoriesMonth" xml:space="preserve">
+    <value>Категории Finance (этот месяц)</value>
+  </data>
+  <data name="Mes_TanA_ConfigureGroups" xml:space="preserve">
+    <value>Настроить группы категорий</value>
+  </data>
+  <data name="Mes_TanA_Where" xml:space="preserve">
+    <value>Куда</value>
+  </data>
+  <data name="Mes_TanA_Reason" xml:space="preserve">
+    <value>Причина</value>
+  </data>
+  <data name="Mes_TanA_AmountNet" xml:space="preserve">
+    <value>Сумма (расход − возврат)</value>
+  </data>
+  <data name="Mes_TanA_NoExpenseTxns" xml:space="preserve">
+    <value>В этом месяце нет расходных транзакций.</value>
+  </data>
+  <data name="Mes_TanA_Bucket_Excluded" xml:space="preserve">
+    <value>Исключено</value>
+  </data>
+  <data name="Mes_TanA_ProducedNoCostRow" xml:space="preserve">
+    <value>Произведено, но нет строки себестоимости</value>
+  </data>
+  <data name="Mes_TanA_FinCatHeader" xml:space="preserve">
+    <value>Категории расходов Finance → группа себестоимости</value>
+  </data>
+  <data name="Mes_TanA_FinCatHelp1" xml:space="preserve">
+    <value>«Автоматически» — определяется по аналитической группе категории (выбирается в форме Финансы → Категории; показана в правом столбце). Группа, выбранная вручную, имеет приоритет; дочерняя категория без своей группы берёт группу родительской.</value>
+  </data>
+  <data name="Mes_TanA_FinCatHelp2" xml:space="preserve">
+    <value>«B — Налоги и банк» и «D — Прочее» делятся по итогу месяца поровну на 1 шт. всей произведённой продукции.</value>
+  </data>
+  <data name="Mes_TanA_FinCatHelp3" xml:space="preserve">
+    <value>«Материалы (PATH3)» — только на продукцию без расхода со склада или инвойса закупки, пропорционально плану.</value>
+  </data>
+  <data name="Mes_TanA_FinCatNoTable" xml:space="preserve">
+    <value>Групп, заданных вручную, пока нет — при первом сохранении таблица настроек будет создана автоматически.</value>
+  </data>
+  <data name="Mes_TanA_CostGroup" xml:space="preserve">
+    <value>Группа себестоимости</value>
+  </data>
+  <data name="Mes_TanA_IfAuto" xml:space="preserve">
+    <value>Если автоматически</value>
+  </data>
+  <data name="Mes_TanA_InEffect" xml:space="preserve">
+    <value>Действует сейчас</value>
+  </data>
+  <data name="Mes_TanA_InactiveLower" xml:space="preserve">
+    <value>неактивна</value>
+  </data>
+  <data name="Mes_TanA_Opt_Auto" xml:space="preserve">
+    <value>Автоматически (по названию)</value>
+  </data>
+  <data name="Mes_TanA_Opt_NotInCost" xml:space="preserve">
+    <value>Не входит в себестоимость</value>
+  </data>
+  <data name="Mes_TanA_Err_YearMonthRequired" xml:space="preserve">
+    <value>Для обновления фактических затрат необходимо выбрать год и месяц.</value>
+  </data>
+  <data name="Mes_TanA_ActualUpdated" xml:space="preserve">
+    <value>Фактические затраты обновлены, записей себестоимости: {0}.</value>
+  </data>
+  <data name="Mes_TanA_Err_UpdateActual" xml:space="preserve">
+    <value>Ошибка при обновлении фактических затрат: {0}</value>
+  </data>
+  <data name="Mes_TanA_Err_MonthSources" xml:space="preserve">
+    <value>Ошибка при расчёте источников месяца: {0}</value>
+  </data>
+  <data name="Mes_TanA_CategoriesSaved" xml:space="preserve">
+    <value>Группы категорий сохранены. Чтобы изменения отразились на себестоимости, нажмите «Обновить фактические затраты» за нужный месяц.</value>
+  </data>
+  <data name="Mes_TanA_Err_Save" xml:space="preserve">
+    <value>Ошибка при сохранении: {0}</value>
+  </data>
+  <data name="Mes_TanA_DataNotFound" xml:space="preserve">
+    <value>Данные не найдены.</value>
+  </data>
+  <data name="Mes_TanA_Err_ProductDetails" xml:space="preserve">
+    <value>Ошибка при открытии деталей по продукции: {0}</value>
+  </data>
+  <data name="Mes_TanA_Err_InvalidBucket" xml:space="preserve">
+    <value>Неверное значение группы: {0}</value>
+  </data>
+  <data name="Mes_TanA_El_MaterialTransport" xml:space="preserve">
+    <value>Доставка материалов</value>
+  </data>
+  <data name="Mes_TanA_El_Labor" xml:space="preserve">
+    <value>A — Заработная плата</value>
+  </data>
+  <data name="Mes_TanA_El_Admin" xml:space="preserve">
+    <value>C — Административные</value>
+  </data>
+  <data name="Mes_TanA_El_FinishedTransport" xml:space="preserve">
+    <value>Доставка готовой продукции (CIP)</value>
+  </data>
+  <data name="Mes_TanA_ProductsCount" xml:space="preserve">
+    <value>Продукции: {0}</value>
+  </data>
+  <data name="Mes_TanA_Src_FinanceMaterialPool" xml:space="preserve">
+    <value>Расходы Finance «Материалы» (пул PATH3)</value>
+  </data>
+  <data name="Mes_TanA_Note_FinanceMaterialRest" xml:space="preserve">
+    <value>Остаток — доля продукции, рассчитанной другим алгоритмом (склад/PI); материалы для неё берутся из собственного источника</value>
+  </data>
+  <data name="Mes_TanA_Src_IncomingWaybills" xml:space="preserve">
+    <value>Входящие путевые листы (этот месяц, не связанные с продажей): {0}</value>
+  </data>
+  <data name="Mes_TanA_Note_ByQtyShare" xml:space="preserve">
+    <value>Пропорционально количеству (нет суммы материалов)</value>
+  </data>
+  <data name="Mes_TanA_Note_ByMaterialShare" xml:space="preserve">
+    <value>Пропорционально сумме материалов</value>
+  </data>
+  <data name="Mes_TanA_Src_PieceRate" xml:space="preserve">
+    <value>Записи сдельных работ × тариф</value>
+  </data>
+  <data name="Mes_TanA_Src_HourlyPay" xml:space="preserve">
+    <value>Повременная оплата (месячная зарплата HR, утверждённая; иначе табель)</value>
+  </data>
+  <data name="Mes_TanA_Src_FinanceOther" xml:space="preserve">
+    <value>Finance (прочие + неопределённые расходы)</value>
+  </data>
+  <data name="Mes_TanA_Src_SalesWaybills" xml:space="preserve">
+    <value>Путевые листы (связанные с инвойсом продажи, этот месяц)</value>
+  </data>
+  <data name="Mes_TanA_Note_MonthPerAllQty" xml:space="preserve">
+    <value>Итого за месяц / весь объём выпуска</value>
+  </data>
+  <data name="Mes_TanA_Path0" xml:space="preserve">
+    <value>PATH0 — расход со склада на производство (цена FIFO)</value>
+  </data>
+  <data name="Mes_TanA_Path1" xml:space="preserve">
+    <value>PATH1 — SO → PO → инвойс закупки</value>
+  </data>
+  <data name="Mes_TanA_Path2" xml:space="preserve">
+    <value>PATH2 — SO → PO → инвойс → приход на склад</value>
+  </data>
+  <data name="Mes_TanA_Path3" xml:space="preserve">
+    <value>PATH3 — Finance «Материалы» (пропорционально плану)</value>
+  </data>
+  <data name="Mes_TanA_PathPlan" xml:space="preserve">
+    <value>Плановая цена (источник не найден)</value>
+  </data>
+  <data name="Mes_TanA_Warn_PlanPriceUsed" xml:space="preserve">
+    <value>Продукции без источника по материалам (расход со склада, инвойс закупки, Finance): {0} — взята ПЛАНОВАЯ цена. Проверьте документы расхода со склада на производство или связь SO → PO.</value>
+  </data>
+  <data name="Mes_TanA_Warn_PartialIssue" xml:space="preserve">
+    <value>Продукции, где для части выпуска нет документа расхода со склада: {0} — цена за единицу взята по документированной части.</value>
+  </data>
+  <data name="Mes_TanA_Warn_ZeroPriceLines" xml:space="preserve">
+    <value>Продукции со строками без цены (0) в расходе со склада: {0} (строк: {1}) — у материалов не указана приходная цена, стоимость материалов будет занижена.</value>
+  </data>
+  <data name="Mes_TanA_Warn_ProducedWithoutTannarx" xml:space="preserve">
+    <value>В этом месяце произведена продукция без строки себестоимости (позиций: {0}, {1:N2} шт.) — приходящаяся на неё доля расходов B/C/D не попадёт ни в одну себестоимость. Создайте строки за этот месяц на странице себестоимости.</value>
+  </data>
+  <data name="Mes_TanA_Warn_NoUzs" xml:space="preserve">
+    <value>В CURRENCIES не найдена валюта 'UZS' — суммы Finance во всех валютах сложены без конвертации.</value>
+  </data>
+  <data name="Mes_TanA_Warn_SkippedForeign" xml:space="preserve">
+    <value>Не учтены транзакции Finance в другой валюте: {0} ({1}).</value>
+  </data>
+  <data name="Mes_TanA_MatWarn_Plan" xml:space="preserve">
+    <value>Внимание: для этой продукции не найден источник по материалам (расход со склада, инвойс закупки, Finance) — вместо фактической стоимости взята ПЛАНОВАЯ цена.</value>
+  </data>
+  <data name="Mes_TanA_MatWarn_Partial" xml:space="preserve">
+    <value>Внимание: документ расхода со склада есть только для {0:P0} выпуска — цена за единицу взята по этой части.</value>
+  </data>
+  <data name="Mes_TanA_MatWarn_ZeroPrice" xml:space="preserve">
+    <value>Внимание: в расходе со склада есть строки без цены (0): {0} — стоимость материалов может быть занижена.</value>
+  </data>
+  <data name="Mes_TanA_Err_BuildNote" xml:space="preserve">
+    <value>Ошибка при формировании пояснения к фактическому расчёту: {0}</value>
+  </data>
+  <data name="Mes_TanA_N_Period" xml:space="preserve">
+    <value>Период: {0}</value>
+  </data>
+  <data name="Mes_TanA_N_ProducedQty" xml:space="preserve">
+    <value>Количество произведённой продукции (этой позиции): {0:N2}</value>
+  </data>
+  <data name="Mes_TanA_N_Rule" xml:space="preserve">
+    <value>Правило расчёта: {0}</value>
+  </data>
+  <data name="Mes_TanA_N_RuleMatTransport" xml:space="preserve">
+    <value>итог всех входящих путевых листов за месяц (не связанных с продажей, не внутренних) -&gt;</value>
+  </data>
+  <data name="Mes_TanA_N_ReasonCode" xml:space="preserve">
+    <value>Код причины выбора: {0}</value>
+  </data>
+  <data name="Mes_TanA_N_NoProduction" xml:space="preserve">
+    <value>В этом месяце выпуска нет — фактические затраты не рассчитываются.</value>
+  </data>
+  <data name="Mes_TanA_N_Algorithms" xml:space="preserve">
+    <value>Алгоритмы (по порядку): {0}</value>
+  </data>
+  <data name="Mes_TanA_N_Path0Issue" xml:space="preserve">
+    <value>PATH0 — расход со склада: документов {0}, строк {1}, сумма {2:N2}; записи выпуска {3}/{4}, охваченное количество {5:N2}</value>
+  </data>
+  <data name="Mes_TanA_N_ZeroPriceLines" xml:space="preserve">
+    <value>; строк без цены (0): {0}</value>
+  </data>
+  <data name="Mes_TanA_N_Path0None" xml:space="preserve">
+    <value>PATH0 — расход со склада: нет документов расхода, связанных с выпуском этого месяца</value>
+  </data>
+  <data name="Mes_TanA_N_BomComponents" xml:space="preserve">
+    <value>Количество компонентов BOM: {0}</value>
+  </data>
+  <data name="Mes_TanA_N_SalesOrders" xml:space="preserve">
+    <value>Заказ на продажу: {0}</value>
+  </data>
+  <data name="Mes_TanA_N_PurchaseOrders" xml:space="preserve">
+    <value>Связанный заказ на закупку: {0}</value>
+  </data>
+  <data name="Mes_TanA_N_PurchaseInvoices" xml:space="preserve">
+    <value>Инвойс, связанный с заказом на закупку (этот месяц): {0}</value>
+  </data>
+  <data name="Mes_TanA_N_PiHeader" xml:space="preserve">
+    <value>Итоговая сумма заголовка PI (может быть с НДС, в расчёте не используется): {0:N2}</value>
+  </data>
+  <data name="Mes_TanA_N_PiLines" xml:space="preserve">
+    <value>Итоговая сумма строк PI: {0:N2}</value>
+  </data>
+  <data name="Mes_TanA_N_PiMatched" xml:space="preserve">
+    <value>Сумма материалов, соответствующих BOM этой продукции: {0:N2}</value>
+  </data>
+  <data name="Mes_TanA_N_PiNotInBom" xml:space="preserve">
+    <value>Сумма строк, не входящих в BOM (не учтена): {0:N2}</value>
+  </data>
+  <data name="Mes_TanA_N_PiShared" xml:space="preserve">
+    <value>Строки PI, общие с другой продукцией: {0} — распределены пропорционально выпуску; на эту продукцию: {1:N2}</value>
+  </data>
+  <data name="Mes_TanA_N_FinanceMaterial" xml:space="preserve">
+    <value>Расходы Finance «Материалы» (итого за месяц, {0}): {1:N2}; категории: {2}</value>
+  </data>
+  <data name="Mes_TanA_N_AllCurrencies" xml:space="preserve">
+    <value>все валюты</value>
+  </data>
+  <data name="Mes_TanA_N_AllocPlanShare" xml:space="preserve">
+    <value>Распределение: пропорционально плановой стоимости материалов × объём выпуска.</value>
+  </data>
+  <data name="Mes_TanA_N_FormulaMaterial" xml:space="preserve">
+    <value>Формула: фактические материалы (1 шт.) = {0:N2} / {1:N2}</value>
+  </data>
+  <data name="Mes_TanA_N_MaterialUnitCost" xml:space="preserve">
+    <value>Фактическая стоимость материалов (1 шт.): {0:N2} {1}</value>
+  </data>
+  <data name="Mes_TanA_N_ForcedFallback" xml:space="preserve">
+    <value>Примечание: из-за недостатка источников PATH0/PATH1/PATH2/PATH3 по политике применён обязательный fallback (NONE отсутствует).</value>
+  </data>
+  <data name="Mes_TanA_N_SalesInvoiceCount" xml:space="preserve">
+    <value>Количество SalesInvoice с этой позицией: {0}</value>
+  </data>
+  <data name="Mes_TanA_N_SalesInvoices" xml:space="preserve">
+    <value>SalesInvoice: {0}</value>
+  </data>
+  <data name="Mes_TanA_N_LinkedWaybills" xml:space="preserve">
+    <value>Связанные Waybill (этот месяц, не внутренние): {0}</value>
+  </data>
+  <data name="Mes_TanA_N_WaybillTotal" xml:space="preserve">
+    <value>Итоговая сумма Waybill: {0:N2} {1}</value>
+  </data>
+  <data name="Mes_TanA_N_AllocatedToProduct" xml:space="preserve">
+    <value>Распределено на эту продукцию: {0:N2} {1}</value>
+  </data>
+  <data name="Mes_TanA_N_FormulaFinished" xml:space="preserve">
+    <value>Формула: фактическая доставка готовой продукции (1 шт.) = распределённая сумма доставки / {0:N2}</value>
+  </data>
+  <data name="Mes_TanA_N_Result" xml:space="preserve">
+    <value>Результат: {0:N2} {1}</value>
+  </data>
+  <data name="Mes_TanA_N_MatTransportByQty" xml:space="preserve">
+    <value>на произведённую продукцию пропорционально количеству (нет суммы материалов)</value>
+  </data>
+  <data name="Mes_TanA_N_MatTransportByAmount" xml:space="preserve">
+    <value>на произведённую продукцию пропорционально сумме материалов (материалы на 1 шт. × количество)</value>
+  </data>
+  <data name="Mes_TanA_N_Waybills" xml:space="preserve">
+    <value>Путевые листы: {0}</value>
+  </data>
+  <data name="Mes_TanA_N_MatTransportPool" xml:space="preserve">
+    <value>Итого входящей доставки за месяц: {0:N2} {1}</value>
+  </data>
+  <data name="Mes_TanA_N_MatTransportShare" xml:space="preserve">
+    <value>Доля этой продукции: {0:P2}; распределено: {1:N2} {2}</value>
+  </data>
+  <data name="Mes_TanA_N_FormulaMatTransport" xml:space="preserve">
+    <value>Формула: фактическая доставка материалов (1 шт.) = {0:N2} / {1:N2}</value>
+  </data>
+  <data name="Mes_TanA_N_OverheadSource" xml:space="preserve">
+    <value>Источник: транзакции Finance (расход − приход, возвращённый в эту категорию); начисления по инвойсам закупки/продажи не учитываются.</value>
+  </data>
+  <data name="Mes_TanA_N_Currency" xml:space="preserve">
+    <value>Валюта: {0}</value>
+  </data>
+  <data name="Mes_TanA_N_OnlyCurrency" xml:space="preserve">
+    <value>только {0}</value>
+  </data>
+  <data name="Mes_TanA_N_NoUzsAllAdded" xml:space="preserve">
+    <value>UZS не найден — сложены все валюты</value>
+  </data>
+  <data name="Mes_TanA_N_MonthProducedQty" xml:space="preserve">
+    <value>Итого произведено за месяц (вся продукция): {0:N2}</value>
+  </data>
+  <data name="Mes_TanA_N_TaxBank" xml:space="preserve">
+    <value>B — Налоги и банк: {0:N2}; категории: {1}</value>
+  </data>
+  <data name="Mes_TanA_N_Other" xml:space="preserve">
+    <value>D — Прочее: {0:N2}; категории: {1}</value>
+  </data>
+  <data name="Mes_TanA_N_PerUnit" xml:space="preserve">
+    <value>На 1 шт.: {0:N2}</value>
+  </data>
+  <data name="Mes_TanA_N_Admin" xml:space="preserve">
+    <value>C — Административные (повременная оплата): {0:N2}; на 1 шт.: {1:N2}</value>
+  </data>
+  <data name="Mes_TanA_N_Labor" xml:space="preserve">
+    <value>A — Заработная плата (сдельная, тариф × количество): {0:N2}; на 1 шт.: {1:N2}</value>
+  </data>
+  <data name="Mes_TanA_N_AllocBcd" xml:space="preserve">
+    <value>Распределение: B, C, D — итого за месяц / весь объём выпуска (поровну на 1 шт.).</value>
+  </data>
+  <data name="Mes_TanA_N_SkippedForeign" xml:space="preserve">
+    <value>Не учтённые транзакции в другой валюте: {0} ({1}) — не конвертируются.</value>
+  </data>
 </root>

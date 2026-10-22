@@ -1,7 +1,7 @@
 @model tahsinERP.ViewModels.Tannarx.TannarxDetailsViewModel
 
 @{
-    ViewBag.Title = "Tannarx ma'lumotlari";
+    ViewBag.Title = L.T("Mes_Tan_DetailsTitle");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -20,8 +20,8 @@
                             <div class="breadcrumb-wrapper col-12">
                                 <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                     <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
-                                    <li class="breadcrumb-item"><a href="~/Tannarx">Tannarx</a></li>
-                                    <li class="breadcrumb-item active">Ma'lumotlar</li>
+                                    <li class="breadcrumb-item"><a href="~/Tannarx">@L.T("Mes_Tan_Title")</a></li>
+                                    <li class="breadcrumb-item active">@L.T("Details")</li>
                                 </ol>
                             </div>
                         </div>
@@ -40,17 +40,17 @@
                                             @if (changePermit)
                                             {
                                                 <a href="@Url.Action("Edit", "Tannarx", new { id = Model.ID })" class="btn btn-primary">
-                                                    <i class="bx bx-pencil"></i> Tahrirlash
+                                                    <i class="bx bx-pencil"></i> @L.T("Edit")
                                                 </a>
                                             }
                                             @if (deletePermit)
                                             {
                                                 <a href="@Url.Action("Delete", "Tannarx", new { id = Model.ID })" class="btn btn-danger">
-                                                    <i class="bx bx-trash"></i> O'chirish
+                                                    <i class="bx bx-trash"></i> @L.T("Delete")
                                                 </a>
                                             }
                                             <a href="@Url.Action("Index", "Tannarx", new { year = Model.Year, month = Model.Month })" class="btn btn-secondary">
-                                                <i class="bx bx-arrow-back"></i> Orqaga
+                                                <i class="bx bx-arrow-back"></i> @L.T("Back")
                                             </a>
                                         </div>
                                     </div>
@@ -59,26 +59,26 @@
 
                                     <div class="row">
                                         <div class="col-md-12">
-                                            <h6 class="mb-2">Mahsulot ma'lumotlari</h6>
+                                            <h6 class="mb-2">@L.T("Mes_ProductInfo")</h6>
                                             <table class="table table-bordered">
                                                 <tr>
-                                                    <th style="width: 200px;">Maxsulot raqami</th>
+                                                    <th style="width: 200px;">@L.T("Mes_ProductNo")</th>
                                                     <td>@Model.ProductPNo</td>
                                                 </tr>
                                                 <tr>
-                                                    <th>Maxsulot nomi</th>
+                                                    <th>@L.T("Mes_ProductName")</th>
                                                     <td>@Model.ProductName</td>
                                                 </tr>
                                                 <tr>
-                                                    <th>Turi</th>
+                                                    <th>@L.T("Type")</th>
                                                     <td>@Model.ProductType</td>
                                                 </tr>
                                                 <tr>
-                                                    <th>O'lchami</th>
+                                                    <th>@L.T("Mes_Tan_Dimensions")</th>
                                                     <td>@Model.Dimensions</td>
                                                 </tr>
                                                 <tr>
-                                                    <th>Oy</th>
+                                                    <th>@L.T("Mes_Month")</th>
                                                     <td>@Model.MonthString</td>
                                                 </tr>
                                             </table>
@@ -89,15 +89,15 @@
 
                                     <div class="row">
                                         <div class="col-md-12">
-                                            <h6 class="mb-2">Material xarajatlari</h6>
+                                            <h6 class="mb-2">@L.T("Mes_Tan_MaterialCosts")</h6>
                                             <table class="table table-bordered">
                                                 <tr>
-                                                    <th style="width: 200px;">Material narxi</th>
-                                                    <td>@Model.MaterialPrice.ToString("N0") so'm</td>
+                                                    <th style="width: 200px;">@L.T("Mes_Tan_MaterialPrice")</th>
+                                                    <td>@Model.MaterialPrice.ToString("N0") @L.Sum</td>
                                                 </tr>
                                                 <tr>
-                                                    <th>Material tashuvi narxi (2%)</th>
-                                                    <td>@Model.MaterialTransportCost.ToString("N0") so'm</td>
+                                                    <th>@L.T("Mes_Tan_MaterialTransport2")</th>
+                                                    <td>@Model.MaterialTransportCost.ToString("N0") @L.Sum</td>
                                                 </tr>
                                             </table>
                                         </div>
@@ -107,27 +107,27 @@
 
                                     <div class="row">
                                         <div class="col-md-12">
-                                            <h6 class="mb-2">Ish haqi va xarajatlar</h6>
+                                            <h6 class="mb-2">@L.T("Mes_Tan_LaborAndExpenses")</h6>
                                             <table class="table table-bordered">
                                                 <tr>
-                                                    <th style="width: 200px;">A - Ish haqi (Faqat ishchilar)</th>
-                                                    <td>@Model.LaborCost.ToString("N0") so'm</td>
+                                                    <th style="width: 200px;">@L.T("Mes_Tan_LaborA")</th>
+                                                    <td>@Model.LaborCost.ToString("N0") @L.Sum</td>
                                                 </tr>
                                                 <tr>
-                                                    <th>B - Soliq va bank (@(Model.TaxAndBankPercent?.ToString("N2") ?? "0")%)</th>
-                                                    <td>@Model.TaxAndBank.ToString("N0") so'm</td>
+                                                    <th>@L.T("Mes_Tan_TaxBankB") (@(Model.TaxAndBankPercent?.ToString("N2") ?? "0")%)</th>
+                                                    <td>@Model.TaxAndBank.ToString("N0") @L.Sum</td>
                                                 </tr>
                                                 <tr>
-                                                    <th>C - Adminstrativ harajatlar (@(Model.AdministrativeExpensesPercent?.ToString("N2") ?? "0")%)</th>
-                                                    <td>@Model.AdministrativeExpenses.ToString("N0") so'm</td>
+                                                    <th>@L.T("Mes_Tan_AdminC") (@(Model.AdministrativeExpensesPercent?.ToString("N2") ?? "0")%)</th>
+                                                    <td>@Model.AdministrativeExpenses.ToString("N0") @L.Sum</td>
                                                 </tr>
                                                 <tr>
-                                                    <th>D - Boshqa xarajatlar (@(Model.OtherExpensesPercent?.ToString("N2") ?? "0")%)</th>
-                                                    <td>@Model.OtherExpenses.ToString("N0") so'm</td>
+                                                    <th>@L.T("Mes_Tan_OtherD") (@(Model.OtherExpensesPercent?.ToString("N2") ?? "0")%)</th>
+                                                    <td>@Model.OtherExpenses.ToString("N0") @L.Sum</td>
                                                 </tr>
                                                 <tr>
-                                                    <th>E - Foyda (@(Model.ProfitPercent?.ToString("N2") ?? "0")%)</th>
-                                                    <td>@Model.Profit.ToString("N0") so'm</td>
+                                                    <th>@L.T("Mes_Tan_ProfitE") (@(Model.ProfitPercent?.ToString("N2") ?? "0")%)</th>
+                                                    <td>@Model.Profit.ToString("N0") @L.Sum</td>
                                                 </tr>
                                             </table>
                                         </div>
@@ -137,19 +137,19 @@
 
                                     <div class="row">
                                         <div class="col-md-12">
-                                            <h6 class="mb-2">EXW narxlari</h6>
+                                            <h6 class="mb-2">@L.T("Mes_Tan_ExwPrices")</h6>
                                             <table class="table table-bordered">
                                                 <tr>
-                                                    <th style="width: 200px;">Sotuv narxi EXW QQS siz</th>
-                                                    <td>@Model.SalesPriceEXWWithoutVAT.ToString("N0") so'm</td>
+                                                    <th style="width: 200px;">@L.T("Mes_Tan_SalesExwNoVat")</th>
+                                                    <td>@Model.SalesPriceEXWWithoutVAT.ToString("N0") @L.Sum</td>
                                                 </tr>
                                                 <tr>
-                                                    <th>Sotuv narxi QQS bilan EXW</th>
-                                                    <td>@Model.SalesPriceEXWWithVAT.ToString("N0") so'm</td>
+                                                    <th>@L.T("Mes_Tan_SalesExwVat")</th>
+                                                    <td>@Model.SalesPriceEXWWithVAT.ToString("N0") @L.Sum</td>
                                                 </tr>
                                                 <tr>
-                                                    <th>Belgilangan narxi QQS bilan EXW</th>
-                                                    <td>@(Model.SetPriceEXWWithVAT?.ToString("N0") ?? "-") so'm</td>
+                                                    <th>@L.T("Mes_Tan_SetExwVat")</th>
+                                                    <td>@(Model.SetPriceEXWWithVAT?.ToString("N0") ?? "-") @L.Sum</td>
                                                 </tr>
                                             </table>
                                         </div>
@@ -159,11 +159,11 @@
 
                                     <div class="row">
                                         <div class="col-md-12">
-                                            <h6 class="mb-2">Tayyor maxsulot tashuvi</h6>
+                                            <h6 class="mb-2">@L.T("Mes_Tan_FinishedTransport")</h6>
                                             <table class="table table-bordered">
                                                 <tr>
-                                                    <th style="width: 200px;">Tayyor maxsulot tashuvi narxi</th>
-                                                    <td>@(Model.FinishedProductTransportCost?.ToString("N0") ?? "-") so'm</td>
+                                                    <th style="width: 200px;">@L.T("Mes_Tan_FinishedTransportPrice")</th>
+                                                    <td>@(Model.FinishedProductTransportCost?.ToString("N0") ?? "-") @L.Sum</td>
                                                 </tr>
                                             </table>
                                         </div>
@@ -173,19 +173,19 @@
 
                                     <div class="row">
                                         <div class="col-md-12">
-                                            <h6 class="mb-2">CIP narxlari</h6>
+                                            <h6 class="mb-2">@L.T("Mes_Tan_CipPrices")</h6>
                                             <table class="table table-bordered">
                                                 <tr>
-                                                    <th style="width: 200px;">Sotuv narxi CIP QQS siz</th>
-                                                    <td>@Model.SalesPriceCIPWithoutVAT.ToString("N0") so'm</td>
+                                                    <th style="width: 200px;">@L.T("Mes_Tan_SalesCipNoVat")</th>
+                                                    <td>@Model.SalesPriceCIPWithoutVAT.ToString("N0") @L.Sum</td>
                                                 </tr>
                                                 <tr>
-                                                    <th>Sotuv narxi QQS bilan CIP</th>
-                                                    <td>@Model.SalesPriceCIPWithVAT.ToString("N0") so'm</td>
+                                                    <th>@L.T("Mes_Tan_SalesCipVat")</th>
+                                                    <td>@Model.SalesPriceCIPWithVAT.ToString("N0") @L.Sum</td>
                                                 </tr>
                                                 <tr>
-                                                    <th>Belgilangan QQS bilan CIP</th>
-                                                    <td>@(Model.SetPriceCIPWithVAT?.ToString("N0") ?? "-") so'm</td>
+                                                    <th>@L.T("Mes_Tan_SetCipVat")</th>
+                                                    <td>@(Model.SetPriceCIPWithVAT?.ToString("N0") ?? "-") @L.Sum</td>
                                                 </tr>
                                             </table>
                                         </div>
@@ -195,24 +195,24 @@
 
                                     <div class="row">
                                         <div class="col-md-12">
-                                            <h6 class="mb-2">Audit ma'lumotlari</h6>
+                                            <h6 class="mb-2">@L.T("Mes_Tan_AuditInfo")</h6>
                                             <table class="table table-bordered">
                                                 <tr>
-                                                    <th style="width: 200px;">Yaratgan foydalanuvchi</th>
+                                                    <th style="width: 200px;">@L.T("Mes_Tan_CreatedByUser")</th>
                                                     <td>@Model.CreatedBy</td>
                                                 </tr>
                                                 <tr>
-                                                    <th>Yaratilgan vaqti</th>
+                                                    <th>@L.T("Mes_Tan_CreatedAt")</th>
                                                     <td>@Model.CreatedDT.ToString("dd.MM.yyyy HH:mm")</td>
                                                 </tr>
                                                 @if (!string.IsNullOrEmpty(Model.ModifiedBy))
                                                 {
                                                     <tr>
-                                                        <th>O'zgartirgan foydalanuvchi</th>
+                                                        <th>@L.T("Mes_Tan_ModifiedByUser")</th>
                                                         <td>@Model.ModifiedBy</td>
                                                     </tr>
                                                     <tr>
-                                                        <th>O'zgartirilgan vaqti</th>
+                                                        <th>@L.T("Mes_Tan_ModifiedAt")</th>
                                                         <td>@(Model.ModifiedDT?.ToString("dd.MM.yyyy HH:mm") ?? "-")</td>
                                                     </tr>
                                                 }

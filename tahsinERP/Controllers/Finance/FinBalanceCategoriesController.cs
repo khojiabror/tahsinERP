@@ -10,6 +10,7 @@ using tahsinERP.ViewModels.Finance;
 using tahsinERP.Services.Finance;
 using tahsinERP.Controllers;
 using tahsinERP.Services.Common;
+using tahsinERP.I18n;
 
 namespace tahsinERP.Controllers.Finance
 {
@@ -53,10 +54,10 @@ namespace tahsinERP.Controllers.Finance
                 ViewBag.Type = type;
                 ViewBag.ParentID = parentID;
                 ViewBag.TypeList = new SelectList(new[] {
-                    new { Value = (int?)null, Text = "Barcha" },
-                    new { Value = (int?)1, Text = "Aktiv" },
-                    new { Value = (int?)2, Text = "Passiv" },
-                    new { Value = (int?)3, Text = "Kapital" }
+                    new { Value = (int?)null, Text = L.T("Fin_AllOption") },
+                    new { Value = (int?)1, Text = L.T("Fin_Asset") },
+                    new { Value = (int?)2, Text = L.T("Fin_Liability") },
+                    new { Value = (int?)3, Text = L.T("Fin_Equity") }
                 }, "Value", "Text", type);
 
                 return View(tree);
@@ -72,18 +73,18 @@ namespace tahsinERP.Controllers.Finance
         private static SelectList TypeList(byte? selected)
         {
             return new SelectList(new[] {
-                new { Value = (byte)1, Text = "Aktiv" },
-                new { Value = (byte)2, Text = "Passiv" },
-                new { Value = (byte)3, Text = "Kapital" }
+                new { Value = (byte)1, Text = L.T("Fin_Asset") },
+                new { Value = (byte)2, Text = L.T("Fin_Liability") },
+                new { Value = (byte)3, Text = L.T("Fin_Equity") }
             }, "Value", "Text", selected);
         }
 
         private static SelectList CalculationTypeList(byte? selected)
         {
             return new SelectList(new[] {
-                new { Value = (byte)1, Text = "Hisob asosida (Account-Based)" },
-                new { Value = (byte)2, Text = "Tranzaksiya asosida (Transaction-Based)" },
-                new { Value = (byte)3, Text = "Hujjat asosida (Document-Based)" }
+                new { Value = (byte)1, Text = L.T("Fin_CalcByAccountLong") },
+                new { Value = (byte)2, Text = L.T("Fin_CalcByTransactionLong") },
+                new { Value = (byte)3, Text = L.T("Fin_CalcByDocumentLong") }
             }, "Value", "Text", selected);
         }
 
@@ -222,7 +223,7 @@ namespace tahsinERP.Controllers.Finance
                         excludeIds.Add(category.ID);
                         if (category.ParentID.HasValue && excludeIds.Contains(category.ParentID.Value))
                         {
-                            ModelState.AddModelError("ParentID", "Ota kategoriya sifatida o'zini yoki farzandini tanlash mumkin emas.");
+                            ModelState.AddModelError("ParentID", L.T("Fin_ParentCycleCategory"));
                             PopulateFormLists(db, category, true);
                             return View(category);
                         }
@@ -316,7 +317,7 @@ namespace tahsinERP.Controllers.Finance
                     ID = category.ID,
                     Name = category.Name,
                     Controller = "FinBalanceCategories",
-                    ListTitle = "Balans kategoriyalari",
+                    ListTitle = L.T("Fin_BalanceCategories"),
                     AllCategories = db.FIN_CATEGORIES.Where(c => c.IsActive).OrderBy(c => c.Name).ToList(),
                     MappedCategoryIds = db.FIN_CATEGORIES
                         .Where(c => c.FIN_BALANCE_CATEGORIES.Any(b => b.ID == id))

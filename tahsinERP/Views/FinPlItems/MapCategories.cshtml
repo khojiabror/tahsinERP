@@ -1,7 +1,7 @@
 @model tahsinERP.ViewModels.Finance.MapCategoriesViewModel
 
 @{
-    ViewBag.Title = "Kategoriyalarni bog'lash";
+    ViewBag.Title = L.T("Fin_MapCategories");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -19,7 +19,7 @@
                                     <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
                                     <li class="breadcrumb-item"><a href="@Url.Action("Index", Model.Controller)">@Model.ListTitle</a></li>
                                     <li class="breadcrumb-item"><a href="@Url.Action("Details", Model.Controller, new { id = Model.ID })">@Model.Name</a></li>
-                                    <li class="breadcrumb-item active">Kategoriyalarni bog'lash</li>
+                                    <li class="breadcrumb-item active">@L.T("Fin_MapCategories")</li>
                                 </ol>
                             </div>
                         </div>
@@ -31,7 +31,7 @@
                     <div class="col-md-10">
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">Kategoriyalarni bog'lash: @Model.Name</h4>
+                                <h4 class="card-title">@L.T("Fin_MapCategories"): @Model.Name</h4>
                             </div>
                             <div class="card-content">
                                 <div class="card-body">
@@ -41,7 +41,7 @@
                                         @Html.Hidden("id", Model.ID)
 
                                         <div class="form-group">
-                                            <label class="control-label">Tranzaksiya kategoriyalari:</label>
+                                            <label class="control-label">@L.T("Fin_TxCategories"):</label>
                                             <div style="max-height: 400px; overflow-y: auto; border: 1px solid #ddd; padding: 10px;">
                                                 @foreach (var category in Model.AllCategories)
                                                 {
@@ -55,7 +55,7 @@
                                                         <label class="custom-control-label" for="cat_@category.ID">
                                                             @category.Name
                                                             <span class="badge badge-@(category.Type == 1 ? "success" : category.Type == 2 ? "danger" : "secondary")">
-                                                                @(category.Type == 1 ? "Daromad" : category.Type == 2 ? "Chiqim" : "Boshqa")
+                                                                @(category.Type == 1 ? L.T("Fin_Income") : category.Type == 2 ? L.T("Fin_Expense") : L.T("Fin_Other"))
                                                             </span>
                                                         </label>
                                                     </div>
@@ -64,8 +64,8 @@
                                         </div>
 
                                         <div class="form-actions">
-                                            <button type="submit" class="btn btn-primary">Saqlash</button>
-                                            <a href="@Url.Action("Details", Model.Controller, new { id = Model.ID })" class="btn btn-secondary">Bekor qilish</a>
+                                            <button type="submit" class="btn btn-primary">@L.T("Save")</button>
+                                            <a href="@Url.Action("Details", Model.Controller, new { id = Model.ID })" class="btn btn-secondary">@L.T("Cancel")</a>
                                         </div>
                                     }
                                 </div>
