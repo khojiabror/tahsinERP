@@ -28,6 +28,8 @@
     <ProjectReference Include="..\tahsinERP.ControlPanel\tahsinERP.ControlPanel.csproj" />
     <!-- Provisioning agenti: unit + panel bilan integratsion testlar (ProvisioningTests.cs) -->
     <ProjectReference Include="..\tahsinERP.ProvisioningAgent\tahsinERP.ProvisioningAgent.csproj" />
+    <!-- Avto-yangilash: Updater (UpdaterTests.cs — soxta tizim amallari bilan, SQL'siz) -->
+    <ProjectReference Include="..\tahsinERP.Updater\tahsinERP.Updater.csproj" />
   </ItemGroup>
 
   <ItemGroup>

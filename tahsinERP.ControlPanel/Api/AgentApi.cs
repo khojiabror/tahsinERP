@@ -24,6 +24,13 @@ public static class AgentApi
         group.MapPost("/schedule", ScheduleAsync);
         group.MapPost("/usage/targets", UsageTargetsAsync);
         group.MapPost("/usage", UsageAsync);
+        // Avto-yangilash (Docs/Deploy/03_AUTO_UPDATE.md)
+        group.MapPost("/updates/lease", UpdateLeaseAsync);
+        group.MapPost("/updates/jobs/{id:long}/progress", UpdateProgressAsync);
+        group.MapPost("/updates/jobs/{id:long}/complete", UpdateCompleteAsync);
+        group.MapPost("/updates/jobs/{id:long}/manifest", UpdateManifestAsync);
+        group.MapPost("/updates/jobs/{id:long}/artifact", UpdateArtifactAsync);
+        group.MapPost("/updates/inventory", UpdateInventoryAsync);
     }
 
     private static IResult Error(int status, string error, string? message = null) =>
@@ -141,6 +148,72 @@ public static class AgentApi
             return Results.Json(new { ok = true });
         }
         catch (DomainException ex) { return Error(422, "rejected", ex.Message); }
+    }
+
+    internal static async Task<IResult> UpdateLeaseAsync(HttpRequest http, ControlDbContext db, ISecretProtector protector, Clock clock,
+        UpdatesService updates, CancellationToken ct)
+    {
+        var (a, err) = await AuthenticateAsync(http, db, protector, clock, ct);
+        if (a is null) return err!;
+        var lease = await updates.LeaseAsync(a.Server, ct);
+        return lease is null ? Results.NoContent() : Results.Json(lease, AgentProtocol.Json);
+    }
+
+    internal static async Task<IResult> UpdateProgressAsync(long id, HttpRequest http, ControlDbContext db, ISecretProtector protector, Clock clock,
+        UpdatesService updates, CancellationToken ct)
+    {
+        var (a, err) = await AuthenticateAsync(http, db, protector, clock, ct);
+        if (a is null) return err!;
+        var r = Read<UpdateProgress>(a.Body);
+        if (r is null) return Error(400, "bad_request");
+        return Map(await updates.ProgressAsync(a.Server, id, r, ct));
+    }
+
+    internal static async Task<IResult> UpdateCompleteAsync(long id, HttpRequest http, ControlDbContext db, ISecretProtector protector, Clock clock,
+        UpdatesService updates, CancellationToken ct)
+    {
+        var (a, err) = await AuthenticateAsync(http, db, protector, clock, ct);
+        if (a is null) return err!;
+        var r = Read<UpdateCompletion>(a.Body);
+        if (r is null || !Enum.IsDefined(r.Outcome)) return Error(400, "bad_request");
+        return Map(await updates.CompleteAsync(a.Server, id, r, ct));
+    }
+
+    internal static async Task<IResult> UpdateManifestAsync(long id, HttpRequest http, ControlDbContext db, ISecretProtector protector, Clock clock,
+        UpdatesService updates, CancellationToken ct)
+    {
+        var (a, err) = await AuthenticateAsync(http, db, protector, clock, ct);
+        if (a is null) return err!;
+        var m = await updates.ManifestForJobAsync(a.Server, id, ct);
+        return m is null ? Error(404, "not_found") : Results.Json(m, AgentProtocol.Json);
+    }
+
+    private sealed class ArtifactRequest { public string File { get; set; } = ""; }
+
+    internal static async Task<IResult> UpdateArtifactAsync(long id, HttpRequest http, ControlDbContext db, ISecretProtector protector, Clock clock,
+        UpdatesService updates, CancellationToken ct)
+    {
+        var (a, err) = await AuthenticateAsync(http, db, protector, clock, ct);
+        if (a is null) return err!;
+        var r = Read<ArtifactRequest>(a.Body);
+        if (r is null || string.IsNullOrWhiteSpace(r.File)) return Error(400, "bad_request");
+        try
+        {
+            var stream = await updates.OpenArtifactForJobAsync(a.Server, id, r.File, ct);
+            return stream is null ? Error(404, "not_found") : Results.Stream(stream, "application/zip");
+        }
+        catch (DomainException ex) { return Error(502, "upstream", ex.Message); }
+    }
+
+    internal static async Task<IResult> UpdateInventoryAsync(HttpRequest http, ControlDbContext db, ISecretProtector protector, Clock clock,
+        UpdatesService updates, CancellationToken ct)
+    {
+        var (a, err) = await AuthenticateAsync(http, db, protector, clock, ct);
+        if (a is null) return err!;
+        var r = Read<UpdateInventory>(a.Body);
+        if (r is null || r.Apps.Count > 50 || r.Instances.Count > 2000) return Error(400, "bad_request");
+        await updates.SaveInventoryAsync(a.Server, r, ct);
+        return Results.Json(new { ok = true });
     }
 
     private static IResult Map(ProvisioningService.CompleteStatus s) => s switch

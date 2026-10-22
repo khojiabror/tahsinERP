@@ -32,6 +32,13 @@
         setInterval(tick, 1000);
     }
 
+    // Xavfli amallar (yangilash, rollback): <form data-confirm="..."> — yuborishdan oldin tasdiq.
+    document.querySelectorAll('form[data-confirm]').forEach(function (f) {
+        f.addEventListener('submit', function (e) {
+            if (!window.confirm(f.getAttribute('data-confirm'))) e.preventDefault();
+        });
+    });
+
     // Bir martalik kod maydonlari: faqat raqam qoldiriladi.
     document.querySelectorAll('input[autocomplete="one-time-code"]').forEach(function (inp) {
         inp.addEventListener('input', function () {

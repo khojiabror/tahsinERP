@@ -7,6 +7,10 @@ Manbalar: `00_SERVER_PLAN.md`, `Docs/ControlPanel/04–08`, `Docs/Distribution/0
 
 Domen — **`tahsinerp.uz`** (sotib olingan, 2026-10-21). **Lightsail "SQL Server 2022 Express" blueprint'ida SQL standart nom bilan o'rnatilgan — ulanishda `.` ishlating** (qo'llanmadagi `.\SQLEXPRESS` o'rniga; xizmat `MSSQL$SQLEXPRESS` bo'lgan serverlarda — `.\SQLEXPRESS`). SQL — `.\SQLEXPRESS`.
 
+> **Yangilash (2026-10-22 dan):** birinchi o'rnatishdan keyin barcha yangilanishlar — **panel → Yangilanishlar** tugmasi bilan
+> (CI imzolagan GitHub relizi, serverdagi Updater xizmati, avtomatik zaxira va rollback). ERP har firma uchun alohida IIS instance'ida
+> (`erp-<slug>`), versiya firma bo'yicha. To'liq: **`03_AUTO_UPDATE.md`**. Quyidagi qo'lda yangilash yo'llari — faqat favqulodda holat uchun.
+
 ---
 
 ## 0. Boshlashdan oldin qaror va tayyorgarlik
@@ -127,6 +131,10 @@ Bazalar: har firma — `DB_<slug>`; markaziy — `tahsin_control` (panel), `tahs
 > 3-bo'limdagi ERP/agent SQL login'larini bitta qadamda bajaradi. ERP SQL'ga **Windows auth** bilan (`IIS APPPOOL\tahsinERP`, parolsiz)
 > ulanadi; `database\` → `C:\tahsinERP\Database` (veb-papkadan tashqarida). Yangilash: `-KeepSecrets`.
 > Quyidagi qo'lda qadamlar — skript nima qilishini tushunish uchun.
+>
+> **Firma instance'lari (`03_AUTO_UPDATE.md`):** `Install-Erp.ps1` yaratgan umumiy `tahsinERP` sayti (`*.<domen>`) fallback va HTTP→HTTPS
+> uchun qoladi; har firma `tahsinERP.Updater.exe split-erp` yoki panel "Instance yaratish" bilan o'z saytiga (`erp-<slug>`, https `<slug>.<domen>`)
+> o'tadi — IIS'da aniq host binding wildcard'dan ustun. Keyingi ERP relizlari firma bo'yicha paneldan o'rnatiladi.
 
 ### 4.1 Build (ishlab chiquvchi kompyuterida)
 
@@ -251,6 +259,8 @@ New-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Services\tahsinERP.Provisi
 6. Birinchi firma: panelda tenant (masalan `demo`, KORP, uzoq muddat) → **"Bazani yaratish"** → agent `DB_demo` yaratadi, `tenants.json` ga yozadi,
    litsenziya ro'yxat tokenini qo'yadi. Demo har kecha 03:00–06:00 da tiklanadi. `https://demo.tahsinerp.uz` ochilishini tekshiring.
 7. ERP'da: **Litsenziya → "Panelga ulash"** (ro'yxat tokeni 7 kun amal qiladi) → "Hozir tekshirish".
+8. **Updater** (avto-yangilash, LocalSystem): `tools\deploy\Install-Updater.ps1 -Domain tahsinerp.uz` (paket `app\` = `updater.zip`).
+   Agent `Updates:*` sozlamalari standart qiymatlar bilan ishlaydi. Tafsilot — `03_AUTO_UPDATE.md` (3-bo'lim).
 
 Qo'lda (agentsiz) firma bazasi kerak bo'lsa:
 `.\Database\tools\New-TenantDb.ps1 -Server .\SQLEXPRESS -DbName DB_firma1 -CompanyName '"Firma 1" MChJ'` (oxirgi qatorda `RESULT {...}` — vaqtinchalik admin paroli),
@@ -330,6 +340,8 @@ Firmaning o'z domeni (`firma1.uz`) — keyingi bosqich (Caddy on-demand TLS yoki
 | Agent siri | xizmat muhiti |
 | Har firma bot tokeni | `Bot.dll tenant add` (bazada shifrlanadi) |
 | Cloudflare API tokeni | win-acme |
+| Reliz imzo kaliti (ECDSA, private) | faqat GitHub secret `RELEASE_SIGNING_KEY` (environment `release`); nusxa — parol menejeri |
+| GitHub token (read-only, reliz o'qish) | panel pool env `ControlPanel__Updates__GitHubToken` |
 
 ---
 
@@ -347,8 +359,11 @@ Get-ChildItem C:\ProgramData\tahsinERP\Backups\daily -Directory | ? CreationTime
    (Express'da `COMPRESSION` qo'llanmasa — olib tashlang.) **Serverdan tashqariga nusxa** (provayder object storage yoki boshqa server) va provayder snapshot'i.
    Eng muhimi `tahsin_control` — to'lov tarixi shu yerda.
 2. **Kuzatuv**: UptimeRobot (bepul) — `https://admin.tahsinerp.uz/health`, `https://bot.tahsinerp.uz/health`, `https://demo.sayt.tahsinerp.uz/health`, `https://demo.tahsinerp.uz/Account/Login`.
-3. **Relizlar** 19:00 dan keyin, zaxiradan so'ng: ERP fayllarini almashtirish (serverdagi `Web.config` machineKey'ni saqlab) → `Invoke-DbMigrations -AllTenants -Seed` → pool recycle;
-   panel uchun `Install-PanelIis.ps1 -KeepSecrets`; bot/sayt uchun `dotnet publish` → pool recycle (sozlamalar pool muhitida, o'chmaydi).
+3. **Relizlar** — panel → **Yangilanishlar** (`03_AUTO_UPDATE.md`): ish vaqtidan tashqarida, avval `demo`, keyin boshqa firmalar.
+   Updater o'zi zaxira oladi (fayllar + firma bazasi `.bak`), migratsiya + seed qiladi, `/health` tekshiradi va xatoda qaytaradi.
+   Favqulodda qo'lda yo'l (Updater ishlamasa): ERP fayllarini almashtirish (serverdagi `Web.config` machineKey'ni saqlab) →
+   `Invoke-DbMigrations -Database <db> -Seed` → pool recycle; panel — `Install-PanelIis.ps1 -KeepSecrets`; bot/sayt — `Install-BotSite.ps1 -KeepSecrets`.
+4. **Kuzatuv**ga firma instance'lari: `https://<slug>.tahsinerp.uz/health` (200 — ilova va baza ishlayapti).
 
 ---
 
