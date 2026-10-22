@@ -2,6 +2,7 @@ using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 using tahsinERP.Filters;
+using tahsinERP.I18n;
 using tahsinERP.Models;
 using tahsinERP.Services;
 using tahsinERP.Services.Common;
@@ -34,7 +35,7 @@ namespace tahsinERP.Controllers
         {
             if (file == null || file.ContentLength == 0)
             {
-                ViewBag.Error = "Excel fayl yuklanmadi.";
+                ViewBag.Error = L.T("Log_Imp_NoFile");
                 return View();
             }
 
@@ -51,7 +52,7 @@ namespace tahsinERP.Controllers
             }
 
             LogHelper.LogToDatabase(CurrentUserName, "WaybillController", "UploadExcel",
-                $"{result.SuccessCount} ta {LogisticsTerms.Waybill.ToLower()} Excel orqali yuklandi, {result.SkipCount} ta qator o'tkazib yuborildi, {result.Errors.Count} ta xato.");
+                $"{result.SuccessCount} ta yo'l varaqasi Excel orqali yuklandi, {result.SkipCount} ta qator o'tkazib yuborildi, {result.Errors.Count} ta xato.");
 
             ViewBag.SuccessCount = result.SuccessCount;
             ViewBag.SkipCount = result.SkipCount;

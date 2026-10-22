@@ -22,7 +22,7 @@ namespace tahsinERP.ViewModels
         public double PHeight { get; set; }
         public int UnitID { get; set; }
         public UNIT Units { get; set; }
-        [Display(Name = "Selected Part Type")]
+        [Display(Name = "Prd_SelectedPartType")]
         public string Type { get; set; }
         [DataType(DataType.Text)]
         public string Description { get; set; }

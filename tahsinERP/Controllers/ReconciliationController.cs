@@ -5,6 +5,7 @@ using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
+using tahsinERP.I18n;
 using tahsinERP.Models;
 using tahsinERP.Services;
 using tahsinERP.ViewModels;
@@ -175,11 +176,11 @@ namespace tahsinERP.Controllers
                 CounterpartyId = counterpartyId,
                 ContractId = 0,
                 ContractNo = null,
-                Party1Name = companyName ?? "Bizning korxona",
+                Party1Name = companyName ?? L.T("Crm_RecOurCompany"),
                 Party2Name = party2Name,
                 AsOfDate = asOfDate,
                 ReportDate = DateTime.Now.ToString("dd.MM.yyyy"),
-                AgreementInfo = "Akt-sverki tanlangan shartnoma yoki barcha shartnomalar bo'yicha shakllantiriladi.",
+                AgreementInfo = L.T("Crm_RecAgreementSelectHint"),
                 Rows = new List<ReconciliationRowViewModel>(),
                 ContractsForParty = contractList ?? new List<ReconciliationContractOption>()
             };
@@ -264,10 +265,10 @@ namespace tahsinERP.Controllers
             }
 
             if (userId <= 0)
-                ModelState.AddModelError("", "Foydalanuvchi aniqlanmadi.");
+                ModelState.AddModelError("", L.T("Crm_RecUserNotFound"));
 
             if (model.ContractId <= 0)
-                ModelState.AddModelError("", "Shartnoma tanlanishi shart.");
+                ModelState.AddModelError("", L.T("Crm_RecContractRequired"));
 
             if (ModelState.IsValid)
             {
@@ -289,11 +290,11 @@ namespace tahsinERP.Controllers
                 }
                 catch (SqlException ex)
                 {
-                    ModelState.AddModelError("", "Ma'lumotlar bazasida jadval yoki ContractID ustuni topilmadi. Administrator migratsiya skriptlarini ishga tushirsin. Tafsilot: " + ex.Message);
+                    ModelState.AddModelError("", L.T("Crm_RecDbSchemaError", ex.Message));
                 }
                 catch (Exception ex)
                 {
-                    ModelState.AddModelError("", "Saqlashda xatolik: " + ex.Message);
+                    ModelState.AddModelError("", L.T("Crm_RecSaveError", ex.Message));
                 }
             }
 

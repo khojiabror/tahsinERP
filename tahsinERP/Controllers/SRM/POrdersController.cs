@@ -6,6 +6,7 @@ using System.Data.Entity.Validation;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
+using tahsinERP.I18n;
 using tahsinERP.Models;
 using tahsinERP.Services;
 using tahsinERP.ViewModels;
@@ -88,14 +89,14 @@ namespace tahsinERP.Controllers
                 }
 
                 var rows = await POrderService.OrderIndex(query, 2, true).ToListAsync();
-                var bytes = ExcelExport.Create("Xarid buyurtmalari", rows,
-                    ExcelExport.Col<POrderService.IndexRow>("Buyurtma raqami", r => r.OrderNo),
-                    ExcelExport.Col<POrderService.IndexRow>("Turi", r => r.PurchaseType == ProcurementLookups.IndirectPurchase ? "Indirect" : "Direct"),
-                    ExcelExport.Col<POrderService.IndexRow>("Sana", r => r.IssuedDate, "dd.MM.yyyy"),
-                    ExcelExport.Col<POrderService.IndexRow>("Summa (QQS bilan)", r => r.Amount ?? 0, "#,##0.00"),
-                    ExcelExport.Col<POrderService.IndexRow>("Valyuta", r => r.Currency));
+                var bytes = ExcelExport.Create(L.T("Menu_PurchaseOrders"), rows,
+                    ExcelExport.Col<POrderService.IndexRow>(L.T("Srm_OrderNo"), r => r.OrderNo),
+                    ExcelExport.Col<POrderService.IndexRow>(L.T("Type"), r => r.PurchaseType == ProcurementLookups.IndirectPurchase ? "Indirect" : "Direct"),
+                    ExcelExport.Col<POrderService.IndexRow>(L.T("Date"), r => r.IssuedDate, "dd.MM.yyyy"),
+                    ExcelExport.Col<POrderService.IndexRow>(L.T("Srm_AmountWithVat"), r => r.Amount ?? 0, "#,##0.00"),
+                    ExcelExport.Col<POrderService.IndexRow>(L.T("Currency"), r => r.Currency));
 
-                return File(bytes, ExcelExport.ContentType, $"Xarid_buyurtmalari_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx");
+                return File(bytes, ExcelExport.ContentType, L.T("Srm_FilePurchaseOrders") + $"_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx");
             }
         }
 
@@ -158,13 +159,13 @@ namespace tahsinERP.Controllers
 
                     if (requisition == null)
                     {
-                        TempData["ErrorMessage"] = "Talabnoma topilmadi.";
+                        TempData["ErrorMessage"] = L.T("Srm_RequisitionNotFound");
                         return RedirectToAction("Index", "PRequisitions");
                     }
 
                     if (requisition.Status != "Approved")
                     {
-                        TempData["ErrorMessage"] = "Faqat tasdiqlangan talabnomani xarid buyurtmasiga aylantirish mumkin.";
+                        TempData["ErrorMessage"] = L.T("Srm_OnlyApprovedToOrder");
                         return RedirectToAction("Details", "PRequisitions", new { id = requisitionId });
                     }
                 }
@@ -188,7 +189,7 @@ namespace tahsinERP.Controllers
                     bool exists = await db.P_REQUISITIONS.AnyAsync(r => r.ID == requisitionId && r.IsDeleted != true);
                     if (!exists)
                     {
-                        return Json(new { success = false, message = "Talabnoma topilmadi." });
+                        return Json(new { success = false, message = L.T("Srm_RequisitionNotFound") });
                     }
 
                     var rows = await db.P_REQUISITION_PRODUCTS
@@ -235,7 +236,7 @@ namespace tahsinERP.Controllers
         {
             if (salesOrderIds == null || salesOrderIds.Length == 0)
             {
-                return Json(new { success = false, message = "Hech qanday sotuv buyurtmasi tanlanmagan." });
+                return Json(new { success = false, message = L.T("Srm_NoSalesOrderSelected") });
             }
 
             using (var db = new DBTHSNEntities())
@@ -250,12 +251,12 @@ namespace tahsinERP.Controllers
 
                     if (!orderStats.Any())
                     {
-                        return Json(new { success = false, message = "Tanlangan sotuv buyurtmalari topilmadi." });
+                        return Json(new { success = false, message = L.T("Srm_SelectedSalesOrdersNotFound") });
                     }
 
                     if (!orderStats.Any(o => o.HasProducts))
                     {
-                        return Json(new { success = false, message = "Tanlangan sotuv buyurtmalarida mahsulotlar topilmadi." });
+                        return Json(new { success = false, message = L.T("Srm_SalesOrdersNoProducts") });
                     }
 
                     var generationService = new POrderGenerationService(db);
@@ -264,7 +265,7 @@ namespace tahsinERP.Controllers
 
                     if (requirements == null || !requirements.Any())
                     {
-                        return Json(new { success = false, message = "BOM asosida xom ashyo ehtiyojlari topilmadi. Mahsulotlar uchun faol BOM mavjud emas yoki BOM'da xom ashyo yo'q." });
+                        return Json(new { success = false, message = L.T("Srm_BomNeedsNotFound") });
                     }
 
                     var result = requirements.Select(cr => new
@@ -285,7 +286,7 @@ namespace tahsinERP.Controllers
                 }
                 catch (Exception ex)
                 {
-                    return JsonError(ex, "BOM asosida ehtiyojlarni hisoblashda xatolik.");
+                    return JsonError(ex, L.T("Srm_BomCalcError"));
                 }
             }
         }

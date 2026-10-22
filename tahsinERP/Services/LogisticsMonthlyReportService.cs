@@ -8,6 +8,8 @@ using tahsinERP.Models;
 using tahsinERP.Services.Common;
 using tahsinERP.ViewModels;
 
+using tahsinERP.I18n;
+
 namespace tahsinERP.Services
 {
     public static class LogisticsMonthlyReportService
@@ -31,14 +33,14 @@ namespace tahsinERP.Services
             var nameMap = await db.FORWARDERS.AsNoTracking()
                 .Where(f => forwarderIds.Contains(f.ID))
                 .Select(f => new { f.ID, f.ForwarderName })
-                .ToDictionaryAsync(x => x.ID, x => x.ForwarderName ?? "Noma'lum");
+                .ToDictionaryAsync(x => x.ID, x => x.ForwarderName ?? L.T("Log_Unknown"));
 
             var rows = balances.Values
                 .Where(b => Math.Abs(b.OpeningDebt) > 0.005m || b.FreightInPeriod != 0 || b.PaidInPeriod != 0 || b.TripsInPeriod > 0)
                 .Select(b => new LogisticsMonthlyReportRowViewModel
                 {
                     ForwarderId = b.ForwarderID,
-                    ForwarderName = nameMap.ContainsKey(b.ForwarderID) ? nameMap[b.ForwarderID] : $"Forwarder #{b.ForwarderID}",
+                    ForwarderName = nameMap.ContainsKey(b.ForwarderID) ? nameMap[b.ForwarderID] : L.T("Log_ForwarderNo", b.ForwarderID),
                     TripsInMonth = b.TripsInPeriod,
                     OpeningDebt = b.OpeningDebt,
                     FreightInMonth = b.FreightInPeriod,

@@ -16,6 +16,7 @@
         var searchUrl = form.data('search-url');
         var selectedTariffId = String(form.data('selected-tariff') || '');
         var isEdit = String(form.data('edit')) === 'true';
+        var selectText = window.erpT ? erpT('Js_Select') : 'Tanlang';
 
         // --- hujjat tanlovlari (AJAX)
         $('.waybill-doc-select').each(function () {
@@ -24,7 +25,7 @@
             el.select2({
                 width: '100%',
                 allowClear: true,
-                placeholder: 'Tanlang',
+                placeholder: selectText,
                 minimumInputLength: 1,
                 ajax: {
                     url: searchUrl,
@@ -41,14 +42,14 @@
             var contractId = $('#contractSelect').val();
             var tariffSelect = $('#tariffSelect');
             if (!contractId) {
-                tariffSelect.empty().append($('<option>').val('').text('Tanlang')).trigger('change.select2');
+                tariffSelect.empty().append($('<option>').val('').text(selectText)).trigger('change.select2');
                 return;
             }
 
             $.post(tariffsUrl, { contractId: contractId }).done(function (result) {
                 if (!result || !result.success) return;
 
-                tariffSelect.empty().append($('<option>').val('').text('Tanlang'));
+                tariffSelect.empty().append($('<option>').val('').text(selectText));
                 $.each(result.items, function (_, item) {
                     tariffSelect.append($('<option>')
                         .val(item.id)

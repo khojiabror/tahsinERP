@@ -1,6 +1,6 @@
 @model List<tahsinERP.Models.SALES_SF_HEADERS>
 @{
-    ViewBag.Title = "Ro'yxat";
+    ViewBag.Title = L.T("Menu_List");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -21,7 +21,7 @@
                                         <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                     </li>
                                     <li class="breadcrumb-item active">
-                                        SF (E-Invoyslar)
+                                        @L.T("Crm_SfBreadcrumb")
                                     </li>
                                 </ol>
                             </div>
@@ -37,21 +37,21 @@
                         {
                             <div class="row border rounded py-2 mb-2">
                                 <div class="col-12 col-sm-6 col-lg-2">
-                                    <label>Qidirish</label>
-                                    <input type="text" name="searchTerm" class="form-control" placeholder="SF raqami..." value="@ViewBag.SearchTerm" />
+                                    <label>@L.T("Search")</label>
+                                    <input type="text" name="searchTerm" class="form-control" placeholder="@L.T("Crm_SfNumberPlaceholder")" value="@ViewBag.SearchTerm" />
                                 </div>
                                 <div class="col-12 col-sm-6 col-lg-2">
-                                    <label>Mijoz</label>
-                                    @Html.DropDownList("customerID", ViewBag.Customers as SelectList, "Barchasi", new { @class = "form-control" })
+                                    <label>@L.T("Crm_Client")</label>
+                                    @Html.DropDownList("customerID", ViewBag.Customers as SelectList, L.T("All"), new { @class = "form-control" })
                                 </div>
                                 <div class="col-12 col-sm-6 col-lg-2">
-                                    <label>Invoys</label>
-                                    @Html.DropDownList("invoiceID", ViewBag.Invoices as SelectList, "Barchasi", new { @class = "form-control" })
+                                    <label>@L.T("Crm_SfInvoice")</label>
+                                    @Html.DropDownList("invoiceID", ViewBag.Invoices as SelectList, L.T("All"), new { @class = "form-control" })
                                 </div>
                                 <div class="col-12 col-sm-6 col-lg-2">
-                                    <label>Holati</label>
+                                    <label>@L.T("Status")</label>
                                     <select name="statusCode" class="form-control">
-                                        <option value="">Barchasi</option>
+                                        <option value="">@L.T("All")</option>
                                         <option value="DRAFT" @(ViewBag.StatusCode == "DRAFT" ? "selected" : "")>DRAFT</option>
                                         <option value="SENT" @(ViewBag.StatusCode == "SENT" ? "selected" : "")>SENT</option>
                                         <option value="ACCEPTED" @(ViewBag.StatusCode == "ACCEPTED" ? "selected" : "")>ACCEPTED</option>
@@ -59,7 +59,7 @@
                                 </div>
                                 <div class="col-12 col-sm-6 col-lg-2 d-flex align-items-end">
                                     <button type="submit" class="btn btn-primary w-100">
-                                        <i class="bx bx-search"></i> Qidirish
+                                        <i class="bx bx-search"></i> @L.T("Search")
                                     </button>
                                 </div>
                             </div>
@@ -72,7 +72,7 @@
                                 <div class="card-body">
                                     <div class="row mb-2">
                                         <div class="col-md-6">
-                                            <span class="text-muted">Jami: @ViewBag.TotalItems ta yozuv</span>
+                                            <span class="text-muted">@L.T("Crm_SfTotalRecords", ViewBag.TotalItems)</span>
                                         </div>
                                     </div>
 
@@ -80,12 +80,12 @@
                                         <table class="table invoice-data-table dt-responsive nowrap" style="width:100%">
                                             <thead>
                                                 <tr>
-                                                    <th>SF raqami</th>
-                                                    <th>Sana</th>
-                                                    <th>Invoys</th>
-                                                    <th>Mijoz</th>
-                                                    <th>Holati</th>
-                                                    <th>Amallar</th>
+                                                    <th>@L.T("Crm_SfNumber")</th>
+                                                    <th>@L.T("Date")</th>
+                                                    <th>@L.T("Crm_SfInvoice")</th>
+                                                    <th>@L.T("Crm_Client")</th>
+                                                    <th>@L.T("Status")</th>
+                                                    <th>@L.T("Actions")</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -111,10 +111,10 @@
                                                                 </span>
                                                             </td>
                                                             <td>
-                                                                <a href="@Url.Action("Details", "SalesSF", new { id = item.ID })" class="btn btn-sm btn-outline-info" title="Ko'rish"><i class="bx bx-show"></i></a>
+                                                                <a href="@Url.Action("Details", "SalesSF", new { id = item.ID })" class="btn btn-sm btn-outline-info" title="@L.T("View")"><i class="bx bx-show"></i></a>
                                                                 @if (changePermit && item.StatusCode != "SENT" && item.StatusCode != "ACCEPTED")
                                                                 {
-                                                                    <a href="@Url.Action("Edit", "SalesSF", new { id = item.ID })" class="btn btn-sm btn-outline-success" title="Tahrirlash"><i class="bx bx-edit-alt"></i></a>
+                                                                    <a href="@Url.Action("Edit", "SalesSF", new { id = item.ID })" class="btn btn-sm btn-outline-success" title="@L.T("Edit")"><i class="bx bx-edit-alt"></i></a>
                                                                 }
                                                             </td>
                                                         </tr>
@@ -123,7 +123,7 @@
                                                 else
                                                 {
                                                     <tr>
-                                                        <td colspan="6" class="text-center">Ma'lumot topilmadi</td>
+                                                        <td colspan="6" class="text-center">@L.T("NoData")</td>
                                                     </tr>
                                                 }
                                             </tbody>

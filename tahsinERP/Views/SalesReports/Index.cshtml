@@ -1,5 +1,5 @@
 @{
-    ViewBag.Title = "Sotuv hisobotlari";
+    ViewBag.Title = L.T("Crm_RepSalesReports");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -13,8 +13,8 @@
                     <div class="breadcrumb-wrapper col-12">
                         <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                             <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
-                            <li class="breadcrumb-item"><a href="~/SOrder/Index">Sotuvlar</a></li>
-                            <li class="breadcrumb-item active">Hisobotlar</li>
+                            <li class="breadcrumb-item"><a href="~/SOrder/Index">@L.T("Menu_Sales")</a></li>
+                            <li class="breadcrumb-item active">@L.T("Reports")</li>
                         </ol>
                     </div>
                 </div>
@@ -22,8 +22,8 @@
             <div class="content-body">
                 <div class="row">
                     <div class="col-12">
-                        <h4 class="mb-3">Sotuv hisobotlari</h4>
-                        <p class="text-muted">Ma'lumotlar mavjud buyurtma va invoyslar asosida hisoblanadi. Chop etish uchun har bir hisobot sahifasida «Chop etish» tugmasidan foydalaning.</p>
+                        <h4 class="mb-3">@L.T("Crm_RepSalesReports")</h4>
+                        <p class="text-muted">@L.T("Crm_RepIndexIntro")</p>
                     </div>
                 </div>
                 <div class="row match-height">
@@ -31,9 +31,9 @@
                         <div class="card">
                             <div class="card-body text-center">
                                 <i class="bx bx-calendar font-large-2 text-primary mb-1"></i>
-                                <h5 class="card-title">Oylik savdo hisoboti</h5>
-                                <p class="card-text text-muted small">Bir oy davomida har bir mahsulotdan qancha buyurtma qilindi va qanchasi sotildi (invoys). Savdo xodimi qo'l qo'yadi, rahbariyatga topshiradi.</p>
-                                <a href="@Url.Action("MonthlyReport")" class="btn btn-primary">Ochish</a>
+                                <h5 class="card-title">@L.T("Menu_MonthlySalesReport")</h5>
+                                <p class="card-text text-muted small">@L.T("Crm_RepMonthlyDesc")</p>
+                                <a href="@Url.Action("MonthlyReport")" class="btn btn-primary">@L.T("Crm_RepOpen")</a>
                             </div>
                         </div>
                     </div>
@@ -41,9 +41,9 @@
                         <div class="card">
                             <div class="card-body text-center">
                                 <i class="bx bx-user font-large-2 text-success mb-1"></i>
-                                <h5 class="card-title">Mijoz bo'yicha sotuv</h5>
-                                <p class="card-text text-muted small">Tanlangan davr bo'yicha xaridorlar kesimida buyurtma va sotuv (invoys) summasi.</p>
-                                <a href="@Url.Action("SalesByCustomer")" class="btn btn-success">Ochish</a>
+                                <h5 class="card-title">@L.T("Menu_SalesByCustomer")</h5>
+                                <p class="card-text text-muted small">@L.T("Crm_RepByCustomerDesc")</p>
+                                <a href="@Url.Action("SalesByCustomer")" class="btn btn-success">@L.T("Crm_RepOpen")</a>
                             </div>
                         </div>
                     </div>
@@ -51,9 +51,9 @@
                         <div class="card">
                             <div class="card-body text-center">
                                 <i class="bx bx-package font-large-2 text-info mb-1"></i>
-                                <h5 class="card-title">Mahsulot bo'yicha sotuv</h5>
-                                <p class="card-text text-muted small">Tanlangan davr bo'yicha mahsulotlar kesimida buyurtma va sotuv, konversiya foizi.</p>
-                                <a href="@Url.Action("SalesByProduct")" class="btn btn-info">Ochish</a>
+                                <h5 class="card-title">@L.T("Menu_SalesByProduct")</h5>
+                                <p class="card-text text-muted small">@L.T("Crm_RepByProductDesc")</p>
+                                <a href="@Url.Action("SalesByProduct")" class="btn btn-info">@L.T("Crm_RepOpen")</a>
                             </div>
                         </div>
                     </div>

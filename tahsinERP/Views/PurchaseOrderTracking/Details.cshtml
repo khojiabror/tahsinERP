@@ -1,6 +1,6 @@
 @model tahsinERP.Models.P_ORDERS
 @{
-    ViewBag.Title = "Buyurtma kuzatuv - " + Model.OrderNo;
+    ViewBag.Title = L.T("Srm_OrderTrackingTitleNo", Model.OrderNo);
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -24,7 +24,7 @@
                                     <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                 </li>
                                 <li class="breadcrumb-item">
-                                    <a href="~/PurchaseOrderTracking/Index">Xarid buyurtmalari kuzatuv</a>
+                                    <a href="~/PurchaseOrderTracking/Index">@L.T("Srm_OrderTracking")</a>
                                 </li>
                                 <li class="breadcrumb-item active">
                                     @Model.OrderNo
@@ -42,7 +42,7 @@
                     <div class="card">
                         <div class="card-content">
                             <div class="card-body">
-                                <h4 class="text-primary mb-3">Buyurtma holati</h4>
+                                <h4 class="text-primary mb-3">@L.T("Srm_OrderStatus")</h4>
                                 <div class="row">
                                     <div class="col-md-3 text-center">
                                         <div class="mb-2">
@@ -55,7 +55,7 @@
                                                 <i class="bx bx-x-circle text-danger" style="font-size: 48px;"></i>
                                             }
                                         </div>
-                                        <h6>Buyurtma yaratildi</h6>
+                                        <h6>@L.T("Srm_OrderCreated")</h6>
                                         <small>@(trackingStatus?.OrderCreatedDate?.ToString("dd.MM.yyyy") ?? "-")</small>
                                     </div>
                                     <div class="col-md-3 text-center">
@@ -69,7 +69,7 @@
                                                 <i class="bx bx-x-circle text-danger" style="font-size: 48px;"></i>
                                             }
                                         </div>
-                                        <h6>Shartnoma yaratildi</h6>
+                                        <h6>@L.T("Srm_ContractCreated")</h6>
                                         <small>@(trackingStatus?.ContractDate?.ToString("dd.MM.yyyy") ?? "-")</small>
                                         @if (trackingStatus != null && !string.IsNullOrEmpty(trackingStatus.ContractNo))
                                         {
@@ -87,7 +87,7 @@
                                                 <i class="bx bx-x-circle text-danger" style="font-size: 48px;"></i>
                                             }
                                         </div>
-                                        <h6>Invoys yaratildi</h6>
+                                        <h6>@L.T("Srm_InvoiceCreated")</h6>
                                         <small>@(trackingStatus?.InvoiceDate?.ToString("dd.MM.yyyy") ?? "-")</small>
                                         @if (trackingStatus != null && !string.IsNullOrEmpty(trackingStatus.InvoiceNo))
                                         {
@@ -105,7 +105,7 @@
                                                 <i class="bx bx-x-circle text-danger" style="font-size: 48px;"></i>
                                             }
                                         </div>
-                                        <h6>Omborga keldi</h6>
+                                        <h6>@L.T("Srm_ReceivedToWarehouse")</h6>
                                         <small>@(trackingStatus?.WarehouseReceiptDate?.ToString("dd.MM.yyyy") ?? "-")</small>
                                     </div>
                                 </div>
@@ -117,37 +117,37 @@
                     <div class="card mt-2">
                         <div class="card-content">
                             <div class="card-body">
-                                <h4 class="text-primary mb-3">Buyurtma ma'lumotlari</h4>
+                                <h4 class="text-primary mb-3">@L.T("Srm_OrderInfo")</h4>
                                 <div class="row">
                                     <div class="col-md-3">
-                                        <strong>Buyurtma raqami:</strong><br />
+                                        <strong>@L.T("Srm_OrderNo"):</strong><br />
                                         @Model.OrderNo
                                     </div>
                                     <div class="col-md-3">
-                                        <strong>Sana:</strong><br />
+                                        <strong>@L.T("Date"):</strong><br />
                                         @Model.IssuedDate.ToString("dd.MM.yyyy")
                                     </div>
                                     <div class="col-md-3">
-                                        <strong>Ta'minotchi:</strong><br />
+                                        <strong>@L.T("Srm_Supplier"):</strong><br />
                                         @(Model.SUPPLIER?.Name ?? "-")
                                     </div>
                                     <div class="col-md-3">
-                                        <strong>Turi:</strong><br />
+                                        <strong>@L.T("Type"):</strong><br />
                                         @if (Model.PurchaseType == 1)
                                         {
-                                            <span class="badge badge-info">Indirect Purchase</span>
+                                            <span class="badge badge-info">@L.T("Srm_IndirectPurchase")</span>
                                         }
                                         else
                                         {
-                                            <span class="badge badge-primary">Direct Purchase</span>
+                                            <span class="badge badge-primary">@L.T("Srm_DirectPurchase")</span>
                                         }
                                     </div>
                                     <div class="col-md-3 mt-2">
-                                        <strong>Summa:</strong><br />
+                                        <strong>@L.T("Amount"):</strong><br />
                                         @(Model.Amount?.ToString("N2") ?? "0.00") @(Model.CURRENCy?.Shortname ?? "")
                                     </div>
                                     <div class="col-md-3 mt-2">
-                                        <strong>Status:</strong><br />
+                                        <strong>@L.T("Status"):</strong><br />
                                         @{
                                             var statusClass = "badge-secondary";
                                             switch (Model.Status)
@@ -158,7 +158,7 @@
                                                 case "Received": statusClass = "badge-success"; break;
                                             }
                                         }
-                                        <span class="badge @statusClass">@(Model.Status ?? "Created")</span>
+                                        <span class="badge @statusClass">@tahsinERP.Services.Procurement.TrackingText.Status(Model.Status ?? "Created")</span>
                                     </div>
                                 </div>
 
@@ -166,7 +166,7 @@
                                 {
                                     <div class="row mt-3">
                                         <div class="col-12">
-                                            <strong>Xarid maqsadi:</strong><br />
+                                            <strong>@L.T("Srm_PurchasePurposeShort"):</strong><br />
                                             <p>@Model.Purpose</p>
                                         </div>
                                     </div>
@@ -181,15 +181,15 @@
                         <div class="card mt-2">
                             <div class="card-content">
                                 <div class="card-body">
-                                    <h5 class="text-primary">Shartnomalar</h5>
+                                    <h5 class="text-primary">@L.T("Menu_Contracts")</h5>
                                     <div class="table-responsive">
                                         <table class="table table-bordered">
                                             <thead>
                                                 <tr>
-                                                    <th>Shartnoma raqami</th>
-                                                    <th>Sana</th>
-                                                    <th>Summa</th>
-                                                    <th>Amallar</th>
+                                                    <th>@L.T("Srm_ContractNo")</th>
+                                                    <th>@L.T("Date")</th>
+                                                    <th>@L.T("Amount")</th>
+                                                    <th>@L.T("Actions")</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -201,7 +201,7 @@
                                                         <td>@(contract.Amount?.ToString("N2") ?? "0.00")</td>
                                                         <td>
                                                             <a href="@Url.Action("Details", "PContracts", new { id = contract.ID })" class="btn btn-sm btn-outline-primary">
-                                                                <i class="bx bx-show"></i> Ko'rish
+                                                                <i class="bx bx-show"></i> @L.T("View")
                                                             </a>
                                                         </td>
                                                     </tr>
@@ -220,15 +220,15 @@
                         <div class="card mt-2">
                             <div class="card-content">
                                 <div class="card-body">
-                                    <h5 class="text-primary">Invoyslar</h5>
+                                    <h5 class="text-primary">@L.T("Menu_Invoices")</h5>
                                     <div class="table-responsive">
                                         <table class="table table-bordered">
                                             <thead>
                                                 <tr>
-                                                    <th>Invoys raqami</th>
-                                                    <th>Sana</th>
-                                                    <th>Summa</th>
-                                                    <th>Amallar</th>
+                                                    <th>@L.T("Srm_InvoiceNo")</th>
+                                                    <th>@L.T("Date")</th>
+                                                    <th>@L.T("Amount")</th>
+                                                    <th>@L.T("Actions")</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -240,7 +240,7 @@
                                                         <td>@((invoice.Amount ?? 0).ToString("N2"))</td>
                                                         <td>
                                                             <a href="@Url.Action("Details", "PInvoices", new { id = invoice.ID })" class="btn btn-sm btn-outline-primary">
-                                                                <i class="bx bx-show"></i> Ko'rish
+                                                                <i class="bx bx-show"></i> @L.T("View")
                                                             </a>
                                                         </td>
                                                     </tr>
@@ -259,15 +259,15 @@
                         <div class="card mt-2">
                             <div class="card-content">
                                 <div class="card-body">
-                                    <h5 class="text-primary">Ombor kirimlari</h5>
+                                    <h5 class="text-primary">@L.T("Srm_WarehouseReceipts")</h5>
                                     <div class="table-responsive">
                                         <table class="table table-bordered">
                                             <thead>
                                                 <tr>
-                                                    <th>Hujjat raqami</th>
-                                                    <th>Sana</th>
-                                                    <th>Summa</th>
-                                                    <th>Amallar</th>
+                                                    <th>@L.T("Srm_DocNo")</th>
+                                                    <th>@L.T("Date")</th>
+                                                    <th>@L.T("Amount")</th>
+                                                    <th>@L.T("Actions")</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -279,7 +279,7 @@
                                                         <td>@(income.TotalPrice?.ToString("N2") ?? "0.00")</td>
                                                         <td>
                                                             <a href="@Url.Action("Details", "Incomes", new { id = income.ID })" class="btn btn-sm btn-outline-primary">
-                                                                <i class="bx bx-show"></i> Ko'rish
+                                                                <i class="bx bx-show"></i> @L.T("View")
                                                             </a>
                                                         </td>
                                                     </tr>
@@ -295,7 +295,7 @@
                     <div class="row mt-3">
                         <div class="col-12">
                             <a href="@Url.Action("Index", "PurchaseOrderTracking")" class="btn btn-secondary">
-                                <i class="bx bx-arrow-back"></i> Orqaga
+                                <i class="bx bx-arrow-back"></i> @L.T("Back")
                             </a>
                         </div>
                     </div>

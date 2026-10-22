@@ -1,6 +1,6 @@
 @model tahsinERP.Models.COMPANy
 @{
-    ViewBag.Title = "AccountSettings";
+    ViewBag.Title = L.T("Prd_CompanyInfo");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -19,10 +19,10 @@
                                         <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                     </li>
                                     <li class="breadcrumb-item">
-                                        <a href="#">Sahifalar</a>
+                                        <a href="#">@L.T("Prd_Pages")</a>
                                     </li>
                                     <li class="breadcrumb-item active">
-                                        Korxona ma'lumotlari
+                                        @L.T("Prd_CompanyInfo")
                                     </li>
                                 </ol>
                             </div>
@@ -48,7 +48,7 @@
                                                         <div class="col-12">
                                                             <div class="form-group">
                                                                 <div class="controls">
-                                                                    <label>Korxona nomi</label>
+                                                                    <label>@L.T("Prd_CompanyName")</label>
                                                                     @Html.TextBoxFor(model => model.Name, new { @class = "form-control", @type = "text" })
                                                                     @Html.ValidationMessageFor(model => model.Name, "", new { @class = "text-danger" })
                                                                 </div>
@@ -57,7 +57,7 @@
                                                         <div class="col-12">
                                                             <div class="form-group">
                                                                 <div class="controls">
-                                                                    <label>Davlati</label>
+                                                                    <label>@L.T("Prd_Country")</label>
                                                                     @Html.TextBoxFor(model => model.Country, new { @class = "form-control", @type = "text" })
                                                                     @Html.ValidationMessageFor(model => model.Country, "", new { @class = "text-danger" })
                                                                 </div>
@@ -66,7 +66,7 @@
                                                         <div class="col-12">
                                                             <div class="form-group">
                                                                 <div class="controls">
-                                                                    <label>Shaxri</label>
+                                                                    <label>@L.T("Prd_City")</label>
                                                                     @Html.TextBoxFor(model => model.City, new { @class = "form-control", @type = "text" })
                                                                     @Html.ValidationMessageFor(model => model.City, "", new { @class = "text-danger" })
                                                                 </div>
@@ -84,7 +84,7 @@
                                                         <div class="col-12">
                                                             <div class="form-group">
                                                                 <div class="controls">
-                                                                    <label>Telefon</label>
+                                                                    <label>@L.T("Phone")</label>
                                                                     @Html.TextBoxFor(model => model.Telephone, new { @class = "form-control", @type = "text" })
                                                                     @Html.ValidationMessageFor(model => model.Telephone, "", new { @class = "text-danger" })
                                                                 </div>
@@ -103,23 +103,23 @@
                                                         <div class="col-md-4">
                                                             <div class="form-group">
                                                                 <div class="controls">
-                                                                    <label>Brend rangi</label>
+                                                                    <label>@L.T("Prd_BrandColor")</label>
                                                                     <input type="color" name="BrandColor" class="form-control" value="@brandInfo.Primary" />
-                                                                    <small class="text-muted">Menyu va tugmalar rangi</small>
+                                                                    <small class="text-muted">@L.T("Prd_BrandColorHint")</small>
                                                                 </div>
                                                             </div>
                                                         </div>
                                                         <div class="col-md-8">
                                                             <div class="form-group">
                                                                 <div class="controls">
-                                                                    <label>Logo (PNG/JPG, 32×32 tavsiya, 200 KB gacha)</label>
+                                                                    <label>@L.T("Prd_LogoLabel")</label>
                                                                     <div class="d-flex align-items-center">
                                                                         <img src="@(brandInfo.HasLogo ? Url.Action("Logo", "Branding", new { v = brandInfo.LogoVersion }) : Url.Content("~/app-assets/images/logo/logo-32x32.png"))" alt="" style="height:32px" class="mr-1" />
                                                                         <input type="file" name="LogoFile" accept="image/png,image/jpeg" class="form-control-file" />
                                                                     </div>
                                                                     @if (brandInfo.HasLogo)
                                                                     {
-                                                                        <label class="mt-50"><input type="checkbox" name="RemoveLogo" value="true" /> Standart logoga qaytarish</label>
+                                                                        <label class="mt-50"><input type="checkbox" name="RemoveLogo" value="true" /> @L.T("Prd_ResetLogo")</label>
                                                                     }
                                                                 </div>
                                                             </div>
@@ -128,9 +128,9 @@
                                                     <div class="row">
                                                         <div class="col-12 d-flex flex-sm-row flex-column justify-content-end">
                                                             <button type="submit" class="btn btn-primary glow mr-sm-1 mb-1">
-                                                                Saqlash
+                                                                @L.T("Save")
                                                             </button>
-                                                            <button type="reset" class="btn btn-light mb-1" onclick="location.href='/Home'">Cancel</button>
+                                                            <button type="reset" class="btn btn-light mb-1" onclick="location.href='/Home'">@L.T("Cancel")</button>
                                                         </div>
                                                     </div>
                                                 </div>

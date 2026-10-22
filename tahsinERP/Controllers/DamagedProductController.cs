@@ -5,6 +5,7 @@ using System.Net;
 using System.Web.Mvc;
 using tahsinERP.Models;
 using tahsinERP.Filters;
+using tahsinERP.I18n;
 
 namespace tahsinERP.Controllers
 {
@@ -60,7 +61,7 @@ namespace tahsinERP.Controllers
                 catch (Exception ex)
                 {
                     System.Diagnostics.Trace.TraceError("DamagedProduct.Create: {0}", ex);
-                    ModelState.AddModelError("", "Unable to save changes. Try again, and if the problem persists, see your system administrator.");
+                    ModelState.AddModelError("", L.T("Wh_SaveFailedContactAdmin"));
                 }
                 PopulateLookups(db, model.ProductID, model.DefectTypeID);
                 return View(model);

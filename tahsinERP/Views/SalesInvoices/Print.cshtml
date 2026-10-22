@@ -1,7 +1,7 @@
 @model tahsinERP.Models.SALES_INVOICES
 @using System.Linq
 @{
-    ViewBag.Title = "Invoysni chop etish";
+    ViewBag.Title = L.T("Crm_InvPrintTitle");
     Layout = null;
 
     var customer = ViewBag.Customer as tahsinERP.Models.CUSTOMER;
@@ -11,7 +11,7 @@
     var company = ViewBag.Company as tahsinERP.Models.COMPANy;
     var lines = Model.SALES_INVOICE_LINES.OrderBy(l => l.LineNo).ToList();
     var rowsToRender = Math.Max(lines.Count, 5);
-    var baseCopyTitles = new[] { "Asl nusxa (Mijoz uchun)", "2-nusxa (Ombor uchun)", "iPack uchun(qaytarib beriladi)" };
+    var baseCopyTitles = new[] { L.T("Crm_InvCopyOriginal"), L.T("Crm_InvCopyWarehouse"), L.T("Crm_InvCopyReturn") };
     var maxCopies = 6;
     var orderDate = order != null ? order.IssuedDate.ToString("dd.MM.yyyy") : "-";
     var contractDate = contract != null ? contract.IssuedDate.ToString("dd.MM.yyyy") : "-";
@@ -20,7 +20,7 @@
 <html>
 <head>
     <meta charset="utf-8" />
-    <title>Invoys - @Model.InvoiceNo</title>
+    <title>@L.T("Crm_InvPrintPageTitle", Model.InvoiceNo)</title>
     <style>
         @@page {
             size: A4 portrait;
@@ -194,67 +194,67 @@
 <body>
     <div class="toolbar no-print">
         <label for="copyCountSelect" style="font-size: 12px; display: flex; align-items: center; gap: 4px; margin-right: 8px;">
-            Nusxa soni:
+            @L.T("Crm_InvCopyCount")
             <select id="copyCountSelect" style="font-size: 12px; padding: 4px;">
                 <option value="3" selected>3</option>
                 <option value="6">6</option>
             </select>
         </label>
-        <button type="button" data-print-action="print">Chop etish</button>
-        <button type="button" data-print-action="pdf">PDF yuklab olish</button>
-        <button type="button" data-print-action="close">Yopish</button>
+        <button type="button" data-print-action="print">@L.T("Print")</button>
+        <button type="button" data-print-action="pdf">@L.T("Crm_InvDownloadPdf")</button>
+        <button type="button" data-print-action="close">@L.T("Close")</button>
     </div>
 
-    <div class="print-root" id="invoice-print-root" data-pdf-filename="Sotuv_Invoys_@(string.IsNullOrWhiteSpace(Model.InvoiceNo) ? Model.ID.ToString() : Model.InvoiceNo).pdf">
+    <div class="print-root" id="invoice-print-root" data-pdf-filename="@L.T("Crm_InvPdfFilePrefix")_@(string.IsNullOrWhiteSpace(Model.InvoiceNo) ? Model.ID.ToString() : Model.InvoiceNo).pdf">
         @for (var copyIndex = 0; copyIndex < maxCopies; copyIndex++)
         {
             var label = copyIndex < baseCopyTitles.Length
                 ? baseCopyTitles[copyIndex]
-                : (copyIndex + 1) + "-nusxa";
+                : L.T("Crm_InvCopyN", copyIndex + 1);
 
             <section class="invoice-copy" data-copy-index="@copyIndex" style="@(copyIndex < 3 ? "" : "display:none;")">
                 <div class="copy-top">
-                    <div class="doc-title">SOTUV INVOYSI / TIJORAT INVOYSI</div>
+                    <div class="doc-title">@L.T("Crm_InvDocTitle")</div>
                     <div class="copy-label">@label</div>
                 </div>
 
                 <table class="meta-table">
                     <tr>
-                        <td class="label">Invoys raqami</td>
+                        <td class="label">@L.T("Crm_InvInvoiceNo")</td>
                         <td>@(string.IsNullOrWhiteSpace(Model.InvoiceNo) ? Model.ID.ToString() : Model.InvoiceNo)</td>
-                        <td class="label">Invoys sanasi</td>
+                        <td class="label">@L.T("Crm_InvInvoiceDate")</td>
                         <td>@Model.InvoiceDate.ToString("dd.MM.yyyy")</td>
                     </tr>
                     <tr>
-                        <td class="label">Buyurtma</td>
+                        <td class="label">@L.T("Crm_Order")</td>
                         <td>@(order != null ? order.OrderNo : "-")</td>
-                        <td class="label">Buyurtma sanasi</td>
+                        <td class="label">@L.T("Crm_OrderDate")</td>
                         <td>@orderDate</td>
-                        <td class="label">Valyuta</td>
+                        <td class="label">@L.T("Currency")</td>
                         <td>@tahsinERP.Services.Crm.SalesLookups.CurrencyCode(Model.CurrencyID)</td>
                     </tr>
                     <tr>
-                        <td class="label">Shartnoma</td>
+                        <td class="label">@L.T("Crm_Contract")</td>
                         <td>@(contract != null ? contract.ContractNo : "-")</td>
-                        <td class="label">Shartnoma sanasi</td>
+                        <td class="label">@L.T("Crm_InvContractDate")</td>
                         <td>@contractDate</td>
                     </tr>
                 </table>
 
                 <div class="party-grid">
                     <table class="meta-table">
-                        <tr><td class="label">Sotuvchi</td><td>@(company?.Name ?? "-")</td></tr>
-                        <tr><td class="label">Manzil</td><td>Oltinkul tumani, Mehnat MFY., 90-uy</td></tr>
-                        <tr><td class="label">Telefon</td><td>@(company?.Telephone ?? "-")</td></tr>
-                        <tr><td class="label">Email</td><td>@(company?.Email ?? "-")</td></tr>
-                        <tr><td class="label">STIR / DUNS</td><td>@(company?.DUNS ?? "-")</td></tr>
+                        <tr><td class="label">@L.T("Crm_InvSeller")</td><td>@(company?.Name ?? "-")</td></tr>
+                        <tr><td class="label">@L.T("Address")</td><td>Oltinkul tumani, Mehnat MFY., 90-uy</td></tr>
+                        <tr><td class="label">@L.T("Phone")</td><td>@(company?.Telephone ?? "-")</td></tr>
+                        <tr><td class="label">@L.T("Email")</td><td>@(company?.Email ?? "-")</td></tr>
+                        <tr><td class="label">@L.T("Crm_InvTinDuns")</td><td>@(company?.DUNS ?? "-")</td></tr>
                     </table>
                     <table class="meta-table">
-                        <tr><td class="label">Xaridor</td><td>@(customer?.Name ?? "-")</td></tr>
-                        <tr><td class="label">Manzil</td><td>@(customer?.Address ?? "-")</td></tr>
-                        <tr><td class="label">Telefon</td><td>@(customer?.Telephone ?? "-")</td></tr>
-                        <tr><td class="label">Email</td><td>@(customer?.Email ?? "-")</td></tr>
-                        <tr><td class="label">STIR / DUNS</td><td>@(customer?.DUNS ?? "-")</td></tr>
+                        <tr><td class="label">@L.T("Crm_Customer")</td><td>@(customer?.Name ?? "-")</td></tr>
+                        <tr><td class="label">@L.T("Address")</td><td>@(customer?.Address ?? "-")</td></tr>
+                        <tr><td class="label">@L.T("Phone")</td><td>@(customer?.Telephone ?? "-")</td></tr>
+                        <tr><td class="label">@L.T("Email")</td><td>@(customer?.Email ?? "-")</td></tr>
+                        <tr><td class="label">@L.T("Crm_InvTinDuns")</td><td>@(customer?.DUNS ?? "-")</td></tr>
                     </table>
                 </div>
 
@@ -263,12 +263,12 @@
                         <tr>
                             <th style="width:6%;">#</th>
                             <th style="width:14%;">SKU</th>
-                            <th style="width:26%;">Mahsulot nomi / Tavsif</th>
-                            <th style="width:8%;">Birlik</th>
-                            <th style="width:10%;">Miqdor</th>
-                            <th style="width:14%;">Birlik narxi (QQS siz)</th>
-                            <th style="width:8%;">QQS %</th>
-                            <th style="width:14%;">Summa</th>
+                            <th style="width:26%;">@L.T("Crm_InvProductNameDesc")</th>
+                            <th style="width:8%;">@L.T("Unit")</th>
+                            <th style="width:10%;">@L.T("Quantity")</th>
+                            <th style="width:14%;">@L.T("Crm_InvUnitPriceNoVat")</th>
+                            <th style="width:8%;">@L.T("Crm_VatPercent")</th>
+                            <th style="width:14%;">@L.T("Amount")</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -293,15 +293,15 @@
                 <div class="totals-wrap">
                     <table class="totals-table">
                         <tr>
-                            <td><strong>Jami summa</strong></td>
+                            <td><strong>@L.T("Crm_TotalAmount")</strong></td>
                             <td class="right">@Model.TotalAmount.ToString("N2") @tahsinERP.Services.Crm.SalesLookups.CurrencyCode(Model.CurrencyID)</td>
                         </tr>
                         <tr>
-                            <td><strong>QQS</strong></td>
+                            <td><strong>@L.T("Crm_Vat")</strong></td>
                             <td class="right">@Model.TotalVAT.ToString("N2") @tahsinERP.Services.Crm.SalesLookups.CurrencyCode(Model.CurrencyID)</td>
                         </tr>
                         <tr>
-                            <td><strong>Umumiy jami</strong></td>
+                            <td><strong>@L.T("Crm_InvGrandTotal")</strong></td>
                             <td class="right"><strong>@(Model.TotalWithVAT.HasValue ? Model.TotalWithVAT.Value.ToString("N2") : "0.00") @tahsinERP.Services.Crm.SalesLookups.CurrencyCode(Model.CurrencyID)</strong></td>
                         </tr>
                     </table>
@@ -309,20 +309,20 @@
 
                 <table class="sign-table">
                     <tr>
-                        <td><strong>Tayyorladi (F.I.Sh):</strong></td>
-                        <td><strong>Qabul qildi (F.I.Sh):</strong></td>
+                        <td><strong>@L.T("Crm_InvPreparedBy")</strong></td>
+                        <td><strong>@L.T("Crm_InvReceivedBy")</strong></td>
                     </tr>
                     <tr>
-                        <td>Imzo:</td>
-                        <td>Imzo:</td>
+                        <td>@L.T("Crm_InvSignature")</td>
+                        <td>@L.T("Crm_InvSignature")</td>
                     </tr>
                 </table>
 
                 <div class="footer-meta">
-                    <div>Nusxa @(copyIndex + 1) / 3</div>
+                    <div>@L.T("Crm_InvCopyOf", copyIndex + 1, 3)</div>
                 </div>
                 <div class="note">
-                    Ushbu hujjat tahsinERP tizimida yaratilgan.
+                    @L.T("Crm_InvGeneratedNote")
                 </div>
             </section>
         }

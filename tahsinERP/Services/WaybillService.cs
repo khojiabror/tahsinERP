@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using System.Web.Mvc;
+using tahsinERP.I18n;
 using tahsinERP.Models;
 using tahsinERP.Services.Common;
 using tahsinERP.ViewModels;
@@ -27,7 +28,7 @@ namespace tahsinERP.Services
             if (!viewModel.TariffID.HasValue)
             {
                 if (requireTariff)
-                    modelState.AddModelError("TariffID", "Tarif tanlash majburiy.");
+                    modelState.AddModelError("TariffID", L.T("Log_TariffRequired"));
                 return null;
             }
 
@@ -41,12 +42,12 @@ namespace tahsinERP.Services
                 .FirstOrDefault(t => t.ID == viewModel.TariffID.Value && t.IsActive);
             if (selectedTariff == null)
             {
-                modelState.AddModelError("TariffID", "Tanlangan tarif topilmadi yoki faol emas.");
+                modelState.AddModelError("TariffID", L.T("Log_TariffNotFoundOrInactive"));
                 return null;
             }
             if (viewModel.ContractID.HasValue && selectedTariff.ContractID != viewModel.ContractID.Value)
             {
-                modelState.AddModelError("TariffID", "Tanlangan tarif ushbu shartnomaga tegishli emas.");
+                modelState.AddModelError("TariffID", L.T("Log_TariffNotInContract"));
                 return null;
             }
 
@@ -76,7 +77,7 @@ namespace tahsinERP.Services
             if (string.IsNullOrWhiteSpace(viewModel.WaybillNo))
             {
                 if (viewModel.ID.HasValue)
-                    modelState.AddModelError("WaybillNo", $"{LogisticsTerms.Waybill} raqami majburiy.");
+                    modelState.AddModelError("WaybillNo", L.T("Log_WaybillNoRequired"));
                 return;
             }
 
@@ -87,7 +88,7 @@ namespace tahsinERP.Services
             }
         }
 
-        public static string DuplicateNoMessage => $"Bu raqamli {LogisticsTerms.Waybill.ToLower()} allaqachon mavjud.";
+        public static string DuplicateNoMessage => L.T("Log_WaybillNoDuplicate");
 
         public static bool WaybillNoExists(DBTHSNEntities db, string waybillNo, int? exceptId)
         {
@@ -261,19 +262,19 @@ namespace tahsinERP.Services
         public static string CargoTypeText(long? salesInvoiceId, int? salesOrderId, long? ttnkId, int? invoiceId, int? purchaseOrderId)
         {
             if (salesInvoiceId.HasValue || salesOrderId.HasValue || ttnkId.HasValue)
-                return "Tayyor mahsulot";
+                return L.T("Log_Cargo_Finished");
             if (invoiceId.HasValue || purchaseOrderId.HasValue)
-                return "Xomashyo/material";
-            return "Boshqa";
+                return L.T("Log_Cargo_Material");
+            return L.T("Log_Cargo_Other");
         }
 
         public static string LinkedDocText(long? salesInvoiceId, int? salesOrderId, long? ttnkId, int? invoiceId, int? purchaseOrderId)
         {
-            if (salesInvoiceId.HasValue) return $"Sotuv hisob-fakturasi #{salesInvoiceId}";
-            if (invoiceId.HasValue) return $"Xarid hisob-fakturasi #{invoiceId}";
-            if (ttnkId.HasValue) return $"TTNK #{ttnkId}";
-            if (salesOrderId.HasValue) return $"Sotuv buyurtmasi #{salesOrderId}";
-            if (purchaseOrderId.HasValue) return $"Xarid buyurtmasi #{purchaseOrderId}";
+            if (salesInvoiceId.HasValue) return L.T("Log_Doc_SalesInvoice", salesInvoiceId);
+            if (invoiceId.HasValue) return L.T("Log_Doc_PurchaseInvoice", invoiceId);
+            if (ttnkId.HasValue) return L.T("Log_Doc_Ttnk", ttnkId);
+            if (salesOrderId.HasValue) return L.T("Log_Doc_SalesOrder", salesOrderId);
+            if (purchaseOrderId.HasValue) return L.T("Log_Doc_PurchaseOrder", purchaseOrderId);
             return null;
         }
 

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using tahsinERP.Filters;
+using tahsinERP.I18n;
 using tahsinERP.Models;
 using tahsinERP.Services;
 using tahsinERP.Services.Common;
@@ -97,9 +98,9 @@ namespace tahsinERP.Controllers
                 ViewBag.Forwarders = ReferenceDataCache.SelectList(ReferenceDataCache.Forwarders, forwarderId);
                 ViewBag.Directions = new SelectList(new[]
                 {
-                    new { Value = (byte?)0, Text = "Kiruvchi (Inbound)" },
-                    new { Value = (byte?)1, Text = "Chiquvchi (Outbound)" },
-                    new { Value = (byte?)2, Text = "Ichki (Internal)" }
+                    new { Value = (byte?)0, Text = L.T("Log_DirFull_Inbound") },
+                    new { Value = (byte?)1, Text = L.T("Log_DirFull_Outbound") },
+                    new { Value = (byte?)2, Text = L.T("Log_DirFull_Internal") }
                 }, "Value", "Text", direction);
 
                 ViewBag.CurrencyCodes = WaybillCurrencyCodes(query);
@@ -266,7 +267,7 @@ namespace tahsinERP.Controllers
             return waybills.Select(w => w.CurrencyID).Distinct().ToList()
                 .Select(id => id.HasValue
                     ? (ReferenceDataCache.NameOf(ReferenceDataCache.Currencies, id) ?? "#" + id)
-                    : "valyutasiz")
+                    : L.T("Log_NoCurrency"))
                 .OrderBy(x => x)
                 .ToList();
         }

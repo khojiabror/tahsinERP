@@ -1,7 +1,7 @@
 @model tahsinERP.ViewModels.InventoryDashboardViewModel
 @using System.Linq
 @{
-    ViewBag.Title = "Ombor hisobotlari - DOH Dashboard";
+    ViewBag.Title = L.T("Wh_Db_Title");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -20,7 +20,7 @@
                                         <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                     </li>
                                     <li class="breadcrumb-item active">
-                                        Ombor hisobotlari
+                                        @L.T("Wh_Reports")
                                     </li>
                                 </ol>
                             </div>
@@ -36,23 +36,23 @@
                         {
                             <div class="row border rounded py-2 mb-2">
                                 <div class="col-12 col-sm-6 col-lg-2">
-                                    <label>Ombor</label>
-                                    @Html.DropDownList("warehouseId", ViewBag.Warehouses as SelectList, "Barchasi", new { @class = "form-control" })
+                                    <label>@L.T("Wh_Warehouse")</label>
+                                    @Html.DropDownList("warehouseId", ViewBag.Warehouses as SelectList, L.T("All"), new { @class = "form-control" })
                                 </div>
                                 <div class="col-12 col-sm-6 col-lg-2">
-                                    <label>Kategoriya</label>
-                                    @Html.DropDownList("categoryId", ViewBag.Categories as SelectList, "Barchasi", new { @class = "form-control" })
+                                    <label>@L.T("Category")</label>
+                                    @Html.DropDownList("categoryId", ViewBag.Categories as SelectList, L.T("All"), new { @class = "form-control" })
                                 </div>
                                 <div class="col-12 col-sm-6 col-lg-2">
-                                    <label>Dan</label>
+                                    <label>@L.T("Wh_From")</label>
                                     <input type="date" name="fromDate" class="form-control" value="@Model.FromDate.ToString("yyyy-MM-dd")" />
                                 </div>
                                 <div class="col-12 col-sm-6 col-lg-2">
-                                    <label>Gacha</label>
+                                    <label>@L.T("Wh_To")</label>
                                     <input type="date" name="toDate" class="form-control" value="@Model.ToDate.ToString("yyyy-MM-dd")" />
                                 </div>
                                 <div class="col-12 col-sm-6 col-lg-2">
-                                    <label>Runner oynasi (kun)</label>
+                                    <label>@L.T("Wh_Db_RunnerWindow")</label>
                                     <select name="runnerDays" class="form-control">
                                         <option value="30" @(ViewBag.RunnerDays == 30 ? "selected" : "")>30</option>
                                         <option value="60" @(ViewBag.RunnerDays == 60 ? "selected" : "")>60</option>
@@ -66,21 +66,21 @@
                                 <div class="col-12 col-sm-6 col-lg-2">
                                     <label>FIFO scope</label>
                                     <select name="fifoScope" class="form-control">
-                                        <option value="all" @(ViewBag.FifoScope == "all" ? "selected" : "")>Umumiy</option>
-                                        <option value="selected" @(ViewBag.FifoScope == "selected" ? "selected" : "")>Tanlangan ombor</option>
+                                        <option value="all" @(ViewBag.FifoScope == "all" ? "selected" : "")>@L.T("Wh_Db_ScopeAll")</option>
+                                        <option value="selected" @(ViewBag.FifoScope == "selected" ? "selected" : "")>@L.T("Wh_Db_ScopeSelected")</option>
                                     </select>
                                 </div>
                                 <div class="col-12 col-sm-6 col-lg-2">
-                                    <label>Mahsulot turi</label>
+                                    <label>@L.T("Wh_ProductType")</label>
                                     <select name="productType" class="form-control">
-                                        <option value="">Barchasi</option>
-                                        <option value="finished" @(ViewBag.ProductType == "finished" ? "selected" : "")>Tayyor mahsulot</option>
-                                        <option value="raw" @(ViewBag.ProductType == "raw" ? "selected" : "")>Xomashyo</option>
+                                        <option value="">@L.T("All")</option>
+                                        <option value="finished" @(ViewBag.ProductType == "finished" ? "selected" : "")>@L.T("Wh_FinishedGood")</option>
+                                        <option value="raw" @(ViewBag.ProductType == "raw" ? "selected" : "")>@L.T("Wh_RawMaterialOne")</option>
                                     </select>
                                 </div>
                                 <div class="col-12 col-sm-6 col-lg-2 d-flex align-items-end">
                                     <button type="submit" class="btn btn-primary w-100">
-                                        <i class="bx bx-search"></i> Qidirish
+                                        <i class="bx bx-search"></i> @L.T("Search")
                                     </button>
                                 </div>
                             </div>
@@ -99,7 +99,7 @@
                         <div class="col-md-6">
                             <div class="card">
                                 <div class="card-header">
-                                    <h4 class="card-title text-warning">Yuqori DOH (Ortiqcha zaxira)@if ((ViewBag.HighDohTotal as int? ?? 0) > Model.HighDOHItems.Count) {<small class="text-muted"> — eng yuqori @Model.HighDOHItems.Count / @ViewBag.HighDohTotal</small>}</h4>
+                                    <h4 class="card-title text-warning">@L.T("Wh_Db_HighDoh")@if ((ViewBag.HighDohTotal as int? ?? 0) > Model.HighDOHItems.Count) {<small class="text-muted"> — @L.T("Wh_Db_TopOf", Model.HighDOHItems.Count, (object)ViewBag.HighDohTotal)</small>}</h4>
                                 </div>
                                 <div class="card-content">
                                     <div class="card-body">
@@ -107,9 +107,9 @@
                                             <table class="table table-striped">
                                                 <thead>
                                                     <tr>
-                                                        <th>Mahsulot</th>
-                                                        <th>Ombor</th>
-                                                        <th>Qoldiq</th>
+                                                        <th>@L.T("Wh_Product")</th>
+                                                        <th>@L.T("Wh_Warehouse")</th>
+                                                        <th>@L.T("Wh_Balance")</th>
                                                         <th>Planned DOH</th>
                                                         <th>Actual DOH</th>
                                                     </tr>
@@ -131,7 +131,7 @@
                                                     else
                                                     {
                                                         <tr>
-                                                            <td colspan="5" class="text-center">Ma'lumot topilmadi</td>
+                                                            <td colspan="5" class="text-center">@L.T("Wh_NoDataFound")</td>
                                                         </tr>
                                                     }
                                                 </tbody>
@@ -146,7 +146,7 @@
                         <div class="col-md-6">
                             <div class="card">
                                 <div class="card-header">
-                                    <h4 class="card-title text-danger">Past DOH (Zaxira xavfi)@if ((ViewBag.LowDohTotal as int? ?? 0) > Model.LowDOHItems.Count) {<small class="text-muted"> — eng past @Model.LowDOHItems.Count / @ViewBag.LowDohTotal</small>}</h4>
+                                    <h4 class="card-title text-danger">@L.T("Wh_Db_LowDoh")@if ((ViewBag.LowDohTotal as int? ?? 0) > Model.LowDOHItems.Count) {<small class="text-muted"> — @L.T("Wh_Db_BottomOf", Model.LowDOHItems.Count, (object)ViewBag.LowDohTotal)</small>}</h4>
                                 </div>
                                 <div class="card-content">
                                     <div class="card-body">
@@ -154,9 +154,9 @@
                                             <table class="table table-striped">
                                                 <thead>
                                                     <tr>
-                                                        <th>Mahsulot</th>
-                                                        <th>Ombor</th>
-                                                        <th>Qoldiq</th>
+                                                        <th>@L.T("Wh_Product")</th>
+                                                        <th>@L.T("Wh_Warehouse")</th>
+                                                        <th>@L.T("Wh_Balance")</th>
                                                         <th>Planned DOH</th>
                                                         <th>Actual DOH</th>
                                                     </tr>
@@ -178,7 +178,7 @@
                                                     else
                                                     {
                                                         <tr>
-                                                            <td colspan="5" class="text-center">Ma'lumot topilmadi</td>
+                                                            <td colspan="5" class="text-center">@L.T("Wh_NoDataFound")</td>
                                                         </tr>
                                                     }
                                                 </tbody>
@@ -194,7 +194,7 @@
                         <div class="col-md-6">
                             <div class="card">
                                 <div class="card-header">
-                                    <h4 class="card-title text-success">High runner (@ViewBag.RunnerDays kun)</h4>
+                                    <h4 class="card-title text-success">@L.T("Wh_Db_HighRunner", (object)ViewBag.RunnerDays)</h4>
                                 </div>
                                 <div class="card-content">
                                     <div class="card-body">
@@ -202,9 +202,9 @@
                                             <table class="table table-striped">
                                                 <thead>
                                                     <tr>
-                                                        <th>Mahsulot</th>
-                                                        <th>Ombor</th>
-                                                        <th>Qoldiq</th>
+                                                        <th>@L.T("Wh_Product")</th>
+                                                        <th>@L.T("Wh_Warehouse")</th>
+                                                        <th>@L.T("Wh_Balance")</th>
                                                         <th>Avg/day</th>
                                                     </tr>
                                                 </thead>
@@ -224,7 +224,7 @@
                                                     else
                                                     {
                                                         <tr>
-                                                            <td colspan="4" class="text-center">Ma'lumot topilmadi</td>
+                                                            <td colspan="4" class="text-center">@L.T("Wh_NoDataFound")</td>
                                                         </tr>
                                                     }
                                                 </tbody>
@@ -238,7 +238,7 @@
                         <div class="col-md-6">
                             <div class="card">
                                 <div class="card-header">
-                                    <h4 class="card-title text-muted">Low runner (@ViewBag.RunnerDays kun)</h4>
+                                    <h4 class="card-title text-muted">@L.T("Wh_Db_LowRunner", (object)ViewBag.RunnerDays)</h4>
                                 </div>
                                 <div class="card-content">
                                     <div class="card-body">
@@ -246,9 +246,9 @@
                                             <table class="table table-striped">
                                                 <thead>
                                                     <tr>
-                                                        <th>Mahsulot</th>
-                                                        <th>Ombor</th>
-                                                        <th>Qoldiq</th>
+                                                        <th>@L.T("Wh_Product")</th>
+                                                        <th>@L.T("Wh_Warehouse")</th>
+                                                        <th>@L.T("Wh_Balance")</th>
                                                         <th>Avg/day</th>
                                                     </tr>
                                                 </thead>
@@ -268,7 +268,7 @@
                                                     else
                                                     {
                                                         <tr>
-                                                            <td colspan="4" class="text-center">Ma'lumot topilmadi</td>
+                                                            <td colspan="4" class="text-center">@L.T("Wh_NoDataFound")</td>
                                                         </tr>
                                                     }
                                                 </tbody>
@@ -286,8 +286,8 @@
                             <div class="col-12">
                                 <div class="card border-warning">
                                     <div class="card-header bg-light">
-                                        <h4 class="card-title text-warning mb-0"><i class="bx bx-error"></i> FIFO taxminiy ogohlantirishlar</h4>
-                                        <small class="text-muted">Kirim/chiqim sanalari bo'yicha taxmin</small>
+                                        <h4 class="card-title text-warning mb-0"><i class="bx bx-error"></i> @L.T("Wh_Db_FifoAlerts")</h4>
+                                        <small class="text-muted">@L.T("Wh_Db_FifoAlertsHint")</small>
                                     </div>
                                     <div class="card-content">
                                         <div class="card-body">
@@ -295,11 +295,11 @@
                                                 <table id="fifoHeuristicTable" class="table table-striped table-bordered" style="width:100%">
                                                     <thead>
                                                         <tr>
-                                                            <th>Mahsulot</th>
-                                                            <th>Ombor</th>
-                                                            <th>Eng eski kirim</th>
-                                                            <th>So'nggi chiqim</th>
-                                                            <th>Eski partiya qoldig'i</th>
+                                                            <th>@L.T("Wh_Product")</th>
+                                                            <th>@L.T("Wh_Warehouse")</th>
+                                                            <th>@L.T("Wh_Db_OldestIncome")</th>
+                                                            <th>@L.T("Wh_Db_LatestExpense")</th>
+                                                            <th>@L.T("Wh_Db_OldBatchRemaining")</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody>
@@ -331,8 +331,8 @@
                                     @if (Model.DlocBelowMinCount > 0 || Model.DlocNearMaxCount > 0)
                                     {
                                         <p class="small mb-0 mt-1">
-                                            <span class="badge badge-warning">@Model.DlocBelowMinCount MIN dan past</span>
-                                            <span class="badge badge-danger ml-1">@Model.DlocNearMaxCount MAX ga yaqin (90%+)</span>
+                                            <span class="badge badge-warning">@L.T("Wh_Db_BelowMinCount", Model.DlocBelowMinCount)</span>
+                                            <span class="badge badge-danger ml-1">@L.T("Wh_Db_NearMaxCount", Model.DlocNearMaxCount)</span>
                                         </p>
                                     }
                                 </div>
@@ -342,13 +342,13 @@
                                             <table id="dlocMinMaxTable" class="table table-striped table-bordered" style="width:100%">
                                                 <thead>
                                                     <tr>
-                                                        <th>Ombor</th>
+                                                        <th>@L.T("Wh_Warehouse")</th>
                                                         <th>DLOC</th>
-                                                        <th>Joriy qoldiq</th>
+                                                        <th>@L.T("Wh_CurrentStock")</th>
                                                         <th>Min</th>
                                                         <th>Max</th>
-                                                        <th>Sig'im %</th>
-                                                        <th>Holat</th>
+                                                        <th>@L.T("Wh_Dl_CapacityPct")</th>
+                                                        <th>@L.T("Status")</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
@@ -366,15 +366,15 @@
                                                                 <td>@a.MaxCapacity.ToString("N2")</td>
                                                                 <td>@(a.MaxCapacity > 0 ? fillPct.ToString("N0") + "%" : "—")</td>
                                                                 <td>
-                                                                    @if (a.AlertType == "BELOW_MIN") { <span class="badge badge-warning">MIN dan past</span> }
-                                                                    else if (a.AlertType == "NEAR_MAX") { <span class="badge badge-danger">MAX ga yaqin</span> }
+                                                                    @if (a.AlertType == "BELOW_MIN") { <span class="badge badge-warning">@L.T("Wh_Db_BelowMin")</span> }
+                                                                    else if (a.AlertType == "NEAR_MAX") { <span class="badge badge-danger">@L.T("Wh_Db_NearMax")</span> }
                                                                 </td>
                                                             </tr>
                                                         }
                                                     }
                                                     else
                                                     {
-                                                        <tr><td colspan="7" class="text-center text-muted">MIN/MAX buzilish topilmadi yoki DLOC moduli yoqilmagan</td></tr>
+                                                        <tr><td colspan="7" class="text-center text-muted">@L.T("Wh_Db_NoMinMaxViolations")</td></tr>
                                                     }
                                                 </tbody>
                                             </table>
@@ -389,7 +389,7 @@
                         <div class="col-md-6">
                             <div class="card">
                                 <div class="card-header">
-                                    <h4 class="card-title">Kategoriya bo'yicha zaxira taqsimoti</h4>
+                                    <h4 class="card-title">@L.T("Wh_Db_StockByCategory")</h4>
                                 </div>
                                 <div class="card-content">
                                     <div class="card-body">
@@ -403,7 +403,7 @@
                         <div class="col-md-6">
                             <div class="card">
                                 <div class="card-header">
-                                    <h4 class="card-title">Kirim/Chiqim tendentsiyasi</h4>
+                                    <h4 class="card-title">@L.T("Wh_Db_InOutTrend")</h4>
                                 </div>
                                 <div class="card-content">
                                     <div class="card-body">
@@ -419,7 +419,7 @@
                         <div class="col-12">
                             <div class="card">
                                 <div class="card-header">
-                                    <h4 class="card-title">Barcha mahsulotlar DOH jadvali</h4>
+                                    <h4 class="card-title">@L.T("Wh_Db_AllProductsDoh")</h4>
                                 </div>
                                 <div class="card-content">
                                     <div class="card-body">
@@ -427,11 +427,11 @@
                                             <table id="dohTable" class="table zero-configuration dt-responsive nowrap" style="width:100%">
                                                 <thead>
                                                     <tr>
-                                                        <th>Mahsulot kodi</th>
-                                                        <th>Mahsulot nomi</th>
-                                                        <th>Kategoriya</th>
-                                                        <th>Ombor</th>
-                                                        <th>Joriy qoldiq</th>
+                                                        <th>@L.T("Wh_ProductCode")</th>
+                                                        <th>@L.T("Wh_ProductName")</th>
+                                                        <th>@L.T("Category")</th>
+                                                        <th>@L.T("Wh_Warehouse")</th>
+                                                        <th>@L.T("Wh_CurrentStock")</th>
                                                         <th>Planned avg/day</th>
                                                         <th>Actual avg/day</th>
                                                         <th>Planned DOH</th>
@@ -498,32 +498,11 @@
             var $ = window.jQuery;
             // Initialize DataTable
             $('#dohTable').DataTable({
-                "language": {
-                    "search": "Qidirish:",
-                    "lengthMenu": "_MENU_ ta ko'rsatish",
-                    "info": "_TOTAL_ ta yozuvdan _START_ dan _END_ gacha",
-                    "infoEmpty": "Yozuvlar yo'q",
-                    "infoFiltered": "(jami _MAX_ ta yozuvdan filtrlangan)",
-                    "paginate": {
-                        "first": "Birinchi",
-                        "last": "Oxirgi",
-                        "next": "Keyingi",
-                        "previous": "Oldingi"
-                    },
-                    "zeroRecords": "Ma'lumot topilmadi"
-                },
                 "pageLength": 25,
                 "order": [[7, "desc"]]
             });
 
-            var dtLang = {
-                "search": "Qidirish:",
-                "lengthMenu": "_MENU_ ta ko'rsatish",
-                "info": "_TOTAL_ ta yozuvdan _START_ dan _END_ gacha",
-                "infoEmpty": "Yozuvlar yo'q",
-                "zeroRecords": "Ma'lumot topilmadi",
-                "paginate": { "first": "Birinchi", "last": "Oxirgi", "next": "Keyingi", "previous": "Oldingi" }
-            };
+            var dtLang = erpDataTable.language;
             if ($('#fifoHeuristicTable').length) {
                 $('#fifoHeuristicTable').DataTable({ language: dtLang, pageLength: 25, order: [[2, 'desc']] });
             }
@@ -579,14 +558,14 @@
                     labels: dates,
                     datasets: [
                         {
-                            label: 'Kirim',
+                            label: '@L.Js("Wh_Income")',
                             data: inboundAmounts,
                             borderColor: 'rgba(40, 199, 111, 1)',
                             backgroundColor: 'rgba(40, 199, 111, 0.2)',
                             tension: 0.4
                         },
                         {
-                            label: 'Chiqim',
+                            label: '@L.Js("Wh_Expense")',
                             data: outboundAmounts,
                             borderColor: 'rgba(234, 84, 85, 1)',
                             backgroundColor: 'rgba(234, 84, 85, 0.2)',

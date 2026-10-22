@@ -4,6 +4,7 @@ using tahsinERP.Models;
 using tahsinERP.Services;
 using tahsinERP.ViewModels;
 using tahsinERP.Filters;
+using tahsinERP.I18n;
 
 namespace tahsinERP.Controllers
 {
@@ -24,7 +25,7 @@ namespace tahsinERP.Controllers
             {
                 if (!productId.HasValue || !transportId.HasValue)
                 {
-                    return Json(new { success = false, error = "Product ID and Transport ID are required" }, JsonRequestBehavior.AllowGet);
+                    return Json(new { success = false, error = L.T("Log_ProductTransportRequired") }, JsonRequestBehavior.AllowGet);
                 }
 
                 using (DBTHSNEntities db = new DBTHSNEntities())
@@ -41,7 +42,7 @@ namespace tahsinERP.Controllers
             {
                 // LOG-S02: ichki xato matni (SQL va h.k.) foydalanuvchiga ko'rsatilmaydi
                 System.Diagnostics.Trace.TraceError("TransportLoadApi/Calculate: {0}", ex);
-                return Json(new { success = false, error = "Hisoblashda xatolik yuz berdi." }, JsonRequestBehavior.AllowGet);
+                return Json(new { success = false, error = L.T("Log_CalcErrorShort") }, JsonRequestBehavior.AllowGet);
             }
         }
     }

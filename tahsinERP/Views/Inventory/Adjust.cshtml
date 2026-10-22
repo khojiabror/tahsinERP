@@ -1,6 +1,6 @@
 @model tahsinERP.ViewModels.InventoryAdjustmentViewModel
 @{
-    ViewBag.Title = "Inventarizatsiya - qoldiqlarni to'g'rilash";
+    ViewBag.Title = L.T("Wh_Adj_Title");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -19,10 +19,10 @@
                                         <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                     </li>
                                     <li class="breadcrumb-item">
-                                        <a href="~/Inventory/Index">Ombor qoldiqlari</a>
+                                        <a href="~/Inventory/Index">@L.T("Wh_StockTitle")</a>
                                     </li>
                                     <li class="breadcrumb-item active">
-                                        Inventarizatsiya
+                                        @L.T("Wh_Inventory")
                                     </li>
                                 </ol>
                             </div>
@@ -63,16 +63,14 @@
                                             }
 
                                             <div class="alert alert-warning">
-                                                <strong>Diqqat!</strong> Inventarizatsiya faqat komissiya bilan sanoq o'tkazilgandan so'ng amalga oshiriladi.
-                                                Noto'g'ri ma'lumot kiritsam salbiy oqibatlarga olib kelsa, qonun oldida va korxona tartib qoidalariga muvofiq
-                                                javob berishga tayyorman.
+                                                <strong>@L.T("Wh_Attention")</strong> @L.T("Wh_Adj_Disclaimer")
                                             </div>
                                             <div class="alert alert-info" id="monthlyLimitAlert" style="display:none;">
-                                                Ushbu ombor uchun joriy oy inventarizatsiyasi allaqachon kiritilgan. Oyiga faqat bir marta ruxsat etiladi.
+                                                @L.T("Wh_Adj_MonthlyLimit")
                                             </div>
                                             <div class="mb-2">
                                                 <a href="@Url.Action("DownloadTemplate", "Inventory")" class="btn btn-outline-primary">
-                                                    <i class="bx bx-download"></i> Excel shablonini yuklab olish
+                                                    <i class="bx bx-download"></i> @L.T("Wh_Adj_DownloadTemplate")
                                                 </a>
                                             </div>
 
@@ -82,19 +80,19 @@
 
                                                 <div class="row">
                                                     <div class="col-md-4 col-12 form-group">
-                                                        <label for="WarehouseId">Ombor</label>
-                                                        @Html.DropDownListFor(m => m.WarehouseId, ViewBag.Warehouses as SelectList, "---Tanlang---", new { @class = "form-control", @required = "required" })
+                                                        <label for="WarehouseId">@L.T("Wh_Warehouse")</label>
+                                                        @Html.DropDownListFor(m => m.WarehouseId, ViewBag.Warehouses as SelectList, L.T("Wh_SelectDashed"), new { @class = "form-control", @required = "required" })
                                                         @Html.ValidationMessageFor(m => m.WarehouseId, "", new { @class = "text-danger" })
                                                     </div>
                                                     <div class="col-md-4 col-12 form-group">
-                                                        <label for="ExcelFile">Excel fayl (.xlsx)</label>
+                                                        <label for="ExcelFile">@L.T("Wh_Adj_ExcelFile")</label>
                                                         <input type="file" name="ExcelFile" id="ExcelFile" class="form-control" accept=".xlsx" required />
                                                     </div>
                                                     <div class="col-md-4 col-12 form-group d-flex align-items-end">
                                                         <div class="custom-control custom-checkbox">
                                                             @Html.CheckBoxFor(m => m.Confirmed, new { @class = "custom-control-input", @id = "confirmCheck" })
                                                             <label class="custom-control-label" for="confirmCheck">
-                                                                Qoidalarni qabul qilaman
+                                                                @L.T("Wh_Adj_AcceptRules")
                                                             </label>
                                                         </div>
                                                     </div>
@@ -102,19 +100,19 @@
 
                                                 <div class="row">
                                                     <div class="col-12">
-                                                        <h6>Excel formati</h6>
-                                                        <p class="mb-1">Majburiy ustunlar: <strong>ProductPNo</strong>, <strong>Quantity</strong></p>
-                                                        <p class="text-muted">ProductPNo orqali mahsulot aniqlanadi, Quantity esa yangi qoldiq miqdori.</p>
+                                                        <h6>@L.T("Wh_Adj_ExcelFormat")</h6>
+                                                        <p class="mb-1">@L.T("Wh_Adj_RequiredColumns") <strong>ProductPNo</strong>, <strong>Quantity</strong></p>
+                                                        <p class="text-muted">@L.T("Wh_Adj_ExcelHint")</p>
                                                     </div>
                                                 </div>
 
                                                 <div class="row mt-2">
                                                     <div class="col-12">
                                                         <button type="submit" class="btn btn-warning" id="submitBtn" disabled>
-                                                            <i class="bx bx-check-shield"></i> Inventarizatsiyani tasdiqlash
+                                                            <i class="bx bx-check-shield"></i> @L.T("Wh_Adj_Confirm")
                                                         </button>
                                                         <a href="@Url.Action("Index", "Inventory")" class="btn btn-secondary ml-1">
-                                                            <i class="bx bx-arrow-back"></i> Orqaga
+                                                            <i class="bx bx-arrow-back"></i> @L.T("Back")
                                                         </a>
                                                     </div>
                                                 </div>

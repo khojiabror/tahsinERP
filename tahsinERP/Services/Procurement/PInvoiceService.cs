@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
+using tahsinERP.I18n;
 using tahsinERP.Models;
 using tahsinERP.Services.Common;
 using tahsinERP.ViewModels.PInvoice;
@@ -157,7 +158,7 @@ namespace tahsinERP.Services.Procurement
                 purchaseType = ProcurementLookups.IndirectPurchase;
             }
 
-            await ValidateLinksAsync(order, model.SupplierID, model.ContractID, "yaratilganda");
+            await ValidateLinksAsync(order, model.SupplierID, model.ContractID, L.T("Srm_WhenCreating"));
             if (!_errors.IsValid)
             {
                 return null;
@@ -207,7 +208,7 @@ namespace tahsinERP.Services.Procurement
             }
             byte purchaseType = await ResolvePurchaseTypeAsync(model.ContractID, model.OrderID);
 
-            await ValidateLinksAsync(order, model.SupplierID, model.ContractID, "tahrirlashda");
+            await ValidateLinksAsync(order, model.SupplierID, model.ContractID, L.T("Srm_WhenEditing"));
             if (!_errors.IsValid)
             {
                 return false;
@@ -321,21 +322,21 @@ namespace tahsinERP.Services.Procurement
                 {
                     if (!order.SupplierID.HasValue && supplierId <= 0)
                     {
-                        _errors.AddModelError("SupplierID", $"Direct buyurtmadan invoice {actionWord} ta'minotchi tanlanishi shart.");
+                        _errors.AddModelError("SupplierID", L.T("Srm_DirectInvoiceSupplierRequired", actionWord));
                     }
                     if (!order.ContractID.HasValue && (!contractId.HasValue || contractId.Value <= 0))
                     {
-                        _errors.AddModelError("ContractID", $"Direct buyurtmadan invoice {actionWord} shartnoma tanlanishi shart.");
+                        _errors.AddModelError("ContractID", L.T("Srm_DirectInvoiceContractRequired", actionWord));
                     }
                 }
 
                 if (order.SupplierID.HasValue && order.SupplierID.Value > 0 && supplierId != order.SupplierID.Value)
                 {
-                    _errors.AddModelError("SupplierID", "Tanlangan ta'minotchi buyurtmadagi ta'minotchi bilan mos emas.");
+                    _errors.AddModelError("SupplierID", L.T("Srm_SupplierMismatchOrder"));
                 }
                 if (order.ContractID.HasValue && order.ContractID.Value > 0 && contractId != order.ContractID.Value)
                 {
-                    _errors.AddModelError("ContractID", "Tanlangan shartnoma buyurtmadagi shartnoma bilan mos emas.");
+                    _errors.AddModelError("ContractID", L.T("Srm_ContractMismatchOrder"));
                 }
             }
 
@@ -347,11 +348,11 @@ namespace tahsinERP.Services.Procurement
                     .FirstOrDefaultAsync();
                 if (contract == null || contract.IsDeleted == true)
                 {
-                    _errors.AddModelError("ContractID", "Tanlangan shartnoma topilmadi.");
+                    _errors.AddModelError("ContractID", L.T("Srm_ContractNotFound"));
                 }
                 else if (supplierId > 0 && contract.SupplierID != supplierId)
                 {
-                    _errors.AddModelError("ContractID", "Tanlangan shartnoma tanlangan ta'minotchiga tegishli emas.");
+                    _errors.AddModelError("ContractID", L.T("Srm_ContractNotOfSupplier"));
                 }
             }
         }
@@ -379,7 +380,7 @@ namespace tahsinERP.Services.Procurement
             // shu raqamli o'chirilgan hujjat bo'lsa, uning raqami arxivlanadi va raqam bo'shaydi (SRM-D4, POrders bilan bir xil)
             if (await DocumentNumberService.ActiveNumberExistsAsync(_db, "P_INVOICES", "InvoiceNo", number, excludeId))
             {
-                _errors.AddModelError("InvoiceNo", "Shu raqamli invoys allaqachon mavjud.");
+                _errors.AddModelError("InvoiceNo", L.T("Srm_InvoiceNoExists"));
                 return null;
             }
 

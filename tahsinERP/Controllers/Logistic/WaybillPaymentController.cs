@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Web.Mvc;
 using tahsinERP.Filters;
+using tahsinERP.I18n;
 using tahsinERP.Models;
 using tahsinERP.Services;
 using tahsinERP.Services.Common;
@@ -103,7 +104,7 @@ namespace tahsinERP.Controllers.Logistic
 
                 if (!ModelState.IsValid)
                 {
-                    ModelState.AddModelError("", "Ma'lumotlarni to'liq kiritganingizga ishonch hosil qilib qaytadan urinib ko'ring.");
+                    ModelState.AddModelError("", L.T("Log_CheckInputRetry"));
                     PopulateFormBags(db, model.WaybillID, waybillIds, model.ForwarderID, model.CurrencyID, AccountID);
                     return View(model);
                 }
@@ -136,7 +137,7 @@ namespace tahsinERP.Controllers.Logistic
                         LogHelper.LogToDatabase(User.Identity.Name, ControllerName, "Create", $"Xatolik (to'lov saqlanmadi): {ex.Message}");
                         DetachAll(db);
                         model.ID = 0;
-                        ModelState.AddModelError("", "To'lovni yoki moliya yozuvini saqlashda xatolik yuz berdi, to'lov saqlanmadi. Qayta urinib ko'ring.");
+                        ModelState.AddModelError("", L.T("Log_PaySaveError"));
                         PopulateFormBags(db, model.WaybillID, waybillIds, model.ForwarderID, model.CurrencyID, AccountID);
                         return View(model);
                     }
@@ -147,7 +148,7 @@ namespace tahsinERP.Controllers.Logistic
 
                 var waybillNo = db.F_WAYBILLS.Where(w => w.ID == model.WaybillID).Select(w => w.WaybillNo).FirstOrDefault();
                 LogHelper.LogToDatabase(User.Identity.Name, ControllerName, "Create",
-                    $"{waybillNo} - raqamli {LogisticsTerms.Waybill.ToLower()}ga to'lov kiritildi.");
+                    $"{waybillNo} - raqamli yo'l varaqasiga to'lov kiritildi.");
 
                 return RedirectToAction("Index");
             }
@@ -279,14 +280,14 @@ namespace tahsinERP.Controllers.Logistic
                         tx.Rollback();
                         LogHelper.LogToDatabase(User.Identity.Name, ControllerName, "Delete", $"Xatolik: {ex.Message}");
                         DetachAll(db);
-                        ModelState.AddModelError("", "To'lovni o'chirishda xatolik yuz berdi. Qayta urinib ko'ring.");
+                        ModelState.AddModelError("", L.T("Log_PayDeleteError"));
                         // LOG-B09: view null model bilan ochilmasin
                         return View(LoadForDisplay(db, ID.Value));
                     }
                 }
 
                 LogHelper.LogToDatabase(User.Identity.Name, ControllerName, "Delete",
-                    $"{waybillNo} - raqamli {LogisticsTerms.Waybill.ToLower()} to'lovi o'chirildi.");
+                    $"{waybillNo} - raqamli yo'l varaqasi to'lovi o'chirildi.");
 
                 return RedirectToAction("Index");
             }
@@ -335,12 +336,12 @@ namespace tahsinERP.Controllers.Logistic
                     : null;
                 if (ModelState.IsValid && waybillPaymentToUpdate == null)
                 {
-                    ModelState.AddModelError("", "To'lov topilmadi.");
+                    ModelState.AddModelError("", L.T("Log_PaymentNotFound"));
                 }
 
                 if (!ModelState.IsValid)
                 {
-                    ModelState.AddModelError("", "Ma'lumotlarni to'liq kiritganingizga ishonch hosil qilib qaytadan urinib ko'ring.");
+                    ModelState.AddModelError("", L.T("Log_CheckInputRetry"));
                     PopulateFormBags(db, waybillPayment.WaybillID, waybillIds, waybillPayment.ForwarderID, waybillPayment.CurrencyID, AccountID);
                     return View(waybillPayment);
                 }
@@ -387,7 +388,7 @@ namespace tahsinERP.Controllers.Logistic
                         tx.Rollback();
                         LogHelper.LogToDatabase(User.Identity.Name, ControllerName, "Edit", $"Xatolik (o'zgarishlar saqlanmadi): {ex.Message}");
                         DetachAll(db);
-                        ModelState.AddModelError("", "To'lovni yoki moliya yozuvini saqlashda xatolik yuz berdi, o'zgarishlar saqlanmadi. Qayta urinib ko'ring.");
+                        ModelState.AddModelError("", L.T("Log_PayEditSaveError"));
                         PopulateFormBags(db, waybillPayment.WaybillID, waybillIds, waybillPayment.ForwarderID, waybillPayment.CurrencyID, AccountID);
                         return View(waybillPayment);
                     }
@@ -398,7 +399,7 @@ namespace tahsinERP.Controllers.Logistic
 
                 var waybillNo = db.F_WAYBILLS.Where(w => w.ID == waybillPayment.WaybillID).Select(w => w.WaybillNo).FirstOrDefault();
                 LogHelper.LogToDatabase(User.Identity.Name, ControllerName, "Edit",
-                    $"{waybillNo} - raqamli {LogisticsTerms.Waybill.ToLower()} to'lovi tahrirlandi.");
+                    $"{waybillNo} - raqamli yo'l varaqasi to'lovi tahrirlandi.");
 
                 return RedirectToAction("Index");
             }
@@ -411,13 +412,13 @@ namespace tahsinERP.Controllers.Logistic
         {
             if (!waybillIds.Any())
             {
-                ModelState.AddModelError("WaybillID", "Kamida bitta yo'l varaqasi tanlang.");
+                ModelState.AddModelError("WaybillID", L.T("Log_SelectAtLeastOneWaybill"));
                 return;
             }
 
             if (model.Payment_Amount <= 0)
             {
-                ModelState.AddModelError("Payment_Amount", "To'lov miqdori noldan katta bo'lishi kerak.");
+                ModelState.AddModelError("Payment_Amount", L.T("Log_PaymentAmountPositive"));
             }
 
             var waybills = db.F_WAYBILLS.AsNoTracking()
@@ -426,7 +427,7 @@ namespace tahsinERP.Controllers.Logistic
                 .ToList();
             if (waybills.Count != waybillIds.Count)
             {
-                ModelState.AddModelError("WaybillID", "Tanlangan yo'l varaqalaridan biri topilmadi yoki o'chirilgan.");
+                ModelState.AddModelError("WaybillID", L.T("Log_SelectedWaybillMissing"));
             }
 
             // LOG-B13: bitta to'lovning yo'l varaqalari bitta valyutada (qoldiq va jami shu valyutada ko'rsatiladi);
@@ -434,7 +435,7 @@ namespace tahsinERP.Controllers.Logistic
             var waybillCurrencies = waybills.Where(w => w.CurrencyID.HasValue).Select(w => w.CurrencyID.Value).Distinct().ToList();
             if (waybillCurrencies.Count > 1)
             {
-                ModelState.AddModelError("WaybillID", "Bitta to'lovga turli valyutadagi yo'l varaqalarini bog'lab bo'lmaydi — ularni alohida to'lang.");
+                ModelState.AddModelError("WaybillID", L.T("Log_MixedCurrencyWaybills"));
             }
             else if (waybillCurrencies.Count == 1 && model.CurrencyID.HasValue && model.CurrencyID != waybillCurrencies[0])
             {
@@ -442,8 +443,9 @@ namespace tahsinERP.Controllers.Logistic
                 if (!new LogisticsMoney(db).Convert(1, model.CurrencyID, waybillCurrencies[0], date).HasValue)
                 {
                     ModelState.AddModelError("CurrencyID",
-                        $"{date:dd.MM.yyyy} sanasi uchun valyuta kursi topilmadi ({ReferenceDataCache.NameOf(ReferenceDataCache.Currencies, model.CurrencyID)} / " +
-                        $"{ReferenceDataCache.NameOf(ReferenceDataCache.Currencies, waybillCurrencies[0])}). Kursni \"Valyuta kurslari\" sahifasida kiriting.");
+                        L.T("Log_RateNotFoundForDate", date.ToString("dd.MM.yyyy"),
+                            ReferenceDataCache.NameOf(ReferenceDataCache.Currencies, model.CurrencyID),
+                            ReferenceDataCache.NameOf(ReferenceDataCache.Currencies, waybillCurrencies[0])));
                 }
             }
 
@@ -454,7 +456,7 @@ namespace tahsinERP.Controllers.Logistic
             if (foreign.Any())
             {
                 ModelState.AddModelError("ForwarderID",
-                    $"Quyidagi yo'l varaqalari boshqa {LogisticsTerms.Forwarder.ToLower()}ga tegishli: {string.Join(", ", foreign)}.");
+                    L.T("Log_WaybillsOtherForwarder", string.Join(", ", foreign)));
             }
         }
 
@@ -463,8 +465,7 @@ namespace tahsinERP.Controllers.Logistic
             if (!posted)
             {
                 // Foydalanuvchi qarori: bank hisobi topilmasa to'lov saqlanadi, lekin ogohlantiriladi
-                TempData["Warning"] = "To'lov saqlandi, lekin moliyaga (Chiqim) o'tkazilmadi: mos bank hisob-raqami topilmadi. " +
-                                      "To'lovni tahrirlab, hisob-raqamni tanlang.";
+                TempData["Warning"] = L.T("Log_PayNotPostedNoAccount");
             }
         }
 
@@ -481,7 +482,7 @@ namespace tahsinERP.Controllers.Logistic
                 .ToList();
             if (overpaid.Any())
             {
-                var text = "Ortiqcha to'lov: " + string.Join(", ", overpaid) + " bo'yicha to'langan summa yo'l varaqasi summasidan oshdi.";
+                var text = L.T("Log_Overpaid", string.Join(", ", overpaid));
                 TempData["Warning"] = TempData["Warning"] == null ? text : TempData["Warning"] + " " + text;
             }
         }

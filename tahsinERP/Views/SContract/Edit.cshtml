@@ -1,6 +1,6 @@
 @model tahsinERP.ViewModels.SContractViewModel
 @{
-    ViewBag.Title = "Tahrirlash";
+    ViewBag.Title = L.T("Edit");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -19,10 +19,10 @@
                                         <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                     </li>
                                     <li class="breadcrumb-item">
-                                        <a href="~/SContract/Index">Shartnomalar</a>
+                                        <a href="~/SContract/Index">@L.T("Menu_Contracts")</a>
                                     </li>
                                     <li class="breadcrumb-item active">
-                                        Shartnoma tahrirlash
+                                        @L.T("Crm_CtrEdit")
                                     </li>
                                 </ol>
                             </div>
@@ -51,22 +51,22 @@
                                             <div class="col-lg-12 col-md-12 mt-25">
                                                 <div class="row">
                                                     <div class="col-md-3 col-12 form-group">
-                                                        <label>Shartnoma raqami</label>
+                                                        <label>@L.T("Crm_ContractNo")</label>
                                                         @Html.TextBoxFor(model => model.ContractNo, new { @class = "form-control" })
                                                         @Html.ValidationMessageFor(model => model.ContractNo, "", new { @class = "text-danger" })
                                                     </div>
                                                     <div class="col-md-3 col-12 form-group">
-                                                        <label>Mijoz</label>
+                                                        <label>@L.T("Crm_Client")</label>
                                                         @Html.DropDownListFor(model => model.CustomerID, (SelectList)ViewBag.Customers, new { @class = "form-control select2" })
                                                         @Html.ValidationMessageFor(model => model.CustomerID, "", new { @class = "text-danger" })
                                                     </div>
                                                     <div class="col-md-3 col-12 form-group">
-                                                        <label>Tuzilgan sanasi</label>
+                                                        <label>@L.T("Crm_CtrIssuedDate")</label>
                                                         @Html.TextBoxFor(model => model.IssuedDate, "{0:yyyy-MM-dd}", new { @type = "date", @id = "IssuedDate", @class = "form-control" })
                                                         @Html.ValidationMessageFor(model => model.IssuedDate, "", new { @class = "text-danger" })
                                                     </div>
                                                     <div class="col-md-3 col-12 form-group">
-                                                        <label>Tugaydigan sana</label>
+                                                        <label>@L.T("Crm_CtrEndDate")</label>
                                                         @Html.TextBoxFor(model => model.DueDate, "{0:yyyy-MM-dd}", new { @type = "date", @id = "DueDate", @class = "form-control" })
                                                         @Html.ValidationMessageFor(model => model.DueDate, "", new { @class = "text-danger" })
                                                     </div>
@@ -75,20 +75,20 @@
                                                         @Html.TextBoxFor(model => model.Incoterms, new { @class = "form-control" })
                                                     </div>
                                                     <div class="col-md-3 col-12 form-group">
-                                                        <label>To'lov sharti</label>
+                                                        <label>@L.T("Crm_CtrPaymentTerms")</label>
                                                         @Html.TextBoxFor(model => model.PaymentTerms, new { @class = "form-control" })
                                                     </div>
                                                     <div class="col-md-3 col-12 form-group">
-                                                        <label>To'lov muddati (kun)</label>
-                                                        @Html.TextBoxFor(model => model.PaymentDays, new { @type = "number", @min = "0", @max = "3650", @step = "1", @class = "form-control", @placeholder = "masalan 30" })
+                                                        <label>@L.T("Crm_CtrPaymentDays")</label>
+                                                        @Html.TextBoxFor(model => model.PaymentDays, new { @type = "number", @min = "0", @max = "3650", @step = "1", @class = "form-control", @placeholder = L.T("Crm_CtrEg30") })
                                                         @Html.ValidationMessageFor(model => model.PaymentDays, "", new { @class = "text-danger" })
                                                     </div>
                                                     <div class="col-md-3 col-12 form-group">
-                                                        <label>Valyuta</label>
+                                                        <label>@L.T("Currency")</label>
                                                         @Html.DropDownListFor(model => model.CurrencyID, ViewBag.currencies as SelectList, new { @class = "form-control select2" })
                                                     </div>
                                                     <div class="col-md-3 col-12 form-group">
-                                                        <label>Umumiy summasi</label>
+                                                        <label>@L.T("Crm_TotalAmount")</label>
                                                         @Html.TextBoxFor(model => model.Amount, new { @class = "form-control", @id = "Amount", @readonly = "readonly" })
                                                     </div>
                                                 </div>
@@ -100,9 +100,9 @@
                                                 <div class="col-12">
                                                     <div class="card">
                                                     <div class="card-header">
-                                                        <h4 class="card-title">Shartnoma predmeti</h4>
+                                                        <h4 class="card-title">@L.T("Crm_CtrSubject")</h4>
                                                         <button type="button" class="btn btn-sm btn-success float-right" id="addProductBtn">
-                                                            <i class="bx bx-plus"></i> Yangi maxsulot qo'shish
+                                                            <i class="bx bx-plus"></i> @L.T("Crm_CtrAddProduct")
                                                         </button>
                                                     </div>
                                                     <div class="card-content">
@@ -111,13 +111,13 @@
                                                                 <table class="table table-striped" id="productTable" style="width:100%">
                                                                     <thead>
                                                                         <tr>
-                                                                            <th>Maxsulot</th>
-                                                                            <th>Miqdori</th>
-                                                                            <th>O'lchov birligi</th>
-                                                                            <th>Birlik narxi</th>
-                                                                            <th>QQS (%)</th>
-                                                                            <th>Jami narx</th>
-                                                                            <th>Amallar</th>
+                                                                            <th>@L.T("Crm_Product")</th>
+                                                                            <th>@L.T("Quantity")</th>
+                                                                            <th>@L.T("Unit")</th>
+                                                                            <th>@L.T("Crm_UnitPrice")</th>
+                                                                            <th>@L.T("Crm_CtrVatPct")</th>
+                                                                            <th>@L.T("Crm_CtrTotalPrice")</th>
+                                                                            <th>@L.T("Actions")</th>
                                                                         </tr>
                                                                     </thead>
                                                                     <tbody id="productTableBody">
@@ -147,7 +147,7 @@
                                                                                 <td>
                                                                                     @if (Model.ProductList[i].ID > 0)
                                                                                     {
-                                                                                        <a href="#" data-post-url="@Url.Action("DeleteProduct", "SContract", new { id = Model.ProductList[i].ID })" data-confirm="Ushbu shartnoma maxsulotini o'chirib yuborishga ishonchingiz komilmi?">
+                                                                                        <a href="#" data-post-url="@Url.Action("DeleteProduct", "SContract", new { id = Model.ProductList[i].ID })" data-confirm="@L.T("Crm_CtrConfirmDeleteProduct")">
                                                                                             <i class="bx bx-trash"></i>
                                                                                         </a>
                                                                                     }
@@ -172,8 +172,8 @@
 
                                         <div class="row mt-3">
                                             <div class="col-12">
-                                                <button class="btn btn-primary" type="submit">Saqlash</button>
-                                                <a href="~/SContract/Index" class="btn btn-danger">Bekor qilish</a>
+                                                <button class="btn btn-primary" type="submit">@L.T("Save")</button>
+                                                <a href="~/SContract/Index" class="btn btn-danger">@L.T("Cancel")</a>
                                             </div>
                                         </div>
                                     }

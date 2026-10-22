@@ -2,7 +2,7 @@
 @using System.Collections.Generic
 @using System.Web.Mvc
 @{
-    ViewBag.Title = "Buyurtmani tahrirlash";
+    ViewBag.Title = L.T("Srm_EditOrder");
     Layout = "~/Views/Shared/_Layout.cshtml";
     var isDirectOrder = ViewBag.IsDirectOrder as bool? ?? false;
     // Buyurtmaga haqiqatda qo'llangan QQS stavkasini ko'rsatamiz (shartnoma stavkasi emas).
@@ -48,10 +48,10 @@
                                     <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                 </li>
                                 <li class="breadcrumb-item">
-                                    <a href="~/POrders/Index">Xarid buyurtmalari</a>
+                                    <a href="~/POrders/Index">@L.T("Menu_PurchaseOrders")</a>
                                 </li>
                                 <li class="breadcrumb-item active">
-                                    Tahrirlash
+                                    @L.T("Edit")
                                 </li>
                             </ol>
                         </div>
@@ -75,30 +75,30 @@
                                         <!-- Order Header -->
                                         <div class="row">
                                             <div class="col-md-3 col-12 form-group">
-                                                <label for="OrderNo">Buyurtma raqami</label>
+                                                <label for="OrderNo">@L.T("Srm_OrderNo")</label>
                                                 @Html.TextBoxFor(model => model.OrderNo, new { @class = "form-control", @required = "required" })
                                                 @Html.ValidationMessageFor(model => model.OrderNo, "", new { @class = "text-danger" })
                                             </div>
                                             <div class="col-md-3 col-12 form-group">
-                                                <label for="IssuedDate">Sana</label>
+                                                <label for="IssuedDate">@L.T("Date")</label>
                                                 @Html.TextBoxFor(model => model.IssuedDate, "{0:yyyy-MM-dd}", new { @type = "date", @class = "form-control", @required = "required" })
                                                 @Html.ValidationMessageFor(model => model.IssuedDate, "", new { @class = "text-danger" })
                                             </div>
                                             <div class="col-md-3 col-12 form-group">
-                                                <label for="CompanyID">Korxona</label>
-                                                @Html.DropDownListFor(model => model.CompanyID, ViewBag.Companies as SelectList, "---Tanlang---", new { @class = "form-control select2", @required = "required" })
+                                                <label for="CompanyID">@L.T("Menu_Company")</label>
+                                                @Html.DropDownListFor(model => model.CompanyID, ViewBag.Companies as SelectList, L.T("SelectPlaceholder"), new { @class = "form-control select2", @required = "required" })
                                                 @Html.ValidationMessageFor(model => model.CompanyID, "", new { @class = "text-danger" })
                                             </div>
                                             @if (!isDirectOrder)
                                             {
                                                 <div class="col-md-3 col-12 form-group">
-                                                    <label for="SupplierID">Ta'minotchi</label>
-                                                    @Html.DropDownListFor(model => model.SupplierID, ViewBag.Suppliers as SelectList, "---Tanlang---", new { @class = "form-control select2", @id = "supplierSelect" })
+                                                    <label for="SupplierID">@L.T("Srm_Supplier")</label>
+                                                    @Html.DropDownListFor(model => model.SupplierID, ViewBag.Suppliers as SelectList, L.T("SelectPlaceholder"), new { @class = "form-control select2", @id = "supplierSelect" })
                                                     @Html.ValidationMessageFor(model => model.SupplierID, "", new { @class = "text-danger" })
                                                 </div>
                                                 <div class="col-md-3 col-12 form-group">
-                                                    <label for="ContractID">Shartnoma</label>
-                                                    @Html.DropDownListFor(model => model.ContractID, ViewBag.Contracts as SelectList, "---Tanlang---", new { @class = "form-control select2", @id = "contractSelect" })
+                                                    <label for="ContractID">@L.T("Srm_Contract")</label>
+                                                    @Html.DropDownListFor(model => model.ContractID, ViewBag.Contracts as SelectList, L.T("SelectPlaceholder"), new { @class = "form-control select2", @id = "contractSelect" })
                                                     @Html.ValidationMessageFor(model => model.ContractID, "", new { @class = "text-danger" })
                                                 </div>
                                             }
@@ -108,38 +108,38 @@
                                                 @Html.HiddenFor(model => model.ContractID)
                                             }
                                             <div class="col-md-3 col-12 form-group">
-                                                <label for="CurrencyID">Valyuta</label>
-                                                @Html.DropDownListFor(model => model.CurrencyID, ViewBag.Currencies as SelectList, "---Tanlang---", new { @class = "form-control select2", @required = "required" })
+                                                <label for="CurrencyID">@L.T("Currency")</label>
+                                                @Html.DropDownListFor(model => model.CurrencyID, ViewBag.Currencies as SelectList, L.T("SelectPlaceholder"), new { @class = "form-control select2", @required = "required" })
                                                 @Html.ValidationMessageFor(model => model.CurrencyID, "", new { @class = "text-danger" })
                                             </div>
                                             <div class="col-md-3 col-12 form-group">
-                                                <label for="vatRateInput">QQS %</label>
+                                                <label for="vatRateInput">@L.T("Srm_VatPercentShort")</label>
                                                 <input type="number" id="vatRateInput" name="VatRate" class="form-control" value="@initialVatRate.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)" step="0.01" min="0" max="100" />
                                             </div>
                                             <div class="col-md-12 col-12 form-group">
-                                                <label for="Description">Izoh</label>
-                                                @Html.TextAreaFor(model => model.Description, new { @class = "form-control", @rows = "2", @placeholder = "Qisqacha izoh" })
+                                                <label for="Description">@L.T("Comment")</label>
+                                                @Html.TextAreaFor(model => model.Description, new { @class = "form-control", @rows = "2", @placeholder = L.T("Srm_ShortComment") })
                                                 @Html.ValidationMessageFor(model => model.Description, "", new { @class = "text-danger" })
                                             </div>
                                         </div>
 
                                         <br />
-                                        <h5>Buyurtma mahsulotlari</h5>
+                                        <h5>@L.T("Srm_OrderProducts")</h5>
                                         
                                         <!-- Editable Products Table -->
                                         <div class="table-responsive">
                                             <table id="orderProductsTable" class="table table-bordered">
                                                 <thead>
                                                     <tr>
-                                                        <th>Mahsulot kodi</th>
-                                                        <th>Mahsulot nomi</th>
-                                                        <th>Miqdor</th>
-                                                        <th>Birlik</th>
-                                                        <th>Narx</th>
-                                                        <th>Jami</th>
+                                                        <th>@L.T("Srm_ProductCode")</th>
+                                                        <th>@L.T("Srm_ProductName")</th>
+                                                        <th>@L.T("Quantity")</th>
+                                                        <th>@L.T("Unit")</th>
+                                                        <th>@L.T("Price")</th>
+                                                        <th>@L.T("Total")</th>
                                                         <th>MOQ</th>
-                                                        <th style="min-width: 16rem;">Hisob tushuntirishi</th>
-                                                        <th>Amallar</th>
+                                                        <th style="min-width: 16rem;">@L.T("Srm_CalcExplanation")</th>
+                                                        <th>@L.T("Actions")</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
@@ -155,7 +155,7 @@
                                                                         var productText = productTextById.ContainsKey(productIdStr) ? productTextById[productIdStr] : product.ProductPNo;
                                                                     }
                                                                     <select name="OrderProducts[@i].ProductID" class="form-control product-select" required>
-                                                                        <option value="">---Tanlang---</option>
+                                                                        <option value="">@L.T("SelectPlaceholder")</option>
                                                                         @if (product.ProductID > 0)
                                                                         {
                                                                             <option value="@productIdStr" data-pno="@productText" selected>@productText</option>
@@ -171,15 +171,15 @@
                                                                     @Html.TextBoxFor(m => m.OrderProducts[i].Amount, "{0:0.######}", new { @type = "number", @class = "form-control amount-input", @step = "0.01", @min = "0", @required = "required" })
                                                                 </td>
                                                                 <td>
-                                                                    @Html.DropDownListFor(m => m.OrderProducts[i].UnitID, new SelectList(ViewBag.UnitsList, "ID", "Text", product.UnitID), "---Tanlang---", new { @class = "form-control unit-select", @required = "required" })
+                                                                    @Html.DropDownListFor(m => m.OrderProducts[i].UnitID, new SelectList(ViewBag.UnitsList, "ID", "Text", product.UnitID), L.T("SelectPlaceholder"), new { @class = "form-control unit-select", @required = "required" })
                                                                 </td>
                                                                 <td>
                                                                     @Html.TextBoxFor(m => m.OrderProducts[i].Price, "{0:0.######}", new { @type = "number", @class = "form-control price-input", @step = "0.01", @min = "0", @required = "required" })
-                                                                    <small class="text-muted d-block mt-1">QQS bilan: <span class="price-with-vat">0.00</span></small>
+                                                                    <small class="text-muted d-block mt-1">@L.T("Srm_WithVat") <span class="price-with-vat">0.00</span></small>
                                                                 </td>
                                                                 <td>
                                                                     @Html.TextBoxFor(m => m.OrderProducts[i].TotalPrice, "{0:0.############}", new { @type = "number", @class = "form-control total-price", @readonly = "readonly" })
-                                                                    <small class="text-muted d-block mt-1">QQS bilan jami: <span class="line-total-with-vat">0.00</span></small>
+                                                                    <small class="text-muted d-block mt-1">@L.T("Srm_WithVatTotal") <span class="line-total-with-vat">0.00</span></small>
                                                                 </td>
                                                                 <td>
                                                                     @Html.TextBoxFor(m => m.OrderProducts[i].MOQ, "{0:0.######}", new { @type = "number", @class = "form-control moq-input", @step = "0.01", @min = "0" })
@@ -198,12 +198,12 @@
                                                 </tbody>
                                                 <tfoot>
                                                     <tr>
-                                                        <td colspan="5" class="text-right"><strong>Jami:</strong></td>
+                                                        <td colspan="5" class="text-right"><strong>@L.T("Total"):</strong></td>
                                                         <td id="totalAmount" class="text-right"><strong>0.00</strong></td>
                                                         <td colspan="3"></td>
                                                     </tr>
                                                     <tr>
-                                                        <td colspan="5" class="text-right"><strong>Jami (QQS bilan):</strong></td>
+                                                        <td colspan="5" class="text-right"><strong>@L.T("Srm_TotalWithVat"):</strong></td>
                                                         <td id="totalAmountWithVat" class="text-right"><strong>0.00</strong></td>
                                                         <td colspan="3"></td>
                                                     </tr>
@@ -214,7 +214,7 @@
                                         <div class="row mt-2">
                                             <div class="col-12">
                                                 <button type="button" class="btn btn-outline-primary" id="addRowBtn">
-                                                    <i class="bx bx-plus"></i> Qo'shish
+                                                    <i class="bx bx-plus"></i> @L.T("Add")
                                                 </button>
                                             </div>
                                         </div>
@@ -222,10 +222,10 @@
                                         <div class="row mt-3">
                                             <div class="col-12">
                                                 <button type="submit" class="btn btn-success">
-                                                    <i class="bx bx-save"></i> Saqlash
+                                                    <i class="bx bx-save"></i> @L.T("Save")
                                                 </button>
                                                 <a href="@Url.Action("Index", "POrders")" class="btn btn-secondary">
-                                                    <i class="bx bx-x"></i> Bekor qilish
+                                                    <i class="bx bx-x"></i> @L.T("Cancel")
                                                 </a>
                                             </div>
                                         </div>
@@ -345,7 +345,7 @@
                 '<td><input type="number" name="OrderProducts[' + productRowIndex + '].Amount" class="form-control amount-input" value="' + (amount || 0) + '" step="0.01" min="0" required /></td>' +
                 '<td>' +
                     '<select name="OrderProducts[' + productRowIndex + '].UnitID" class="form-control unit-select" required>' +
-                    '<option value="">---Tanlang---</option>';
+                    '<option value="">@L.Js("SelectPlaceholder")</option>';
             
             units.forEach(function (unit) {
                 var selected = unit.Value == unitId ? 'selected' : '';
@@ -354,7 +354,7 @@
             
             row += '</select></td>' +
                 '<td><input type="number" name="OrderProducts[' + productRowIndex + '].Price" class="form-control price-input" value="' + (price || 0) + '" step="0.01" min="0" required /></td>' +
-                '<td><small class="text-muted d-block">QQS bilan: <span class="price-with-vat">0.00</span></small><input type="number" name="OrderProducts[' + productRowIndex + '].TotalPrice" class="form-control total-price" value="0" readonly /><small class="text-muted d-block mt-1">QQS bilan jami: <span class="line-total-with-vat">0.00</span></small></td>' +
+                '<td><small class="text-muted d-block">@L.Js("Srm_WithVat") <span class="price-with-vat">0.00</span></small><input type="number" name="OrderProducts[' + productRowIndex + '].TotalPrice" class="form-control total-price" value="0" readonly /><small class="text-muted d-block mt-1">@L.Js("Srm_WithVatTotal") <span class="line-total-with-vat">0.00</span></small></td>' +
                 '<td><input type="number" name="OrderProducts[' + productRowIndex + '].MOQ" class="form-control moq-input" value="' + (moq || 0) + '" step="0.01" min="0" /></td>' +
                 '<td class="align-top small">' + htmlEscape(calc || '—') +
                 '<input type="hidden" name="OrderProducts[' + productRowIndex + '].CalculationExplanation" value="' + htmlEscape(calc) + '" />' +
@@ -403,7 +403,7 @@
         $('#orderForm').submit(function (e) {
             if ($('#orderProductsTable tbody tr').length === 0) {
                 e.preventDefault();
-                alert('Kamida bitta mahsulot qo\'shilishi kerak');
+                alert('@L.Js("Srm_AtLeastOneProduct")');
                 return false;
             }
         });

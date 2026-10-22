@@ -1,6 +1,6 @@
 @model tahsinERP.Models.P_CONTRACTS
 @{
-    ViewBag.Title = "Shartnomani o'chirish";
+    ViewBag.Title = L.T("Srm_DeleteContract");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -17,10 +17,10 @@
                                     <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                 </li>
                                 <li class="breadcrumb-item">
-                                    <a href="~/PContracts/Index">Xarid shartnomalari</a>
+                                    <a href="~/PContracts/Index">@L.T("Menu_PurchaseContracts")</a>
                                 </li>
                                 <li class="breadcrumb-item active">
-                                    O'chirish
+                                    @L.T("Delete")
                                 </li>
                             </ol>
                         </div>
@@ -33,32 +33,32 @@
                 <div class="col-12">
                     <div class="card">
                         <div class="card-header">
-                            <h4 class="card-title text-danger">Shartnomani o'chirish</h4>
+                            <h4 class="card-title text-danger">@L.T("Srm_DeleteContract")</h4>
                         </div>
                         <div class="card-content">
                             <div class="card-body">
                                 <div class="alert alert-warning">
-                                    <h5>Diqqat!</h5>
-                                    <p>Ushbu shartnomani o'chirishni tasdiqlaysizmi? Bu amalni qaytarib bo'lmaydi.</p>
+                                    <h5>@L.T("Srm_Attention")</h5>
+                                    <p>@L.T("Srm_ConfirmDeleteContractIrrev")</p>
                                 </div>
 
                                 <div class="row">
                                     <div class="col-md-6">
                                         <table class="table table-borderless">
                                             <tr>
-                                                <th width="40%">Shartnoma raqami:</th>
+                                                <th width="40%">@L.T("Srm_ContractNo"):</th>
                                                 <td>@Model.ContractNo</td>
                                             </tr>
                                             <tr>
-                                                <th>Sana:</th>
+                                                <th>@L.T("Date"):</th>
                                                 <td>@Model.IssuedDate.ToString("dd.MM.yyyy")</td>
                                             </tr>
                                             <tr>
-                                                <th>Ta'minotchi:</th>
+                                                <th>@L.T("Srm_Supplier"):</th>
                                                 <td>@(Model.SUPPLIER?.Name ?? "-")</td>
                                             </tr>
                                             <tr>
-                                                <th>Shartnoma summasi:</th>
+                                                <th>@L.T("Srm_ContractAmount"):</th>
                                                 <td><strong>@(Model.Amount?.ToString("N2") ?? "0.00")</strong></td>
                                             </tr>
                                         </table>
@@ -72,10 +72,10 @@
 
                                     <div class="form-actions">
                                         <button type="submit" class="btn btn-danger">
-                                            <i class="bx bx-trash"></i> Ha, o'chirish
+                                            <i class="bx bx-trash"></i> @L.T("Srm_YesDelete")
                                         </button>
                                         <a href="@Url.Action("Index", "PContracts")" class="btn btn-secondary">
-                                            <i class="bx bx-x"></i> Bekor qilish
+                                            <i class="bx bx-x"></i> @L.T("Cancel")
                                         </a>
                                     </div>
                                 }

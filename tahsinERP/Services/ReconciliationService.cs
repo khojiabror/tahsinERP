@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
+using tahsinERP.I18n;
 using tahsinERP.Models;
 using tahsinERP.Services.Crm;
 using tahsinERP.Services.Finance;
@@ -117,7 +118,7 @@ namespace tahsinERP.Services
         {
             return new ReconciliationViewModel
             {
-                Party1Name = companyName ?? "Bizning korxona",
+                Party1Name = companyName ?? L.T("Crm_RecOurCompany"),
                 Party2Name = party2Name,
                 AsOfDate = asOfDate,
                 ReportDate = DateTime.Now.ToString("dd.MM.yyyy"),
@@ -125,11 +126,11 @@ namespace tahsinERP.Services
                 CounterpartyId = counterpartyId,
                 ContractId = contractId ?? 0,
                 AllContracts = !contractId.HasValue,
-                ContractNo = contractId.HasValue ? contractNo : "Barcha shartnomalar",
+                ContractNo = contractId.HasValue ? contractNo : L.T("Crm_RecAllContracts"),
                 Rows = new List<ReconciliationRowViewModel>(),
                 AgreementInfo = contractId.HasValue
-                    ? $"Shartnoma №{contractNo} — {activity} bo'yicha o'zaro hisob-kitoblar"
-                    : $"Barcha shartnomalar (shartnomaga bog'lanmagan to'lovlar bilan) — {activity} bo'yicha o'zaro hisob-kitoblar"
+                    ? L.T("Crm_RecAgreementContract", contractNo, activity)
+                    : L.T("Crm_RecAgreementAll", activity)
             };
         }
 
@@ -142,7 +143,7 @@ namespace tahsinERP.Services
                 {
                     Date = a.CutoffDate,
                     Order = 3,
-                    Content = $"Akt-sverki tuzatishi ({a.EntryYear} yil), {a.CutoffDate:dd.MM.yyyy}{note}",
+                    Content = L.T("Crm_RecRowAdjustment", a.EntryYear, a.CutoffDate.ToString("dd.MM.yyyy")) + note,
                     P1Dr = a.Party1Debit,
                     P1Cr = a.Party1Credit,
                     P2Dr = a.Party1Credit,
@@ -187,7 +188,7 @@ namespace tahsinERP.Services
             var amount = Math.Abs(vm.FinalBalance);
             vm.Rows.Add(new ReconciliationRowViewModel
             {
-                Content = $"Yakuniy qoldiq {vm.AsOfDate:dd.MM.yyyy}",
+                Content = L.T("Crm_RecRowFinalBalance", vm.AsOfDate.ToString("dd.MM.yyyy")),
                 IsBalanceRow = true,
                 Party1Debit = weOwe ? 0 : amount,
                 Party1Credit = weOwe ? amount : 0,
@@ -200,8 +201,7 @@ namespace tahsinERP.Services
         {
             return count == 0
                 ? null
-                : $"Bu kontragentning hech qaysi shartnomasiga bog'lanmagan {count} ta to'lovi ({sum:N2}) shartnoma akt-sverkisiga kirmaydi. " +
-                  "Ularni ko'rish uchun \"Barcha shartnomalar\" ni tanlang yoki to'lovga shartnoma raqamini kiriting.";
+                : L.T("Crm_RecUnattributedNote", count, sum.ToString("N2"));
         }
 
         /// <summary>
@@ -231,7 +231,7 @@ namespace tahsinERP.Services
 
         public static ReconciliationViewModel BuildSupplierReconciliation(DBTHSNEntities db, int supplierId, int? contractId, DateTime asOfDate, string companyName, string supplierName, string contractNo)
         {
-            var vm = NewVm("Supplier", companyName, supplierName, supplierId, contractId, contractNo, asOfDate, "xarid-xo'jalik faoliyati");
+            var vm = NewVm("Supplier", companyName, supplierName, supplierId, contractId, contractNo, asOfDate, L.T("Crm_RecActivitySupplier"));
             var openingDate = GetLatestOpeningDate(db, asOfDate, TypePayable);
 
             // Kontragentning barcha invoyslari (to'lovni shartnomaga bog'lash uchun opening'gacha bo'lganlari ham)
@@ -294,7 +294,7 @@ namespace tahsinERP.Services
                 var opening = OpeningAmount(db, openingDate.Value, TypePayable, supplierId, contractId, contractNo, canonical);
                 if (opening != 0)
                 {
-                    items.Add(new Item { Date = openingDate.Value.Date, Order = 0, Content = "Opening balansdan boshlangan qarzdorlik", P1Cr = opening, P2Dr = opening });
+                    items.Add(new Item { Date = openingDate.Value.Date, Order = 0, Content = L.T("Crm_RecRowOpeningPayable"), P1Cr = opening, P2Dr = opening });
                 }
             }
 
@@ -332,7 +332,7 @@ namespace tahsinERP.Services
                         {
                             Date = date,
                             Order = 1,
-                            Content = $"Hisob-faktura №{inv.InvoiceNo} ({inv.InvoiceDate:dd.MM.yyyy}) summasi kirim hujjati bo'yicha o'zgardi",
+                            Content = L.T("Crm_RecRowInvoiceChanged", inv.InvoiceNo, inv.InvoiceDate.ToString("dd.MM.yyyy")),
                             P1Cr = delta > 0 ? delta : 0,
                             P2Dr = delta > 0 ? delta : 0,
                             P1Dr = delta < 0 ? -delta : 0,
@@ -346,13 +346,13 @@ namespace tahsinERP.Services
             {
                 var amt = amountById.TryGetValue(inv.ID, out var a) ? a : Convert.ToDecimal(inv.Amount ?? 0);
                 var prefix = !contractId.HasValue && inv.ContractID > 0 && contractNoById.TryGetValue(inv.ContractID, out var no) && no != "" ? $"[{no}] " : "";
-                items.Add(new Item { Date = inv.InvoiceDate, Order = 1, Content = $"{prefix}Hisob-faktura №{inv.InvoiceNo} sanasi {inv.InvoiceDate:dd.MM.yyyy}", P1Cr = amt, P2Dr = amt });
+                items.Add(new Item { Date = inv.InvoiceDate, Order = 1, Content = prefix + L.T("Crm_RecRowPurchaseInvoice", inv.InvoiceNo, inv.InvoiceDate.ToString("dd.MM.yyyy")), P1Cr = amt, P2Dr = amt });
             }
             foreach (var pay in payments)
             {
                 var ptxt = string.IsNullOrWhiteSpace(pay.Purpose) ? "" : " — " + pay.Purpose;
                 var ctxt = !contractId.HasValue && !string.IsNullOrWhiteSpace(pay.ContractNo) ? $"[{pay.ContractNo.Trim()}] " : "";
-                items.Add(new Item { Date = pay.TxnDate, Order = 2, Content = $"{ctxt}FIN to'lovi №{pay.ID}{ptxt} sanasi {pay.TxnDate:dd.MM.yyyy}", P1Dr = pay.Amount, P2Cr = pay.Amount });
+                items.Add(new Item { Date = pay.TxnDate, Order = 2, Content = ctxt + L.T("Crm_RecRowFinPayment", pay.ID, ptxt, pay.TxnDate.ToString("dd.MM.yyyy")), P1Dr = pay.Amount, P2Cr = pay.Amount });
             }
             AddAdjustmentItems(items, Adjustments(db, ReconciliationAdjustmentService.CounterpartySupplier, supplierId, contractId, asOfDate, openingDate));
 
@@ -366,7 +366,7 @@ namespace tahsinERP.Services
 
         public static ReconciliationViewModel BuildCustomerReconciliation(DBTHSNEntities db, int customerId, int? contractId, DateTime asOfDate, string companyName, string customerName, string contractNo)
         {
-            var vm = NewVm("Customer", companyName, customerName, customerId, contractId, contractNo, asOfDate, "sotuv faoliyati");
+            var vm = NewVm("Customer", companyName, customerName, customerId, contractId, contractNo, asOfDate, L.T("Crm_RecActivityCustomer"));
             var openingDate = GetLatestOpeningDate(db, asOfDate, TypeReceivable);
 
             // Bekor qilingan invoyslar akt-sverkiga kirmaydi
@@ -424,20 +424,20 @@ namespace tahsinERP.Services
                 var opening = OpeningAmount(db, openingDate.Value, TypeReceivable, customerId, contractId, contractNo, canonical);
                 if (opening != 0)
                 {
-                    items.Add(new Item { Date = openingDate.Value.Date, Order = 0, Content = "Opening balansdan boshlangan haqqimiz", P1Dr = opening, P2Cr = opening });
+                    items.Add(new Item { Date = openingDate.Value.Date, Order = 0, Content = L.T("Crm_RecRowOpeningReceivable"), P1Dr = opening, P2Cr = opening });
                 }
             }
 
             foreach (var inv in invoices)
             {
                 var prefix = !contractId.HasValue && inv.ContractID.HasValue && contractNoById.TryGetValue(inv.ContractID.Value, out var no) && no != "" ? $"[{no}] " : "";
-                items.Add(new Item { Date = inv.InvoiceDate, Order = 1, Content = $"{prefix}Sotuv invoysi №{inv.InvoiceNo} sanasi {inv.InvoiceDate:dd.MM.yyyy}", P1Dr = inv.Amount, P2Cr = inv.Amount });
+                items.Add(new Item { Date = inv.InvoiceDate, Order = 1, Content = prefix + L.T("Crm_RecRowSalesInvoice", inv.InvoiceNo, inv.InvoiceDate.ToString("dd.MM.yyyy")), P1Dr = inv.Amount, P2Cr = inv.Amount });
             }
             foreach (var pay in payments)
             {
                 var ptxt = string.IsNullOrWhiteSpace(pay.Purpose) ? "" : " — " + pay.Purpose;
                 var ctxt = !contractId.HasValue && !string.IsNullOrWhiteSpace(pay.ContractNo) ? $"[{pay.ContractNo.Trim()}] " : "";
-                items.Add(new Item { Date = pay.TxnDate, Order = 2, Content = $"{ctxt}FIN to'lovi №{pay.ID}{ptxt} sanasi {pay.TxnDate:dd.MM.yyyy}", P1Cr = pay.Amount, P2Dr = pay.Amount });
+                items.Add(new Item { Date = pay.TxnDate, Order = 2, Content = ctxt + L.T("Crm_RecRowFinPayment", pay.ID, ptxt, pay.TxnDate.ToString("dd.MM.yyyy")), P1Cr = pay.Amount, P2Dr = pay.Amount });
             }
             AddAdjustmentItems(items, Adjustments(db, ReconciliationAdjustmentService.CounterpartyCustomer, customerId, contractId, asOfDate, openingDate));
 
@@ -451,7 +451,7 @@ namespace tahsinERP.Services
 
         public static ReconciliationViewModel BuildForwarderReconciliation(DBTHSNEntities db, int forwarderId, int? contractId, DateTime asOfDate, string companyName, string forwarderName, string contractNo)
         {
-            var vm = NewVm("Forwarder", companyName, forwarderName, forwarderId, contractId, contractNo, asOfDate, "yuk tashish xizmatlari");
+            var vm = NewVm("Forwarder", companyName, forwarderName, forwarderId, contractId, contractNo, asOfDate, L.T("Crm_RecActivityForwarder"));
             // Foydalanuvchi qarori (2026-10-18): ta'minotchi/mijoz kabi — opening (BalanceType 4) bo'lsa, shu sanadan keyingilar
             var openingDate = GetLatestOpeningDate(db, asOfDate, TypeForwarder);
 
@@ -524,25 +524,25 @@ namespace tahsinERP.Services
                 var opening = OpeningAmount(db, openingDate.Value, TypeForwarder, forwarderId, contractId, contractNo, canonical);
                 if (opening != 0)
                 {
-                    items.Add(new Item { Date = openingDate.Value.Date, Order = 0, Content = "Opening balansdan boshlangan qarzdorlik", P1Cr = opening, P2Dr = opening });
+                    items.Add(new Item { Date = openingDate.Value.Date, Order = 0, Content = L.T("Crm_RecRowOpeningPayable"), P1Cr = opening, P2Dr = opening });
                 }
             }
             foreach (var wb in waybills)
             {
                 var amt = FinMoney.For(db).Uzs(wb.Amount ?? 0m, wb.CurrencyID, wb.IssueDate ?? asOfDate);
                 var prefix = !contractId.HasValue && wb.ContractID.HasValue && contractNoById.TryGetValue(wb.ContractID.Value, out var no) && no != "" ? $"[{no}] " : "";
-                items.Add(new Item { Date = wb.IssueDate ?? DateTime.MinValue, Order = 1, Content = $"{prefix}Yo'l varaqasi №{wb.WaybillNo} sanasi {(wb.IssueDate?.ToString("dd.MM.yyyy") ?? "")}", P1Cr = amt, P2Dr = amt });
+                items.Add(new Item { Date = wb.IssueDate ?? DateTime.MinValue, Order = 1, Content = prefix + L.T("Crm_RecRowWaybill", wb.WaybillNo, wb.IssueDate?.ToString("dd.MM.yyyy") ?? ""), P1Cr = amt, P2Dr = amt });
             }
             foreach (var pay in payments)
             {
                 var amt = FinMoney.For(db).Uzs(pay.Payment_Amount, pay.CurrencyID, pay.PaymentDate ?? asOfDate);
-                items.Add(new Item { Date = pay.PaymentDate ?? DateTime.MinValue, Order = 2, Content = $"Yuk tashish to'lovi №{pay.ID} sanasi {(pay.PaymentDate?.ToString("dd.MM.yyyy") ?? "")}", P1Dr = amt, P2Cr = amt });
+                items.Add(new Item { Date = pay.PaymentDate ?? DateTime.MinValue, Order = 2, Content = L.T("Crm_RecRowFreightPayment", pay.ID, pay.PaymentDate?.ToString("dd.MM.yyyy") ?? ""), P1Dr = amt, P2Cr = amt });
             }
             foreach (var pay in finPayments)
             {
                 var ptxt = string.IsNullOrWhiteSpace(pay.Purpose) ? "" : $" — {pay.Purpose}";
                 var ctxt = !contractId.HasValue && !string.IsNullOrWhiteSpace(pay.ContractNo) ? $"[{pay.ContractNo.Trim()}] " : "";
-                items.Add(new Item { Date = pay.TxnDate, Order = 2, Content = $"{ctxt}FIN to'lovi №{pay.ID}{ptxt} sanasi {pay.TxnDate:dd.MM.yyyy}", P1Dr = pay.Amount, P2Cr = pay.Amount });
+                items.Add(new Item { Date = pay.TxnDate, Order = 2, Content = ctxt + L.T("Crm_RecRowFinPayment", pay.ID, ptxt, pay.TxnDate.ToString("dd.MM.yyyy")), P1Dr = pay.Amount, P2Cr = pay.Amount });
             }
             AddAdjustmentItems(items, Adjustments(db, ReconciliationAdjustmentService.CounterpartyForwarder, forwarderId, contractId, asOfDate, openingDate));
 

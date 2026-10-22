@@ -13,6 +13,7 @@ using tahsinERP.Services.Common;
 using tahsinERP.Services.DlocFifo;
 using tahsinERP.Services.Stock;
 using tahsinERP.Filters;
+using tahsinERP.I18n;
 
 namespace tahsinERP.Controllers.SRM
 {
@@ -170,15 +171,15 @@ namespace tahsinERP.Controllers.SRM
                 var rows = await OrderIndexQuery(BuildIndexQuery(db, warehouseId, status, fromDate, toDate, q), 5, true)
                     .ToListAsync();
 
-                var bytes = ExcelExport.Create("Ombor chiqimlari", rows,
-                    ExcelExport.Col<ExpenseIndexRow>("Hujjat raqami", r => r.DocNo),
-                    ExcelExport.Col<ExpenseIndexRow>("Yuboruvchi ombor", r => r.SenderName),
-                    ExcelExport.Col<ExpenseIndexRow>("Qabul qiluvchi ombor", r => r.ReceiverName),
-                    ExcelExport.Col<ExpenseIndexRow>("Jami summa", r => r.TotalPrice ?? 0, "#,##0.00"),
-                    ExcelExport.Col<ExpenseIndexRow>("Status", r => r.Sent ? "Yuborilgan" : "Kutilmoqda"),
-                    ExcelExport.Col<ExpenseIndexRow>("Sana", r => r.IssueDateTime, "dd.MM.yyyy"));
+                var bytes = ExcelExport.Create(L.T("Wh_ExpListTitle"), rows,
+                    ExcelExport.Col<ExpenseIndexRow>(L.T("Wh_DocNo"), r => r.DocNo),
+                    ExcelExport.Col<ExpenseIndexRow>(L.T("Wh_SenderWarehouse"), r => r.SenderName),
+                    ExcelExport.Col<ExpenseIndexRow>(L.T("Wh_ReceiverWarehouse"), r => r.ReceiverName),
+                    ExcelExport.Col<ExpenseIndexRow>(L.T("Wh_TotalAmount"), r => r.TotalPrice ?? 0, "#,##0.00"),
+                    ExcelExport.Col<ExpenseIndexRow>(L.T("Status"), r => r.Sent ? L.T("Wh_StSent") : L.T("Wh_StPending")),
+                    ExcelExport.Col<ExpenseIndexRow>(L.T("Date"), r => r.IssueDateTime, "dd.MM.yyyy"));
 
-                return File(bytes, ExcelExport.ContentType, $"Ombor_chiqimlari_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx");
+                return File(bytes, ExcelExport.ContentType, $"{L.T("Wh_Exp_FileName")}_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx");
             }
         }
 
@@ -237,7 +238,7 @@ namespace tahsinERP.Controllers.SRM
                 var assignedWarehouseId = await GetAssignedWarehouseIdAsync(db);
                 if (!assignedWarehouseId.HasValue)
                 {
-                    ViewBag.NoWarehouseError = "Sizga biriktirilgan ombor mavjud emas";
+                    ViewBag.NoWarehouseError = L.T("Wh_NoAssignedWarehouse");
                     return View();
                 }
 
@@ -257,12 +258,12 @@ namespace tahsinERP.Controllers.SRM
                 var assignedWarehouseId = await GetAssignedWarehouseIdAsync(db);
                 if (!assignedWarehouseId.HasValue)
                 {
-                    return Json(new { success = false, message = "Sizga biriktirilgan ombor mavjud emas" });
+                    return Json(new { success = false, message = L.T("Wh_NoAssignedWarehouse") });
                 }
 
                 if (warehouseId != assignedWarehouseId.Value)
                 {
-                    return Json(new { success = false, message = "Siz faqat biriktirilgan ombor bo'yicha chiqim qila olasiz." });
+                    return Json(new { success = false, message = L.T("Wh_Exp_OnlyAssignedWarehouseJson") });
                 }
 
                 var productsQuery = db.PRODUCT_STOCKS
@@ -339,13 +340,13 @@ namespace tahsinERP.Controllers.SRM
                             var assignedWarehouseId = await GetAssignedWarehouseIdAsync(db);
                             if (!assignedWarehouseId.HasValue)
                             {
-                                TempData["Error"] = "Sizga biriktirilgan ombor mavjud emas";
+                                TempData["Error"] = L.T("Wh_NoAssignedWarehouse");
                                 return RedirectToAction("Index");
                             }
 
                             if (model.SenderWHID != assignedWarehouseId.Value)
                             {
-                                TempData["Error"] = "Siz faqat biriktirilgan ombordan chiqim qilishingiz mumkin.";
+                                TempData["Error"] = L.T("Wh_Exp_OnlyAssignedWarehouse");
                                 return RedirectToAction("Index");
                             }
 
@@ -391,7 +392,7 @@ namespace tahsinERP.Controllers.SRM
                                     if (r.Qty > remaining)
                                     {
                                         ModelState.AddModelError("",
-                                            $"Mahsulot {r.PNo} uchun sifat nazorati tasdiqlangan miqdor yetarli emas. Qoldiq: {remaining}, Talab: {r.Qty}");
+                                            L.T("Wh_Exp_QcQtyInsufficient", r.PNo, remaining, r.Qty));
                                         transaction.Rollback();
                                         goto RepopulateViewBag;
                                     }
@@ -540,7 +541,7 @@ namespace tahsinERP.Controllers.SRM
                 decimal available;
                 onHand.TryGetValue(r.ProductID, out available);
                 if (available + StockLedger.Epsilon < r.Qty)
-                    return $"Mahsulot {r.PNo} uchun yetarli qoldiq yo'q. Mavjud: {QtyText.Plain(available)}, Talab: {QtyText.Plain(r.Qty)}";
+                    return L.T("Wh_Exp_InsufficientStock", r.PNo, QtyText.Plain(available), QtyText.Plain(r.Qty));
             }
             return null;
         }
@@ -636,7 +637,7 @@ namespace tahsinERP.Controllers.SRM
                 // Tekshirish agar already sent (SendStatus == true)
                 if (expense.SendStatus == true)
                 {
-                    TempData["Error"] = "Bu chiqim hujjati allaqachon yuborilgan va tahrirlash mumkin emas.";
+                    TempData["Error"] = L.T("Wh_Exp_AlreadySentNoEdit");
                     return RedirectToAction("Index");
                 }
 
@@ -711,7 +712,7 @@ namespace tahsinERP.Controllers.SRM
 
                             if (expense.SendStatus == true)
                             {
-                                TempData["Error"] = "Bu chiqim hujjati allaqachon yuborilgan va tahrirlash mumkin emas.";
+                                TempData["Error"] = L.T("Wh_Exp_AlreadySentNoEdit");
                                 return RedirectToAction("Index");
                             }
 
@@ -720,7 +721,7 @@ namespace tahsinERP.Controllers.SRM
                             var linkedIncome = await FindLinkedIncomeAsync(db, expense.ID, includeLines: false);
                             if (linkedIncome != null && linkedIncome.RecieveStatus == true)
                             {
-                                TempData["Error"] = "Bog'langan kirim allaqachon qabul qilingan — chiqimni tahrirlash mumkin emas.";
+                                TempData["Error"] = L.T("Wh_Exp_LinkedIncomeReceivedNoEdit");
                                 return RedirectToAction("Details", new { id = expense.ID });
                             }
 
@@ -886,11 +887,11 @@ namespace tahsinERP.Controllers.SRM
         private static async Task<string> GetDeleteBlockReasonAsync(DBTHSNEntities db, EXPENS expense)
         {
             if (expense.SendStatus == true)
-                return "Bu chiqim hujjati yuborilgan (qabul qilingan) — o'chirib bo'lmaydi. Kerak bo'lsa, qabul qiluvchi ombor kirimini bekor qiling.";
+                return L.T("Wh_Exp_SentNoDelete");
 
             var linkedIncome = await FindLinkedIncomeAsync(db, expense.ID, includeLines: false);
             if (linkedIncome != null && linkedIncome.RecieveStatus == true)
-                return $"Bog'langan kirim «{linkedIncome.DocNo}» allaqachon qabul qilingan — chiqimni o'chirib bo'lmaydi.";
+                return L.T("Wh_Exp_LinkedIncomeReceivedNoDelete", linkedIncome.DocNo);
 
             return null;
         }
@@ -938,7 +939,7 @@ namespace tahsinERP.Controllers.SRM
                                 if (receivedNow == 1)
                                 {
                                     transaction.Rollback();
-                                    TempData["Error"] = $"Bog'langan kirim «{linkedIncome.DocNo}» allaqachon qabul qilingan — chiqimni o'chirib bo'lmaydi.";
+                                    TempData["Error"] = L.T("Wh_Exp_LinkedIncomeReceivedNoDelete", linkedIncome.DocNo);
                                     return RedirectToAction("Details", new { id = expense.ID });
                                 }
 
@@ -971,7 +972,7 @@ namespace tahsinERP.Controllers.SRM
                     catch (Exception ex)
                     {
                         transaction.Rollback();
-                        TempData["Error"] = $"Xatolik: {ex.Message}";
+                        TempData["Error"] = L.T("Wh_ErrorWithMessage", ex.Message);
                         return RedirectToAction("Index");
                     }
                 }
@@ -1076,13 +1077,13 @@ namespace tahsinERP.Controllers.SRM
             if (errors.Any())
             {
                 TempData["Error"] =
-                    $"Tuzatish qisman bajarildi. Yaratildi: {created}, yangilandi: {updated}, o'tkazib yuborildi: {skipped}, xatolar: {errors.Count}. " +
+                    L.T("Wh_Exp_RepairPartial", created, updated, skipped, errors.Count) + " " +
                     string.Join(" | ", errors.Take(3));
             }
             else
             {
                 TempData["Success"] =
-                    $"Tuzatish tugadi. Yaratildi: {created}, yangilandi: {updated}, o'tkazib yuborildi: {skipped}.";
+                    L.T("Wh_Exp_RepairDone", created, updated, skipped);
             }
             return RedirectToAction("Index");
         }
@@ -1148,7 +1149,7 @@ namespace tahsinERP.Controllers.SRM
                 await db.SaveChangesAsync();
             }
 
-            var summary = $"Tuzatildi: {fixedCount}, allaqachon to'g'ri: {alreadyOk}, o'tkazib yuborildi: {skipped}, xatolar: {errors.Count}.";
+            var summary = L.T("Wh_Exp_StatusRepairSummary", fixedCount, alreadyOk, skipped, errors.Count);
             if (errors.Any())
                 TempData["Error"] = summary + " " + string.Join(" | ", errors.Take(5));
             else
@@ -1179,7 +1180,7 @@ namespace tahsinERP.Controllers.SRM
             {
                 // Qabul qilingan kirimni qayta yozish qoldiqni buzadi (qatorlar bo'yicha allaqachon kirgan)
                 throw new InvalidOperationException(
-                    $"Bog'langan kirim «{linkedIncome.DocNo}» allaqachon qabul qilingan — uni o'zgartirib bo'lmaydi.");
+                    L.T("Wh_Exp_LinkedIncomeReceivedNoChange", linkedIncome.DocNo));
             }
 
             if (linkedIncome == null)

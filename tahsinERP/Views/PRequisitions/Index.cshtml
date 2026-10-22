@@ -1,5 +1,5 @@
 @{
-    ViewBag.Title = "Xarid arizalari";
+    ViewBag.Title = L.T("Menu_PurchaseRequests");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -19,7 +19,7 @@
                                         <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                     </li>
                                     <li class="breadcrumb-item active">
-                                        Xarid arizalari
+                                        @L.T("Menu_PurchaseRequests")
                                     </li>
                                 </ol>
                             </div>
@@ -33,7 +33,7 @@
                     {
                         <div class="invoice-create-btn mb-1">
                             <a href="@Url.Action("Create", "PRequisitions")" class="btn btn-success bg-light invoice-create" role="button" aria-pressed="true">
-                                <i class="bx bx-plus"></i> Yangi ariza
+                                <i class="bx bx-plus"></i> @L.T("Srm_NewRequisition")
                             </a>
                         </div>
                     }
@@ -44,7 +44,7 @@
                             @using (Html.BeginForm("Index", "PRequisitions", FormMethod.Get, new { id = "requisitionsFilter" }))
                             {
                                 <div class="form-group">
-                                    <label for="statusFilter">Status bo'yicha filtrlash</label>
+                                    <label for="statusFilter">@L.T("Srm_FilterByStatus")</label>
                                     @Html.DropDownList("statusFilter", ViewBag.StatusList as SelectList, new { @class = "form-control select2" })
                                 </div>
                             }
@@ -59,16 +59,16 @@
                                         <table id="requisitionsTable" class="table dt-responsive nowrap" style="width:100%">
                                             <thead>
                                                 <tr>
-                                                    <th>Ariza raqami</th>
-                                                    <th>Sana</th>
-                                                    <th>Bo'lim</th>
-                                                    <th>So'rovchi</th>
-                                                    <th>Status</th>
-                                                    <th>Mahsulotlar soni</th>
-                                                    <th>Jami summa</th>
+                                                    <th>@L.T("Srm_RequisitionNo")</th>
+                                                    <th>@L.T("Date")</th>
+                                                    <th>@L.T("Srm_Department")</th>
+                                                    <th>@L.T("Srm_Requester")</th>
+                                                    <th>@L.T("Status")</th>
+                                                    <th>@L.T("Srm_ProductCount")</th>
+                                                    <th>@L.T("Srm_TotalAmount")</th>
                                                     @if (changePermit)
                                                     {
-                                                        <th>Amallar</th>
+                                                        <th>@L.T("Actions")</th>
                                                     }
                                                 </tr>
                                             </thead>
@@ -90,13 +90,14 @@
         $(document).ready(function () {
             var detailsUrl = '@Url.Action("Details", "PRequisitions")/';
             var convertUrl = '@Url.Action("ConvertToOrder", "PRequisitions")/';
+            var statusText = { Draft: '@L.Js("Srm_ReqStatus_Draft")', Submitted: '@L.Js("Srm_ReqStatus_Submitted")', Approved: '@L.Js("Srm_ReqStatus_Approved")', Rejected: '@L.Js("Srm_ReqStatus_Rejected")', ConvertedToOrder: '@L.Js("Srm_ReqStatus_ConvertedToOrder")' };
             var statusClasses = { Draft: 'badge-secondary', Submitted: 'badge-info', Approved: 'badge-success', Rejected: 'badge-danger', ConvertedToOrder: 'badge-primary' };
             var columns = [
                 { data: 'requisitionNo', render: function (v, t, r) { return '<a href="' + detailsUrl + r.id + '">' + srmEsc(v) + '</a>'; } },
                 { data: 'date' },
                 { data: 'department', render: function (v) { return srmEsc(v || '-'); } },
                 { data: 'requester', render: function (v) { return srmEsc(v || '-'); } },
-                { data: 'status', render: function (v) { return '<span class="badge ' + (statusClasses[v] || 'badge-secondary') + '">' + srmEsc(v) + '</span>'; } },
+                { data: 'status', render: function (v) { return '<span class="badge ' + (statusClasses[v] || 'badge-secondary') + '">' + srmEsc(statusText[v] || v) + '</span>'; } },
                 { data: 'lineCount' },
                 { data: 'total' }
             ];
@@ -105,9 +106,9 @@
                 <text>
                 columns.push({
                     data: null, orderable: false, render: function (v, t, r) {
-                        var html = '<div class="d-flex"><a href="' + detailsUrl + r.id + '" class="btn btn-sm btn-icon btn-outline-primary mr-1" title="Ko&#39;rish"><i class="bx bx-show"></i></a>';
+                        var html = '<div class="d-flex"><a href="' + detailsUrl + r.id + '" class="btn btn-sm btn-icon btn-outline-primary mr-1" title="@L.Js("View")"><i class="bx bx-show"></i></a>';
                         if (r.status === 'Approved') {
-                            html += '<a href="' + convertUrl + r.id + '" class="btn btn-sm btn-icon btn-outline-success mr-1" title="Buyurtmaga aylantirish"><i class="bx bx-cart"></i></a>';
+                            html += '<a href="' + convertUrl + r.id + '" class="btn btn-sm btn-icon btn-outline-success mr-1" title="@L.Js("Srm_ConvertToOrder")"><i class="bx bx-cart"></i></a>';
                         }
                         return html + '</div>';
                     }

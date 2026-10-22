@@ -1,7 +1,7 @@
 @model tahsinERP.ViewModels.IncomeEditViewModel
 @using System.Collections.Generic
 @{
-    ViewBag.Title = "Kirim hujjatini tahrirlash";
+    ViewBag.Title = L.T("Wh_Inc_EditTitle");
     Layout = "~/Views/Shared/_Layout.cshtml";
 
     var unitsList = ViewBag.Units as SelectList;
@@ -35,10 +35,10 @@
                                         <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                     </li>
                                     <li class="breadcrumb-item">
-                                        <a href="~/Incomes/Index">Ombor kirimlari</a>
+                                        <a href="~/Incomes/Index">@L.T("Wh_IncListTitle")</a>
                                     </li>
                                     <li class="breadcrumb-item active">
-                                        Tahrirlash
+                                        @L.T("Edit")
                                     </li>
                                 </ol>
                             </div>
@@ -68,57 +68,57 @@
 
                                             <div class="row">
                                                 <div class="col-md-3 col-12 form-group">
-                                                    <label for="DocNo">Hujjat raqami</label>
+                                                    <label for="DocNo">@L.T("Wh_DocNo")</label>
                                                     @Html.TextBoxFor(model => model.DocNo, new { @class = "form-control", @required = "required" })
                                                     @Html.ValidationMessageFor(model => model.DocNo, "", new { @class = "text-danger" })
                                                 </div>
                                                 <div class="col-md-3 col-12 form-group">
-                                                    <label for="IssueDateTime">Sana va vaqt</label>
+                                                    <label for="IssueDateTime">@L.T("Wh_DateTime")</label>
                                                     @Html.TextBoxFor(model => model.IssueDateTime, "{0:yyyy-MM-ddTHH:mm}", new { @type = "datetime-local", @class = "form-control", @required = "required" })
                                                     @Html.ValidationMessageFor(model => model.IssueDateTime, "", new { @class = "text-danger" })
                                                 </div>
                                                 <div class="col-md-3 col-12 form-group">
-                                                    <label for="ReceivingWHID">Qabul qiluvchi ombor</label>
-                                                    @Html.DropDownListFor(model => model.ReceivingWHID, ViewBag.Warehouses as SelectList, "---Tanlang---", new { @class = "form-control select2", @required = "required" })
+                                                    <label for="ReceivingWHID">@L.T("Wh_ReceiverWarehouse")</label>
+                                                    @Html.DropDownListFor(model => model.ReceivingWHID, ViewBag.Warehouses as SelectList, L.T("Wh_SelectDashed"), new { @class = "form-control select2", @required = "required" })
                                                     @Html.ValidationMessageFor(model => model.ReceivingWHID, "", new { @class = "text-danger" })
                                                 </div>
                                                 <div class="col-md-3 col-12 form-group">
-                                                    <label for="CurrencyID">Valyuta</label>
-                                                    @Html.DropDownListFor(model => model.CurrencyID, ViewBag.Currencies as SelectList, "---Tanlang---", new { @class = "form-control select2", @required = "required" })
+                                                    <label for="CurrencyID">@L.T("Currency")</label>
+                                                    @Html.DropDownListFor(model => model.CurrencyID, ViewBag.Currencies as SelectList, L.T("Wh_SelectDashed"), new { @class = "form-control select2", @required = "required" })
                                                     @Html.ValidationMessageFor(model => model.CurrencyID, "", new { @class = "text-danger" })
                                                 </div>
                                                 <div class="col-md-6 col-12 form-group">
-                                                    <label for="Description">Izoh</label>
+                                                    <label for="Description">@L.T("Comment")</label>
                                                     @Html.TextAreaFor(model => model.Description, new { @class = "form-control", @rows = "2" })
                                                     @Html.ValidationMessageFor(model => model.Description, "", new { @class = "text-danger" })
                                                 </div>
                                                 <div class="col-md-6 col-12 form-group">
-                                                    <label for="incomeFile">Yangi kirim hujjati (PDF) - mavjud hujjat o'rniga qo'yiladi</label>
+                                                    <label for="incomeFile">@L.T("Wh_Inc_NewDocPdf")</label>
                                                     <input type="file" name="incomeFile" id="incomeFile" class="form-control" accept=".pdf" />
                                                 </div>
                                             </div>
 
                                             <br />
-                                            <h5>Kirim mahsulotlari</h5>
-                                            <p class="text-muted small mb-2">QQS % (0–100). Jami = miqdor × dona narx × (1 + QQS/100).</p>
+                                            <h5>@L.T("Wh_Inc_Products")</h5>
+                                            <p class="text-muted small mb-2">@L.T("Wh_VatHint")</p>
                                             
                                             <div class="table-responsive">
                                                 <table id="incomeProductsTable" class="table table-bordered">
                                                     <thead>
                                                         <tr>
-                                                            <th>Mahsulot</th>
-                                                            <th>Mahsulot nomi</th>
+                                                            <th>@L.T("Wh_Product")</th>
+                                                            <th>@L.T("Wh_ProductName")</th>
                                                             @if (dlocEnabled)
                                                             {
                                                                 <th>DLOC @(requireDloc ? Html.Raw("<span class=\"text-danger\">*</span>") : null)</th>
                                                             }
-                                                            <th>Miqdor</th>
-                                                            <th>Birlik</th>
-                                                            <th>Dona narxi</th>
-                                                            <th>QQS %</th>
-                                                            <th>Jami</th>
-                                                            <th>Izoh</th>
-                                                            <th>Amallar</th>
+                                                            <th>@L.T("Quantity")</th>
+                                                            <th>@L.T("Unit")</th>
+                                                            <th>@L.T("Wh_UnitPrice")</th>
+                                                            <th>@L.T("Wh_VatPct")</th>
+                                                            <th>@L.T("Total")</th>
+                                                            <th>@L.T("Comment")</th>
+                                                            <th>@L.T("Actions")</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody>
@@ -130,7 +130,7 @@
                                                                 <tr data-row-index="@i">
                                                                     <td>
                                                                         <select name="IncomeProducts[@i].ProductID" class="form-control product-select select2" required>
-                                                                            <option value="">---Tanlang---</option>
+                                                                            <option value="">@L.T("Wh_SelectDashed")</option>
                                                                             @if (product.ProductID > 0)
                                                                             {
                                                                                 <option value="@product.ProductID" data-name="@product.ProductName" data-pno="@product.ProductPNo" selected>@(product.ProductPNo + " - " + product.ProductName)</option>
@@ -148,11 +148,11 @@
                                                                         <td>
                                                                             @if (requireDloc)
                                                                             {
-                                                                                @Html.DropDownListFor(m => m.IncomeProducts[i].LocationID, ViewBag.DlocLocations as SelectList, "Tanlang...", new { @class = "form-control dloc-select select2", required = "required" })
+                                                                                @Html.DropDownListFor(m => m.IncomeProducts[i].LocationID, ViewBag.DlocLocations as SelectList, L.T("Wh_SelectDots"), new { @class = "form-control dloc-select select2", required = "required" })
                                                                             }
                                                                             else
                                                                             {
-                                                                                <span class="text-muted small">DLOC yo‘q</span>
+                                                                                <span class="text-muted small">@L.T("Wh_NoDloc")</span>
                                                                             }
                                                                         </td>
                                                                     }
@@ -160,7 +160,7 @@
                                                                         @Html.TextBoxFor(m => m.IncomeProducts[i].Amount, "{0:0.######}", new { @type = "number", @class = "form-control amount-input", @step = "0.01", @min = "0", @required = "required" })
                                                                     </td>
                                                                     <td>
-                                                                        @Html.DropDownListFor(m => m.IncomeProducts[i].UnitID, ViewBag.Units as SelectList, "---Tanlang---", new { @class = "form-control unit-select select2", @required = "required" })
+                                                                        @Html.DropDownListFor(m => m.IncomeProducts[i].UnitID, ViewBag.Units as SelectList, L.T("Wh_SelectDashed"), new { @class = "form-control unit-select select2", @required = "required" })
                                                                     </td>
                                                                     <td>
                                                                         @Html.TextBoxFor(m => m.IncomeProducts[i].PiecePrice, "{0:0.######}", new { @type = "number", @class = "form-control price-input", @step = "0.01", @min = "0" })
@@ -183,7 +183,7 @@
                                                     </tbody>
                                                     <tfoot>
                                                         <tr>
-                                                            <td colspan="@(dlocEnabled ? 8 : 6)" class="text-right"><strong>Jami:</strong></td>
+                                                            <td colspan="@(dlocEnabled ? 8 : 6)" class="text-right"><strong>@L.T("Wh_TotalColon")</strong></td>
                                                             <td id="totalAmount" class="text-right"><strong>@(Model.TotalPrice?.ToString("N2") ?? "0.00")</strong></td>
                                                             <td colspan="2"></td>
                                                         </tr>
@@ -248,7 +248,7 @@
                             dlocTd = '<td><select name="IncomeProducts[' + productRowIndex + '].LocationID" class="form-control dloc-select select2" required>' +
                                 buildDlocOptions(null) + '</select></td>';
                         } else if (dlocEnabled) {
-                            dlocTd = '<td class="small text-muted">DLOC yo‘q</td>';
+                            dlocTd = '<td class="small text-muted">@L.Js("Wh_NoDloc")</td>';
                         }
                         var row = '<tr data-row-index="' + productRowIndex + '">' +
                             '<td>' +

@@ -4,6 +4,7 @@ using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
+using tahsinERP.I18n;
 using tahsinERP.Models;
 using tahsinERP.Services.Procurement;
 using tahsinERP.ViewModels;
@@ -35,19 +36,19 @@ namespace tahsinERP.Controllers.SRM
             ViewBag.PurchaseTypeFilter = purchaseTypeFilter;
             ViewBag.PurchaseTypeList = new SelectList(new[]
             {
-                new { Value = "", Text = "All" },
-                new { Value = "Direct", Text = "Direct Purchase" },
-                new { Value = "Indirect", Text = "Indirect Purchase" }
+                new { Value = "", Text = L.T("All") },
+                new { Value = "Direct", Text = L.T("Srm_DirectPurchase") },
+                new { Value = "Indirect", Text = L.T("Srm_IndirectPurchase") }
             }, "Value", "Text", purchaseTypeFilter);
 
             ViewBag.StatusFilter = statusFilter;
             ViewBag.StatusList = new SelectList(new[]
             {
-                new { Value = "", Text = "All" },
-                new { Value = "Created", Text = "Created" },
-                new { Value = "ContractCreated", Text = "Contract Created" },
-                new { Value = "Invoiced", Text = "Invoiced" },
-                new { Value = "Received", Text = "Received" }
+                new { Value = "", Text = L.T("All") },
+                new { Value = "Created", Text = L.T("Srm_TrackStatus_Created") },
+                new { Value = "ContractCreated", Text = L.T("Srm_TrackStatus_ContractCreated") },
+                new { Value = "Invoiced", Text = L.T("Srm_TrackStatus_Invoiced") },
+                new { Value = "Received", Text = L.T("Srm_TrackStatus_Received") }
             }, "Value", "Text", statusFilter);
 
             return View();
@@ -171,10 +172,10 @@ namespace tahsinERP.Controllers.SRM
                         supplier = r.SupplierName,
                         date = r.IssuedDate.ToString("dd.MM.yyyy"),
                         indirect = r.PurchaseType == 1,
-                        contract = r.HasContract ? $"Shartnoma: {r.ContractNo} ({r.ContractDate:dd.MM.yyyy})" : null,
+                        contract = r.HasContract ? L.T("Srm_ContractWithDate", r.ContractNo, r.ContractDate?.ToString("dd.MM.yyyy")) : null,
                         invoice = r.InvoiceNo != null || r.InvoiceDate.HasValue
-                            ? $"Invoys: {r.InvoiceNo} ({r.InvoiceDate:dd.MM.yyyy})" : null,
-                        receipt = r.ReceiptDate.HasValue ? $"Omborga keldi: {r.ReceiptDate:dd.MM.yyyy}" : null,
+                            ? L.T("Srm_InvoiceWithDate", r.InvoiceNo, r.InvoiceDate?.ToString("dd.MM.yyyy")) : null,
+                        receipt = r.ReceiptDate.HasValue ? L.T("Srm_ReceivedOn", r.ReceiptDate?.ToString("dd.MM.yyyy")) : null,
                         status = r.Status
                     })
                 }, JsonRequestBehavior.AllowGet);

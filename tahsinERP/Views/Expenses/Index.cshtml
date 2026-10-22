@@ -1,5 +1,5 @@
 @{
-    ViewBag.Title = "Ombor chiqimlari";
+    ViewBag.Title = L.T("Wh_ExpListTitle");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -23,7 +23,7 @@
                                     <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                 </li>
                                 <li class="breadcrumb-item active">
-                                    Ombor chiqimlari
+                                    @L.T("Wh_ExpListTitle")
                                 </li>
                             </ol>
                         </div>
@@ -51,7 +51,7 @@
                 {
                     <div class="invoice-create-btn mb-1">
                         <a href="@Url.Action("Create", "Expenses")" class="btn btn-success bg-light invoice-create" role="button" aria-pressed="true">
-                            <i class="bx bx-plus"></i> Yangi chiqim
+                            <i class="bx bx-plus"></i> @L.T("Wh_NewExpense")
                         </a>
                     </div>
                 }
@@ -73,40 +73,40 @@
                     {
                         <div class="row border rounded py-2 mb-2">
                             <div class="col-12 col-sm-6 col-lg-2">
-                                <label>Ombor</label>
-                                @Html.DropDownList("warehouseId", ViewBag.Warehouses as SelectList, "Barchasi", new { @class = "form-control" })
+                                <label>@L.T("Wh_Warehouse")</label>
+                                @Html.DropDownList("warehouseId", ViewBag.Warehouses as SelectList, L.T("All"), new { @class = "form-control" })
                             </div>
                             <div class="col-12 col-sm-6 col-lg-2">
-                                <label>Status</label>
+                                <label>@L.T("Status")</label>
                                 <select name="status" class="form-control">
-                                    <option value="">Barchasi</option>
-                                    <option value="pending" @(ViewBag.Status == "pending" ? "selected" : "")>Kutilmoqda</option>
-                                    <option value="sent" @(ViewBag.Status == "sent" ? "selected" : "")>Yuborilgan</option>
+                                    <option value="">@L.T("All")</option>
+                                    <option value="pending" @(ViewBag.Status == "pending" ? "selected" : "")>@L.T("Wh_StPending")</option>
+                                    <option value="sent" @(ViewBag.Status == "sent" ? "selected" : "")>@L.T("Wh_StSent")</option>
                                 </select>
                             </div>
                             <div class="col-12 col-sm-6 col-lg-2">
-                                <label>Sanadan</label>
+                                <label>@L.T("DateFrom")</label>
                                 <input type="date" name="fromDate" class="form-control" value="@(fromDate.HasValue ? fromDate.Value.ToString("yyyy-MM-dd") : "")" />
                             </div>
                             <div class="col-12 col-sm-6 col-lg-2">
-                                <label>Sanagacha</label>
+                                <label>@L.T("DateTo")</label>
                                 <input type="date" name="toDate" class="form-control" value="@(toDate.HasValue ? toDate.Value.ToString("yyyy-MM-dd") : "")" />
                             </div>
                             <div class="col-12 col-sm-6 col-lg-2 d-flex align-items-end">
                                 <button type="submit" class="btn btn-primary w-100">
-                                    <i class="bx bx-search"></i> Qidirish
+                                    <i class="bx bx-search"></i> @L.T("Search")
                                 </button>
                             </div>
                             @if (changePermit)
                             {
                                 <div class="col-12 col-sm-6 col-lg-2 d-flex align-items-end">
-                                    <button type="submit" form="repairLinkedIncomesForm" class="btn btn-outline-secondary w-100" onclick="return confirm('Kutilmoqdagi chiqimlar uchun yetishmayotgan kirim hujjatlarini yaratishni xohlaysizmi?');" title="Kutilmoqdagi chiqimlar uchun Ishlab chiqarish/Sotuv omborida kirim hujjatlarini yaratish">
-                                        <i class="bx bx-wrench"></i> Tuzatish
+                                    <button type="submit" form="repairLinkedIncomesForm" class="btn btn-outline-secondary w-100" onclick="return confirm('@L.Js("Wh_Exp_RepairLinkedConfirm")');" title="@L.T("Wh_Exp_RepairLinkedHint")">
+                                        <i class="bx bx-wrench"></i> @L.T("Wh_Exp_Repair")
                                     </button>
                                 </div>
                                 <div class="col-12 col-sm-6 col-lg-2 d-flex align-items-end">
-                                    <button type="submit" form="repairTransferStatusesForm" class="btn btn-outline-secondary w-100" onclick="return confirm('Qabul qilingan o\'tkazmalarga bog\'langan chiqimlar statusini «Yuborilgan» ga moslashtirishni xohlaysizmi?');" title="Qabul qilingan kirimlarga bog'langan chiqimlar statusini tuzatish">
-                                        <i class="bx bx-check-circle"></i> Status tuzatish
+                                    <button type="submit" form="repairTransferStatusesForm" class="btn btn-outline-secondary w-100" onclick="return confirm('@L.Js("Wh_Exp_RepairStatusConfirm")');" title="@L.T("Wh_Exp_RepairStatusHint")">
+                                        <i class="bx bx-check-circle"></i> @L.T("Wh_Exp_RepairStatus")
                                     </button>
                                 </div>
                             }
@@ -122,15 +122,15 @@
                                     <table id="expensesTable" class="table table-striped table-bordered nowrap" style="width:100%">
                                         <thead>
                                             <tr>
-                                                <th>Hujjat raqami</th>
-                                                <th>Yuboruvchi ombor</th>
-                                                <th>Qabul qiluvchi ombor</th>
-                                                <th>Jami summa</th>
-                                                <th>Status</th>
-                                                <th>Sana</th>
+                                                <th>@L.T("Wh_DocNo")</th>
+                                                <th>@L.T("Wh_SenderWarehouse")</th>
+                                                <th>@L.T("Wh_ReceiverWarehouse")</th>
+                                                <th>@L.T("Wh_TotalAmount")</th>
+                                                <th>@L.T("Status")</th>
+                                                <th>@L.T("Date")</th>
                                                 @if (changePermit)
                                                 {
-                                                    <th>Amallar</th>
+                                                    <th>@L.T("Actions")</th>
                                                 }
                                             </tr>
                                         </thead>
@@ -157,7 +157,7 @@
                 { data: 'sender', render: function (v) { return srmEsc(v || '-'); } },
                 { data: 'receiver', render: function (v) { return srmEsc(v || '-'); } },
                 { data: 'total' },
-                { data: 'sent', render: function (v) { return v ? '<span class="badge badge-success">Yuborilgan</span>' : '<span class="badge badge-warning">Kutilmoqda</span>'; } },
+                { data: 'sent', render: function (v) { return v ? '<span class="badge badge-success">@L.Js("Wh_StSent")</span>' : '<span class="badge badge-warning">@L.Js("Wh_StPending")</span>'; } },
                 { data: 'date' }
             ];
             @if (changePermit)
@@ -165,10 +165,10 @@
                 <text>
                 columns.push({
                     data: null, orderable: false, render: function (v, t, r) {
-                        var html = '<div class="d-flex"><a href="' + detailsUrl + r.id + '" class="btn btn-sm btn-icon btn-outline-primary mr-1" title="Ko&#39;rish"><i class="bx bx-show"></i></a>';
+                        var html = '<div class="d-flex"><a href="' + detailsUrl + r.id + '" class="btn btn-sm btn-icon btn-outline-primary mr-1" title="@L.Js("View")"><i class="bx bx-show"></i></a>';
                         if (r.canModify && !r.sent) {
-                            html += '<a href="' + editUrl + r.id + '" class="btn btn-sm btn-icon btn-outline-warning mr-1" title="Tahrirlash"><i class="bx bx-edit-alt"></i></a>';
-                            html += '<a href="' + deleteUrl + r.id + '" class="btn btn-sm btn-icon btn-outline-danger" title="O&#39;chirish"><i class="bx bx-trash"></i></a>';
+                            html += '<a href="' + editUrl + r.id + '" class="btn btn-sm btn-icon btn-outline-warning mr-1" title="@L.Js("Edit")"><i class="bx bx-edit-alt"></i></a>';
+                            html += '<a href="' + deleteUrl + r.id + '" class="btn btn-sm btn-icon btn-outline-danger" title="@L.Js("Delete")"><i class="bx bx-trash"></i></a>';
                         }
                         return html + '</div>';
                     }

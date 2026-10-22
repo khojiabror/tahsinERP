@@ -24,9 +24,9 @@
                                         <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                     </li>
                                     <li class="breadcrumb-item">
-                                        <a href="~/FContractTariff/Index">Tariflar</a>
+                                        <a href="~/FContractTariff/Index">@L.T("Log_Tariffs")</a>
                                     </li>
-                                    <li class="breadcrumb-item active">@(isEdit ? "Tarif tahrirlash" : "Yangi tarif")</li>
+                                    <li class="breadcrumb-item active">@(isEdit ? L.T("Log_TariffEditTitle") : L.T("Log_NewTariff"))</li>
                                 </ol>
                             </div>
                         </div>
@@ -41,60 +41,60 @@
 
                             <div class="row">
                                 <div class="col-md-4">
-                                    <label>Shartnoma</label>
-                                    @Html.DropDownListFor(model => model.ContractID, ViewBag.Contracts as SelectList, "Tanlang", new { @class = "form-control" })
+                                    <label>@L.T("Log_Contract")</label>
+                                    @Html.DropDownListFor(model => model.ContractID, ViewBag.Contracts as SelectList, L.T("Select"), new { @class = "form-control" })
                                 </div>
                                 <div class="col-md-4">
-                                    <label>Transport turi</label>
-                                    @Html.DropDownListFor(model => model.TransportTypeID, ViewBag.TransportTypes as SelectList, "Tanlang", new { @class = "form-control" })
+                                    <label>@L.T("Log_TransportType")</label>
+                                    @Html.DropDownListFor(model => model.TransportTypeID, ViewBag.TransportTypes as SelectList, L.T("Select"), new { @class = "form-control" })
                                 </div>
                                 <div class="col-md-4">
-                                    <label>Valyuta</label>
-                                    @Html.DropDownListFor(model => model.CurrencyID, ViewBag.Currencies as SelectList, "Tanlang", new { @class = "form-control" })
+                                    <label>@L.T("Currency")</label>
+                                    @Html.DropDownListFor(model => model.CurrencyID, ViewBag.Currencies as SelectList, L.T("Select"), new { @class = "form-control" })
                                 </div>
                             </div>
 
                             <div class="row mt-1">
                                 <div class="col-md-3">
-                                    <label>Qayerdan (Viloyat)</label>
+                                    <label>@L.T("Log_FromRegion")</label>
                                     @Html.TextBoxFor(model => model.FromRegion, new { @class = "form-control" })
                                 </div>
                                 <div class="col-md-3">
-                                    <label>Qayerdan (Shahar)</label>
+                                    <label>@L.T("Log_FromCity")</label>
                                     @Html.TextBoxFor(model => model.FromCity, new { @class = "form-control" })
                                 </div>
                                 <div class="col-md-3">
-                                    <label>Qayerga (Viloyat)</label>
+                                    <label>@L.T("Log_ToRegion")</label>
                                     @Html.TextBoxFor(model => model.ToRegion, new { @class = "form-control" })
                                 </div>
                                 <div class="col-md-3">
-                                    <label>Qayerga (Shahar)</label>
+                                    <label>@L.T("Log_ToCity")</label>
                                     @Html.TextBoxFor(model => model.ToCity, new { @class = "form-control" })
                                 </div>
                             </div>
 
                             <div class="row mt-1">
                                 <div class="col-md-3">
-                                    <label>@LogisticsTerms.TariffBasis</label>
-                                    @Html.DropDownListFor(model => model.FreightBasis, LogisticsEnums.FreightBasisList(), "Tanlang", new { @class = "form-control" })
+                                    <label>@L.T("Log_TariffBasis")</label>
+                                    @Html.DropDownListFor(model => model.FreightBasis, LogisticsEnums.FreightBasisList(), L.T("Select"), new { @class = "form-control" })
                                 </div>
                                 <div class="col-md-3">
-                                    <label>@LogisticsTerms.TariffRate</label>
+                                    <label>@L.T("Log_TariffRate")</label>
                                     @Html.TextBoxFor(model => model.Rate, "{0:0.######}", new { @class = "form-control" })
                                 </div>
                                 <div class="col-md-3">
-                                    <label>Eng kam to'lov summasi</label>
+                                    <label>@L.T("Log_MinimumCharge")</label>
                                     @Html.TextBoxFor(model => model.MinimumCharge, "{0:0.######}", new { @class = "form-control" })
                                 </div>
                                 <div class="col-md-3">
-                                    <label>Faol</label>
+                                    <label>@L.T("Active")</label>
                                     @Html.CheckBoxFor(model => model.IsActive, new { @class = "form-check-input" })
                                 </div>
                             </div>
 
                             <div class="row mt-1">
                                 <div class="col-md-12">
-                                    <label>Izoh</label>
+                                    <label>@L.T("Comment")</label>
                                     @Html.TextAreaFor(model => model.Description, new { @class = "form-control", @rows = 2 })
                                 </div>
                             </div>
@@ -102,9 +102,9 @@
                             <div class="row mt-2">
                                 <div class="col-md-12">
                                     <button class="btn btn-primary" type="submit">
-                                        <i class="bx bx-save"></i> Saqlash
+                                        <i class="bx bx-save"></i> @L.T("Save")
                                     </button>
-                                    <a href="@(isEdit ? Url.Action("Index", "FContractTariff", new { contractId = Model.ContractID }) : Url.Action("Index", "FContractTariff"))" class="btn btn-outline-secondary ml-1">Bekor qilish</a>
+                                    <a href="@(isEdit ? Url.Action("Index", "FContractTariff", new { contractId = Model.ContractID }) : Url.Action("Index", "FContractTariff"))" class="btn btn-outline-secondary ml-1">@L.T("Cancel")</a>
                                 </div>
                             </div>
                         </div>

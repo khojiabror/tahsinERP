@@ -263,8 +263,7 @@ namespace tahsinERP.Services.Common
             get
             {
                 if (MissingCount == 0) return null;
-                return $"{MissingCount} ta hujjat uchun valyuta kursi topilmadi ({string.Join(", ", _missingCurrencies)}) — " +
-                       "ular so'mdagi jamiga qo'shilmadi. Kursni \"Valyuta kurslari\" sahifasida kiriting.";
+                return tahsinERP.I18n.L.T("Prd_RatesMissingWarning", MissingCount, string.Join(", ", _missingCurrencies));
             }
         }
     }

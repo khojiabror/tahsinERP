@@ -7,6 +7,7 @@ using System.Net;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using tahsinERP.Filters;
+using tahsinERP.I18n;
 using tahsinERP.Models;
 using tahsinERP.Services;
 using tahsinERP.Services.Common;
@@ -49,14 +50,14 @@ namespace tahsinERP.Controllers
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 var rows = BuildIndexQuery(db, searchTerm, contractNo, customerID, fromDate, toDate, sortOrder).ToList();
-                var bytes = ExcelExport.Create("Shartnomalar", rows,
-                    ExcelExport.Col<S_CONTRACTS>("Shartnoma raqami", c => c.ContractNo),
-                    ExcelExport.Col<S_CONTRACTS>("Mijoz", c => c.CUSTOMER?.Name),
-                    ExcelExport.Col<S_CONTRACTS>("Sana", c => c.IssuedDate, "dd.MM.yyyy"),
-                    ExcelExport.Col<S_CONTRACTS>("Muddat", c => c.DueDate, "dd.MM.yyyy"),
-                    ExcelExport.Col<S_CONTRACTS>("Summa", c => c.Amount, "#,##0.00"),
-                    ExcelExport.Col<S_CONTRACTS>("Valyuta", c => c.CURRENCy?.Shortname));
-                return File(bytes, ExcelExport.ContentType, $"Shartnomalar_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx");
+                var bytes = ExcelExport.Create(L.T("Menu_Contracts"), rows,
+                    ExcelExport.Col<S_CONTRACTS>(L.T("Crm_ContractNo"), c => c.ContractNo),
+                    ExcelExport.Col<S_CONTRACTS>(L.T("Crm_Client"), c => c.CUSTOMER?.Name),
+                    ExcelExport.Col<S_CONTRACTS>(L.T("Date"), c => c.IssuedDate, "dd.MM.yyyy"),
+                    ExcelExport.Col<S_CONTRACTS>(L.T("Crm_DueDate"), c => c.DueDate, "dd.MM.yyyy"),
+                    ExcelExport.Col<S_CONTRACTS>(L.T("Amount"), c => c.Amount, "#,##0.00"),
+                    ExcelExport.Col<S_CONTRACTS>(L.T("Currency"), c => c.CURRENCy?.Shortname));
+                return File(bytes, ExcelExport.ContentType, $"{L.T("Crm_CtrExcelFile")}_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx");
             }
         }
 
@@ -144,7 +145,7 @@ namespace tahsinERP.Controllers
 
                 if (!model.ProductList.Any())
                 {
-                    ModelState.AddModelError("", "Kamida bitta maxsulot qo'shish kerak");
+                    ModelState.AddModelError("", L.T("Crm_CtrAtLeastOneProductAdd"));
                 }
 
                 if (!ModelState.IsValid)
@@ -188,7 +189,7 @@ namespace tahsinERP.Controllers
                 }
                 catch (Exception ex)
                 {
-                    ModelState.AddModelError("", "Xatolik: " + InnermostMessage(ex));
+                    ModelState.AddModelError("", L.T("Crm_ErrorPrefix", InnermostMessage(ex)));
                     PopulateContractLookups(db, model, "CustomerID");
                     return View(model);
                 }
@@ -328,7 +329,7 @@ namespace tahsinERP.Controllers
 
                 if (!model.ProductList.Any())
                 {
-                    ModelState.AddModelError("", "Kamida bitta mahsulot kerak");
+                    ModelState.AddModelError("", L.T("Crm_CtrAtLeastOneProduct"));
                 }
 
                 if (!ModelState.IsValid)
@@ -403,7 +404,7 @@ namespace tahsinERP.Controllers
                 }
                 catch (Exception ex)
                 {
-                    ModelState.AddModelError("", "Xatolik: " + InnermostMessage(ex));
+                    ModelState.AddModelError("", L.T("Crm_ErrorPrefix", InnermostMessage(ex)));
                     return EditError(db, model);
                 }
             }
@@ -558,7 +559,7 @@ namespace tahsinERP.Controllers
                 }
                 else
                 {
-                    TempData["ErrorMessage"] = "Faqat shu mijozning shartnomasiz buyurtmasini bog'lash mumkin.";
+                    TempData["ErrorMessage"] = L.T("Crm_CtrLinkOnlySameCustomer");
                 }
                 return RedirectToAction("ManageOrders", new { contractID = contractID });
             }
@@ -572,7 +573,7 @@ namespace tahsinERP.Controllers
         [ValidateAntiForgeryHeader]
         public ActionResult UnlinkOrder(int contractID, int orderID)
         {
-            TempData["ErrorMessage"] = "Buyurtmani shartnomasiz qoldirib bo'lmaydi (shartnoma majburiy). Buyurtmani tahrirlab boshqa shartnoma tanlang yoki o'chiring.";
+            TempData["ErrorMessage"] = L.T("Crm_CtrCannotUnlinkOrder");
             return RedirectToAction("ManageOrders", new { contractID = contractID });
         }
 
@@ -605,7 +606,7 @@ namespace tahsinERP.Controllers
 
                 if (amount <= 0 || piecePrice <= 0)
                 {
-                    ModelState.AddModelError("", "Har bir mahsulot uchun miqdor va narx 0 dan katta bo'lishi kerak.");
+                    ModelState.AddModelError("", L.T("Crm_CtrQtyPricePositive"));
                     continue;
                 }
 
@@ -646,7 +647,7 @@ namespace tahsinERP.Controllers
                 return null;
 
             var pno = db.PRODUCTS.Where(p => p.ID == productId).Select(p => p.PNo).FirstOrDefault() ?? productId.ToString();
-            return $"{pno} mahsuloti shu shartnoma bo'yicha {(ordered ? "buyurtmada" : "invoysda")} ishlatilgan — uni shartnomadan o'chirib bo'lmaydi.";
+            return L.T(ordered ? "Crm_CtrProductUsedInOrder" : "Crm_CtrProductUsedInInvoice", pno);
         }
 
         private ActionResult EditError(DBTHSNEntities db, SContractViewModel model)

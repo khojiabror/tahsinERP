@@ -1,7 +1,7 @@
 @model tahsinERP.Models.P_CONTRACTS
 @using tahsinERP.Services
 @{
-    ViewBag.Title = "Shartnoma tafsilotlari";
+    ViewBag.Title = L.T("Srm_ContractDetailsTitle");
     Layout = "~/Views/Shared/_Layout.cshtml";
     var docIds = ViewBag.DocIds as System.Collections.Generic.List<int> ?? new System.Collections.Generic.List<int>();
 }
@@ -19,10 +19,10 @@
                                     <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                 </li>
                                 <li class="breadcrumb-item">
-                                    <a href="~/PContracts/Index">Xarid shartnomalari</a>
+                                    <a href="~/PContracts/Index">@L.T("Menu_PurchaseContracts")</a>
                                 </li>
                                 <li class="breadcrumb-item active">
-                                    Tafsilotlar
+                                    @L.T("Srm_DetailsTitle")
                                 </li>
                             </ol>
                         </div>
@@ -35,22 +35,22 @@
                 <div class="col-12">
                     <div class="card">
                         <div class="card-header">
-                            <h4 class="card-title">Shartnoma ma'lumotlari</h4>
+                            <h4 class="card-title">@L.T("Srm_ContractInfo")</h4>
                             <div class="heading-elements">
                                 @if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "PContracts"))
                                 {
                                     <a href="@Url.Action("Edit", "PContracts", new { id = Model.ID })" class="btn btn-sm btn-warning">
-                                        <i class="bx bx-edit-alt"></i> Tahrirlash
+                                        <i class="bx bx-edit-alt"></i> @L.T("Edit")
                                     </a>
                                 }
                                 @if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, "Supplier", "Details"))
                                 {
                                     <a href="@Url.Action("Supplier", "Reconciliation", new { id = Model.SupplierID, contractId = Model.ID })" class="btn btn-sm btn-outline-primary">
-                                        <i class="bx bx-transfer-alt"></i> Akt-sverki
+                                        <i class="bx bx-transfer-alt"></i> @L.T("Srm_Reconciliation")
                                     </a>
                                 }
                                 <a href="@Url.Action("Index", "PContracts")" class="btn btn-sm btn-secondary">
-                                    <i class="bx bx-arrow-back"></i> Orqaga
+                                    <i class="bx bx-arrow-back"></i> @L.T("Back")
                                 </a>
                             </div>
                         </div>
@@ -60,19 +60,19 @@
                                     <div class="col-md-6">
                                         <table class="table table-borderless">
                                             <tr>
-                                                <th width="40%">Shartnoma raqami:</th>
+                                                <th width="40%">@L.T("Srm_ContractNo"):</th>
                                                 <td>@Model.ContractNo</td>
                                             </tr>
                                             <tr>
-                                                <th>Sana:</th>
+                                                <th>@L.T("Date"):</th>
                                                 <td>@Model.IssuedDate.ToString("dd.MM.yyyy")</td>
                                             </tr>
                                             <tr>
-                                                <th>Korxona:</th>
+                                                <th>@L.T("Menu_Company"):</th>
                                                 <td>@(Model.COMPANy?.Name ?? "-")</td>
                                             </tr>
                                             <tr>
-                                                <th>Ta'minotchi:</th>
+                                                <th>@L.T("Srm_Supplier"):</th>
                                                 <td>
                                                     @if (Model.SUPPLIER != null)
                                                     {
@@ -85,7 +85,7 @@
                                                 </td>
                                             </tr>
                                             <tr>
-                                                <th>Valyuta:</th>
+                                                <th>@L.T("Currency"):</th>
                                                 <td>@(Model.CURRENCy?.Shortname ?? "-")</td>
                                             </tr>
                                         </table>
@@ -93,7 +93,7 @@
                                     <div class="col-md-6">
                                         <table class="table table-borderless">
                                             <tr>
-                                                <th width="40%">Shartnoma summasi:</th>
+                                                <th width="40%">@L.T("Srm_ContractAmount"):</th>
                                                 <td><strong>@(Model.Amount?.ToString("N2") ?? "0.00")</strong></td>
                                             </tr>
                                             @{
@@ -104,15 +104,15 @@
                                                 var vatPercent = PContractVatHelper.GetVatPercentFromLine(baseAmount, vatAmount);
                                             }
                                             <tr>
-                                                <th>QQS (@vatPercent.ToString("N2")%):</th>
+                                                <th>@L.T("Srm_VatPercentLabel", vatPercent.ToString("N2"))</th>
                                                 <td>@vatAmount.ToString("N2")</td>
                                             </tr>
                                             <tr>
-                                                <th>QQSsiz summa:</th>
+                                                <th>@L.T("Srm_AmountWithoutVat"):</th>
                                                 <td>@baseAmount.ToString("N2")</td>
                                             </tr>
                                             <tr>
-                                                <th>Jami (QQS bilan):</th>
+                                                <th>@L.T("Srm_TotalWithVat"):</th>
                                                 <td><strong>@totalAmount.ToString("N2")</strong></td>
                                             </tr>
                                             <tr>
@@ -120,11 +120,11 @@
                                                 <td>@(Model.Incoterms ?? "-")</td>
                                             </tr>
                                             <tr>
-                                                <th>To'lov shartlari:</th>
+                                                <th>@L.T("Srm_PaymentTerms"):</th>
                                                 <td>@(Model.PaymentTerms ?? "-")</td>
                                             </tr>
                                             <tr>
-                                                <th>Muddat:</th>
+                                                <th>@L.T("Srm_DueDate"):</th>
                                                 <td>@Model.DueDate.ToString("dd.MM.yyyy")</td>
                                             </tr>
                                             <tr>
@@ -142,7 +142,7 @@
                                         <div class="col-12">
                                             <div class="card">
                                                 <div class="card-header">
-                                                    <h4 class="card-title">Shartnoma mahsulotlari</h4>
+                                                    <h4 class="card-title">@L.T("Srm_ContractProducts")</h4>
                                                 </div>
                                                 <div class="card-content">
                                                     <div class="card-body card-dashboard">
@@ -150,13 +150,13 @@
                                                             <table class="table table-striped dataex-html5-selectors" style="width:100%">
                                                                 <thead>
                                                                     <tr>
-                                                                        <th>Mahsulot kodi</th>
-                                                                        <th>Mahsulot nomi</th>
-                                                                        <th>Miqdor</th>
-                                                                        <th>Birlik</th>
-                                                                        <th>Narx</th>
-                                                                        <th>QQS (%)</th>
-                                                                        <th>Jami narx</th>
+                                                                        <th>@L.T("Srm_ProductCode")</th>
+                                                                        <th>@L.T("Srm_ProductName")</th>
+                                                                        <th>@L.T("Quantity")</th>
+                                                                        <th>@L.T("Unit")</th>
+                                                                        <th>@L.T("Price")</th>
+                                                                        <th>@L.T("Srm_VatPercent")</th>
+                                                                        <th>@L.T("Srm_TotalPrice")</th>
                                                                         <th>MOQ</th>
                                                                     </tr>
                                                                 </thead>
@@ -194,7 +194,7 @@
                                                                     else
                                                                     {
                                                                         <tr>
-                                                                            <td colspan="8" class="text-center">Mahsulotlar topilmadi</td>
+                                                                            <td colspan="8" class="text-center">@L.T("Srm_ProductsNotFound")</td>
                                                                         </tr>
                                                                     }
                                                                 </tbody>
@@ -221,7 +221,7 @@
                                             <div class="col-12">
                                                 <div class="card">
                                                     <div class="card-header d-flex justify-content-between align-items-center">
-                                                        <h4 class="card-title">Bog'langan invoyslar</h4>
+                                                        <h4 class="card-title">@L.T("Srm_LinkedInvoices")</h4>
                                                     </div>
                                                     <div class="card-content">
                                                         <div class="card-body card-dashboard">
@@ -229,10 +229,10 @@
                                                                 <table class="table table-striped" style="width:100%">
                                                                     <thead>
                                                                         <tr>
-                                                                            <th>Invoys raqami</th>
-                                                                            <th>Sana</th>
-                                                                            <th>Summa</th>
-                                                                            <th>Valyuta</th>
+                                                                            <th>@L.T("Srm_InvoiceNo")</th>
+                                                                            <th>@L.T("Date")</th>
+                                                                            <th>@L.T("Amount")</th>
+                                                                            <th>@L.T("Currency")</th>
                                                                         </tr>
                                                                     </thead>
                                                                     <tbody>
@@ -268,56 +268,56 @@
                                     <div class="col-12">
                                         <div class="card">
                                             <div class="card-header">
-                                                <h5 class="card-title">Xulosa</h5>
+                                                <h5 class="card-title">@L.T("Srm_Summary")</h5>
                                             </div>
                                             <div class="card-body">
                                                 <table class="table table-sm">
                                                     <thead>
                                                         <tr>
-                                                            <th>Ko'rsatkich</th>
-                                                            <th>Summa</th>
-                                                            <th>Holati</th>
+                                                            <th>@L.T("Srm_Indicator")</th>
+                                                            <th>@L.T("Amount")</th>
+                                                            <th>@L.T("Srm_StatusOf")</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody>
                                                         <tr>
-                                                            <td>Shartnoma bo'yicha</td>
+                                                            <td>@L.T("Srm_ByContract")</td>
                                                             <td>@contractedTotal.ToString("N2")</td>
-                                                            <td><span class="badge badge-info">Shartnoma</span></td>
+                                                            <td><span class="badge badge-info">@L.T("Srm_Contract")</span></td>
                                                         </tr>
                                                         <tr>
-                                                            <td>Buyurtma bo'yicha</td>
+                                                            <td>@L.T("Srm_ByOrder")</td>
                                                             <td>@orderedTotal.ToString("N2")</td>
                                                             <td>
                                                                 @if (orderedTotal > contractedTotal)
                                                                 {
-                                                                    <span class="badge badge-warning">Oshib ketgan</span>
+                                                                    <span class="badge badge-warning">@L.T("Srm_Exceeded")</span>
                                                                 }
                                                                 else if (orderedTotal == contractedTotal)
                                                                 {
-                                                                    <span class="badge badge-success">To'liq</span>
+                                                                    <span class="badge badge-success">@L.T("Srm_Full")</span>
                                                                 }
                                                                 else
                                                                 {
-                                                                    <span class="badge badge-info">Qisman</span>
+                                                                    <span class="badge badge-info">@L.T("Srm_Partial")</span>
                                                                 }
                                                             </td>
                                                         </tr>
                                                         <tr>
-                                                            <td>Invoys bo'yicha</td>
+                                                            <td>@L.T("Srm_ByInvoice")</td>
                                                             <td>@invoicedTotal.ToString("N2")</td>
                                                             <td>
                                                                 @if (invoicedTotal > contractedTotal)
                                                                 {
-                                                                    <span class="badge badge-warning">Oshib ketgan</span>
+                                                                    <span class="badge badge-warning">@L.T("Srm_Exceeded")</span>
                                                                 }
                                                                 else if (invoicedTotal == contractedTotal)
                                                                 {
-                                                                    <span class="badge badge-success">To'liq</span>
+                                                                    <span class="badge badge-success">@L.T("Srm_Full")</span>
                                                                 }
                                                                 else
                                                                 {
-                                                                    <span class="badge badge-info">Qisman</span>
+                                                                    <span class="badge badge-info">@L.T("Srm_Partial")</span>
                                                                 }
                                                             </td>
                                                         </tr>
@@ -331,18 +331,18 @@
                                 <!-- Navigation Links -->
                                 <div class="row mt-3">
                                     <div class="col-12">
-                                        <h5 class="text-primary mb-3">Bog'liq hujjatlar</h5>
+                                        <h5 class="text-primary mb-3">@L.T("Srm_RelatedDocs")</h5>
                                         <div class="btn-group" role="group">
                                             <a href="@Url.Action("Index", "POrders", new { contractID = Model.ID })" class="btn btn-outline-primary">
-                                                <i class="bx bx-list-ul"></i> Buyurtmalar (@ViewBag.OrdersCount)
+                                                <i class="bx bx-list-ul"></i> @L.T("Menu_Orders") (@ViewBag.OrdersCount)
                                             </a>
                                             <a href="@Url.Action("Index", "PInvoices", new { contractID = Model.ID })" class="btn btn-outline-primary">
-                                                <i class="bx bx-receipt"></i> Invoyslar (@invoicesCount)
+                                                <i class="bx bx-receipt"></i> @L.T("Menu_Invoices") (@invoicesCount)
                                             </a>
                                             @if (Model.SUPPLIER != null)
                                             {
                                                 <a href="@Url.Action("Details", "Supplier", new { id = Model.SupplierID })" class="btn btn-outline-primary">
-                                                    <i class="bx bx-user"></i> Ta'minotchi
+                                                    <i class="bx bx-user"></i> @L.T("Srm_Supplier")
                                                 </a>
                                             }
                                         </div>
@@ -352,13 +352,13 @@
                                 @if (docIds.Any())
                                 {
                                     <hr />
-                                    <h5>Shartnoma hujjatlari</h5>
+                                    <h5>@L.T("Srm_ContractDocs")</h5>
                                     <ul>
                                         @foreach (var docId in docIds)
                                         {
                                             <li>
                                                 <a href="@Url.Action("DownloadDoc", "PContracts", new { id = docId })" target="_blank">
-                                                    <i class="bx bx-file"></i> Shartnoma hujjati #@docId
+                                                    <i class="bx bx-file"></i> @L.T("Srm_ContractDocNo", docId)
                                                 </a>
                                             </li>
                                         }

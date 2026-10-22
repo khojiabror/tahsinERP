@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Xml.Serialization;
+using tahsinERP.I18n;
 
 namespace tahsinERP.Services.Crm.EDocuments
 {
@@ -31,11 +32,11 @@ namespace tahsinERP.Services.Crm.EDocuments
         {
             switch (status)
             {
-                case Sent: return "Yuborilgan";
-                case Accepted: return "Qabul qilingan";
-                case Rejected: return "Rad etilgan";
-                case Error: return "Xato";
-                default: return "Ichki (tizimda)";
+                case Sent: return L.T("Crm_EdocStatusSent");
+                case Accepted: return L.T("Crm_EdocStatusAccepted");
+                case Rejected: return L.T("Crm_EdocStatusRejected");
+                case Error: return L.T("Crm_EdocStatusError");
+                default: return L.T("Crm_EdocStatusLocal");
             }
         }
 

@@ -1,7 +1,7 @@
 ﻿@model List<tahsinERP.ViewModels.WaybillIndexItemViewModel>
 @using tahsinERP.Services
 @{
-    ViewBag.Title = "Yo'l varaqalari";
+    ViewBag.Title = L.T("Log_Waybills");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -23,7 +23,7 @@
                                     <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                 </li>
                                 <li class="breadcrumb-item">
-                                    Logistika
+                                    @L.T("Menu_Logistics")
                                 </li>
                                 <li class="breadcrumb-item active">
                                     @LogisticsTerms.Waybills
@@ -40,10 +40,10 @@
                 {
                     <div class="invoice-create-btn mb-1 d-flex">
                         <a href="@Url.Action("Create", "Waybill")" class="btn btn-success bg-light invoice-create" role="button">
-                            <i class="bx bx-plus"></i> Yangi @LogisticsTerms.Waybill.ToLower()
+                            <i class="bx bx-plus"></i> @L.T("Log_NewWaybill")
                         </a>
                         <a href="@Url.Action("UploadExcel", "WaybillImport")" class="btn btn-outline-primary ml-1" role="button">
-                            <i class="bx bx-file"></i> Excel orqali yuklash
+                            <i class="bx bx-file"></i> @L.T("Log_UploadViaExcel")
                         </a>
                     </div>
                 }
@@ -54,35 +54,35 @@
                         <form method="get" action="@Url.Action("Index", "Waybill")" id="filterForm">
                             <div class="row">
                                 <div class="col-md-3">
-                                    <label>Qidirish</label>
-                                    <input type="text" name="searchTerm" class="form-control" value="@ViewBag.SearchTerm" placeholder="@LogisticsTerms.Waybill raqami, manzil, haydovchi..." />
+                                    <label>@L.T("Search")</label>
+                                    <input type="text" name="searchTerm" class="form-control" value="@ViewBag.SearchTerm" placeholder="@L.T("Log_WaybillSearchPh")" />
                                 </div>
                                 <div class="col-md-2">
-                                    <label>Yo'nalish</label>
-                                    @Html.DropDownList("direction", ViewBag.Directions as SelectList, "Barchasi", new { @class = "form-control" })
+                                    <label>@L.T("Log_Direction")</label>
+                                    @Html.DropDownList("direction", ViewBag.Directions as SelectList, L.T("All"), new { @class = "form-control" })
                                 </div>
                                 <div class="col-md-2">
                                     <label>@LogisticsTerms.Forwarder</label>
-                                    @Html.DropDownList("forwarderId", ViewBag.Forwarders as SelectList, "Barchasi", new { @class = "form-control" })
+                                    @Html.DropDownList("forwarderId", ViewBag.Forwarders as SelectList, L.T("All"), new { @class = "form-control" })
                                 </div>
                                 <div class="col-md-2">
-                                    <label>Shartnoma</label>
-                                    @Html.DropDownList("contractId", ViewBag.Contracts as SelectList, "Barchasi", new { @class = "form-control" })
+                                    <label>@L.T("Log_Contract")</label>
+                                    @Html.DropDownList("contractId", ViewBag.Contracts as SelectList, L.T("All"), new { @class = "form-control" })
                                 </div>
                                 <div class="col-md-2">
-                                    <label>Transport turi</label>
-                                    @Html.DropDownList("transportTypeId", ViewBag.TransportTypes as SelectList, "Barchasi", new { @class = "form-control" })
+                                    <label>@L.T("Log_TransportType")</label>
+                                    @Html.DropDownList("transportTypeId", ViewBag.TransportTypes as SelectList, L.T("All"), new { @class = "form-control" })
                                 </div>
                                 <div class="col-md-2">
-                                    <label>Boshlanish sanasi</label>
+                                    <label>@L.T("Log_StartDate")</label>
                                     <input type="date" name="startDate" class="form-control" value="@ViewBag.StartDate" />
                                 </div>
                                 <div class="col-md-2">
-                                    <label>Tugash sanasi</label>
+                                    <label>@L.T("Log_EndDate")</label>
                                     <input type="date" name="endDate" class="form-control" value="@ViewBag.EndDate" />
                                 </div>
                                 <div class="col-md-1 d-flex align-items-end">
-                                    <button type="submit" class="btn btn-primary w-100">Qidirish</button>
+                                    <button type="submit" class="btn btn-primary w-100">@L.T("Search")</button>
                                 </div>
                             </div>
                         </form>
@@ -97,27 +97,27 @@
                                     <table id="waybillDataTable" class="table table-striped table-bordered" style="width:100%">
                                         <thead>
                                             <tr>
-                                                <th>@LogisticsTerms.Waybill No</th>
-                                                <th>Sana</th>
-                                                <th>Yo'nalish</th>
-                                                <th>Yuk turi</th>
+                                                <th>@L.T("Log_WaybillNoShort")</th>
+                                                <th>@L.T("Date")</th>
+                                                <th>@L.T("Log_Direction")</th>
+                                                <th>@L.T("Log_CargoType")</th>
                                                 <th>@LogisticsTerms.Forwarder</th>
-                                                <th>Shartnoma</th>
-                                                <th>Qayerdan</th>
-                                                <th>Qayerga</th>
-                                                <th>Mashina</th>
-                                                <th>Haydovchi</th>
-                                                <th>Masofa (km)</th>
-                                                <th>Vazn (ton)</th>
+                                                <th>@L.T("Log_Contract")</th>
+                                                <th>@L.T("Log_From")</th>
+                                                <th>@L.T("Log_To")</th>
+                                                <th>@L.T("Log_Truck")</th>
+                                                <th>@L.T("Log_Driver")</th>
+                                                <th>@L.T("Log_DistanceKm")</th>
+                                                <th>@L.T("Log_WeightTon")</th>
                                                 <th>CBM</th>
-                                                <th>Summa</th>
-                                                <th>Valyuta</th>
-                                                <th>To'lov holati</th>
-                                                <th>To'langan</th>
-                                                <th>Qoldiq</th>
+                                                <th>@L.T("Amount")</th>
+                                                <th>@L.T("Currency")</th>
+                                                <th>@L.T("Log_PaymentStatus")</th>
+                                                <th>@L.T("Log_Paid")</th>
+                                                <th>@L.T("Log_Outstanding")</th>
                                                 @if (changePermit)
                                                 {
-                                                    <th>Amallar</th>
+                                                    <th>@L.T("Actions")</th>
                                                 }
                                             </tr>
                                         </thead>
@@ -128,8 +128,7 @@
                                                 {
                                                     var directionText = LogisticsEnums.DirectionText(item.Direction);
                                                     var directionClass = item.Direction == 0 ? "badge-success" : item.Direction == 1 ? "badge-danger" : "badge-secondary";
-                                                    var paymentClass = item.PaymentStatus == "To'langan" ? "badge-success" :
-                                                        item.PaymentStatus == "Qisman" ? "badge-warning" : "badge-danger";
+                                                    var paymentClass = item.PaymentBadgeClass;
 
                                                     <tr>
                                                         <td>
@@ -156,8 +155,8 @@
                                                         {
                                                             <td>
                                                                 <div>
-                                                                    <a href="@Url.Action("Edit", "Waybill", new { ID = item.ID })" class="btn btn-sm btn-outline-success" title="Tahrirlash"><i class="bx bx-edit-alt"></i></a>
-                                                                    <a href="@Url.Action("Delete", "Waybill", new { Id = item.ID })" class="btn btn-sm btn-outline-danger" title="O'chirish"><i class="bx bx-trash"></i></a>
+                                                                    <a href="@Url.Action("Edit", "Waybill", new { ID = item.ID })" class="btn btn-sm btn-outline-success" title="@L.T("Edit")"><i class="bx bx-edit-alt"></i></a>
+                                                                    <a href="@Url.Action("Delete", "Waybill", new { Id = item.ID })" class="btn btn-sm btn-outline-danger" title="@L.T("Delete")"><i class="bx bx-trash"></i></a>
                                                                 </div>
                                                             </td>
                                                         }
@@ -167,7 +166,7 @@
                                             else
                                             {
                                                 <tr>
-                                                    <td colspan="@(changePermit ? 19 : 18)" class="text-center">Ma'lumot topilmadi</td>
+                                                    <td colspan="@(changePermit ? 19 : 18)" class="text-center">@L.T("Log_NoDataFound")</td>
                                                 </tr>
                                             }
                                         </tbody>

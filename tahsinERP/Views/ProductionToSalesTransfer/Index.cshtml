@@ -1,7 +1,7 @@
 @model List<tahsinERP.Models.EXPENS>
 
 @{
-    ViewBag.Title = "Ishlab chiqarishdan sotuv omboriga o'tkazmalar";
+    ViewBag.Title = L.T("Wh_Pts_IndexTitle");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -22,10 +22,10 @@
                                         <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                     </li>
                                     <li class="breadcrumb-item">
-                                        <a href="#">Ombor</a>
+                                        <a href="#">@L.T("Wh_Warehouse")</a>
                                     </li>
                                     <li class="breadcrumb-item active">
-                                        O'tkazmalar
+                                        @L.T("Wh_Pts_Transfers")
                                     </li>
                                 </ol>
                             </div>
@@ -59,14 +59,14 @@
                         <div class="invoice-create-btn mb-1">
                             <a href="@Url.Action("Create", "ProductionToSalesTransfer")" class="btn btn-outline-success mr-1 mb-1">
                                 <i class="bx bx-transfer"></i>
-                                <span class="align-middle ml-25">Yangi o'tkazma</span>
+                                <span class="align-middle ml-25">@L.T("Wh_Pts_NewTransfer")</span>
                             </a>
                         </div>
                     }
 
                     <div class="card">
                         <div class="card-header">
-                            <h4 class="card-title">O'tkazmalar ro'yxati</h4>
+                            <h4 class="card-title">@L.T("Wh_Pts_TransferList")</h4>
                         </div>
                         <div class="card-content">
                             <div class="card-body">
@@ -74,21 +74,21 @@
                                 {
                                     <div class="row mb-2">
                                         <div class="col-md-3">
-                                            <label>Sana (dan)</label>
+                                            <label>@L.T("Wh_DateFromParen")</label>
                                             <input type="date" name="fromDate" value="@ViewBag.FromDate.ToString("yyyy-MM-dd")" class="form-control" />
                                         </div>
                                         <div class="col-md-3">
-                                            <label>Sana (gacha)</label>
+                                            <label>@L.T("Wh_DateToParen")</label>
                                             <input type="date" name="toDate" value="@ViewBag.ToDate.ToString("yyyy-MM-dd")" class="form-control" />
                                         </div>
                                         <div class="col-md-3">
-                                            <label>Mahsulot</label>
-                                            @Html.DropDownList("productID", ViewBag.Products as SelectList, "Barcha mahsulotlar", new { @class = "form-control select2" })
+                                            <label>@L.T("Wh_Product")</label>
+                                            @Html.DropDownList("productID", ViewBag.Products as SelectList, L.T("Wh_AllProducts"), new { @class = "form-control select2" })
                                         </div>
                                         <div class="col-md-3">
                                             <label>&nbsp;</label>
                                             <button type="submit" class="btn btn-primary btn-block">
-                                                <i class="bx bx-search"></i> Qidirish
+                                                <i class="bx bx-search"></i> @L.T("Search")
                                             </button>
                                         </div>
                                     </div>
@@ -98,14 +98,14 @@
                                     <table id="transfersTable" class="table table-striped table-bordered" style="width:100%">
                                         <thead>
                                             <tr>
-                                                <th>Hujjat raqami</th>
-                                                <th>Ishlab chiqarish ombori</th>
-                                                <th>Sotuv ombori</th>
-                                                <th>Mahsulot kodi</th>
-                                                <th>Jami miqdor</th>
-                                                <th>Sana</th>
-                                                <th>Holati</th>
-                                                <th>Amallar</th>
+                                                <th>@L.T("Wh_DocNo")</th>
+                                                <th>@L.T("Wh_Pts_ProductionWh")</th>
+                                                <th>@L.T("Wh_Pts_SalesWh")</th>
+                                                <th>@L.T("Wh_ProductCode")</th>
+                                                <th>@L.T("Wh_TotalQty")</th>
+                                                <th>@L.T("Date")</th>
+                                                <th>@L.T("Status")</th>
+                                                <th>@L.T("Actions")</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -114,7 +114,7 @@
                                                 var products = item.EXPENSE_PRODUCTS != null ? item.EXPENSE_PRODUCTS.ToList() : new List<tahsinERP.Models.EXPENSE_PRODUCTS>();
                                                 var totalQty = products.Sum(p => p.Amount);
                                                 var productCount = products.Count;
-                                                var pNo = productCount == 1 && products.Any() ? (products[0].PRODUCT != null ? products[0].PRODUCT.PNo : products[0].ProductID.ToString()) : (productCount > 1 ? productCount + " ta mahsulot" : "-");
+                                                var pNo = productCount == 1 && products.Any() ? (products[0].PRODUCT != null ? products[0].PRODUCT.PNo : products[0].ProductID.ToString()) : (productCount > 1 ? L.T("Wh_Pts_ProductCount", productCount) : "-");
                                                 <tr>
                                                     <td>
                                                         <a href="@Url.Action("Details", "ProductionToSalesTransfer", new { id = item.ID })" class="text-primary">
@@ -129,16 +129,16 @@
                                                     <td>
                                                         @if (item.SendStatus == true)
                                                         {
-                                                            <span class="badge badge-success">Yuborilgan</span>
+                                                            <span class="badge badge-success">@L.T("Wh_StSent")</span>
                                                         }
                                                         else
                                                         {
-                                                            <span class="badge badge-warning">Kutilmoqda</span>
+                                                            <span class="badge badge-warning">@L.T("Wh_StPending")</span>
                                                         }
                                                     </td>
                                                     <td>
                                                         <a href="@Url.Action("Details", "ProductionToSalesTransfer", new { id = item.ID })"
-                                                           class="btn btn-sm btn-icon btn-primary" title="Batafsil">
+                                                           class="btn btn-sm btn-icon btn-primary" title="@L.T("Details")">
                                                             <i class="bx bx-show"></i>
                                                         </a>
                                                     </td>
@@ -158,20 +158,20 @@
         <script>
             $(document).ready(function () {
                 $('.select2').select2({
-                    placeholder: "Tanlang",
+                    placeholder: "@L.Js("Select")",
                     allowClear: true
                 });
 
                 $('#transfersTable').DataTable({
                     "pageLength": 25,
-                    "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Barchasi"]],
+                    "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "@L.Js("All")"]],
                     "order": [[3, "desc"]],
                     "columnDefs": [
                         { "type": "date", "targets": 3 }
                     ],
                     "scrollX": true,
                     dom: 'lBfrtip',
-                    buttons: erpDataTable.buttons({ fileName: 'Ombor_chiqimlari', pdfTitle: 'Ombor chiqimlari' })
+                    buttons: erpDataTable.buttons({ fileName: '@L.Js("Wh_Exp_FileName")', pdfTitle: '@L.Js("Wh_ExpListTitle")' })
                 });
             });
         </script>

@@ -8,6 +8,7 @@ using System.Data.Entity;
 using tahsinERP.Services;
 using tahsinERP.Filters;
 using tahsinERP.Services.Common;
+using tahsinERP.I18n;
 
 namespace tahsinERP.Controllers
 {
@@ -127,7 +128,7 @@ namespace tahsinERP.Controllers
                     }
                     catch (Exception ex)
                     {
-                        ModelState.AddModelError("", $"O'zgarishlarni saqlab bo'lmadi: {ex.Message}. Qayta urinib ko'ring va agar muammo davom etsa, tizim administratoriga murojaat qiling.");
+                        ModelState.AddModelError("", L.T("Prd_SaveFailedWithMessage", ex.Message));
                     }
                 }
             }
@@ -200,7 +201,7 @@ namespace tahsinERP.Controllers
                     }
                     catch (RetryLimitExceededException)
                     {
-                        ModelState.AddModelError("", "O'zgarishlarni saqlab bo'lmadi. Qayta urinib ko'ring va agar muammo davom etsa, tizim administratoriga murojaat qiling.");
+                        ModelState.AddModelError("", L.T("Prd_SaveFailed"));
                     }
                 }
             }
@@ -262,7 +263,7 @@ namespace tahsinERP.Controllers
                 }
                 catch (RetryLimitExceededException)
                 {
-                    ModelState.AddModelError("", "O'zgarishlarni saqlab bo'lmadi. Qayta urinib ko'ring va agar muammo davom etsa, tizim administratoriga murojaat qiling.");
+                    ModelState.AddModelError("", L.T("Prd_SaveFailed"));
                 }
 
                 return View(category);

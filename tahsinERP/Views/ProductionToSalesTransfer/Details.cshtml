@@ -1,7 +1,7 @@
 @model tahsinERP.Models.EXPENS
 
 @{
-    ViewBag.Title = "O'tkazma ma'lumotlari";
+    ViewBag.Title = L.T("Wh_Pts_TransferInfo");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -22,10 +22,10 @@
                                         <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                     </li>
                                     <li class="breadcrumb-item">
-                                        <a href="~/ProductionToSalesTransfer/Index">O'tkazmalar</a>
+                                        <a href="~/ProductionToSalesTransfer/Index">@L.T("Wh_Pts_Transfers")</a>
                                     </li>
                                     <li class="breadcrumb-item active">
-                                        O'tkazma ma'lumotlari
+                                        @L.T("Wh_Pts_TransferInfo")
                                     </li>
                                 </ol>
                             </div>
@@ -39,46 +39,46 @@
                         <div class="card">
                             <div class="card-header">
                                 <h4 class="card-title">
-                                    <i class="bx bx-transfer"></i> O'tkazma: @Model.DocNo
+                                    <i class="bx bx-transfer"></i> @L.T("Wh_Pts_TransferColon") @Model.DocNo
                                 </h4>
                             </div>
                             <div class="card-content">
                                 <div class="card-body">
                                     <div class="row">
                                         <div class="col-md-6">
-                                            <h5 class="mb-2">Asosiy ma'lumotlar</h5>
+                                            <h5 class="mb-2">@L.T("Wh_MainInfo")</h5>
                                             <dl class="row">
-                                                <dt class="col-sm-4">Hujjat raqami:</dt>
+                                                <dt class="col-sm-4">@L.T("Wh_DocNoColon")</dt>
                                                 <dd class="col-sm-8"><a href="@Url.Action("Details", "Expenses", new { id = Model.ID })">@Model.DocNo</a></dd>
 
-                                                <dt class="col-sm-4">Ishlab chiqarish ombori:</dt>
+                                                <dt class="col-sm-4">@L.T("Wh_Pts_ProductionWhColon")</dt>
                                                 <dd class="col-sm-8">
                                                     <span class="badge badge-info">@(Model.Warehouse != null ? Model.Warehouse.WHName : "-")</span>
                                                 </dd>
 
-                                                <dt class="col-sm-4">Sotuv ombori:</dt>
+                                                <dt class="col-sm-4">@L.T("Wh_Pts_SalesWhColon")</dt>
                                                 <dd class="col-sm-8">
                                                     <span class="badge badge-success">@(Model.Warehouse1 != null ? Model.Warehouse1.WHName : "-")</span>
                                                 </dd>
 
-                                                <dt class="col-sm-4">Sana va vaqt:</dt>
+                                                <dt class="col-sm-4">@L.T("Wh_DateTimeColon")</dt>
                                                 <dd class="col-sm-8">@Model.IssueDateTime.ToString("dd.MM.yyyy HH:mm")</dd>
 
-                                                <dt class="col-sm-4">Holati:</dt>
+                                                <dt class="col-sm-4">@L.T("Wh_StatusColon")</dt>
                                                 <dd class="col-sm-8">
                                                     @if (Model.SendStatus == true)
                                                     {
-                                                        <span class="badge badge-success">Yuborilgan</span>
+                                                        <span class="badge badge-success">@L.T("Wh_StSent")</span>
                                                     }
                                                     else
                                                     {
-                                                        <span class="badge badge-warning">Kutilmoqda</span>
+                                                        <span class="badge badge-warning">@L.T("Wh_StPending")</span>
                                                     }
                                                 </dd>
 
                                                 @if (!string.IsNullOrEmpty(Model.Description))
                                                 {
-                                                    <dt class="col-sm-4">Izoh:</dt>
+                                                    <dt class="col-sm-4">@L.T("Wh_CommentColon")</dt>
                                                     <dd class="col-sm-8">@Model.Description</dd>
                                                 }
                                             </dl>
@@ -87,23 +87,23 @@
                                         @if (income != null)
                                         {
                                             <div class="col-md-6">
-                                                <h5 class="mb-2">Qabul qilish hujjati</h5>
+                                                <h5 class="mb-2">@L.T("Wh_Pts_ReceiptDoc")</h5>
                                                 <dl class="row">
-                                                    <dt class="col-sm-4">Hujjat raqami:</dt>
+                                                    <dt class="col-sm-4">@L.T("Wh_DocNoColon")</dt>
                                                     <dd class="col-sm-8"><a href="@Url.Action("Details", "Incomes", new { id = income.ID })">@income.DocNo</a></dd>
 
-                                                    <dt class="col-sm-4">Qabul qilish sanasi:</dt>
+                                                    <dt class="col-sm-4">@L.T("Wh_Pts_ReceiptDateColon")</dt>
                                                     <dd class="col-sm-8">@income.IssueDateTime.ToString("dd.MM.yyyy HH:mm")</dd>
 
-                                                    <dt class="col-sm-4">Holati:</dt>
+                                                    <dt class="col-sm-4">@L.T("Wh_StatusColon")</dt>
                                                     <dd class="col-sm-8">
                                                         @if (income.RecieveStatus == true)
                                                         {
-                                                            <span class="badge badge-success">Qabul qilingan</span>
+                                                            <span class="badge badge-success">@L.T("Wh_StReceived")</span>
                                                         }
                                                         else
                                                         {
-                                                            <span class="badge badge-warning">Kutilmoqda</span>
+                                                            <span class="badge badge-warning">@L.T("Wh_StPending")</span>
                                                         }
                                                     </dd>
                                                 </dl>
@@ -113,15 +113,15 @@
                                     
                                     <hr />
                                     
-                                    <h5 class="mb-2">Mahsulotlar</h5>
+                                    <h5 class="mb-2">@L.T("Wh_Products")</h5>
                                     <div class="table-responsive">
                                         <table class="table table-striped">
                                             <thead>
                                                 <tr>
-                                                    <th>Mahsulot kodi</th>
-                                                    <th>Mahsulot nomi</th>
-                                                    <th>Miqdor</th>
-                                                    <th>Birlik</th>
+                                                    <th>@L.T("Wh_ProductCode")</th>
+                                                    <th>@L.T("Wh_ProductName")</th>
+                                                    <th>@L.T("Quantity")</th>
+                                                    <th>@L.T("Unit")</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -144,7 +144,7 @@
                                                 else
                                                 {
                                                     <tr>
-                                                        <td colspan="4" class="text-center text-muted">Mahsulotlar topilmadi</td>
+                                                        <td colspan="4" class="text-center text-muted">@L.T("Wh_ProductsNotFound")</td>
                                                     </tr>
                                                 }
                                             </tbody>
@@ -155,14 +155,14 @@
                                     @if (transferDocIds.Any())
                                     {
                                         <hr />
-                                        <h5 class="mb-2">Bog'langan hujjatlar</h5>
+                                        <h5 class="mb-2">@L.T("Wh_LinkedDocs")</h5>
                                         <ul class="list-unstyled">
                                             @foreach (var docId in transferDocIds)
                                             {
                                                 <li>
                                                     @* Avval mavjud bo'lmagan ProductionToSalesTransfer/DownloadDocument ga olib borardi (404) *@
                                                     <a href="@Url.Action("DownloadDoc", "Expenses", new { id = docId })" class="btn btn-sm btn-outline-primary">
-                                                        <i class="bx bx-download"></i> Hujjatni yuklab olish
+                                                        <i class="bx bx-download"></i> @L.T("Wh_DownloadDoc")
                                                     </a>
                                                 </li>
                                             }
@@ -173,7 +173,7 @@
                                     
                                     <div class="d-flex justify-content-between">
                                         <a href="@Url.Action("Index", "ProductionToSalesTransfer")" class="btn btn-secondary">
-                                            <i class="bx bx-arrow-back"></i> Orqaga
+                                            <i class="bx bx-arrow-back"></i> @L.T("Back")
                                         </a>
                                     </div>
                                 </div>

@@ -6,6 +6,7 @@ using tahsinERP.Filters;
 using tahsinERP.Models;
 using tahsinERP.Services.Common;
 using tahsinERP.Services.Crm;
+using tahsinERP.I18n;
 
 namespace tahsinERP.Controllers
 {
@@ -64,7 +65,7 @@ namespace tahsinERP.Controllers
             decimal value;
             if (!CrmNumber.TryDecimal(rate, out value) || value <= 0)
             {
-                TempData["ErrorMessage"] = "Kurs musbat son bo'lishi kerak.";
+                TempData["ErrorMessage"] = L.T("Prd_RateMustBePositive");
                 return RedirectToAction("Index", new { currencyId });
             }
 
@@ -72,7 +73,7 @@ namespace tahsinERP.Controllers
             {
                 if (!CurrencyRateService.TableExists(db))
                 {
-                    TempData["ErrorMessage"] = "CURRENCY_RATES jadvali yo'q — avval Database_Migrations/CRM_2026_10_CurrencyRates.sql ni ishga tushiring.";
+                    TempData["ErrorMessage"] = L.T("Prd_RatesTableMissingRunSql");
                     return RedirectToAction("Index");
                 }
 
@@ -80,7 +81,7 @@ namespace tahsinERP.Controllers
                 LogHelper.LogToDatabase(CurrentUserName, "CurrencyRates", $"Kurs: {ReferenceDataCache.NameOf(ReferenceDataCache.Currencies, currencyId)} {rateDate:dd.MM.yyyy} = {value}");
             }
 
-            TempData["SuccessMessage"] = "Kurs saqlandi.";
+            TempData["SuccessMessage"] = L.T("Prd_RateSaved");
             return RedirectToAction("Index", new { currencyId });
         }
 
@@ -93,7 +94,7 @@ namespace tahsinERP.Controllers
             var to = (toDate.Date > DateTime.Today ? DateTime.Today : toDate.Date);
             if (from > to || (to - from).TotalDays > MaxFetchDays)
             {
-                TempData["ErrorMessage"] = $"Davr noto'g'ri yoki {MaxFetchDays} kundan uzun.";
+                TempData["ErrorMessage"] = L.T("Prd_PeriodInvalid", MaxFetchDays);
                 return RedirectToAction("Index", new { currencyId });
             }
 
@@ -102,7 +103,7 @@ namespace tahsinERP.Controllers
             {
                 if (!CurrencyRateService.TableExists(db))
                 {
-                    TempData["ErrorMessage"] = "CURRENCY_RATES jadvali yo'q — avval migratsiya skriptini ishga tushiring.";
+                    TempData["ErrorMessage"] = L.T("Prd_RatesTableMissingRunMigration");
                     return RedirectToAction("Index");
                 }
 
@@ -127,7 +128,7 @@ namespace tahsinERP.Controllers
             }
 
             TempData[failed == 0 ? "SuccessMessage" : "ErrorMessage"] =
-                $"CBU'dan {saved} ta kurs yuklandi" + (failed > 0 ? $", {failed} ta sana uchun javob olinmadi." : ".");
+                (failed > 0 ? L.T("Prd_CbuFetchedPartial", saved, failed) : L.T("Prd_CbuFetched", saved));
             return RedirectToAction("Index", new { currencyId, fromDate = from, toDate = to });
         }
 

@@ -10,6 +10,7 @@ using tahsinERP.Services.DlocFifo;
 using tahsinERP.Services.Stock;
 using tahsinERP.Controllers;
 using tahsinERP.Filters;
+using tahsinERP.I18n;
 
 namespace tahsinERP.Controllers.Settings
 {
@@ -74,14 +75,14 @@ namespace tahsinERP.Controllers.Settings
                 && warehouse.WarehouseType != WarehouseRoles.Production
                 && warehouse.WarehouseType != WarehouseRoles.Sales)
             {
-                modelState.AddModelError("WarehouseType", "Ombor turi noto'g'ri.");
+                modelState.AddModelError("WarehouseType", L.T("Wh_InvalidWarehouseType"));
                 return;
             }
 
             if (warehouse.WarehouseType == WarehouseRoles.Sales
                 && db.WAREHOUSES.Any(w => w.ID != warehouse.ID && w.IsDeleted != true && w.WarehouseType == WarehouseRoles.Sales))
             {
-                modelState.AddModelError("WarehouseType", "Savdo ombori allaqachon belgilangan — faqat bitta savdo ombori bo'lishi mumkin.");
+                modelState.AddModelError("WarehouseType", L.T("Wh_SalesWarehouseExists"));
             }
         }
 
@@ -105,13 +106,13 @@ namespace tahsinERP.Controllers.Settings
                         LogHelper.LogToDatabase(User.Identity.Name, "Omborlar", 
                             $"{warehouse.WHName} - omborini yaratdi");
 
-                        TempData["Success"] = "Ombor muvaffaqiyatli qo'shildi";
+                        TempData["Success"] = L.T("Wh_WarehouseCreated");
                         return RedirectToAction("Index");
                     }
                 }
                 catch (Exception ex)
                 {
-                    ModelState.AddModelError("", $"Xatolik: {ex.Message}");
+                    ModelState.AddModelError("", L.T("Wh_ErrorWithMessage", ex.Message));
                 }
 
                 // Reload ViewBag on xatolik
@@ -209,12 +210,12 @@ namespace tahsinERP.Controllers.Settings
                         LogHelper.LogToDatabase(User.Identity.Name, "Omborlar", 
                             $"{warehouse.WHName} - omborni tahrirladi");
 
-                        TempData["Success"] = "Ombor muvaffaqiyatli yangilandi";
+                        TempData["Success"] = L.T("Wh_WarehouseUpdated");
                         return RedirectToAction("Index");
                     }
                     catch (Exception ex)
                     {
-                        ModelState.AddModelError("", $"Xatolik: {ex.Message}");
+                        ModelState.AddModelError("", L.T("Wh_ErrorWithMessage", ex.Message));
                     }
                 }
 
@@ -276,26 +277,26 @@ namespace tahsinERP.Controllers.Settings
                 .Select(s => (double?)s.Amount)
                 .SumAsync() ?? 0;
             if (stockQty > 0.000001)
-                return $"Omborda qoldiq bor ({stockQty:N2}). Avval qoldiqni boshqa omborga o'tkazing yoki inventarizatsiya qiling.";
+                return L.T("Wh_DelBlock_Stock", stockQty.ToString("N2"));
 
             if (DlocFifoSchema.IsEnabled(db))
             {
                 var dlocQty = DlocFifoDataAccess.GetLocations(db, warehouseId, activeOnly: false)
                     .Sum(l => DlocFifoDataAccess.GetLocationCurrentQty(db, l.ID));
                 if (dlocQty > 0.000001m)
-                    return $"Ombor DLOC joylarida lot qoldig'i bor ({dlocQty:N2}).";
+                    return L.T("Wh_DelBlock_Dloc", dlocQty.ToString("N2"));
             }
 
             var pendingIncomes = await db.INCOMES.CountAsync(i =>
                 i.ReceivingWHID == warehouseId && i.IsDeleted != true && i.RecieveStatus != true);
             if (pendingIncomes > 0)
-                return $"Omborga {pendingIncomes} ta qabul qilinmagan kirim bor. Avval ularni qabul qiling yoki rad eting.";
+                return L.T("Wh_DelBlock_PendingIncomes", pendingIncomes);
 
             var pendingTransfers = await db.EXPENSES.CountAsync(e =>
                 e.IsDeleted != true && e.SendStatus != true && e.ReceiverWhID != null
                 && (e.SenderWHID == warehouseId || e.ReceiverWhID == warehouseId));
             if (pendingTransfers > 0)
-                return $"Ombor ishtirokidagi {pendingTransfers} ta yakunlanmagan o'tkazma bor.";
+                return L.T("Wh_DelBlock_PendingTransfers", pendingTransfers);
 
             return null;
         }
@@ -327,16 +328,16 @@ namespace tahsinERP.Controllers.Settings
                         LogHelper.LogToDatabase(User.Identity.Name, "Omborlar", 
                             $"{warehouse.WHName} - omborni o'chirdi");
 
-                        TempData["Success"] = "Ombor muvaffaqiyatli o'chirildi";
+                        TempData["Success"] = L.T("Wh_WarehouseDeleted");
                     }
                     else
                     {
-                        TempData["Error"] = "Ombor topilmadi";
+                        TempData["Error"] = L.T("Wh_WarehouseNotFound");
                     }
                 }
                 catch (Exception ex)
                 {
-                    TempData["Error"] = $"Xatolik: {ex.Message}";
+                    TempData["Error"] = L.T("Wh_ErrorWithMessage", ex.Message);
                 }
 
                 return RedirectToAction("Index");

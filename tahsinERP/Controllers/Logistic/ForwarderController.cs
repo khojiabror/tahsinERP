@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 using tahsinERP.Filters;
+using tahsinERP.I18n;
 using tahsinERP.Models;
 using tahsinERP.Services;
 using tahsinERP.ViewModels;
@@ -55,11 +56,11 @@ namespace tahsinERP.Controllers
 
                         return RedirectToAction("Index");
                     }
-                    ModelState.AddModelError("", "Iltimos, majburiy maydonlarni to'ldiring.");
+                    ModelState.AddModelError("", L.T("Log_FillRequired"));
                 }
                 catch (Exception ex)
                 {
-                    ModelState.AddModelError("", "Ma'lumotni saqlashda xatolik yuz berdi. Qayta urinib ko'ring.");
+                    ModelState.AddModelError("", L.T("Log_SaveError"));
                     LogHelper.LogToDatabase(User.Identity.Name, "ForwarderController", "Create", $"Xatolik: {ex.Message}");
                 }
             }
@@ -175,7 +176,7 @@ namespace tahsinERP.Controllers
                     var forwarderToUpdate = await db.FORWARDERS.FirstOrDefaultAsync(f => f.ID == forwarder.ID && f.IsDeleted != true);
                     if (forwarderToUpdate == null)
                     {
-                        ModelState.AddModelError("", "Yuk tashuvchi topilmadi.");
+                        ModelState.AddModelError("", L.T("Log_ForwarderNotFound"));
                         return View(forwarder);
                     }
 
@@ -196,13 +197,13 @@ namespace tahsinERP.Controllers
                     }
                     catch (Exception ex)
                     {
-                        ModelState.AddModelError("", "Ma'lumotni saqlashda xatolik yuz berdi. Qayta urinib ko'ring.");
+                        ModelState.AddModelError("", L.T("Log_SaveError"));
                         LogHelper.LogToDatabase(User.Identity.Name, "ForwarderController", "Edit", $"Xatolik: {ex.Message}");
                     }
                 }
                 else
                 {
-                    ModelState.AddModelError("", "Iltimos, majburiy maydonlarni to'ldiring.");
+                    ModelState.AddModelError("", L.T("Log_FillRequired"));
                 }
                 return View(forwarder);
             }
@@ -235,7 +236,7 @@ namespace tahsinERP.Controllers
                 if (await SoftDeleteAsync<FORWARDER>(db, ID,
                         (ctx, f) => SoftDeleteReferenceService.AfterForwarderSoftDeletedAsync(ctx, f.ID),
                         f => $"{f.ForwarderName} - yuk tashuvchi o'chirildi.",
-                        "Yuk tashuvchi topilmadi."))
+                        L.T("Log_ForwarderNotFound")))
                     return RedirectToAction("Index");
 
                 // LOG-B09: view null model bilan ochilmasin

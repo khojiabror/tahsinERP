@@ -6,6 +6,7 @@ using tahsinERP.Services.Common;
 using tahsinERP.Controllers;
 using tahsinERP.Services.DlocFifo;
 using tahsinERP.ViewModels;
+using tahsinERP.I18n;
 
 namespace tahsinERP.Controllers.Settings
 {
@@ -58,7 +59,7 @@ namespace tahsinERP.Controllers.Settings
                 return RedirectToAction("Index", "ViewNotAuthorized");
 
             if (model.MaxCapacity < model.MinCapacity)
-                ModelState.AddModelError("MaxCapacity", "Max Min dan kichik bo‘lmasligi kerak.");
+                ModelState.AddModelError("MaxCapacity", L.T("Wh_Loc_MaxLessThanMin"));
 
             if (!ModelState.IsValid)
             {
@@ -83,7 +84,7 @@ namespace tahsinERP.Controllers.Settings
                     AllowMixedProducts = model.AllowMixedProducts,
                     IsActive = model.IsActive
                 });
-                TempData["Success"] = "DLOC muvaffaqiyatli yaratildi.";
+                TempData["Success"] = L.T("Wh_Loc_Created");
                 return RedirectToAction("Index", new { warehouseId = model.WarehouseID });
             }
         }
@@ -124,7 +125,7 @@ namespace tahsinERP.Controllers.Settings
                 return RedirectToAction("Index", "ViewNotAuthorized");
 
             if (model.MaxCapacity < model.MinCapacity)
-                ModelState.AddModelError("MaxCapacity", "Max Min dan kichik bo‘lmasligi kerak.");
+                ModelState.AddModelError("MaxCapacity", L.T("Wh_Loc_MaxLessThanMin"));
 
             // SRM-B17: joyda qoldiq bor bo'lsa sig'imni undan kamaytirish yoki joyni nofaol qilish mumkin emas
             // (nofaol/o'chirilgan joydagi lotlar FIFO va ledger yig'indisidan tushib qoladi).
@@ -132,9 +133,9 @@ namespace tahsinERP.Controllers.Settings
             {
                 var currentQty = DlocFifoDataAccess.GetLocationCurrentQty(dbCheck, model.ID);
                 if (currentQty > 0 && model.MaxCapacity < currentQty)
-                    ModelState.AddModelError("MaxCapacity", $"Joyda hozir {currentQty:N2} qoldiq bor — Max undan kam bo‘lishi mumkin emas.");
+                    ModelState.AddModelError("MaxCapacity", L.T("Wh_Loc_MaxBelowCurrent", currentQty.ToString("N2")));
                 if (currentQty > 0 && !model.IsActive)
-                    ModelState.AddModelError("", $"Joyda {currentQty:N2} qoldiq bor — avval qoldiqni boshqa joyga o‘tkazing.");
+                    ModelState.AddModelError("", L.T("Wh_Loc_HasStockMoveFirst", currentQty.ToString("N2")));
             }
 
             if (!ModelState.IsValid)
@@ -160,7 +161,7 @@ namespace tahsinERP.Controllers.Settings
                     AllowMixedProducts = model.AllowMixedProducts,
                     IsActive = model.IsActive
                 });
-                TempData["Success"] = "DLOC yangilandi.";
+                TempData["Success"] = L.T("Wh_Loc_Updated");
                 return RedirectToAction("Index", new { warehouseId = model.WarehouseID });
             }
         }
@@ -181,12 +182,12 @@ namespace tahsinERP.Controllers.Settings
                 var currentQty = DlocFifoDataAccess.GetLocationCurrentQty(db, id);
                 if (currentQty > 0)
                 {
-                    TempData["Error"] = $"DLOC da {currentQty:N2} qoldiq bor — o‘chirib bo‘lmaydi. Avval qoldiqni boshqa joyga o‘tkazing.";
+                    TempData["Error"] = L.T("Wh_Loc_HasStockNoDelete", currentQty.ToString("N2"));
                     return RedirectToAction("Index", new { warehouseId = whId });
                 }
 
                 DlocFifoDataAccess.SoftDeleteLocation(db, id);
-                TempData["Success"] = "DLOC o‘chirildi.";
+                TempData["Success"] = L.T("Wh_Loc_Deleted");
                 return RedirectToAction("Index", new { warehouseId = whId });
             }
         }

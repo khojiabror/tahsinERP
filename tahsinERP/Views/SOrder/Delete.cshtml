@@ -1,6 +1,6 @@
 @model tahsinERP.Models.S_ORDERS
 @{
-    ViewBag.Title = "Buyurtmani o'chirish";
+    ViewBag.Title = L.T("Crm_OrdDeleteTitle");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -19,13 +19,13 @@
                                         <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                     </li>
                                     <li class="breadcrumb-item">
-                                        <a href="~/SOrder/Index">Buyurtmalar</a>
+                                        <a href="~/SOrder/Index">@L.T("Menu_Orders")</a>
                                     </li>
                                     <li class="breadcrumb-item">
-                                        <a href="~/SOrder/Details/@Model.ID">Buyurtma ma'lumotlari</a>
+                                        <a href="~/SOrder/Details/@Model.ID">@L.T("Crm_OrdDetailsTitle")</a>
                                     </li>
                                     <li class="breadcrumb-item active">
-                                        O'chirish
+                                        @L.T("Delete")
                                     </li>
                                 </ol>
                             </div>
@@ -40,25 +40,25 @@
                             <div class="card-content">
                                 <div class="card-body pb-0 mx-25">
                                     <div class="alert alert-warning">
-                                        <h4 class="alert-heading"><i class="bx bx-error"></i> Diqqat!</h4>
-                                        <p>Ushbu buyurtmani o'chirishni tasdiqlaysizmi? Bu amalni qaytarib bo'lmaydi.</p>
+                                        <h4 class="alert-heading"><i class="bx bx-error"></i> @L.T("Crm_Attention")</h4>
+                                        <p>@L.T("Crm_OrdDeleteConfirmText")</p>
                                     </div>
 
                                     <div class="row invoice-info">
                                         <div class="col-lg-12 col-md-6 mt-25">
-                                            <h4 class="text-primary">Buyurtma ma'lumotlari</h4>
+                                            <h4 class="text-primary">@L.T("Crm_OrdDetailsTitle")</h4>
                                             <hr />
                                             <div class="row">
                                                 <div class="col-md-6">
-                                                    <p><b>Buyurtma raqami:</b> @Model.OrderNo</p>
-                                                    <p><b>Tuzilgan sanasi:</b> @Model.IssuedDate.ToString("dd.MM.yyyy")</p>
-                                                    <p><b>Mijoz:</b> 
+                                                    <p><b>@L.T("Crm_OrderNo"):</b> @Model.OrderNo</p>
+                                                    <p><b>@L.T("Crm_OrdIssuedDate"):</b> @Model.IssuedDate.ToString("dd.MM.yyyy")</p>
+                                                    <p><b>@L.T("Crm_Client"):</b> 
                                                         @if (Model.CUSTOMER != null)
                                                         {
                                                             @Model.CUSTOMER.Name
                                                         }
                                                     </p>
-                                                    <p><b>Shartnoma:</b> 
+                                                    <p><b>@L.T("Crm_Contract"):</b> 
                                                         @if (Model.S_CONTRACTS != null && Model.ContractID > 0)
                                                         {
                                                             @Model.S_CONTRACTS.ContractNo
@@ -70,9 +70,9 @@
                                                     </p>
                                                 </div>
                                                 <div class="col-md-6">
-                                                    <p><b>Summa:</b> @(Model.Amount?.ToString("N2") ?? "0.00") @(Model.CURRENCy1?.Shortname ?? "")</p>
-                                                    <p><b>Valyuta:</b> @(Model.CURRENCy1?.Shortname ?? "")</p>
-                                                    <p><b>Tavsif:</b> @(Model.Description ?? "-")</p>
+                                                    <p><b>@L.T("Amount"):</b> @(Model.Amount?.ToString("N2") ?? "0.00") @(Model.CURRENCy1?.Shortname ?? "")</p>
+                                                    <p><b>@L.T("Currency"):</b> @(Model.CURRENCy1?.Shortname ?? "")</p>
+                                                    <p><b>@L.T("Description"):</b> @(Model.Description ?? "-")</p>
                                                 </div>
                                             </div>
                                             <hr />
@@ -86,7 +86,7 @@
                                                 <div class="col-12">
                                                     <div class="card">
                                                         <div class="card-header">
-                                                            <h4 class="card-title">Buyurtma maxsulotlari (@Model.S_ORDER_PRODUCTS.Count ta)</h4>
+                                                            <h4 class="card-title">@L.T("Crm_OrdOrderProductsCount", Model.S_ORDER_PRODUCTS.Count)</h4>
                                                         </div>
                                                         <div class="card-content">
                                                             <div class="card-body card-dashboard">
@@ -94,12 +94,12 @@
                                                                     <table class="table table-striped" style="width:100%">
                                                                         <thead>
                                                                             <tr>
-                                                                                <th>Maxsulot kodi</th>
-                                                                                <th>Maxsulot nomi</th>
-                                                                                <th>Birlik narxi (QQS bilan)</th>
-                                                                                <th>O'lchov birligi</th>
-                                                                                <th>Miqdori</th>
-                                                                                <th>Jami (QQS bilan)</th>
+                                                                                <th>@L.T("Crm_ProductCode")</th>
+                                                                                <th>@L.T("Crm_ProductName")</th>
+                                                                                <th>@L.T("Crm_OrdUnitPriceVat")</th>
+                                                                                <th>@L.T("Crm_UnitOfMeasure")</th>
+                                                                                <th>@L.T("Quantity")</th>
+                                                                                <th>@L.T("Crm_TotalWithVat")</th>
                                                                             </tr>
                                                                         </thead>
                                                                         <tbody>
@@ -138,13 +138,13 @@
                                             {
                                                 @Html.AntiForgeryToken()
                                                 @Html.HiddenFor(model => model.ID)
-                                                <button class="btn btn-danger btn-block subtotal-preview-btn" type="submit" onclick="return confirm('Ushbu buyurtmani o\'chirib yuborishga ishonchingiz komilmi?')">
+                                                <button class="btn btn-danger btn-block subtotal-preview-btn" type="submit" onclick="return confirm('@L.Js("Crm_OrdDeleteConfirmJs")')">
                                                     <i class='bx bx-trash'></i>
-                                                    Ha, o'chirish
+                                                    @L.T("Crm_YesDelete")
                                                 </button>
                                                 <a href="@Url.Action("Details", new { id = Model.ID })" class="btn btn-secondary btn-block mt-2">
                                                     <i class='bx bx-x'></i>
-                                                    Bekor qilish
+                                                    @L.T("Cancel")
                                                 </a>
                                             }
                                         </li>

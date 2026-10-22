@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using tahsinERP.Models;
+using tahsinERP.I18n;
 
 namespace tahsinERP.Services.DlocFifo
 {
@@ -12,26 +13,26 @@ namespace tahsinERP.Services.DlocFifo
         public static void RequireForProductionWarehouse(DBTHSNEntities db, int warehouseId, string warehouseName = null)
         {
             var whLabel = string.IsNullOrWhiteSpace(warehouseName)
-                ? $"Ombor ID {warehouseId}"
+                ? L.T("Wh_WarehouseIdLabel", warehouseId)
                 : warehouseName;
 
             if (!DlocFifoSchema.IsEnabled(db))
             {
                 throw new InvalidOperationException(
-                    "DLOC rejimi yoqilmagan. Ishlab chiqarish uchun avtomatik kirim va xomashyo chiqimi faqat DLOC bilan yaratiladi.");
+                    L.T("Wh_Err_ProdDlocDisabled"));
             }
 
             if (!DlocFifoDataAccess.WarehouseHasLocations(db, warehouseId))
             {
                 throw new InvalidOperationException(
-                    $"«{whLabel}» omborida DLOC joylashuvlari sozlanmagan. Avtomatik kirim/chiqim yaratib bo'lmaydi. Ombor bo'limida DLOC joylarini sozlang.");
+                    L.T("Wh_Err_ProdDlocNotConfigured", whLabel));
             }
 
             var activeLocations = DlocFifoDataAccess.GetLocations(db, warehouseId, activeOnly: true);
             if (activeLocations == null || !activeLocations.Any())
             {
                 throw new InvalidOperationException(
-                    $"«{whLabel}» omborida faol DLOC joylashuvi yo'q. Kamida bitta faol DLOC yarating.");
+                    L.T("Wh_Err_ProdNoActiveDloc", whLabel));
             }
         }
     }

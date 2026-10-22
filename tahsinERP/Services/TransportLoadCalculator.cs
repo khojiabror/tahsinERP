@@ -3,6 +3,8 @@ using System.Linq;
 using tahsinERP.Models;
 using tahsinERP.ViewModels;
 
+using tahsinERP.I18n;
+
 namespace tahsinERP.Services
 {
     /// <summary>
@@ -51,14 +53,14 @@ namespace tahsinERP.Services
             var product = db.PRODUCTS.FirstOrDefault(p => p.ID == productId && p.IsDeleted == false);
             if (product == null)
             {
-                throw new ArgumentException($"Product with ID {productId} not found or is deleted");
+                throw new ArgumentException(L.T("Log_ProductNotFound", productId));
             }
 
             // Load transport type
             var transportType = db.F_TRANSPORT_TYPES.FirstOrDefault(t => t.ID == transportTypeId && t.IsDeleted != true);
             if (transportType == null)
             {
-                throw new ArgumentException($"Transport type with ID {transportTypeId} not found");
+                throw new ArgumentException(L.T("Log_TransportTypeNotFoundId", transportTypeId));
             }
 
             // Get dimensions (assuming they are in mm as per requirement)
@@ -73,12 +75,12 @@ namespace tahsinERP.Services
             // Validate dimensions
             if (productLengthMm <= 0 || productWidthMm <= 0 || productHeightMm <= 0)
             {
-                throw new ArgumentException("Product dimensions must be greater than zero");
+                throw new ArgumentException(L.T("Log_ProductDimsPositive"));
             }
 
             if (transportLengthMm <= 0 || transportWidthMm <= 0 || transportHeightMm <= 0)
             {
-                throw new ArgumentException("Transport internal dimensions must be greater than zero");
+                throw new ArgumentException(L.T("Log_TransportDimsPositive"));
             }
 
             // Calculate using raw dimensions

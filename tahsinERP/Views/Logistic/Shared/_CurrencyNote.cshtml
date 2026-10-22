@@ -7,7 +7,7 @@
 @if (codes != null && codes.Count() > 1)
 {
     <div class="alert alert-info no-print">
-        Davrda bir nechta valyutadagi yozuvlar bor (@string.Join(", ", codes)). Summalar so'mda — har hujjat o'z sanasidagi CBU kursi bilan o'girilgan.
+        @L.T("Log_MultiCurrencyNote", string.Join(", ", codes))
     </div>
 }
 @if (!string.IsNullOrEmpty(warning))

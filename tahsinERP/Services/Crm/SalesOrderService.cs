@@ -5,6 +5,7 @@ using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
 using tahsinERP.Controllers;
+using tahsinERP.I18n;
 using tahsinERP.Models;
 using tahsinERP.ViewModels;
 
@@ -132,7 +133,7 @@ namespace tahsinERP.Services.Crm
                 .FirstOrDefault(o => o.ID == id);
             if (order == null)
             {
-                throw new SalesOrderException("Buyurtma topilmadi.", notFound: true);
+                throw new SalesOrderException(L.T("Crm_OrdNotFound"), notFound: true);
             }
 
             // Qatorlarni moslash: avval shu mahsulot + narx, keyin shu mahsulot
@@ -193,7 +194,7 @@ namespace tahsinERP.Services.Crm
                 .FirstOrDefault(o => o.ID == orderId);
             if (order == null)
             {
-                throw new SalesOrderException("Buyurtma topilmadi.", notFound: true);
+                throw new SalesOrderException(L.T("Crm_OrdNotFound"), notFound: true);
             }
 
             var existing = db.SORDER_DELIVERY_SCHEDULE.Where(s => s.SOrderID == orderId).ToList();
@@ -203,14 +204,14 @@ namespace tahsinERP.Services.Crm
             foreach (var item in posted)
             {
                 if (order.S_ORDER_PRODUCTS.All(p => p.ID != item.SOrderProductID))
-                    errors.Add("Reja qatori buyurtmada yo'q mahsulotga bog'langan.");
+                    errors.Add(L.T("Crm_OrdSchedLineProductMissing"));
                 if (item.ID.HasValue)
                 {
                     SORDER_DELIVERY_SCHEDULE row;
                     if (!existingById.TryGetValue(item.ID.Value, out row))
-                        errors.Add("Reja qatori bu buyurtmaga tegishli emas.");
+                        errors.Add(L.T("Crm_OrdSchedLineNotInOrder"));
                     else if (item.QtyPlanned < row.QtyShipped)
-                        errors.Add($"{row.DeliveryDate:dd.MM.yyyy} rejasida {row.QtyShipped:N2} yetkazilgan — reja miqdori undan kam bo'lishi mumkin emas.");
+                        errors.Add(L.T("Crm_OrdSchedBelowShipped", row.DeliveryDate.ToString("dd.MM.yyyy"), row.QtyShipped));
                 }
             }
 
@@ -219,7 +220,7 @@ namespace tahsinERP.Services.Crm
                 var orderProduct = order.S_ORDER_PRODUCTS.FirstOrDefault(p => p.ID == g.Key);
                 var totalPlanned = g.Sum(i => i.QtyPlanned);
                 if (orderProduct != null && totalPlanned > orderProduct.Amount + 0.0001m)
-                    errors.Add($"{orderProduct.PRODUCT?.PNo} - Rejalashtirilgan miqdor ({totalPlanned:N2}) buyurtma miqdoridan ({orderProduct.Amount:N2}) oshib ketdi");
+                    errors.Add(L.T("Crm_OrdSchedExceedsOrder", orderProduct.PRODUCT?.PNo, totalPlanned, orderProduct.Amount));
             }
 
             var postedIds = new HashSet<long>(posted.Where(i => i.ID.HasValue).Select(i => i.ID.Value));
@@ -235,9 +236,9 @@ namespace tahsinERP.Services.Crm
                 foreach (var s in toRemove)
                 {
                     if (s.QtyShipped > 0)
-                        errors.Add($"{s.DeliveryDate:dd.MM.yyyy} rejasi bo'yicha yetkazib berilgan — uni o'chirib bo'lmaydi.");
+                        errors.Add(L.T("Crm_OrdSchedShippedNoDelete", s.DeliveryDate.ToString("dd.MM.yyyy")));
                     else if (inspected.Contains(s.ID))
-                        errors.Add($"{s.DeliveryDate:dd.MM.yyyy} rejasiga sifat nazorati bog'langan — uni o'chirib bo'lmaydi.");
+                        errors.Add(L.T("Crm_OrdSchedInspectedNoDelete", s.DeliveryDate.ToString("dd.MM.yyyy")));
                 }
             }
 
@@ -290,12 +291,12 @@ namespace tahsinERP.Services.Crm
             var order = await db.S_ORDERS.Active().FirstOrDefaultAsync(o => o.ID == id);
             if (order == null)
             {
-                throw new SalesOrderException("Buyurtma topilmadi.", notFound: true);
+                throw new SalesOrderException(L.T("Crm_OrdNotFound"), notFound: true);
             }
 
             if (await db.SALES_INVOICES.Active().AnyAsync(i => i.OrderID == id))
             {
-                throw new SalesOrderException("Buyurtmaga faol invoys bog'langan — avval invoysni bekor qiling.");
+                throw new SalesOrderException(L.T("Crm_OrdHasActiveInvoice"));
             }
 
             order.IsDeleted = true;
@@ -378,7 +379,7 @@ namespace tahsinERP.Services.Crm
         {
             if (model.ProductQuantities == null || !model.ProductQuantities.Any())
             {
-                throw new SalesOrderException("Kamida bitta maxsulot uchun miqdor kiritish kerak");
+                throw new SalesOrderException(L.T("Crm_OrdQtyRequired"));
             }
         }
 
@@ -392,7 +393,7 @@ namespace tahsinERP.Services.Crm
         {
             if (model.ContractID <= 0)
             {
-                throw new SalesOrderException("Shartnoma tanlanmagan yoki noto'g'ri.");
+                throw new SalesOrderException(L.T("Crm_OrdContractInvalid"));
             }
 
             var contractLines = db.S_CONTRACT_PRODUCTS.AsNoTracking()
@@ -405,7 +406,7 @@ namespace tahsinERP.Services.Crm
             {
                 if (!contractLines.TryGetValue(q.ContractProductID, out var cp))
                 {
-                    throw new SalesOrderException("Tanlangan mahsulot shu shartnomaga tegishli emas. Sahifani yangilab qayta urinib ko'ring.");
+                    throw new SalesOrderException(L.T("Crm_OrdProductNotInContract"));
                 }
                 q.ProductID = cp.ProductID;
                 q.PiecePrice = cp.PiecePrice;
@@ -463,7 +464,7 @@ namespace tahsinERP.Services.Crm
                 var label = productNames(g.Key);
                 if (!contractAmounts.TryGetValue(g.Key, out var contractAmount))
                 {
-                    errors.Add($"{label} uchun shartnoma miqdori topilmadi.");
+                    errors.Add(L.T("Crm_OrdContractQtyNotFound", label));
                     continue;
                 }
 
@@ -473,10 +474,7 @@ namespace tahsinERP.Services.Crm
 
                 if (requested > remaining + 0.0001m)
                 {
-                    errors.Add(
-                        $"{label} bo'yicha shartnoma miqdori {contractAmount:N2}, " +
-                        $"oldin buyurtma {alreadyOrdered:N2}, qolgan {remaining:N2}. " +
-                        $"Kiritilgan {requested:N2}.");
+                    errors.Add(L.T("Crm_OrdQtyExceedsContract", label, contractAmount, alreadyOrdered, remaining, requested));
                 }
             }
 
@@ -515,7 +513,7 @@ namespace tahsinERP.Services.Crm
                 newTotals.TryGetValue(kv.Key, out newQty);
                 if (newQty + 0.0001m < kv.Value)
                 {
-                    errors.Add($"{names(kv.Key)}: {kv.Value:N2} invoys qilingan — buyurtma miqdori undan kam bo'lishi mumkin emas.");
+                    errors.Add(L.T("Crm_OrdBelowInvoiced", names(kv.Key), kv.Value));
                 }
             }
 
@@ -524,7 +522,7 @@ namespace tahsinERP.Services.Crm
                 decimal plannedQty;
                 if (planned.TryGetValue(pair.Item1.ID, out plannedQty) && pair.Item2.OrderQuantity + 0.0001m < plannedQty)
                 {
-                    errors.Add($"{names(pair.Item2.ProductID)}: yetkazib berish rejasida {plannedQty:N2} — miqdorni avval rejada kamaytiring.");
+                    errors.Add(L.T("Crm_OrdBelowPlanned", names(pair.Item2.ProductID), plannedQty));
                 }
             }
 
@@ -532,7 +530,7 @@ namespace tahsinERP.Services.Crm
             {
                 if (planned.ContainsKey(line.ID))
                 {
-                    errors.Add($"{names(line.ProductID)}: yetkazib berish rejasi bor — qatorni olib tashlashdan oldin rejadan o'chiring.");
+                    errors.Add(L.T("Crm_OrdRemoveLineHasPlan", names(line.ProductID)));
                 }
             }
 

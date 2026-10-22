@@ -1,6 +1,6 @@
 @model  tahsinERP.Models.UNIT
 @{
-    ViewBag.Title = "O'chirish";
+    ViewBag.Title = L.T("Delete");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -19,10 +19,10 @@
                                         <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                     </li>
                                     <li class="breadcrumb-item">
-                                        <a href="~/UNIT/Index">O'lchov birliklari</a>
+                                        <a href="~/UNIT/Index">@L.T("Menu_Units")</a>
                                     </li>
                                     <li class="breadcrumb-item active">
-                                        O'chirish sahifasi
+                                        @L.T("Prd_DeletePage")
                                     </li>
                                 </ol>
                             </div>
@@ -40,17 +40,17 @@
                                         <div class="col-lg-12 col-md-6 mt-25">
                                             @Html.AntiForgeryToken()
                                             @Html.ValidationSummary(true, "", new { @class = "text-danger" })
-                                            <h4 class="text-primary">Birlik ma'lumotlari</h4>
+                                            <h4 class="text-primary">@L.T("Prd_UnitInfo")</h4>
                                             <hr>
                                             <div class="row my-2 py-50">
                                                 <div class="col-sm-12 col-12 order-2 order-sm-1">
                                                     @Html.AntiForgeryToken()
                                                     <hr />
-                                                    <span><b>Nomi</b>: @Html.DisplayFor(model => model.UnitName, new { @class = "form-control" })</span>
+                                                    <span><b>@L.T("Name")</b>: @Html.DisplayFor(model => model.UnitName, new { @class = "form-control" })</span>
                                                     <br />
-                                                    <span><b>Qisqa Nomi</b>: @Html.DisplayFor(model => model.ShortName, new { @class = "form-control" })</span>
+                                                    <span><b>@L.T("Prd_ShortName")</b>: @Html.DisplayFor(model => model.ShortName, new { @class = "form-control" })</span>
                                                     <br />
-                                                    <span><b>Kodi<i class='bx bx-info-circle' data-toggle="tooltip" data-placement="right" title="Bojxona tizimidagi o'lchov birliklari kodi"></i></b>: @Html.DisplayFor(model => model.Code, new { @class = "form-control" })</span>
+                                                    <span><b>@L.T("Prd_CodeOf")<i class='bx bx-info-circle' data-toggle="tooltip" data-placement="right" title="@L.T("Prd_UnitCustomsCodeHint")"></i></b>: @Html.DisplayFor(model => model.Code, new { @class = "form-control" })</span>
                                                     <hr />
                                                 </div>
                                             </div>
@@ -68,9 +68,9 @@
                                             using (Html.BeginForm("Delete", "Unit", FormMethod.Post, new { enctype = "multipart/form-data" }))
                                             {
                                                 @Html.AntiForgeryToken()
-                                                <button class="btn btn-danger bg-light btn-block subtotal-preview-btn" name="delete" type="submit" value="Delete" onclick="return confirm('Ushbu Invoice o\'chirib yuborishga ishonchingiz komilmi?')">
+                                                <button class="btn btn-danger bg-light btn-block subtotal-preview-btn" name="delete" type="submit" value="Delete" onclick="return confirm('@L.Js("Confirm_Delete")')">
                                                     <i class='bx bx-trash'></i>
-                                                    O'chirish
+                                                    @L.T("Delete")
                                                 </button>
                                             }
                                             }

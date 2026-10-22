@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using tahsinERP.Models;
 using tahsinERP.Services.DlocFifo;
 using tahsinERP.Services.Stock;
+using tahsinERP.I18n;
 
 namespace tahsinERP.Services
 {
@@ -34,7 +35,7 @@ namespace tahsinERP.Services
             if (stockQty + QtyEpsilon < amount)
             {
                 throw new InvalidOperationException(
-                    $"Omborda yetarli qoldiq yo'q. Mavjud: {stockQty:N3}, Talab: {amount:N3}");
+                    L.T("Wh_Err_InsufficientStock", stockQty.ToString("N3"), amount.ToString("N3")));
             }
 
             if (StockLedger.IsDlocWarehouse(db, warehouseId))
@@ -58,8 +59,7 @@ namespace tahsinERP.Services
                     }
 
                     throw new InvalidOperationException(
-                        $"DLOC lot qoldig'i yetarli emas. DLOC da: {ledger:N3}, joylashtirilmagan: {unassigned:N3}, talab: {amount:N3}. " +
-                        "Avval «DLOC ga joylashtirish» sahifasida joylashtirilmagan qoldiqni joylashtiring.");
+                        L.T("Wh_Err_DlocLotInsufficient", ledger.ToString("N3"), unassigned.ToString("N3"), amount.ToString("N3")));
                 }
             }
 

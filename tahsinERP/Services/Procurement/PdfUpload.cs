@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Web;
+using tahsinERP.I18n;
 
 namespace tahsinERP.Services.Procurement
 {
@@ -30,12 +31,12 @@ namespace tahsinERP.Services.Procurement
 
             if (!string.Equals(Path.GetExtension(file.FileName ?? ""), ".pdf", StringComparison.OrdinalIgnoreCase))
             {
-                return "Faqat PDF fayl yuklash mumkin.";
+                return L.T("Srm_OnlyPdfAllowed");
             }
 
             if (file.ContentLength > MaxBytes)
             {
-                return $"Fayl hajmi {MaxBytes / (1024 * 1024)} MB dan oshmasligi kerak.";
+                return L.T("Srm_FileTooLarge", MaxBytes / (1024 * 1024));
             }
 
             var header = new byte[PdfSignature.Length];

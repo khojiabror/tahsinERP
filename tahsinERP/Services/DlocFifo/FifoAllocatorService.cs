@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using tahsinERP.Models;
+using tahsinERP.I18n;
 
 namespace tahsinERP.Services.DlocFifo
 {
@@ -32,7 +33,7 @@ namespace tahsinERP.Services.DlocFifo
 
             if (remaining > 0.0001m)
                 throw new WarehouseDlocException("INSUFFICIENT_STOCK",
-                    $"Yetarli qoldiq yo‘q. Talab: {quantity:N2}, ajratildi: {(quantity - remaining):N2}.");
+                    L.T("Wh_Err_FifoInsufficient", quantity.ToString("N2"), (quantity - remaining).ToString("N2")));
 
             return result;
         }

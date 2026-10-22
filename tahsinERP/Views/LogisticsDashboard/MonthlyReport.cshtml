@@ -1,6 +1,6 @@
 ﻿@model tahsinERP.ViewModels.LogisticsMonthlyReportViewModel
 @{
-    ViewBag.Title = "Logistika oylik hisoboti";
+    ViewBag.Title = L.T("Log_MonthlyReportTitle");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 <style>
@@ -29,8 +29,8 @@
                 <div class="breadcrumb-wrapper col-12">
                     <ol class="breadcrumb rounded-pill breadcrumb-divider">
                         <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
-                        <li class="breadcrumb-item"><a href="~/LogisticsDashboard/Index">Logistika paneli</a></li>
-                        <li class="breadcrumb-item active">Oylik hisobot</li>
+                        <li class="breadcrumb-item"><a href="~/LogisticsDashboard/Index">@L.T("Log_DashboardShort")</a></li>
+                        <li class="breadcrumb-item active">@L.T("Log_MonthlyReport")</li>
                     </ol>
                 </div>
             </div>
@@ -40,29 +40,29 @@
                 @Html.Partial("~/Views/Logistic/Shared/_CurrencyNote.cshtml")
             <div class="card no-print">
                 <div class="card-header">
-                    <h4 class="card-title mb-0">Logistika oylik hisoboti</h4>
+                    <h4 class="card-title mb-0">@L.T("Log_MonthlyReportTitle")</h4>
                 </div>
                 <div class="card-body">
                     @using (Html.BeginForm("MonthlyReport", "LogisticsDashboard", FormMethod.Get, new { @class = "form" }))
                     {
                         <div class="row">
                             <div class="col-md-2">
-                                <label>Oy</label>
-                                @Html.DropDownList("month", Enumerable.Range(1, 12).Select(i => new SelectListItem { Text = new DateTime(2024, i, 1).ToString("MMMM", new System.Globalization.CultureInfo("uz-Latn-UZ")), Value = i.ToString(), Selected = i == Model.Month }), new { @class = "form-control" })
+                                <label>@L.T("Log_Month")</label>
+                                @Html.DropDownList("month", Enumerable.Range(1, 12).Select(i => new SelectListItem { Text = L.T("Month_" + i), Value = i.ToString(), Selected = i == Model.Month }), new { @class = "form-control" })
                             </div>
                             <div class="col-md-2">
-                                <label>Yil</label>
+                                <label>@L.T("Log_Year")</label>
                                 <input type="number" name="year" class="form-control" value="@Model.Year" min="2020" max="2030" />
                             </div>
                             <div class="col-md-4">
-                                <label>Yuk tashuvchi</label>
-                                @Html.DropDownList("forwarderId", Model.Forwarders, "Barchasi", new { @class = "form-control" })
+                                <label>@L.T("Log_Forwarder")</label>
+                                @Html.DropDownList("forwarderId", Model.Forwarders, L.T("All"), new { @class = "form-control" })
                             </div>
                             <div class="col-md-2 d-flex align-items-end">
-                                <button type="submit" class="btn btn-primary">Hisobotni ko'rsatish</button>
+                                <button type="submit" class="btn btn-primary">@L.T("Log_ShowReport")</button>
                             </div>
                             <div class="col-md-2 d-flex align-items-end justify-content-end">
-                                <button type="button" class="btn btn-outline-secondary" onclick="window.print();"><i class="bx bx-printer"></i> Chop etish</button>
+                                <button type="button" class="btn btn-outline-secondary" onclick="window.print();"><i class="bx bx-printer"></i> @L.T("Print")</button>
                             </div>
                         </div>
                     }
@@ -76,9 +76,9 @@
                         {
                             <p class="report-meta mb-0">@Model.CompanyName</p>
                         }
-                        <h5 class="report-title mt-2">LOGISTIKA OYLIK HISOBOTI</h5>
-                        <p class="report-meta mb-0">Oy: <strong>@Model.PeriodTitleUz</strong> (@Model.PeriodTitle)</p>
-                        <p class="report-meta mb-0">Hujjat sanasi: <strong>@Model.ReportDate</strong></p>
+                        <h5 class="report-title mt-2">@L.T("Log_MonthlyReportTitleUpper")</h5>
+                        <p class="report-meta mb-0">@L.T("Log_Month"): <strong>@Model.PeriodTitleUz</strong> (@Model.PeriodTitle)</p>
+                        <p class="report-meta mb-0">@L.T("Log_DocDate"): <strong>@Model.ReportDate</strong></p>
                     </div>
 
                     <div class="table-responsive">
@@ -86,12 +86,12 @@
                             <thead>
                                 <tr class="table-primary">
                                     <th style="width:40px">№</th>
-                                    <th>Yuk tashuvchi</th>
-                                    <th class="text-right">Reyslar soni</th>
-                                    <th class="text-right">Oldingi qarzdorlik</th>
-                                    <th class="text-right">Oy xarajati</th>
-                                    <th class="text-right">Oy to'lovi</th>
-                                    <th class="text-right">Oy oxiridagi qarzdorlik</th>
+                                    <th>@L.T("Log_Forwarder")</th>
+                                    <th class="text-right">@L.T("Log_TripCount")</th>
+                                    <th class="text-right">@L.T("Log_OpeningDebt")</th>
+                                    <th class="text-right">@L.T("Log_MonthCost")</th>
+                                    <th class="text-right">@L.T("Log_MonthPayment")</th>
+                                    <th class="text-right">@L.T("Log_ClosingDebt")</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -111,7 +111,7 @@
                                         </tr>
                                     }
                                     <tr class="total-row">
-                                        <td colspan="2" class="text-right"><strong>JAMI</strong></td>
+                                        <td colspan="2" class="text-right"><strong>@L.T("Log_TotalUpper")</strong></td>
                                         <td class="text-right">@Model.Totals.TotalTrips</td>
                                         <td class="text-right">@Model.Totals.TotalOpeningDebt.ToString("N2")</td>
                                         <td class="text-right">@Model.Totals.TotalFreight.ToString("N2")</td>
@@ -122,7 +122,7 @@
                                 else
                                 {
                                     <tr>
-                                        <td colspan="7" class="text-center">Ushbu oy uchun logistika ma'lumotlari topilmadi.</td>
+                                        <td colspan="7" class="text-center">@L.T("Log_NoMonthData")</td>
                                     </tr>
                                 }
                             </tbody>

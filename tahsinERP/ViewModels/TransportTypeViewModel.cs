@@ -10,8 +10,8 @@ namespace tahsinERP.ViewModels
     public class TransportTypeViewModel
     {
         public int ID { get; set; }
-        [Required(ErrorMessage = "Transport type is required")]
-        [StringLength(50, ErrorMessage = "Transport type must be at most 50 characters long")]
+        [Required(ErrorMessage = "Log_Val_TransportTypeRequired")]
+        [StringLength(50, ErrorMessage = "Log_Val_TransportTypeMax50")]
         public string TransportType { get; set; }
         public double ExtLgth { get; set; }
         public double ExtWdth { get; set; }

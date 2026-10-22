@@ -3,6 +3,7 @@ using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
+using tahsinERP.I18n;
 using tahsinERP.Models;
 
 namespace tahsinERP.Controllers
@@ -115,7 +116,7 @@ namespace tahsinERP.Controllers
                     }
                     catch (Exception ex)
                     {
-                        ModelState.AddModelError("", $"Xatolik: {ex.Message}");
+                        ModelState.AddModelError("", L.T("Crm_ErrorPrefix", ex.Message));
                     }
                 }
             }
@@ -190,7 +191,7 @@ namespace tahsinERP.Controllers
                     }
                     catch (Exception ex)
                     {
-                        ModelState.AddModelError("", $"Xatolik: {ex.Message}");
+                        ModelState.AddModelError("", L.T("Crm_ErrorPrefix", ex.Message));
                     }
                 }
             }
@@ -205,7 +206,7 @@ namespace tahsinERP.Controllers
         {
             if (!tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "CustomerBase"))
             {
-                return Json(new { success = false, message = "Ruxsat yo'q" });
+                return Json(new { success = false, message = L.T("Error_NotAuthorized") });
             }
 
             using (var db = new DBTHSNEntities())
@@ -215,7 +216,7 @@ namespace tahsinERP.Controllers
                     var customerBase = await db.CUSTOMER_BASE.FindAsync(id);
                     if (customerBase == null || customerBase.IsDeleted == true)
                     {
-                        return Json(new { success = false, message = "Yozuv topilmadi" });
+                        return Json(new { success = false, message = L.T("Crm_CustRecordNotFound") });
                     }
 
                     customerBase.IsDeleted = true;
@@ -223,11 +224,11 @@ namespace tahsinERP.Controllers
 
                     LogHelper.LogToDatabase(User.Identity.Name, "CustomerBase", $"Delete - {customerBase.CompanyName} o'chirildi");
 
-                    return Json(new { success = true, message = "Muvaffaqiyatli o'chirildi" });
+                    return Json(new { success = true, message = L.T("Crm_CustDeletedOk") });
                 }
                 catch (Exception ex)
                 {
-                    return Json(new { success = false, message = $"Xatolik: {ex.Message}" });
+                    return Json(new { success = false, message = L.T("Crm_ErrorPrefix", ex.Message) });
                 }
             }
         }

@@ -1,6 +1,6 @@
 @using tahsinERP.ViewModels
 @{
-    ViewBag.Title = "Solishtirish hisoboti";
+    ViewBag.Title = L.T("Log_ReconReport");
     Layout = "~/Views/Shared/_Layout.cshtml";
     int rowLimit = ViewBag.RowLimit ?? 500;
 }
@@ -14,7 +14,7 @@
                     <h5 class="mb-0">@title <span class="badge badge-light-primary">@total</span></h5>
                     @if (total > rowLimit)
                     {
-                        <small class="text-muted">Oxirgi @rowLimit tasi ko'rsatilgan — davrni qisqartiring.</small>
+                        <small class="text-muted">@L.T("Log_LastRowsShown", rowLimit)</small>
                     }
                 </div>
                 <div class="card-body">
@@ -22,11 +22,11 @@
                         <table class="table table-striped">
                             <thead>
                                 <tr>
-                                    <th>Hujjat</th>
+                                    <th>@L.T("Log_Document")</th>
                                     <th>@partyHeader</th>
-                                    <th>Sana</th>
-                                    <th>Summa</th>
-                                    <th>Valyuta</th>
+                                    <th>@L.T("Date")</th>
+                                    <th>@L.T("Amount")</th>
+                                    <th>@L.T("Currency")</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -45,7 +45,7 @@
                                 }
                                 else
                                 {
-                                    <tr><td colspan="5" class="text-center">Ma'lumot topilmadi</td></tr>
+                                    <tr><td colspan="5" class="text-center">@L.T("Log_NoDataFound")</td></tr>
                                 }
                             </tbody>
                         </table>
@@ -69,10 +69,10 @@
                                     <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                 </li>
                                 <li class="breadcrumb-item">
-                                    <a href="~/LogisticsDashboard">Logistika boshqaruv paneli</a>
+                                    <a href="~/LogisticsDashboard">@L.T("Log_DashboardTitle")</a>
                                 </li>
                                 <li class="breadcrumb-item active">
-                                    Solishtirish hisoboti
+                                    @L.T("Log_ReconReport")
                                 </li>
                             </ol>
                         </div>
@@ -87,26 +87,26 @@
                     <form method="get" action="@Url.Action("Reconciliation", "LogisticsDashboard")">
                         <div class="row">
                             <div class="col-md-3">
-                                <label>Boshlanish sanasi</label>
+                                <label>@L.T("Log_StartDate")</label>
                                 <input type="date" name="startDate" class="form-control" value="@ViewBag.StartDate" />
                             </div>
                             <div class="col-md-3">
-                                <label>Tugash sanasi</label>
+                                <label>@L.T("Log_EndDate")</label>
                                 <input type="date" name="endDate" class="form-control" value="@ViewBag.EndDate" />
                             </div>
                             <div class="col-md-2 d-flex align-items-end">
-                                <button type="submit" class="btn btn-primary w-100">Ko'rsatish</button>
+                                <button type="submit" class="btn btn-primary w-100">@L.T("Log_Show")</button>
                             </div>
                         </div>
                     </form>
                 </div>
             </div>
 
-            @Section("Invoyssiz yo'l varaqalari", "Yuk tashuvchi", Url.Content("~/Waybill/Details/"), ViewBag.WaybillsWithoutInvoices as IEnumerable<LogisticsReconciliationRowViewModel>, (int)ViewBag.WaybillsWithoutInvoicesCount, rowLimit)
+            @Section(L.T("Log_WaybillsWithoutInvoices"), L.T("Log_Forwarder"), Url.Content("~/Waybill/Details/"), ViewBag.WaybillsWithoutInvoices as IEnumerable<LogisticsReconciliationRowViewModel>, (int)ViewBag.WaybillsWithoutInvoicesCount, rowLimit)
 
-            @Section("To'lovsiz yo'l varaqalari", "Yuk tashuvchi", Url.Content("~/Waybill/Details/"), ViewBag.WaybillsWithoutPayments as IEnumerable<LogisticsReconciliationRowViewModel>, (int)ViewBag.WaybillsWithoutPaymentsCount, rowLimit)
+            @Section(L.T("Log_WaybillsWithoutPayments"), L.T("Log_Forwarder"), Url.Content("~/Waybill/Details/"), ViewBag.WaybillsWithoutPayments as IEnumerable<LogisticsReconciliationRowViewModel>, (int)ViewBag.WaybillsWithoutPaymentsCount, rowLimit)
 
-            @Section("Yuk tashish xarajati kiritilmagan sotuv invoyslari", "Mijoz", Url.Content("~/SalesInvoices/Details/"), ViewBag.SalesInvoicesWithoutFreight as IEnumerable<LogisticsReconciliationRowViewModel>, (int)ViewBag.SalesInvoicesWithoutFreightCount, rowLimit)
+            @Section(L.T("Log_SalesInvoicesWithoutFreight"), L.T("Log_Payer_Customer"), Url.Content("~/SalesInvoices/Details/"), ViewBag.SalesInvoicesWithoutFreight as IEnumerable<LogisticsReconciliationRowViewModel>, (int)ViewBag.SalesInvoicesWithoutFreightCount, rowLimit)
         </div>
     </div>
 </div>

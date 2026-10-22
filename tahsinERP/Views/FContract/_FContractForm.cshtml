@@ -24,10 +24,10 @@
                                         <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                     </li>
                                     <li class="breadcrumb-item">
-                                        <a href="~/FContract/Index">Shartnomalar</a>
+                                        <a href="~/FContract/Index">@L.T("Log_Contracts")</a>
                                     </li>
                                     <li class="breadcrumb-item active">
-                                        @(isEdit ? "Shartnomani tahrirlash" : "Yangi shartnoma qo'shish")
+                                        @(isEdit ? L.T("Log_ContractEditTitle") : L.T("Log_NewContract"))
                                     </li>
                                 </ol>
                             </div>
@@ -46,52 +46,52 @@
                                             <div class="col-lg-12 col-md-6 mt-25">
                                                 @Html.ValidationSummary(true, "", new { @class = "text-danger" })
                                                 <hr>
-                                                <h6 class="invoice-to">Shartnoma raqami</h6>
+                                                <h6 class="invoice-to">@L.T("Log_ContractNo")</h6>
                                                 <fieldset class="invoice-address form-group">
-                                                    @Html.TextBoxFor(model => model.ContractNo, new { @class = "form-control round", @placeholder = "Shartnoma raqami" })
+                                                    @Html.TextBoxFor(model => model.ContractNo, new { @class = "form-control round", @placeholder = L.T("Log_ContractNo") })
                                                     @Html.ValidationMessageFor(model => model.ContractNo, "", new { @class = "text-danger" })
                                                 </fieldset>
-                                                <h6 class="invoice-to">@LogisticsTerms.Forwarder</h6>
+                                                <h6 class="invoice-to">@L.T("Log_Forwarder")</h6>
                                                 <fieldset class="invoice-address form-group">
                                                     @Html.DropDownListFor(model => model.ForwarderID, ViewBag.Forwarder as SelectList, new { @class = "form-control select2" })
                                                     @Html.ValidationMessageFor(model => model.ForwarderID, "", new { @class = "text-danger" })
                                                 </fieldset>
-                                                <h6 class="invoice-to">Tuzilgan sanasi</h6>
+                                                <h6 class="invoice-to">@L.T("Log_IssueDate")</h6>
                                                 <fieldset class="form-group position-relative has-icon-left">
-                                                    @Html.TextBoxFor(model => model.IssueDate, "{0:yyyy-MM-dd}", new { @class = "form-control fcontract-date", @required = "required", @placeholder = "Shartnoma tuzilgan sanasi" })
+                                                    @Html.TextBoxFor(model => model.IssueDate, "{0:yyyy-MM-dd}", new { @class = "form-control fcontract-date", @required = "required", @placeholder = L.T("Log_ContractIssueDatePh") })
                                                     @Html.ValidationMessageFor(model => model.IssueDate, "", new { @class = "text-danger" })
                                                     <div class="form-control-position">
                                                         <i class='bx bx-calendar'></i>
                                                     </div>
                                                 </fieldset>
-                                                <h6 class="invoice-to">Tugaydigan sana</h6>
+                                                <h6 class="invoice-to">@L.T("Log_EndingDate")</h6>
                                                 <fieldset class="form-group position-relative has-icon-left">
-                                                    @Html.TextBoxFor(model => model.DueDate, "{0:yyyy-MM-dd}", new { @class = "form-control fcontract-date", @required = "required", @placeholder = "Shartnoma tugaydigan sanasi" })
+                                                    @Html.TextBoxFor(model => model.DueDate, "{0:yyyy-MM-dd}", new { @class = "form-control fcontract-date", @required = "required", @placeholder = L.T("Log_ContractDueDatePh") })
                                                     @Html.ValidationMessageFor(model => model.DueDate, "", new { @class = "text-danger" })
                                                     <div class="form-control-position">
                                                         <i class='bx bx-calendar'></i>
                                                     </div>
                                                 </fieldset>
-                                                <h6 class="invoice-to">Miqdori</h6>
+                                                <h6 class="invoice-to">@L.T("Log_AmountShort")</h6>
                                                 <fieldset class="invoice-address form-group">
-                                                    @Html.TextBoxFor(model => model.Amount, "{0:0.######}", new { @class = "form-control round", @placeholder = "Summa" })
+                                                    @Html.TextBoxFor(model => model.Amount, "{0:0.######}", new { @class = "form-control round", @placeholder = L.T("Amount") })
                                                     @Html.ValidationMessageFor(model => model.Amount, "", new { @class = "text-danger" })
                                                 </fieldset>
-                                                <h6 class="invoice-to">Valyuta</h6>
+                                                <h6 class="invoice-to">@L.T("Currency")</h6>
                                                 <fieldset class="invoice-address form-group">
                                                     @Html.DropDownListFor(model => model.CurrencyID, ViewBag.currencies as SelectList, new { @class = "form-control select2" })
                                                     @Html.ValidationMessageFor(model => model.CurrencyID, "", new { @class = "text-danger" })
                                                 </fieldset>
-                                                <h6 class="invoice-to">Batafsil ma`lumot</h6>
+                                                <h6 class="invoice-to">@L.T("Log_DetailedInfo")</h6>
                                                 <fieldset class="invoice-address form-group">
-                                                    @Html.TextAreaFor(model => model.Description, new { @class = "form-control round", @placeholder = "Qisqacha malumot" })
+                                                    @Html.TextAreaFor(model => model.Description, new { @class = "form-control round", @placeholder = L.T("Log_BriefInfo") })
                                                     @Html.ValidationMessageFor(model => model.Description, "", new { @class = "text-danger" })
                                                 </fieldset>
                                                 <ul class="list-group list-group-flush">
                                                     <li class="list-group-item border-0 pb-0">
                                                         <button class="btn btn-primary btn-block subtotal-preview-btn" type="submit">
                                                             <i class='bx bx-save'></i>
-                                                            Saqlash
+                                                            @L.T("Save")
                                                         </button>
                                                     </li>
                                                 </ul>

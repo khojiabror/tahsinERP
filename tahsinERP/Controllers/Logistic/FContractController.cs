@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 using tahsinERP.Filters;
+using tahsinERP.I18n;
 using tahsinERP.Models;
 using tahsinERP.Services;
 
@@ -70,7 +71,7 @@ namespace tahsinERP.Controllers
                     }
                     else
                     {
-                        ModelState.AddModelError("", "Iltimos, majburiy maydonlarni to'ldiring.");
+                        ModelState.AddModelError("", L.T("Log_FillRequired"));
                         ViewBag.currencies = new SelectList(await db.CURRENCIES.ToListAsync(), "ID", "Shortname");
                         ViewBag.Forwarder = new SelectList(await db.FORWARDERS.Where(fc => fc.IsDeleted == false).ToListAsync(), "ID", "ForwarderName");
                     }
@@ -80,7 +81,7 @@ namespace tahsinERP.Controllers
             {
                 using(DBTHSNEntities db = new DBTHSNEntities())
                 {
-                    ModelState.AddModelError("", "Ma'lumotni saqlashda xatolik yuz berdi. Qayta urinib ko'ring.");
+                    ModelState.AddModelError("", L.T("Log_SaveError"));
                     LogHelper.LogToDatabase(User.Identity.Name, "FContractController", "Create", $"Xatolik: {ex.Message}");
                     ViewBag.Forwarder = new SelectList(await db.FORWARDERS.Where(fc => fc.IsDeleted == false).ToListAsync(), "ID", "ForwarderName");
                     ViewBag.currencies = new SelectList(await db.CURRENCIES.ToListAsync(), "ID", "Shortname");
@@ -167,11 +168,11 @@ namespace tahsinERP.Controllers
                         }
                         catch (RetryLimitExceededException)
                         {
-                            ModelState.AddModelError("", "Oʻzgarishlarni saqlab boʻlmadi. Qayta urinib ko'ring va agar muammo davom etsa, tizim administratoriga murojaat qiling.");
+                            ModelState.AddModelError("", L.T("Log_SaveRetryError"));
                         }
                         catch (Exception ex)
                         {
-                            ModelState.AddModelError("", "Ma'lumotni saqlashda xatolik yuz berdi. Qayta urinib ko'ring.");
+                            ModelState.AddModelError("", L.T("Log_SaveError"));
                             LogHelper.LogToDatabase(User.Identity.Name, "FContractController", "Edit", $"Xatolik: {ex.Message}");
                         }
                     }
@@ -186,7 +187,7 @@ namespace tahsinERP.Controllers
                 ViewBag.Forwarder = new SelectList(await db.FORWARDERS.Where(f => f.IsDeleted == false).ToListAsync(), "ID", "ForwarderName", contract.ForwarderID);
                 ViewBag.currencies = new SelectList(await db.CURRENCIES.ToListAsync(), "ID", "Shortname", contract.CurrencyID);
             }
-            ModelState.AddModelError("", "Iltimos, majburiy maydonlarni to'ldiring.");
+            ModelState.AddModelError("", L.T("Log_FillRequired"));
             return View(contract);
         }
         public async Task<ActionResult> Delete(int? Id)
@@ -215,7 +216,7 @@ namespace tahsinERP.Controllers
                 if (await SoftDeleteAsync<F_CONTRACTS>(db, ID,
                         (ctx, c) => SoftDeleteReferenceService.AfterFContractSoftDeletedAsync(ctx, c.ID),
                         c => $"{c.ContractNo} - shartnoma o'chirildi.",
-                        "Bunday shartnoma topilmadi."))
+                        L.T("Log_ContractNotFound")))
                     return RedirectToAction("Index");
             }
 

@@ -1,6 +1,6 @@
 @model List<tahsinERP.Models.CUSTOMER_BASE>
 @{
-    ViewBag.Title = "Ma'lumotnoma";
+    ViewBag.Title = L.T("Menu_Directory");
     Layout = "~/Views/Shared/_Layout.cshtml";
     var productType = ViewBag.ProductType;
     bool changePermit = ViewBag.ChangePermit as bool? ?? false;
@@ -19,7 +19,7 @@
                                         <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                     </li>
                                     <li class="breadcrumb-item active">
-                                        Ma'lumotnoma
+                                        @L.T("Menu_Directory")
                                     </li>
                                 </ol>
                             </div>
@@ -33,7 +33,7 @@
                         @if (changePermit)
                         {
                             <a href="@Url.Action("Create", "CustomerBase")" class="btn btn-success bg-light invoice-create">
-                                <i class="bx bx-plus"></i> Yangi qo'shish
+                                <i class="bx bx-plus"></i> @L.T("AddNew")
                             </a>
                         }
                     </div>
@@ -42,14 +42,14 @@
                         <form>
                             <div class="row border rounded py-2 mb-2">
                                 <div class="col-12 col-sm-12 col-lg-4">
-                                    <label for="ProductType">Faoliyati:</label>
+                                    <label for="ProductType">@L.T("Crm_CustActivity"):</label>
                                     <fieldset class="form-group">
-                                        @Html.DropDownList("ProductType", ViewBag.ProductTypeList as SelectList, "Barchasi", new { @class = "form-control", @id = "productTypeFilter" })
+                                        @Html.DropDownList("ProductType", ViewBag.ProductTypeList as SelectList, L.T("All"), new { @class = "form-control", @id = "productTypeFilter" })
                                     </fieldset>
                                 </div>
                                 <div class="col-12 col-sm-12 col-lg-4 d-flex align-items-center">
                                     <a href="~/CustomerBase" class="btn btn-secondary bg-light invoice-create" role="button" aria-pressed="true">
-                                        <i class="bx bx-refresh"></i> Ro'yxatni yangilash
+                                        <i class="bx bx-refresh"></i> @L.T("Crm_CustRefreshList")
                                     </a>
                                 </div>
                             </div>
@@ -64,17 +64,17 @@
                                         <table id="customerBaseTable" class="table zero-configuration dt-responsive nowrap" style="width:100%">
                                             <thead>
                                                 <tr>
-                                                    <th>Korxona / Do'kon</th>
-                                                    <th>Maxsulot turi</th>
-                                                    <th>Davlat</th>
-                                                    <th>Viloyat</th>
-                                                    <th>Region</th>
-                                                    <th>Aloqa uchun</th>
-                                                    <th>Lavozimi</th>
-                                                    <th>Telefon</th>
+                                                    <th>@L.T("Crm_CustCompanyShop")</th>
+                                                    <th>@L.T("Crm_CustProductType")</th>
+                                                    <th>@L.T("Crm_CustCountry")</th>
+                                                    <th>@L.T("Crm_CustProvince")</th>
+                                                    <th>@L.T("Crm_CustRegion")</th>
+                                                    <th>@L.T("Crm_CustContactPerson")</th>
+                                                    <th>@L.T("Crm_CustPosition")</th>
+                                                    <th>@L.T("Phone")</th>
                                                     @if (changePermit)
                                                     {
-                                                        <th>Amallar</th>
+                                                        <th>@L.T("Actions")</th>
                                                     }
                                                 </tr>
                                             </thead>
@@ -98,10 +98,10 @@
                                                             {
                                                                 <td>
                                                                     <div class="d-flex">
-                                                                        <a href="@Url.Action("Edit", "CustomerBase", new { id = item.ID })" class="btn btn-sm btn-icon btn-outline-primary mr-1" title="Tahrirlash">
+                                                                        <a href="@Url.Action("Edit", "CustomerBase", new { id = item.ID })" class="btn btn-sm btn-icon btn-outline-primary mr-1" title="@L.T("Edit")">
                                                                             <i class="bx bx-edit-alt"></i>
                                                                         </a>
-                                                                        <button type="button" class="btn btn-sm btn-icon btn-outline-danger js-delete-customer-base" data-id="@item.ID" data-name="@(item.CompanyName ?? "Yozuv")" title="O'chirish">
+                                                                        <button type="button" class="btn btn-sm btn-icon btn-outline-danger js-delete-customer-base" data-id="@item.ID" data-name="@(item.CompanyName ?? L.T("Crm_CustRecord"))" title="@L.T("Delete")">
                                                                             <i class="bx bx-trash"></i>
                                                                         </button>
                                                                     </div>

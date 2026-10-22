@@ -1,6 +1,6 @@
 @model tahsinERP.Models.SALES_SF_HEADERS
 @{
-    ViewBag.Title = "Batafsil";
+    ViewBag.Title = L.T("Details");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 @{
@@ -29,7 +29,7 @@
                                         <a href="~/SalesSF">SF</a>
                                     </li>
                                     <li class="breadcrumb-item active">
-                                        SF ma'lumotlari
+                                        @L.T("Crm_SfInfo")
                                     </li>
                                 </ol>
                             </div>
@@ -46,22 +46,22 @@
                                     <div class="card-body pb-0 mx-25">
                                         <div class="row invoice-info">
                                             <div class="col-lg-12 col-md-12 mt-25">
-                                                <h4 class="text-primary">SF ma'lumotlari</h4>
+                                                <h4 class="text-primary">@L.T("Crm_SfInfo")</h4>
                                                 <hr />
                                                 <div class="row">
                                                     <div class="col-md-6">
-                                                        <span><b>SF raqami</b>: @Html.DisplayFor(model => model.SFNumber)</span><br />
-                                                        <span><b>SF sanasi</b>: @Model.SFDate.ToString("dd.MM.yyyy")</span><br />
-                                                        <span><b>Mijoz INN</b>: @Html.DisplayFor(model => model.CustomerINN)</span><br />
-                                                        <span><b>Ta'minotchi INN</b>: @Html.DisplayFor(model => model.SupplierINN)</span><br />
+                                                        <span><b>@L.T("Crm_SfNumber")</b>: @Html.DisplayFor(model => model.SFNumber)</span><br />
+                                                        <span><b>@L.T("Crm_SfDate")</b>: @Model.SFDate.ToString("dd.MM.yyyy")</span><br />
+                                                        <span><b>@L.T("Crm_SfCustomerInn")</b>: @Html.DisplayFor(model => model.CustomerINN)</span><br />
+                                                        <span><b>@L.T("Crm_SfSupplierInn")</b>: @Html.DisplayFor(model => model.SupplierINN)</span><br />
                                                     </div>
                                                     <div class="col-md-6">
-                                                        <span><b>Holati</b>: 
+                                                        <span><b>@L.T("Status")</b>: 
                                                             <span class="badge badge-@(Model.StatusCode == "ACCEPTED" ? "success" : Model.StatusCode == "SENT" ? "info" : "warning")">
                                                                 @Model.StatusCode
                                                             </span>
                                                         </span><br />
-                                                        <span><b>Yaratilgan</b>: @Model.CreatedDT.ToString("dd.MM.yyyy HH:mm")</span><br />
+                                                        <span><b>@L.T("CreatedAt")</b>: @Model.CreatedDT.ToString("dd.MM.yyyy HH:mm")</span><br />
                                                     </div>
                                                 </div>
                                                 <hr />
@@ -69,18 +69,18 @@
                                                 <!-- Navigation Links -->
                                                 <div class="row mt-3">
                                                     <div class="col-12">
-                                                        <h5 class="text-primary mb-3">Bog'liq hujjatlar</h5>
+                                                        <h5 class="text-primary mb-3">@L.T("Crm_RelatedDocs")</h5>
                                                         <div class="btn-group" role="group">
                                                             @if (Model.SALES_INVOICES != null)
                                                             {
                                                                 <a href="@Url.Action("Details", "SalesInvoices", new { id = Model.InvoiceID })" class="btn btn-outline-primary">
-                                                                    <i class="bx bx-receipt"></i> Invoys: @Model.SALES_INVOICES.InvoiceNo
+                                                                    <i class="bx bx-receipt"></i> @L.T("Crm_SfInvoiceNo", Model.SALES_INVOICES.InvoiceNo)
                                                                 </a>
                                                             }
                                                             @if (order != null)
                                                             {
                                                                 <a href="@Url.Action("Details", "SOrder", new { id = order.ID })" class="btn btn-outline-primary">
-                                                                    <i class="bx bx-list-ul"></i> Buyurtma: @order.OrderNo
+                                                                    <i class="bx bx-list-ul"></i> @L.T("Crm_SfOrderNo", order.OrderNo)
                                                                 </a>
                                                             }
                                                         </div>
@@ -98,7 +98,7 @@
                                                 <div class="col-12">
                                                     <div class="card">
                                                         <div class="card-header">
-                                                            <h4 class="card-title">SF qatorlari</h4>
+                                                            <h4 class="card-title">@L.T("Crm_SfLines")</h4>
                                                         </div>
                                                         <div class="card-content">
                                                             <div class="card-body card-dashboard">
@@ -107,14 +107,14 @@
                                                                         <thead>
                                                                             <tr>
                                                                                 <th>№</th>
-                                                                                <th>Mahsulot</th>
-                                                                                <th>Tavsif</th>
-                                                                                <th>Miqdor</th>
-                                                                                <th>Birlik narxi</th>
-                                                                                <th>Qator summa</th>
-                                                                                <th>QQS %</th>
-                                                                                <th>QQS summa</th>
-                                                                                <th>Jami</th>
+                                                                                <th>@L.T("Crm_Product")</th>
+                                                                                <th>@L.T("Description")</th>
+                                                                                <th>@L.T("Quantity")</th>
+                                                                                <th>@L.T("Crm_UnitPrice")</th>
+                                                                                <th>@L.T("Crm_LineAmount")</th>
+                                                                                <th>@L.T("Crm_VatPercent")</th>
+                                                                                <th>@L.T("Crm_VatAmount")</th>
+                                                                                <th>@L.T("Total")</th>
                                                                             </tr>
                                                                         </thead>
                                                                         <tbody>

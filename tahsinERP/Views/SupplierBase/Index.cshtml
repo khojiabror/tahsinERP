@@ -1,6 +1,6 @@
 @model List<tahsinERP.Models.SUPPLIER_BASE>
 @{
-    ViewBag.Title = "Ma'lumotnoma";
+    ViewBag.Title = L.T("Menu_Directory");
     Layout = "~/Views/Shared/_Layout.cshtml";
     var productType = ViewBag.ProductType;
     bool changePermit = ViewBag.ChangePermit as bool? ?? false;
@@ -19,7 +19,7 @@
                                         <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                     </li>
                                     <li class="breadcrumb-item active">
-                                        Ma'lumotnoma
+                                        @L.T("Menu_Directory")
                                     </li>
                                 </ol>
                             </div>
@@ -33,7 +33,7 @@
                         @if (changePermit)
                         {
                             <a href="@Url.Action("Create", "SupplierBase")" class="btn btn-success bg-light invoice-create">
-                                <i class="bx bx-plus"></i> Yangi qo'shish
+                                <i class="bx bx-plus"></i> @L.T("AddNew")
                             </a>
                         }
                     </div>
@@ -42,14 +42,14 @@
                         <form method="get" action="@Url.Action("Index", "SupplierBase")">
                             <div class="row border rounded py-2 mb-2">
                                 <div class="col-12 col-sm-12 col-lg-4">
-                                    <label for="ProductType">Faoliyati:</label>
+                                    <label for="ProductType">@L.T("Srm_ActivityLabel")</label>
                                     <fieldset class="form-group">
-                                        @Html.DropDownList("productType", ViewBag.ProductTypeList as SelectList, "Barchasi", new { @class = "form-control", @id = "productTypeFilter" })
+                                        @Html.DropDownList("productType", ViewBag.ProductTypeList as SelectList, L.T("All"), new { @class = "form-control", @id = "productTypeFilter" })
                                     </fieldset>
                                 </div>
                                 <div class="col-12 col-sm-12 col-lg-4 d-flex align-items-center">
                                     <button type="submit" class="btn btn-secondary bg-light invoice-create">
-                                        <i class="bx bx-refresh"></i> Ro'yxatni yangilash
+                                        <i class="bx bx-refresh"></i> @L.T("Srm_RefreshList")
                                     </button>
                                 </div>
                             </div>
@@ -64,17 +64,17 @@
                                         <table id="supplierBaseTable" class="table  table-striped table-bordered nowrap" style="width:100%">
                                             <thead>
                                                 <tr>
-                                                    <th>Korxona / Do'kon</th>
-                                                    <th>Maxsulot turi</th>
-                                                    <th>Davlat</th>
-                                                    <th>Viloyat</th>
-                                                    <th>Region</th>
-                                                    <th>Aloqa uchun</th>
-                                                    <th>Lavozimi</th>
-                                                    <th>Telefon</th>
+                                                    <th>@L.T("Srm_CompanyShop")</th>
+                                                    <th>@L.T("Srm_ProductType")</th>
+                                                    <th>@L.T("Srm_State")</th>
+                                                    <th>@L.T("Srm_Province")</th>
+                                                    <th>@L.T("Srm_Region")</th>
+                                                    <th>@L.T("Srm_ContactShort")</th>
+                                                    <th>@L.T("Srm_Position")</th>
+                                                    <th>@L.T("Phone")</th>
                                                     @if (changePermit)
                                                     {
-                                                        <th>Amallar</th>
+                                                        <th>@L.T("Actions")</th>
                                                     }
                                                 </tr>
                                             </thead>
@@ -98,10 +98,10 @@
                                                             {
                                                                 <td>
                                                                     <div class="d-flex">
-                                                                        <a href="@Url.Action("Edit", "SupplierBase", new { id = item.ID })" class="btn btn-sm btn-icon btn-outline-primary mr-1" title="Tahrirlash">
+                                                                        <a href="@Url.Action("Edit", "SupplierBase", new { id = item.ID })" class="btn btn-sm btn-icon btn-outline-primary mr-1" title="@L.T("Edit")">
                                                                             <i class="bx bx-edit-alt"></i>
                                                                         </a>
-                                                                        <button type="button" class="btn btn-sm btn-icon btn-outline-danger" onclick="deleteSupplierBase(@item.ID, '@(item.CompanyName ?? "Yozuv")')" title="O'chirish">
+                                                                        <button type="button" class="btn btn-sm btn-icon btn-outline-danger" onclick="deleteSupplierBase(@item.ID, '@(item.CompanyName ?? L.T("Srm_Record"))')" title="@L.T("Delete")">
                                                                             <i class="bx bx-trash"></i>
                                                                         </button>
                                                                     </div>
@@ -126,7 +126,7 @@
             $(document).ready(function () {
                 $('#supplierBaseTable').DataTable({
                     "pageLength": 25,
-                    "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Barchasi"]],
+                    "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "@L.Js("All")"]],
                     "order": [[3, "desc"]],
                     "columnDefs": [
                         { "type": "date", "targets": 3 }
@@ -134,7 +134,7 @@
                     "scrollX": true,
                     dom: 'lBfrtip',
                     // Til va eksport tugmalari umumiy — assets/js/dt-defaults.js (SRM-D15)
-                    buttons: erpDataTable.buttons({ fileName: 'Taminotchilar', title: 'Taminotchilar' })
+                    buttons: erpDataTable.buttons({ fileName: '@L.Js("Srm_SuppliersFile")', title: '@L.Js("Srm_SuppliersFile")' })
                 });
             });
         </script>

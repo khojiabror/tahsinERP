@@ -10,31 +10,31 @@ namespace tahsinERP.ViewModels
     {
         public int? ID { get; set; }
 
-        [Required(ErrorMessage = "Buyurtma raqami majburiy")]
-        [Display(Name = "Buyurtma raqami")]
+        [Required(ErrorMessage = "Crm_OrdOrderNoRequired")]
+        [Display(Name = "Crm_OrderNo")]
         public string OrderNo { get; set; }
 
-        [Required(ErrorMessage = "Sana majburiy")]
-        [Display(Name = "Buyurtma berilgan sanasi")]
+        [Required(ErrorMessage = "Crm_OrdDateRequired")]
+        [Display(Name = "Crm_OrdIssuedDateLong")]
         [DataType(DataType.Date)]
         public DateTime IssuedDate { get; set; }
 
-        [Required(ErrorMessage = "Haridor majburiy")]
-        [Display(Name = "Haridor")]
+        [Required(ErrorMessage = "Crm_OrdBuyerRequired")]
+        [Display(Name = "Crm_Customer")]
         public int CustomerID { get; set; }
 
-        [Required(ErrorMessage = "Shartnoma majburiy")]
-        [Display(Name = "Shartnoma raqami")]
+        [Required(ErrorMessage = "Crm_OrdContractRequired")]
+        [Display(Name = "Crm_ContractNo")]
         public int ContractID { get; set; }
 
-        [Display(Name = "Valyuta")]
+        [Display(Name = "Currency")]
         public int CurrencyID { get; set; }
 
-        [Display(Name = "Qisqacha tavsifi")]
+        [Display(Name = "Crm_OrdShortDescription")]
         [DataType(DataType.MultilineText)]
         public string Description { get; set; }
 
-        [Display(Name = "Jami summa")]
+        [Display(Name = "Crm_TotalAmount")]
         public decimal? Amount { get; set; }
 
         // Contract products with quantities

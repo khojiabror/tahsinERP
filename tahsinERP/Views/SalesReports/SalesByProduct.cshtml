@@ -1,6 +1,6 @@
 @model tahsinERP.ViewModels.SalesByProductReportViewModel
 @{
-    ViewBag.Title = "Mahsulot bo'yicha sotuv";
+    ViewBag.Title = L.T("Menu_SalesByProduct");
     Layout = "~/Views/Shared/_Layout.cshtml";
     var fromDate = ViewBag.FromDate as DateTime? ?? Model.FromDate;
     var toDate = ViewBag.ToDate as DateTime? ?? Model.ToDate;
@@ -16,14 +16,14 @@
                     <div class="breadcrumb-wrapper col-12">
                         <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                             <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
-                            <li class="breadcrumb-item"><a href="~/SalesReports">Sotuv hisobotlari</a></li>
-                            <li class="breadcrumb-item active">Mahsulot bo'yicha sotuv</li>
+                            <li class="breadcrumb-item"><a href="~/SalesReports">@L.T("Crm_RepSalesReports")</a></li>
+                            <li class="breadcrumb-item active">@L.T("Menu_SalesByProduct")</li>
                         </ol>
                     </div>
                 </div>
             </div>
             <div class="content-body">
-                <div class="alert alert-light border mb-1 py-50 no-print">Summalar so'mda — har hujjat o'z sanasidagi CBU kursi bilan.</div>
+                <div class="alert alert-light border mb-1 py-50 no-print">@L.T("Crm_RepAmountsInUzsNote")</div>
                 @if (ViewBag.CurrencyWarning != null)
                 {
                     <div class="alert alert-warning mb-1 no-print">@ViewBag.CurrencyWarning</div>
@@ -34,15 +34,15 @@
                             <div class="card-body">
                                 <form method="get" action="@Url.Action("SalesByProduct")" class="row align-items-end">
                                     <div class="col-md-3">
-                                        <label class="form-label">Dan</label>
+                                        <label class="form-label">@L.T("Crm_From")</label>
                                         <input type="date" name="fromDate" class="form-control" value="@fromDate.ToString("yyyy-MM-dd")" />
                                     </div>
                                     <div class="col-md-3">
-                                        <label class="form-label">Gacha</label>
+                                        <label class="form-label">@L.T("Crm_To")</label>
                                         <input type="date" name="toDate" class="form-control" value="@toDate.ToString("yyyy-MM-dd")" />
                                     </div>
                                     <div class="col-md-2">
-                                        <button type="submit" class="btn btn-primary"><i class="bx bx-refresh"></i> Ko'rsatish</button>
+                                        <button type="submit" class="btn btn-primary"><i class="bx bx-refresh"></i> @L.T("Crm_RepShow")</button>
                                     </div>
                                 </form>
                             </div>
@@ -51,7 +51,7 @@
                 </div>
                 <div class="row mb-2 no-print">
                     <div class="col-12 text-right">
-                        <button type="button" id="btnPrintReport" data-print-area="printArea" class="btn btn-primary"><i class="bx bx-printer"></i> Chop etish</button>
+                        <button type="button" id="btnPrintReport" data-print-area="printArea" class="btn btn-primary"><i class="bx bx-printer"></i> @L.T("Print")</button>
                     </div>
                 </div>
 
@@ -59,21 +59,21 @@
                     <div class="card-body report-document">
                         <div class="report-header text-center mb-4">
                             <h5 class="mb-0 font-weight-bold">@(Model.CompanyName ?? "Tahsin ERP")</h5>
-                            <h6 class="text-uppercase mt-2 mb-0">Mahsulot bo'yicha sotuv hisoboti</h6>
+                            <h6 class="text-uppercase mt-2 mb-0">@L.T("Crm_RepByProductTitle")</h6>
                             <p class="mb-0 mt-1 text-muted">@fromDate.ToString("dd.MM.yyyy") — @toDate.ToString("dd.MM.yyyy")</p>
                         </div>
                         <table class="table table-bordered table-sm report-table">
                             <thead>
                                 <tr class="table-light">
                                     <th style="width: 3%;">№</th>
-                                    <th style="width: 10%;">Kodi</th>
-                                    <th style="width: 22%;">Mahsulot nomi</th>
-                                    <th style="width: 6%;">O'lchov</th>
-                                    <th class="text-right" style="width: 10%;">Buyurtma miqdori</th>
-                                    <th class="text-right" style="width: 11%;">Buyurtma summa</th>
-                                    <th class="text-right" style="width: 10%;">Sotilgan miqdor</th>
-                                    <th class="text-right" style="width: 11%;">Sotuv summa</th>
-                                    <th class="text-right" style="width: 7%;">Konversiya %</th>
+                                    <th style="width: 10%;">@L.T("Code")</th>
+                                    <th style="width: 22%;">@L.T("Crm_ProductName")</th>
+                                    <th style="width: 6%;">@L.T("Crm_RepUnit")</th>
+                                    <th class="text-right" style="width: 10%;">@L.T("Crm_OrderQty")</th>
+                                    <th class="text-right" style="width: 11%;">@L.T("Crm_RepOrderAmount")</th>
+                                    <th class="text-right" style="width: 10%;">@L.T("Crm_RepSoldQty")</th>
+                                    <th class="text-right" style="width: 11%;">@L.T("Crm_RepSalesAmount")</th>
+                                    <th class="text-right" style="width: 7%;">@L.T("Crm_RepConversionPct")</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -98,12 +98,12 @@
                                 }
                                 else
                                 {
-                                    <tr><td colspan="9" class="text-center text-muted">Ma'lumot topilmadi.</td></tr>
+                                    <tr><td colspan="9" class="text-center text-muted">@L.T("Crm_RepNoData")</td></tr>
                                 }
                             </tbody>
                             <tfoot>
                                 <tr class="table-light font-weight-bold">
-                                    <td colspan="4" class="text-right">JAMI:</td>
+                                    <td colspan="4" class="text-right">@L.T("Crm_RepTotalCaps")</td>
                                     <td class="text-right">@(Model.Lines?.Sum(l => l.OrderQty).ToString("N2") ?? "0")</td>
                                     <td class="text-right">@(Model.Lines?.Sum(l => l.OrderAmount).ToString("N0") ?? "0")</td>
                                     <td class="text-right">@(Model.Lines?.Sum(l => l.SoldQty).ToString("N2") ?? "0")</td>
@@ -112,7 +112,7 @@
                                 </tr>
                             </tfoot>
                         </table>
-                        <p class="small text-muted mt-3 mb-0">Sana: @DateTime.Now.ToString("dd.MM.yyyy")</p>
+                        <p class="small text-muted mt-3 mb-0">@L.T("Crm_RepDateLabel") @DateTime.Now.ToString("dd.MM.yyyy")</p>
                     </div>
                 </div>
             </div>

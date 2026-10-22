@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Web.Mvc;
+using tahsinERP.I18n;
 
 namespace tahsinERP.Services
 {
@@ -10,19 +11,20 @@ namespace tahsinERP.Services
     /// </summary>
     public static class LogisticsEnums
     {
+        // Qiymatlar — resx kalitlari (ko'rsatishda L.T orqali joriy tilga o'giriladi)
         public static readonly IReadOnlyDictionary<byte, string> Directions = new Dictionary<byte, string>
         {
-            { 0, "Kiruvchi" }, { 1, "Chiquvchi" }, { 2, "Ichki" }
+            { 0, "Log_Dir_Inbound" }, { 1, "Log_Dir_Outbound" }, { 2, "Log_Dir_Internal" }
         };
 
         public static readonly IReadOnlyDictionary<byte, string> FreightBases = new Dictionary<byte, string>
         {
-            { 0, "Mashina uchun" }, { 1, "Ton uchun" }, { 2, "KM uchun" }, { 3, "Belgilangan narx" }
+            { 0, "Log_Basis_PerTruck" }, { 1, "Log_Basis_PerTon" }, { 2, "Log_Basis_PerKm" }, { 3, "Log_Basis_Flat" }
         };
 
         public static readonly IReadOnlyDictionary<byte, string> PayerTypes = new Dictionary<byte, string>
         {
-            { 0, "Bizning kompaniya" }, { 1, "Mijoz" }, { 2, "Taminotchi" }, { 3, "Bo'lib" }
+            { 0, "Log_Payer_OurCompany" }, { 1, "Log_Payer_Customer" }, { 2, "Log_Payer_Supplier" }, { 3, "Log_Payer_Shared" }
         };
 
         public static SelectList DirectionList(object selected = null) => ToSelectList(Directions, selected);
@@ -34,6 +36,13 @@ namespace tahsinERP.Services
         public static string DirectionText(byte? value) => Text(Directions, value);
 
         public static string FreightBasisText(byte? value) => Text(FreightBases, value);
+
+        /// <summary>Excel shabloni uchun: import alias'lari o'zbekcha, shuning uchun har doim o'zbek tilida.</summary>
+        public static string FreightBasisImportText(byte? value)
+        {
+            string key;
+            return value.HasValue && FreightBases.TryGetValue(value.Value, out key) ? L.TFor("uz", key) : "";
+        }
 
         // Excel import matnlari: o'zbekcha nom yoki inglizcha kod (avval WaybillController'da edi, LOG-M01)
         private static readonly IReadOnlyDictionary<string, byte> DirectionAliases = new Dictionary<string, byte>
@@ -74,12 +83,12 @@ namespace tahsinERP.Services
         private static string Text(IReadOnlyDictionary<byte, string> map, byte? value)
         {
             string text;
-            return value.HasValue && map.TryGetValue(value.Value, out text) ? text : "";
+            return value.HasValue && map.TryGetValue(value.Value, out text) ? L.T(text) : "";
         }
 
         private static SelectList ToSelectList(IReadOnlyDictionary<byte, string> map, object selected)
         {
-            return new SelectList(map.Select(x => new { Value = x.Key, Text = x.Value }), "Value", "Text", selected);
+            return new SelectList(map.Select(x => new { Value = x.Key, Text = L.T(x.Value) }), "Value", "Text", selected);
         }
     }
 }

@@ -1,7 +1,7 @@
 @model tahsinERP.Models.HSCODE
 
 @{
-    ViewBag.Title = "Batafsil";
+    ViewBag.Title = L.T("Details");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -18,10 +18,10 @@
                                     <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                 </li>
                                 <li class="breadcrumb-item">
-                                    <a href="~/HSCODE/Index">HSCODE lar</a>
+                                    <a href="~/HSCODE/Index">@L.T("Prd_HsCodes")</a>
                                 </li>
                                 <li class="breadcrumb-item active">
-                                    HSCODE sahifasi
+                                    @L.T("Prd_PageOf", "HSCODE")
                                 </li>
                             </ol>
                         </div>
@@ -40,7 +40,7 @@
 
                                         @Html.ValidationSummary(true, "", new { @class = "text-danger" })
 
-                                        <h4 class="text-primary">HSCODE malumotlari</h4>
+                                        <h4 class="text-primary">@L.T("Prd_HsCodeInfo")</h4>
                                         <hr>
 
                                         <div class="row my-2 py-50">
@@ -49,12 +49,12 @@
                                                 <hr>
                                                 <h6 class="invoice-to"></h6>
                                                 <fieldset class="invoice-address form-group">
-                                                    @Html.TextBoxFor(model => model.HSCODE1, new { @class = "form-control round", @placeholder = "HsCODE ni kiriting:" })
+                                                    @Html.TextBoxFor(model => model.HSCODE1, new { @class = "form-control round", @placeholder = L.T("Prd_EnterHsCode") })
                                                     @Html.ValidationMessageFor(model => model.HSCODE1, "", new { @class = "text-danger" })
                                                 </fieldset>
-                                                <h6 class="invoice-to">Batafsil ma`lumot</h6>
+                                                <h6 class="invoice-to">@L.T("Prd_DetailedInfo")</h6>
                                                 <fieldset class="invoice-address form-group">
-                                                    @Html.TextBoxFor(model => model.Description, new { @class = "form-control round", @placeholder = "qisqacha malumot kiriting:" })
+                                                    @Html.TextBoxFor(model => model.Description, new { @class = "form-control round", @placeholder = L.T("Prd_EnterShortInfo") })
                                                     @Html.ValidationMessageFor(model => model.Description, "", new { @class = "text-danger" })
                                                 </fieldset>
                                             </div>

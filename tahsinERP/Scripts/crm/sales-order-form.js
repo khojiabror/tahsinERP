@@ -112,14 +112,14 @@
                 data: { customerId: customerId },
                 dataType: 'json',
                 success: function (data) {
-                    $contract.empty().append(option('0', '---Tanlang---'));
+                    $contract.empty().append(option('0', (window.erpT ? erpT('Js_Crm_SelectDashed') : '---Tanlang---')));
 
                     if (data && data.length > 0) {
                         $.each(data, function (i, contract) {
                             $contract.append(option(contract.ID, contract.ContractNo));
                         });
                     } else if (cfg.emptyContractsOption) {
-                        $contract.append(option('0', 'Shartnomalar topilmadi'));
+                        $contract.append(option('0', (window.erpT ? erpT('Js_Crm_NoContracts') : 'Shartnomalar topilmadi')));
                     }
 
                     var keep = keepContractId && keepContractId != '0' &&
@@ -142,14 +142,14 @@
                         }
                         return;
                     }
-                    resetProducts('<i class="bx bx-info-circle"></i> Shartnoma tanlang, maxsulotlar yuklanadi.');
+                    resetProducts('<i class="bx bx-info-circle"></i> ' + escapeHtml((window.erpT ? erpT('Js_Crm_SelectContractHint') : 'Shartnoma tanlang, mahsulotlar yuklanadi.')));
                 }
             };
             if (cfg.handleErrors) {
                 request.error = function () {
-                    $contract.empty().append(option('0', 'Xatolik yuz berdi'));
+                    $contract.empty().append(option('0', (window.erpT ? erpT('Js_ErrorGeneric') : 'Xatolik yuz berdi.')));
                     $contract.prop('disabled', false);
-                    alert('Shartnomalarni yuklashda xatolik yuz berdi.');
+                    alert((window.erpT ? erpT('Js_Crm_ContractsLoadError') : 'Shartnomalarni yuklashda xatolik yuz berdi.'));
                 };
             }
             $.ajax(request);
@@ -176,7 +176,7 @@
                 '</td>' +
                 '<td class="text-right total-price">0.00</td>' +
                 '<td class="text-center">' +
-                '<button type="button" class="btn btn-sm btn-outline-danger remove-product" title="O\'chirish">' +
+                '<button type="button" class="btn btn-sm btn-outline-danger remove-product" title="' + escapeHtml((window.erpT ? erpT('Js_Crm_Delete') : 'O\'chirish')) + '">' +
                 '<i class="bx bx-trash"></i>' +
                 '</button>' +
                 '</td>' +
@@ -185,7 +185,7 @@
 
         function loadProducts(contractId) {
             if (cfg.showStatus) {
-                showMessage('<i class="bx bx-loader bx-spin"></i> Maxsulotlar yuklanmoqda...');
+                showMessage('<i class="bx bx-loader bx-spin"></i> ' + escapeHtml((window.erpT ? erpT('Js_Crm_ProductsLoading') : 'Mahsulotlar yuklanmoqda...')));
             }
 
             var request = {
@@ -207,13 +207,13 @@
                         }
                         calculateTotal();
                     } else {
-                        resetProducts('<i class="bx bx-info-circle"></i> Bu shartnomada maxsulotlar topilmadi.');
+                        resetProducts('<i class="bx bx-info-circle"></i> ' + escapeHtml((window.erpT ? erpT('Js_Crm_NoContractProducts') : 'Bu shartnomada mahsulotlar topilmadi.')));
                     }
                 }
             };
             if (cfg.handleErrors) {
                 request.error = function () {
-                    showMessage('<i class="bx bx-error"></i> Maxsulotlarni yuklashda xatolik yuz berdi.');
+                    showMessage('<i class="bx bx-error"></i> ' + escapeHtml((window.erpT ? erpT('Js_Crm_ProductsLoadError') : 'Mahsulotlarni yuklashda xatolik yuz berdi.')));
                 };
             }
             $.ajax(request);
@@ -227,10 +227,10 @@
                 return;
             }
             if (cfg.resetContractsOnEmptyCustomer) {
-                $contract.empty().append(option('0', '---Tanlang---'));
+                $contract.empty().append(option('0', (window.erpT ? erpT('Js_Crm_SelectDashed') : '---Tanlang---')));
                 refreshSelect2($contract);
             }
-            resetProducts('<i class="bx bx-info-circle"></i> Xaridor tanlang, keyin shartnoma tanlang.');
+            resetProducts('<i class="bx bx-info-circle"></i> ' + escapeHtml((window.erpT ? erpT('Js_Crm_SelectCustomerHint') : 'Xaridor tanlang, keyin shartnoma tanlang.')));
         });
 
         // Shartnoma o'zgarganda mahsulotlarni yuklash
@@ -239,7 +239,7 @@
             if (contractId && contractId != '0') {
                 loadProducts(contractId);
             } else {
-                resetProducts('<i class="bx bx-info-circle"></i> Shartnoma tanlang, maxsulotlar yuklanadi.');
+                resetProducts('<i class="bx bx-info-circle"></i> ' + escapeHtml((window.erpT ? erpT('Js_Crm_SelectContractHint') : 'Shartnoma tanlang, mahsulotlar yuklanadi.')));
             }
         });
 
@@ -274,7 +274,7 @@
 
                 if (!hasQty) {
                     e.preventDefault();
-                    alert('Kamida bitta maxsulot uchun miqdor kiritish kerak!');
+                    alert((window.erpT ? erpT('Js_Crm_QtyRequired') : 'Kamida bitta mahsulot uchun miqdor kiritish kerak!'));
                     return false;
                 }
             });

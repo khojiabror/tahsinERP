@@ -1,5 +1,5 @@
 @{
-    ViewBag.Title = "Tender taqqoslash";
+    ViewBag.Title = L.T("Menu_TenderCompare");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -16,7 +16,7 @@
                                         <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                     </li>
                                     <li class="breadcrumb-item active">
-                                        Tender taqqoslash
+                                        @L.T("Menu_TenderCompare")
                                     </li>
                                 </ol>
                             </div>
@@ -29,30 +29,30 @@
                     <div class="col-12">
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">Tender taqqoslash</h4>
+                                <h4 class="card-title">@L.T("Menu_TenderCompare")</h4>
                             </div>
                             <div class="card-content">
                                 <div class="card-body">
                                     <!-- Material Selection -->
                                     <div class="row mb-3">
                                         <div class="col-md-6">
-                                            <label for="materialSelect">Material</label>
-                                            @Html.DropDownList("MaterialID", ViewBag.Materials as SelectList, "---Materialni tanlang---", new { @class = "form-control select2", @id = "materialSelect", @required = "required" })
-                                            <small class="text-muted" id="materialLocked" style="display:none;">Material tanlangan va muzlatilgan</small>
+                                            <label for="materialSelect">@L.T("Srm_Material")</label>
+                                            @Html.DropDownList("MaterialID", ViewBag.Materials as SelectList, L.T("Srm_SelectMaterialDashes"), new { @class = "form-control select2", @id = "materialSelect", @required = "required" })
+                                            <small class="text-muted" id="materialLocked" style="display:none;">@L.T("Srm_MaterialLocked")</small>
                                         </div>
                                     </div>
 
                                     <!-- Offer Input Form -->
                                     <div class="row mb-3 border rounded p-3">
                                         <div class="col-12">
-                                            <h5>Yangi taklif qo'shish</h5>
+                                            <h5>@L.T("Srm_AddNewOffer")</h5>
                                             <div class="row">
                                                 <div class="col-md-3 form-group">
-                                                    <label for="supplierName">Ta'minotchi nomi</label>
-                                                    <input type="text" id="supplierName" class="form-control" placeholder="Ta'minotchi nomi" />
+                                                    <label for="supplierName">@L.T("Srm_SupplierName")</label>
+                                                    <input type="text" id="supplierName" class="form-control" placeholder="@L.T("Srm_SupplierName")" />
                                                 </div>
                                                 <div class="col-md-2 form-group">
-                                                    <label for="offeredPrice">Taklif narxi</label>
+                                                    <label for="offeredPrice">@L.T("Srm_OfferPrice")</label>
                                                     <input type="number" id="offeredPrice" class="form-control" step="0.01" min="0" placeholder="0.00" />
                                                 </div>
                                                 <div class="col-md-2 form-group">
@@ -60,18 +60,18 @@
                                                     <input type="number" id="moq" class="form-control" step="0.01" min="0" placeholder="0" />
                                                 </div>
                                                 <div class="col-md-2 form-group">
-                                                    <label for="leadTime">Yetkazib berish muddati (kun)</label>
+                                                    <label for="leadTime">@L.T("Srm_LeadTimeDays")</label>
                                                     <input type="number" id="leadTime" class="form-control" min="0" placeholder="0" />
                                                 </div>
                                                 <div class="col-md-3 form-group">
-                                                    <label for="paymentTerms">To'lov shartlari</label>
-                                                    <input type="text" id="paymentTerms" class="form-control" placeholder="To'lov shartlari" />
+                                                    <label for="paymentTerms">@L.T("Srm_PaymentTerms")</label>
+                                                    <input type="text" id="paymentTerms" class="form-control" placeholder="@L.T("Srm_PaymentTerms")" />
                                                 </div>
                                             </div>
                                             <div class="row mt-2">
                                                 <div class="col-12">
                                                     <button type="button" class="btn btn-primary" id="addOfferBtn">
-                                                        <i class="bx bx-plus"></i> Taklif qo'shish
+                                                        <i class="bx bx-plus"></i> @L.T("Srm_AddOffer")
                                                     </button>
                                                 </div>
                                             </div>
@@ -81,18 +81,18 @@
                                     <!-- Offers List -->
                                     <div class="row mb-3">
                                         <div class="col-12">
-                                            <h5>Takliflar ro'yxati</h5>
+                                            <h5>@L.T("Srm_OffersList")</h5>
                                             <div class="table-responsive">
                                                 <table id="offersTable" class="table table-striped table-bordered">
                                                     <thead>
                                                         <tr>
-                                                            <th>Ta'minotchi</th>
-                                                            <th>Narx</th>
+                                                            <th>@L.T("Srm_Supplier")</th>
+                                                            <th>@L.T("Price")</th>
                                                             <th>MOQ</th>
-                                                            <th>Yetkazib berish (kun)</th>
-                                                            <th>To'lov shartlari</th>
-                                                            <th>Afzal</th>
-                                                            <th>Amallar</th>
+                                                            <th>@L.T("Srm_DeliveryDays")</th>
+                                                            <th>@L.T("Srm_PaymentTerms")</th>
+                                                            <th>@L.T("Srm_Preferred")</th>
+                                                            <th>@L.T("Actions")</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody>
@@ -106,7 +106,7 @@
                                     <!-- Comparison Chart -->
                                     <div class="row mb-3" id="chartSection" style="display:none;">
                                         <div class="col-12">
-                                            <h5>Taqqoslash grafigi</h5>
+                                            <h5>@L.T("Srm_CompareChart")</h5>
                                             <canvas id="comparisonChart" height="100"></canvas>
                                         </div>
                                     </div>
@@ -115,7 +115,7 @@
                                     <div class="row">
                                         <div class="col-12">
                                             <button type="button" class="btn btn-success" id="exportPdfBtn" disabled>
-                                                <i class="bx bx-file"></i> PDF ga eksport qilish
+                                                <i class="bx bx-file"></i> @L.T("Srm_ExportToPdf")
                                             </button>
                                         </div>
                                     </div>
@@ -176,7 +176,7 @@
                 // Check if material is selected
                 var currentMaterialId = $('#materialSelect').val();
                 if (!currentMaterialId || currentMaterialId === '' || currentMaterialId === null) {
-                    alert('Avval materialni tanlang');
+                    alert('@L.Js("Srm_SelectMaterialFirst")');
                     $('#materialSelect').focus();
                     return false;
                 }
@@ -196,7 +196,7 @@
                 var paymentTerms = $('#paymentTerms').val().trim() || '';
 
                 if (!supplierName) {
-                    alert('Ta\'minotchi nomini kiriting');
+                    alert('@L.Js("Srm_EnterSupplierName")');
                     $('#supplierName').focus();
                     return false;
                 }
@@ -292,13 +292,13 @@
                         labels: labels,
                         datasets: [
                             {
-                                label: 'Narx',
+                                label: '@L.Js("Price")',
                                 data: prices,
                                 backgroundColor: preferredColors,
                                 yAxisID: 'y'
                             },
                             {
-                                label: 'Yetkazib berish muddati (kun)',
+                                label: '@L.Js("Srm_LeadTimeDays")',
                                 data: leadTimes,
                                 backgroundColor: 'rgba(255, 159, 64, 0.8)',
                                 yAxisID: 'y1',
@@ -312,12 +312,12 @@
                             y: {
                                 type: 'linear',
                                 position: 'left',
-                                title: { display: true, text: 'Narx' }
+                                title: { display: true, text: '@L.Js("Price")' }
                             },
                             y1: {
                                 type: 'linear',
                                 position: 'right',
-                                title: { display: true, text: 'Yetkazib berish muddati (kun)' },
+                                title: { display: true, text: '@L.Js("Srm_LeadTimeDays")' },
                                 grid: { drawOnChartArea: false }
                             }
                         }
@@ -336,16 +336,16 @@
             // Export to PDF
             $('#exportPdfBtn').click(function () {
                 if (offers.length === 0) {
-                    alert('Eksport qilish uchun kamida bitta taklif bo\'lishi kerak');
+                    alert('@L.Js("Srm_ExportNeedsOffer")');
                     return;
                 }
 
                 // Simple PDF export - you can enhance this with a proper PDF library
                 var printWindow = window.open('', '_blank');
-                var content = '<html><head><title>Tender Taqqoslash</title></head><body>';
-                content += '<h2>Tender Taqqoslash</h2>';
+                var content = '<html><head><title>@L.Js("Srm_TenderCompareTitle")</title></head><body>';
+                content += '<h2>@L.Js("Srm_TenderCompareTitle")</h2>';
                 content += '<table border="1" cellpadding="5" style="border-collapse: collapse; width: 100%;">';
-                content += '<thead><tr><th>Ta\'minotchi</th><th>Narx</th><th>MOQ</th><th>Yetkazib berish</th><th>To\'lov shartlari</th><th>Afzal</th></tr></thead>';
+                content += '<thead><tr><th>@L.Js("Srm_Supplier")</th><th>@L.Js("Price")</th><th>MOQ</th><th>@L.Js("Srm_Delivery")</th><th>@L.Js("Srm_PaymentTerms")</th><th>@L.Js("Srm_Preferred")</th></tr></thead>';
                 content += '<tbody>';
                 
                 offers.forEach(function (offer) {
@@ -353,9 +353,9 @@
                     content += '<td>' + offer.supplierName + '</td>';
                     content += '<td>' + offer.price.toFixed(2) + '</td>';
                     content += '<td>' + offer.moq.toFixed(2) + '</td>';
-                    content += '<td>' + offer.leadTime + ' kun</td>';
+                    content += '<td>' + '@L.Js("Srm_DaysSuffix")'.replace('{0}', offer.leadTime) + '</td>';
                     content += '<td>' + offer.paymentTerms + '</td>';
-                    content += '<td>' + (offer.preferred ? 'Ha' : 'Yo\'q') + '</td>';
+                    content += '<td>' + (offer.preferred ? '@L.Js("Yes")' : '@L.Js("No")') + '</td>';
                     content += '</tr>';
                 });
                 

@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using tahsinERP.Models;
 using tahsinERP.Services.DlocFifo;
 using tahsinERP.ViewModels;
+using tahsinERP.I18n;
 
 namespace tahsinERP.Services.Stock
 {
@@ -79,8 +80,7 @@ namespace tahsinERP.Services.Stock
             {
                 var pno = db.PRODUCTS.Where(p => p.ID == productId).Select(p => p.PNo).FirstOrDefault();
                 throw new InvalidOperationException(
-                    $"{pno}: distributsiya buyurtmalari uchun {row.Reserved:0.####} rezervda, chiqimdan keyin qoldiq {row.OnHand:0.####} bo'lib qoladi. " +
-                    "Avval Distributsiya → Buyurtmalar'da rezervni yeching (tasdiqni qaytarish) yoki chiqim miqdorini kamaytiring.");
+                    L.T("Wh_Err_ReservedForDistribution", pno, row.Reserved.ToString("0.####"), row.OnHand.ToString("0.####")));
             }
         }
 

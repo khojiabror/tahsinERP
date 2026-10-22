@@ -13,7 +13,7 @@
      * serverdan qidiriladi (/ProductLookup/Search, SRM-P05) — butun katalog sahifaga JSON qilib yozilmaydi.
      */
     function incomeProductOptions(selectedId, pno, name) {
-        var options = '<option value="">---Tanlang---</option>';
+        var options = '<option value="">' + (window.erpT ? erpT('Js_Srm_SelectDashes') : '---Tanlang---') + '</option>';
         if (selectedId) {
             options += '<option value="' + escapeHtml(selectedId) + '" data-name="' + escapeHtml(name || '') +
                 '" data-pno="' + escapeHtml(pno || '') + '" selected>' +
@@ -71,7 +71,7 @@
     }
 
     function expenseProductOptions(availableProducts, selectedId) {
-        var options = '<option value="">---Tanlang---</option>';
+        var options = '<option value="">' + (window.erpT ? erpT('Js_Srm_SelectDashes') : '---Tanlang---') + '</option>';
         availableProducts.forEach(function (product) {
             var selected = product.ProductID == selectedId ? 'selected' : '';
             options += '<option value="' + escapeHtml(product.ProductID) + '" ' + selected +

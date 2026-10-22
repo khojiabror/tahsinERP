@@ -1,9 +1,9 @@
 @model tahsinERP.ViewModels.ReconciliationAdjustmentEditViewModel
 @using tahsinERP.Models
 @{
-    ViewBag.Title = "Akt-sverki tuzatishi";
+    ViewBag.Title = L.T("Crm_RecAdjustmentTitle");
     Layout = "~/Views/Shared/_Layout.cshtml";
-    var typeLabel = Model.ReconciliationType == "Supplier" ? "Ta'minotchi" : Model.ReconciliationType == "Customer" ? "Xaridor" : "Yuk tashuvchi";
+    var typeLabel = Model.ReconciliationType == "Supplier" ? L.T("Crm_RecSupplier") : Model.ReconciliationType == "Customer" ? L.T("Crm_Customer") : L.T("Crm_Carrier");
     var backUrl = Model.ReconciliationType == "Supplier" ? Url.Action("Supplier", "Reconciliation", new { id = Model.CounterpartyId, contractId = Model.ContractId }) : Model.ReconciliationType == "Customer" ? Url.Action("Customer", "Reconciliation", new { id = Model.CounterpartyId, contractId = Model.ContractId }) : Url.Action("Forwarder", "Reconciliation", new { id = Model.CounterpartyId, contractId = Model.ContractId });
 }
 
@@ -16,8 +16,8 @@
                     <div class="col-12">
                         <ol class="breadcrumb rounded-pill breadcrumb-divider">
                             <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
-                            <li class="breadcrumb-item"><a href="@backUrl">Akt-sverki</a></li>
-                            <li class="breadcrumb-item active">Tuzatish</li>
+                            <li class="breadcrumb-item"><a href="@backUrl">@L.T("Crm_RecAktSverki")</a></li>
+                            <li class="breadcrumb-item active">@L.T("Crm_RecAdjust")</li>
                         </ol>
                     </div>
                 </div>
@@ -27,23 +27,22 @@
         <div class="content-body">
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <h4 class="card-title mb-0">Akt-sverki tuzatishi (@typeLabel)</h4>
-                    <a href="@backUrl" class="btn btn-sm btn-secondary"><i class="bx bx-arrow-back"></i> Akt-sverkiga</a>
+                    <h4 class="card-title mb-0">@L.T("Crm_RecAdjustmentTitle") (@typeLabel)</h4>
+                    <a href="@backUrl" class="btn btn-sm btn-secondary"><i class="bx bx-arrow-back"></i> @L.T("Crm_RecToAktSverki")</a>
                 </div>
                 <div class="card-content">
                     <div class="card-body">
                         <div class="alert alert-info" role="alert">
-                            <strong>Qoida:</strong> Har bir <strong>shartnoma</strong> bo'yicha <strong>joriy yilda (@Model.EntryYear)</strong> faqat <strong>bitta</strong> tuzatish yozuvi saqlanadi (shu yil uchun qayta tahrirlash mumkin).
-                            Invoys va to'lovlardan keyingi farqni to'g'rilash uchun debet/kredit kiriting; keyingi yilda yangi yozuv ochiladi.
+                            @Html.Raw(L.T("Crm_RecAdjustmentRule", Model.EntryYear))
                         </div>
 
                         @if (Model.AdjustmentAlreadyExistsForYear)
                         {
-                            <p class="text-muted small">Ushbu yil uchun yozuv mavjud — saqlash uni yangilaydi.</p>
+                            <p class="text-muted small">@L.T("Crm_RecAdjustmentExists")</p>
                         }
 
-                        <p><strong>Kontragent:</strong> @Model.CounterpartyName</p>
-                        <p><strong>Shartnoma:</strong> @(string.IsNullOrEmpty(Model.ContractNo) ? ("№" + Model.ContractId) : ("№ " + Model.ContractNo))</p>
+                        <p><strong>@L.T("Crm_RecCounterpartyLabel")</strong> @Model.CounterpartyName</p>
+                        <p><strong>@L.T("Crm_RecContractLabel")</strong> @(string.IsNullOrEmpty(Model.ContractNo) ? ("№" + Model.ContractId) : ("№ " + Model.ContractNo))</p>
 
                         @using (Html.BeginForm("EditAdjustment", "Reconciliation", FormMethod.Post, new { @class = "mt-3" }))
                         {
@@ -59,7 +58,7 @@
                                 @Html.LabelFor(m => m.CutoffDate)
                                 @Html.TextBoxFor(m => m.CutoffDate, "{0:yyyy-MM-dd}", new { @class = "form-control", type = "date" })
                                 @Html.ValidationMessageFor(m => m.CutoffDate, "", new { @class = "text-danger" })
-                                <small class="form-text text-muted">Akt-sverki qoldiq sanasidan oldin yoki unga tushadigan tuzatish sana chegarasi.</small>
+                                <small class="form-text text-muted">@L.T("Crm_RecCutoffHint")</small>
                             </div>
 
                             <div class="form-row">
@@ -80,7 +79,7 @@
                                 @Html.TextAreaFor(m => m.Note, new { @class = "form-control", rows = 3, maxlength = 500 })
                             </div>
 
-                            <button type="submit" class="btn btn-primary">Saqlash</button>
+                            <button type="submit" class="btn btn-primary">@L.T("Save")</button>
                         }
                     </div>
                 </div>

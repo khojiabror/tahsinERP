@@ -4,6 +4,7 @@ using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
+using tahsinERP.I18n;
 using tahsinERP.Models;
 using tahsinERP.ViewModels;
 
@@ -52,12 +53,12 @@ namespace tahsinERP.Controllers
                 else
                     spendSupplierNames = await db.SUPPLIERS
                         .Where(s => spendSupplierIds.Contains(s.ID))
-                        .ToDictionaryAsync(s => s.ID, s => s.Name ?? "Noma'lum");
+                        .ToDictionaryAsync(s => s.ID, s => s.Name ?? L.T("Srm_Unknown"));
 
                 var spendBySupplier = spendRaw.Select(x => new SRMSpendBySupplierItem
                 {
                     SupplierID = x.SupplierID,
-                    SupplierName = spendSupplierNames.ContainsKey(x.SupplierID) ? spendSupplierNames[x.SupplierID] : "Noma'lum",
+                    SupplierName = spendSupplierNames.ContainsKey(x.SupplierID) ? spendSupplierNames[x.SupplierID] : L.T("Srm_Unknown"),
                     InvoiceCount = x.InvoiceCount,
                     TotalSpend = Convert.ToDecimal(x.TotalSpend)
                 }).ToList();
@@ -114,7 +115,7 @@ namespace tahsinERP.Controllers
                 else
                     supplierNames = await db.SUPPLIERS
                         .Where(s => outstandingIds.Contains(s.ID))
-                        .ToDictionaryAsync(s => s.ID, s => s.Name ?? "Noma'lum");
+                        .ToDictionaryAsync(s => s.ID, s => s.Name ?? L.T("Srm_Unknown"));
 
                 ViewBag.PayablesBySupplier = supplierOutstanding
                     .OrderByDescending(s => s.Outstanding)
@@ -122,7 +123,7 @@ namespace tahsinERP.Controllers
                     .Select(s => new SRMPayablesBySupplierItem
                     {
                         SupplierID = s.SupplierID,
-                        SupplierName = supplierNames.ContainsKey(s.SupplierID) ? supplierNames[s.SupplierID] : "Noma'lum",
+                        SupplierName = supplierNames.ContainsKey(s.SupplierID) ? supplierNames[s.SupplierID] : L.T("Srm_Unknown"),
                         Outstanding = s.Outstanding
                     })
                     .ToList();

@@ -6,6 +6,7 @@ using System.Net;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using tahsinERP.Filters;
+using tahsinERP.I18n;
 using tahsinERP.Models;
 using tahsinERP.Services;
 using tahsinERP.Services.Common;
@@ -82,18 +83,18 @@ namespace tahsinERP.Controllers
                     })
                     .ToList();
 
-                var bytes = ExcelExport.Create("Invoyslar", rows,
-                    ExcelExport.Col<InvoiceExportRow>("Invoys raqami", r => r.InvoiceNo),
-                    ExcelExport.Col<InvoiceExportRow>("Sana", r => r.InvoiceDate, "dd.MM.yyyy"),
-                    ExcelExport.Col<InvoiceExportRow>("Mijoz", r => r.Customer),
-                    ExcelExport.Col<InvoiceExportRow>("Shartnoma", r => r.ContractNo),
-                    ExcelExport.Col<InvoiceExportRow>("Buyurtma", r => r.OrderNo),
-                    ExcelExport.Col<InvoiceExportRow>("Summa", r => r.TotalAmount, "#,##0.00"),
-                    ExcelExport.Col<InvoiceExportRow>("QQS", r => r.TotalVAT, "#,##0.00"),
-                    ExcelExport.Col<InvoiceExportRow>("Jami (QQS bilan)", r => r.TotalWithVAT, "#,##0.00"),
-                    ExcelExport.Col<InvoiceExportRow>("Valyuta", r => r.CurrencyCode),
-                    ExcelExport.Col<InvoiceExportRow>("Holat", r => r.StatusCode));
-                return File(bytes, ExcelExport.ContentType, $"Invoyslar_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx");
+                var bytes = ExcelExport.Create(L.T("Menu_Invoices"), rows,
+                    ExcelExport.Col<InvoiceExportRow>(L.T("Crm_InvInvoiceNo"), r => r.InvoiceNo),
+                    ExcelExport.Col<InvoiceExportRow>(L.T("Date"), r => r.InvoiceDate, "dd.MM.yyyy"),
+                    ExcelExport.Col<InvoiceExportRow>(L.T("Crm_Client"), r => r.Customer),
+                    ExcelExport.Col<InvoiceExportRow>(L.T("Crm_Contract"), r => r.ContractNo),
+                    ExcelExport.Col<InvoiceExportRow>(L.T("Crm_Order"), r => r.OrderNo),
+                    ExcelExport.Col<InvoiceExportRow>(L.T("Amount"), r => r.TotalAmount, "#,##0.00"),
+                    ExcelExport.Col<InvoiceExportRow>(L.T("Crm_Vat"), r => r.TotalVAT, "#,##0.00"),
+                    ExcelExport.Col<InvoiceExportRow>(L.T("Crm_TotalWithVat"), r => r.TotalWithVAT, "#,##0.00"),
+                    ExcelExport.Col<InvoiceExportRow>(L.T("Currency"), r => r.CurrencyCode),
+                    ExcelExport.Col<InvoiceExportRow>(L.T("Status"), r => r.StatusCode));
+                return File(bytes, ExcelExport.ContentType, $"{L.T("Menu_Invoices")}_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx");
             }
         }
 
@@ -398,7 +399,7 @@ namespace tahsinERP.Controllers
                 }
                 catch (Exception ex)
                 {
-                    ModelState.AddModelError("", "Invoysni saqlab bo'lmadi, hech narsa yozilmadi: " + InnermostMessage(ex));
+                    ModelState.AddModelError("", L.T("Crm_InvSaveFailedNothingWritten", InnermostMessage(ex)));
                 }
             }
 
@@ -432,7 +433,7 @@ namespace tahsinERP.Controllers
 
                 if (SalesInvoiceStatus.IsLocked(invoice.StatusCode))
                 {
-                    TempData["ErrorMessage"] = "Yakunlangan/to'langan/bekor qilingan invoysni tahrirlash mumkin emas";
+                    TempData["ErrorMessage"] = L.T("Crm_InvCannotEditLocked");
                     return RedirectToAction("Details", new { id = id });
                 }
 
@@ -466,7 +467,7 @@ namespace tahsinERP.Controllers
                 }
                 catch (Exception ex)
                 {
-                    ModelState.AddModelError("", "Invoysni saqlab bo'lmadi, hech narsa o'zgarmadi: " + InnermostMessage(ex));
+                    ModelState.AddModelError("", L.T("Crm_InvSaveFailedNothingChanged", InnermostMessage(ex)));
                 }
             }
 
@@ -525,7 +526,7 @@ namespace tahsinERP.Controllers
             }
             catch (Exception ex)
             {
-                TempData["ErrorMessage"] = "Invoysni bekor qilib bo'lmadi, hech narsa o'zgarmadi: " + InnermostMessage(ex);
+                TempData["ErrorMessage"] = L.T("Crm_InvCancelFailed", InnermostMessage(ex));
             }
             return RedirectToAction("Details", new { id });
         }

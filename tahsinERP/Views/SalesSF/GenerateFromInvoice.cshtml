@@ -1,6 +1,6 @@
 @model tahsinERP.Models.SALES_SF_HEADERS
 @{
-    ViewBag.Title = "Generate SF from Invoice";
+    ViewBag.Title = L.T("Crm_CreateSf");
     Layout = "~/Views/Shared/_Layout.cshtml";
     var invoice = ViewBag.Invoice as tahsinERP.Models.SALES_INVOICES;
     var invoiceLines = ViewBag.InvoiceLines as List<tahsinERP.Models.SALES_INVOICE_LINES>;
@@ -27,11 +27,11 @@
                                     @if (invoice != null)
                                     {
                                         <li class="breadcrumb-item">
-                                            <a href="@Url.Action("Details", "SalesInvoices", new { id = invoice.ID })">Invoys @invoice.InvoiceNo</a>
+                                            <a href="@Url.Action("Details", "SalesInvoices", new { id = invoice.ID })">@L.T("Crm_SfInvoiceBreadcrumb", invoice.InvoiceNo)</a>
                                         </li>
                                     }
                                     <li class="breadcrumb-item active">
-                                        SF yaratish
+                                        @L.T("Crm_CreateSf")
                                     </li>
                                 </ol>
                             </div>
@@ -49,9 +49,9 @@
                                         @if (invoice != null)
                                         {
                                             <div class="alert alert-info">
-                                                <strong>Invoys:</strong> @invoice.InvoiceNo | 
-                                                <strong>Sana:</strong> @invoice.InvoiceDate.ToString("dd.MM.yyyy") | 
-                                                <strong>Summa:</strong> @invoice.TotalAmount.ToString("N2") @tahsinERP.Services.Crm.SalesLookups.CurrencyCode(invoice.CurrencyID)
+                                                <strong>@L.T("Crm_SfInvoice"):</strong> @invoice.InvoiceNo | 
+                                                <strong>@L.T("Date"):</strong> @invoice.InvoiceDate.ToString("dd.MM.yyyy") | 
+                                                <strong>@L.T("Amount"):</strong> @invoice.TotalAmount.ToString("N2") @tahsinERP.Services.Crm.SalesLookups.CurrencyCode(invoice.CurrencyID)
                                             </div>
                                         }
 
@@ -65,14 +65,14 @@
                                             <div class="row">
                                                 <div class="col-md-6">
                                                     <div class="form-group">
-                                                        <label>SF raqami *</label>
-                                                        @Html.TextBoxFor(m => m.SFNumber, new { @class = "form-control", placeholder = "Bo'sh qoldiring — avtomatik (SF-yyyy-0001)" })
+                                                        <label>@L.T("Crm_SfNumber") *</label>
+                                                        @Html.TextBoxFor(m => m.SFNumber, new { @class = "form-control", placeholder = L.T("Crm_SfNumberAutoHint") })
                                                         @Html.ValidationMessageFor(m => m.SFNumber, "", new { @class = "text-danger" })
                                                     </div>
                                                 </div>
                                                 <div class="col-md-6">
                                                     <div class="form-group">
-                                                        <label>SF sanasi *</label>
+                                                        <label>@L.T("Crm_SfDate") *</label>
                                                         @Html.TextBoxFor(m => m.SFDate, new { @class = "form-control", type = "date", required = "required", Value = Model.SFDate.ToString("yyyy-MM-dd") })
                                                         @Html.ValidationMessageFor(m => m.SFDate, "", new { @class = "text-danger" })
                                                     </div>
@@ -82,14 +82,14 @@
                                             <div class="row">
                                                 <div class="col-md-6">
                                                     <div class="form-group">
-                                                        <label>Ta'minotchi INN *</label>
+                                                        <label>@L.T("Crm_SfSupplierInn") *</label>
                                                         @Html.TextBoxFor(m => m.SupplierINN, new { @class = "form-control", required = "required" })
                                                         @Html.ValidationMessageFor(m => m.SupplierINN, "", new { @class = "text-danger" })
                                                     </div>
                                                 </div>
                                                 <div class="col-md-6">
                                                     <div class="form-group">
-                                                        <label>Mijoz INN *</label>
+                                                        <label>@L.T("Crm_SfCustomerInn") *</label>
                                                         @Html.TextBoxFor(m => m.CustomerINN, new { @class = "form-control", required = "required" })
                                                         @Html.ValidationMessageFor(m => m.CustomerINN, "", new { @class = "text-danger" })
                                                     </div>
@@ -97,17 +97,17 @@
                                             </div>
 
                                             <hr />
-                                            <h5>SF qatorlari (Invoys qatorlaridan)</h5>
+                                            <h5>@L.T("Crm_SfLinesFromInvoice")</h5>
 
                                             <div class="table-responsive">
                                                 <table class="table table-bordered" id="sfLinesTable">
                                                     <thead>
                                                         <tr>
-                                                            <th>Mahsulot</th>
-                                                            <th>Tavsif</th>
-                                                            <th>Miqdor</th>
-                                                            <th>Birlik narxi</th>
-                                                            <th>QQS %</th>
+                                                            <th>@L.T("Crm_Product")</th>
+                                                            <th>@L.T("Description")</th>
+                                                            <th>@L.T("Quantity")</th>
+                                                            <th>@L.T("Crm_UnitPrice")</th>
+                                                            <th>@L.T("Crm_VatPercent")</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody>
@@ -149,12 +149,12 @@
                                             <div class="row mt-3">
                                                 <div class="col-md-12">
                                                     <button type="submit" class="btn btn-primary">
-                                                        <i class="bx bx-save"></i> SF yaratish
+                                                        <i class="bx bx-save"></i> @L.T("Crm_CreateSf")
                                                     </button>
                                                     @if (invoice != null)
                                                     {
                                                         <a href="@Url.Action("Details", "SalesInvoices", new { id = invoice.ID })" class="btn btn-secondary">
-                                                            Bekor qilish
+                                                            @L.T("Cancel")
                                                         </a>
                                                     }
                                                 </div>

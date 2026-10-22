@@ -1,6 +1,6 @@
 @model List<tahsinERP.Models.SUPPLIER>
 @{
-    ViewBag.Title = "Ta'minotchilar";
+    ViewBag.Title = L.T("Menu_Suppliers");
     Layout = "~/Views/Shared/_Layout.cshtml";
     var type = ViewBag.Type;
 }
@@ -21,7 +21,7 @@
                                         <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                     </li>
                                     <li class="breadcrumb-item active">
-                                        Ta'minotchilar
+                                        @L.T("Menu_Suppliers")
                                     </li>
                                 </ol>
                             </div>
@@ -35,7 +35,7 @@
                         @if (changePermit)
                         {
                             <a href="@Url.Action("Create", "Supplier")" class="btn btn-success bg-light invoice-create">
-                                <i class="bx bx-plus"></i> Yangi ta'minotchi
+                                <i class="bx bx-plus"></i> @L.T("Srm_NewSupplier")
                             </a>
                         }
                     </div>
@@ -44,14 +44,14 @@
                         <form>
                             <div class="row border rounded py-2 mb-2">
                                 <div class="col-12 col-sm-12 col-lg-4">
-                                    <label for="SourceID">Turi</label>
+                                    <label for="SourceID">@L.T("Type")</label>
                                     <fieldset class="form-group">
-                                        @Html.DropDownList("SourceID", ViewBag.SourceList as SelectList, "Barchasi", new { @class = "form-control", @id = "typeFilter", onchange = "refreshDataTable()" })
+                                        @Html.DropDownList("SourceID", ViewBag.SourceList as SelectList, L.T("All"), new { @class = "form-control", @id = "typeFilter", onchange = "refreshDataTable()" })
                                     </fieldset>
                                 </div>
                                 <div class="col-12 col-sm-12 col-lg-4 d-flex align-items-center">
                                     <a href="~/Supplier" class="btn btn-secondary bg-light invoice-create" role="button" aria-pressed="true">
-                                        <i class="bx bx-refresh"></i> Ro'yxatni yangilash
+                                        <i class="bx bx-refresh"></i> @L.T("Srm_RefreshList")
                                     </a>
                                 </div>
                             </div>
@@ -66,13 +66,13 @@
                                         <table id="suppliersTable" class="table dt-responsive nowrap" style="width:100%">
                                             <thead>
                                                 <tr>
-                                                    <th>Nomi</th>
-                                                    <th>Aloqa uchun</th>
-                                                    <th>Turi</th>
-                                                    <th>Telefon</th>
+                                                    <th>@L.T("Name")</th>
+                                                    <th>@L.T("Srm_ContactShort")</th>
+                                                    <th>@L.T("Type")</th>
+                                                    <th>@L.T("Phone")</th>
                                                     @if (changePermit)
                                                     {
-                                                        <th>Amallar</th>
+                                                        <th>@L.T("Actions")</th>
                                                     }
                                                 </tr>
                                             </thead>
@@ -92,10 +92,10 @@
                                                             {
                                                                 <td>
                                                                     <div class="d-flex">
-                                                                        <a href="@Url.Action("Edit", "Supplier", new { id = item.ID })" class="btn btn-sm btn-icon btn-outline-primary mr-1" title="Tahrirlash">
+                                                                        <a href="@Url.Action("Edit", "Supplier", new { id = item.ID })" class="btn btn-sm btn-icon btn-outline-primary mr-1" title="@L.T("Edit")">
                                                                             <i class="bx bx-edit-alt"></i>
                                                                         </a>
-                                                                        <button type="button" class="btn btn-sm btn-icon btn-outline-danger" onclick="deleteSupplier(@item.ID, '@item.Name')" title="O'chirish">
+                                                                        <button type="button" class="btn btn-sm btn-icon btn-outline-danger" onclick="deleteSupplier(@item.ID, '@item.Name')" title="@L.T("Delete")">
                                                                             <i class="bx bx-trash"></i>
                                                                         </button>
                                                                     </div>
@@ -123,7 +123,7 @@
         }
 
         function deleteSupplier(id, name) {
-            if (!confirm('"' + name + '" ta\'minotchini o\'chirishni tasdiqlaysizmi?')) {
+            if (!confirm('@L.Js("Srm_ConfirmDeleteSupplier")'.replace('{0}', name))) {
                 return;
             }
 
@@ -137,11 +137,11 @@
                     if (response.success) {
                         location.reload();
                     } else {
-                        alert('Xatolik: ' + response.message);
+                        alert('@L.Js("Srm_ErrorPrefix")' + response.message);
                     }
                 },
                 error: function () {
-                    alert('Server xatoligi yuz berdi');
+                    alert('@L.Js("Srm_ServerError")');
                 }
             });
         }

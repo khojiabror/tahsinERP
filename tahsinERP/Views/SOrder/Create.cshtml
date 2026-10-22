@@ -1,6 +1,6 @@
 @model tahsinERP.ViewModels.SOrderViewModel
 @{
-    ViewBag.Title = "Buyurtma yaratish";
+    ViewBag.Title = L.T("Crm_OrdCreateTitle");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -19,10 +19,10 @@
                                         <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                     </li>
                                     <li class="breadcrumb-item">
-                                        <a href="~/SOrder/Index">Buyurtmalar</a>
+                                        <a href="~/SOrder/Index">@L.T("Menu_Orders")</a>
                                     </li>
                                     <li class="breadcrumb-item active">
-                                        Buyurtma yaratish
+                                        @L.T("Crm_OrdCreateTitle")
                                     </li>
                                 </ol>
                             </div>
@@ -42,56 +42,56 @@
                                             @Html.AntiForgeryToken()
                                             @Html.ValidationSummary(true, "", new { @class = "text-danger" })
 
-                                            <h4 class="mb-2">Asosiy ma'lumotlar</h4>
+                                            <h4 class="mb-2">@L.T("Crm_MainInfo")</h4>
                                             <div class="row">
                                                 <div class="col-md-3 col-12 form-group">
-                                                    <label for="OrderNo">Buyurtma raqami <span class="text-danger">*</span></label>
-                                                    @Html.TextBoxFor(model => model.OrderNo, new { @class = "form-control", @placeholder = "Buyurtma raqamini kiriting", @required = "required" })
+                                                    <label for="OrderNo">@L.T("Crm_OrderNo") <span class="text-danger">*</span></label>
+                                                    @Html.TextBoxFor(model => model.OrderNo, new { @class = "form-control", @placeholder = L.T("Crm_OrdOrderNoEnter"), @required = "required" })
                                                     @Html.ValidationMessageFor(model => model.OrderNo, "", new { @class = "text-danger" })
                                                 </div>
                                                 <div class="col-md-3 col-12 form-group">
-                                                    <label for="IssuedDate">Buyurtma sanasi <span class="text-danger">*</span></label>
+                                                    <label for="IssuedDate">@L.T("Crm_OrderDate") <span class="text-danger">*</span></label>
                                                     @Html.TextBoxFor(model => model.IssuedDate, "{0:yyyy-MM-dd}", new { @id = "IssuedDate", @class = "form-control", @type = "date", @required = "required" })
                                                     @Html.ValidationMessageFor(model => model.IssuedDate, "", new { @class = "text-danger" })
                                                 </div>
                                                 <div class="col-md-3 col-12 form-group">
-                                                    <label for="CustomerID">Haridor <span class="text-danger">*</span></label>
+                                                    <label for="CustomerID">@L.T("Crm_Customer") <span class="text-danger">*</span></label>
                                                     @Html.DropDownListFor(model => model.CustomerID, (SelectList)ViewBag.Customers, new { @class = "form-control select2", @id = "CustomerID", @required = "required" })
                                                     @Html.ValidationMessageFor(model => model.CustomerID, "", new { @class = "text-danger" })
                                                 </div>
                                                 <div class="col-md-3 col-12 form-group">
-                                                    <label for="ContractID">Shartnoma raqami <span class="text-danger">*</span></label>
+                                                    <label for="ContractID">@L.T("Crm_ContractNo") <span class="text-danger">*</span></label>
                                                     @Html.DropDownListFor(model => model.ContractID, (SelectList)ViewBag.SContract, new { @class = "form-control select2", @id = "ContractID", @required = "required" })
                                                     @Html.ValidationMessageFor(model => model.ContractID, "", new { @class = "text-danger" })
-                                                    <small class="form-text text-muted">Shartnoma tanlang, maxsulotlar avtomatik yuklanadi</small>
+                                                    <small class="form-text text-muted">@L.T("Crm_OrdSelectContractHint")</small>
                                                 </div>
                                                 <div class="col-md-12 col-12 form-group">
-                                                    <label for="Description">Qisqacha tavsifi</label>
-                                                    @Html.TextAreaFor(model => model.Description, new { @class = "form-control", @placeholder = "Qisqacha tavsif kiriting", @rows = "2" })
+                                                    <label for="Description">@L.T("Crm_OrdShortDescription")</label>
+                                                    @Html.TextAreaFor(model => model.Description, new { @class = "form-control", @placeholder = L.T("Crm_OrdDescriptionEnter"), @rows = "2" })
                                                     @Html.ValidationMessageFor(model => model.Description, "", new { @class = "text-danger" })
                                                 </div>
                                             </div>
 
                                             <hr class="my-2" />
 
-                                            <h4 class="mb-2">Shartnoma maxsulotlari</h4>
+                                            <h4 class="mb-2">@L.T("Crm_ContractProducts")</h4>
                                             <div id="productsContainer" style="display: none;">
                                                 <div class="alert alert-info">
-                                                    <i class="bx bx-info-circle"></i> Faqat buyurtma miqdorini kiriting. Narxlar shartnomadan avtomatik olinadi.
+                                                    <i class="bx bx-info-circle"></i> @L.T("Crm_OrdQtyOnlyHint")
                                                 </div>
                                                 <div class="table-responsive">
                                                     <table id="productsTable" class="table table-bordered table-striped">
                                                         <thead class="thead-light">
                                                             <tr>
                                                                 <th width="5%">№</th>
-                                                                <th width="15%">Maxsulot kodi</th>
-                                                                <th width="25%">Maxsulot nomi</th>
-                                                                <th width="10%">O'lchov birligi</th>
-                                                                <th width="12%">Shartnoma miqdori</th>
-                                                                <th width="12%">Birlik narxi (QQS bilan)</th>
-                                                                <th width="15%">Buyurtma miqdori <span class="text-danger">*</span></th>
-                                                                <th width="10%">Jami (QQS bilan)</th>
-                                                                <th width="8%">O'chirish</th>
+                                                                <th width="15%">@L.T("Crm_ProductCode")</th>
+                                                                <th width="25%">@L.T("Crm_ProductName")</th>
+                                                                <th width="10%">@L.T("Crm_UnitOfMeasure")</th>
+                                                                <th width="12%">@L.T("Crm_OrdContractQty")</th>
+                                                                <th width="12%">@L.T("Crm_OrdUnitPriceVat")</th>
+                                                                <th width="15%">@L.T("Crm_OrderQty") <span class="text-danger">*</span></th>
+                                                                <th width="10%">@L.T("Crm_TotalWithVat")</th>
+                                                                <th width="8%">@L.T("Delete")</th>
                                                             </tr>
                                                         </thead>
                                                         <tbody id="productsTableBody">
@@ -125,7 +125,7 @@
                                                                         </td>
                                                                         <td class="text-right total-price">0.00</td>
                                                                         <td class="text-center">
-                                                                            <button type="button" class="btn btn-sm btn-outline-danger remove-product" title="O'chirish">
+                                                                            <button type="button" class="btn btn-sm btn-outline-danger remove-product" title="@L.T("Delete")">
                                                                                 <i class="bx bx-trash"></i>
                                                                             </button>
                                                                         </td>
@@ -136,7 +136,7 @@
                                                         </tbody>
                                                         <tfoot>
                                                             <tr class="font-weight-bold">
-                                                                <td colspan="7" class="text-right">Jami summa:</td>
+                                                                <td colspan="7" class="text-right">@L.T("Crm_TotalAmount"):</td>
                                                                 <td class="text-right" id="grandTotal">0.00</td>
                                                                 <td></td>
                                                             </tr>
@@ -145,16 +145,16 @@
                                                 </div>
                                             </div>
                                             <div id="noProductsMessage" class="alert alert-warning" style="display: none;">
-                                                <i class="bx bx-info-circle"></i> Shartnoma tanlang, maxsulotlar yuklanadi.
+                                                <i class="bx bx-info-circle"></i> @L.T("Crm_OrdSelectContractLoad")
                                             </div>
 
                                             <div class="row mt-2">
                                                 <div class="col-12">
                                                     <button type="submit" class="btn btn-primary btn-lg">
-                                                        <i class="bx bx-save"></i> Saqlash va yetkazib berish rejasiga o'tish
+                                                        <i class="bx bx-save"></i> @L.T("Crm_OrdSaveAndSchedule")
                                                     </button>
                                                     <a href="@Url.Action("Index")" class="btn btn-secondary btn-lg">
-                                                        <i class="bx bx-x"></i> Bekor qilish
+                                                        <i class="bx bx-x"></i> @L.T("Cancel")
                                                     </a>
                                                 </div>
                                             </div>

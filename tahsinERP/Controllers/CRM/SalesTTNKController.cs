@@ -6,6 +6,7 @@ using System.Net;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using tahsinERP.Filters;
+using tahsinERP.I18n;
 using tahsinERP.Models;
 using tahsinERP.Services.Common;
 using tahsinERP.Services.Crm;
@@ -152,7 +153,7 @@ namespace tahsinERP.Controllers
             var invoiceIDList = ParseIds(invoiceIDs);
             if (invoiceIDList == null)
             {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest, "Invoys ID lari noto'g'ri yoki ko'rsatilmagan");
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest, L.T("Crm_TtnInvalidInvoiceIds"));
             }
 
             using (DBTHSNEntities db = new DBTHSNEntities())
@@ -165,7 +166,7 @@ namespace tahsinERP.Controllers
 
                 if (invoices.Select(i => i.CustomerID).Distinct().Count() > 1)
                 {
-                    TempData["ErrorMessage"] = "Barcha invoyslar bir xil mijozga tegishli bo'lishi kerak";
+                    TempData["ErrorMessage"] = L.T("Crm_TtnSameCustomer");
                     return RedirectToAction("Index", "SalesInvoices");
                 }
 
@@ -199,7 +200,7 @@ namespace tahsinERP.Controllers
             var invoiceIDList = ParseIds(invoiceIDs);
             if (invoiceIDList == null)
             {
-                ModelState.AddModelError("", "Invoys ID lari noto'g'ri yoki ko'rsatilmagan");
+                ModelState.AddModelError("", L.T("Crm_TtnInvalidInvoiceIds"));
             }
 
             if (ModelState.IsValid)
@@ -214,11 +215,11 @@ namespace tahsinERP.Controllers
 
                         if (invoices.Count != invoiceIDList.Count)
                         {
-                            ModelState.AddModelError("", "Invoyslar topilmadi yoki bekor qilingan");
+                            ModelState.AddModelError("", L.T("Crm_TtnInvoicesNotFound"));
                         }
                         else if (invoices.Select(i => i.CustomerID).Distinct().Count() > 1)
                         {
-                            ModelState.AddModelError("", "Barcha invoyslar bir xil mijozga tegishli bo'lishi kerak");
+                            ModelState.AddModelError("", L.T("Crm_TtnSameCustomer"));
                         }
                         else
                         {
@@ -294,7 +295,7 @@ namespace tahsinERP.Controllers
                     }
                     catch (Exception ex)
                     {
-                        ModelState.AddModelError("", "Xatolik: " + CrmErrors.Describe(ex));
+                        ModelState.AddModelError("", L.T("Crm_ErrorPrefix", CrmErrors.Describe(ex)));
                     }
                 }
             }
@@ -330,7 +331,7 @@ namespace tahsinERP.Controllers
 
                 if (ttnkHeader.StatusCode == "FINALIZED" || ttnkHeader.StatusCode == "SENT")
                 {
-                    TempData["ErrorMessage"] = "Yakunlangan yoki yuborilgan TTNK ni tahrirlash mumkin emas";
+                    TempData["ErrorMessage"] = L.T("Crm_TtnCannotEditFinal");
                     return RedirectToAction("Details", new { id = id });
                 }
 
@@ -355,7 +356,7 @@ namespace tahsinERP.Controllers
 
                     if (existingTTNK.StatusCode == "FINALIZED" || existingTTNK.StatusCode == "SENT")
                     {
-                        ModelState.AddModelError("", "Yakunlangan yoki yuborilgan TTNK ni tahrirlash mumkin emas");
+                        ModelState.AddModelError("", L.T("Crm_TtnCannotEditFinal"));
                         return View(ttnkHeader);
                     }
 
@@ -429,7 +430,7 @@ namespace tahsinERP.Controllers
                     }
                     catch (Exception ex)
                     {
-                        ModelState.AddModelError("", "Xatolik: " + CrmErrors.Describe(ex));
+                        ModelState.AddModelError("", L.T("Crm_ErrorPrefix", CrmErrors.Describe(ex)));
                     }
                 }
             }
@@ -554,7 +555,7 @@ namespace tahsinERP.Controllers
         {
             var result = await EDocumentService.SendWaybillAsync(id, CurrentUserName);
             if (result.Success)
-                TempData["EDocSuccess"] = "TTN yuborildi: " + EDocumentStatus.Title(result.Status) + (string.IsNullOrEmpty(result.ExternalId) ? "" : " (ID: " + result.ExternalId + ")");
+                TempData["EDocSuccess"] = L.T("Crm_TtnSent", EDocumentStatus.Title(result.Status)) + (string.IsNullOrEmpty(result.ExternalId) ? "" : " (ID: " + result.ExternalId + ")");
             else
                 TempData["EDocError"] = result.Message;
             return RedirectToAction("Details", new { id });
@@ -566,7 +567,7 @@ namespace tahsinERP.Controllers
         {
             var result = await EDocumentService.RefreshAsync(EDocumentKind.Waybill, id);
             if (result.Success)
-                TempData["EDocSuccess"] = "Holat: " + EDocumentStatus.Title(result.Status);
+                TempData["EDocSuccess"] = L.T("Crm_EdocStatusLabel", EDocumentStatus.Title(result.Status));
             else
                 TempData["EDocError"] = result.Message;
             return RedirectToAction("Details", new { id });

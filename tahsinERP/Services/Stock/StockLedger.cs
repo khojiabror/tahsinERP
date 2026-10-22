@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using tahsinERP.Models;
 using tahsinERP.Services.DlocFifo;
+using tahsinERP.I18n;
 
 namespace tahsinERP.Services.Stock
 {
@@ -19,8 +20,7 @@ namespace tahsinERP.Services.Stock
         public decimal Available { get; }
 
         public InsufficientStockException(int warehouseId, int productId, decimal requested, decimal available)
-            : base($"Omborda yetarli qoldiq yo'q (ombor #{warehouseId}, mahsulot #{productId}). " +
-                   $"Mavjud: {available:N3}, talab: {requested:N3}.")
+            : base(L.T("Wh_Err_InsufficientStockIds", warehouseId, productId, available.ToString("N3"), requested.ToString("N3")))
         {
             WarehouseId = warehouseId;
             ProductId = productId;
@@ -157,9 +157,7 @@ SELECT @ok AS Ok, CASE WHEN @ok = 1 THEN @new ELSE @total END AS Available;";
             if (!converted.HasValue)
             {
                 throw new InvalidOperationException(
-                    $"Mahsulot #{productId}: {conversion.UnitName(lineUnitId)} → {conversion.UnitName(row.UnitID)} " +
-                    "birlik konversiyasi topilmadi (mahsulot og'irligi/uzunligi kiritilmagan yoki birliklar mos emas). " +
-                    $"Qatorni ombor qoldig'i birligida ({conversion.UnitName(row.UnitID)}) kiriting.");
+                    L.T("Wh_Err_UnitConversionMissing", productId, conversion.UnitName(lineUnitId), conversion.UnitName(row.UnitID)));
             }
 
             stockUnitId = row.UnitID;
@@ -249,13 +247,13 @@ SELECT @ok AS Ok, CASE WHEN @ok = 1 THEN @new ELSE @total END AS Available;";
             if (IsDlocWarehouse(db, warehouseId))
             {
                 if (!locationId.HasValue || locationId.Value <= 0)
-                    throw new WarehouseDlocException("DLOC_REQUIRED", "Joylashuv (DLOC) tanlanmagan.");
+                    throw new WarehouseDlocException("DLOC_REQUIRED", L.T("Wh_Err_DlocNotSelected"));
 
                 if (!LocationLotStockLedger.TryReceive(db, warehouseId, incomeId, incomeProductId, productId,
                         qty, locationId.Value, receivedAt, unitId, lotNoPrefix))
                 {
                     throw new WarehouseDlocException("DLOC_RECEIVE_FAILED",
-                        $"Mahsulot #{productId}: DLOC ga kirim yozib bo'lmadi.");
+                        L.T("Wh_Err_DlocReceiveFailed", productId));
                 }
                 return;
             }
@@ -333,8 +331,7 @@ WHERE il.IncomeID = @p0 AND il.IsDeleted = 0";
                     if (lot.QtyConsumed > 0.0001m || lot.QtyAtLocations + 0.0001m < lot.QtyReceived)
                     {
                         throw new WarehouseDlocException("LOT_CONSUMED",
-                            $"Lot {lot.LotNo} dan allaqachon chiqim qilingan ({lot.QtyReceived - lot.QtyAtLocations:N3}). " +
-                            "Avval shu lotdan qilingan chiqimlarni bekor qiling.");
+                            L.T("Wh_Err_LotConsumed", lot.LotNo, (lot.QtyReceived - lot.QtyAtLocations).ToString("N3")));
                     }
 
                     db.Database.ExecuteSqlCommand("DELETE FROM dbo.LOT_LOCATIONS WHERE LotID = @p0", lot.ID);

@@ -1,7 +1,7 @@
 @model tahsinERP.Models.PRODUCT
 
 @{
-    ViewBag.Title = "Yaratish";
+    ViewBag.Title = L.T("Create");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -22,15 +22,15 @@
                                             <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                         </li>
                                         <li class="breadcrumb-item">
-                                            <a href="~/Product/Index">Maxsulotlar</a>
+                                            <a href="~/Product/Index">@L.T("Menu_Products")</a>
                                         </li>
                                         <li class="breadcrumb-item active">
-                                            Yangi maxsulot qo'shish
+                                            @L.T("Prd_AddNewProduct")
                                         </li>
                                     </ol>
                                     <div class="invoice-create-btn mb-1">
                                         <button type="button" class="btn btn-outline-primary mr-1 mb-1" id="exportButton" onclick="window.location.href='/Product/UploadWithExcel'">
-                                            <i class="bx bx-file"></i><span class="align-middle ml-25">Excel orqali maxsulotlar qo'shish</span>
+                                            <i class="bx bx-file"></i><span class="align-middle ml-25">@L.T("Prd_AddViaExcelMany")</span>
                                         </button>
                                     </div>
                                 </div>
@@ -52,12 +52,12 @@
                                                     <hr>
                                                     <div class="row my-2 py-50">
                                                         <div class="col-sm-6 col-12 order-2 order-sm-1">
-                                                            <h4 class="text-primary">Maxsulot raqami</h4>
+                                                            <h4 class="text-primary">@L.T("Prd_PNo")</h4>
                                                             <fieldset class="invoice-address form-group">
                                                                 @Html.EditorFor(m => m.PNo, new { htmlAttributes = new { @class = "form-control" } })
                                                                 @Html.ValidationMessageFor(m => m.PNo, "", new { @class = "text-danger" })
                                                             </fieldset>
-                                                            <h6 class="invoice-to">Maxsulot nomi</h6>
+                                                            <h6 class="invoice-to">@L.T("Prd_ProductName")</h6>
                                                             <fieldset class="invoice-address form-group">
                                                                 @Html.EditorFor(m => m.Name, new { htmlAttributes = new { @class = "form-control" } })
                                                                 @Html.ValidationMessageFor(m => m.Name, "", new { @class = "text-danger" })
@@ -65,54 +65,54 @@
                                                         </div>
                                                         <br />
                                                         <div class="col-sm-6 col-12 order-1 order-sm-1 d-flex justify-content-end">
-                                                            <h4 class="text-primary">Maxsulot rasmi</h4>
+                                                            <h4 class="text-primary">@L.T("Prd_ProductImage")</h4>
                                                             <input type="file" id="productPhotoUpload" name="productPhotoUpload" />
                                                             @Html.ValidationMessageFor(model => model.PRODUCTIMAGES, "", new { @class = "text-danger" })
                                                         </div>
                                                     </div>
 
-                                                    <h6 class="invoice-to">Turi</h6>
+                                                    <h6 class="invoice-to">@L.T("Type")</h6>
                                                     <fieldset class="form-group">
-                                                        @Html.DropDownList("ProductType", (SelectList)ViewBag.TypeList, "-- tanlang --", new { @class = "form-control", @id = "ProductType" })
+                                                        @Html.DropDownList("ProductType", (SelectList)ViewBag.TypeList, L.T("SelectPlaceholder"), new { @class = "form-control", @id = "ProductType" })
                                                     </fieldset>
-                                                    <h6 class="invoice-to">Kategoriya</h6>
+                                                    <h6 class="invoice-to">@L.T("Category")</h6>
                                                     <fieldset class="form-group">
-                                                        @Html.DropDownListFor(m => m.CategoryID, (SelectList)ViewBag.CategoryList, "Tanlang", new { @class = "form-control" })
+                                                        @Html.DropDownListFor(m => m.CategoryID, (SelectList)ViewBag.CategoryList, L.T("Select"), new { @class = "form-control" })
                                                         @Html.ValidationMessageFor(m => m.CategoryID, "", new { @class = "text-danger" })
                                                     </fieldset>
-                                                    <h6 class="invoice-to">Sex (ishlab chiqarish bo'limi)</h6>
+                                                    <h6 class="invoice-to">@L.T("Prd_ShopLabel")</h6>
                                                     <fieldset class="form-group">
-                                                        @Html.DropDownListFor(m => m.ShopID, (SelectList)ViewBag.ShopList, "-- tanlang --", new { @class = "form-control" })
+                                                        @Html.DropDownListFor(m => m.ShopID, (SelectList)ViewBag.ShopList, L.T("SelectPlaceholder"), new { @class = "form-control" })
                                                         @Html.ValidationMessageFor(m => m.ShopID, "", new { @class = "text-danger" })
                                                     </fieldset>
-                                                    <h6 class="invoice-to">Og'irlik (kg da)</h6>
+                                                    <h6 class="invoice-to">@L.T("Prd_WeightKg")</h6>
                                                     <fieldset class="invoice-address form-group">
                                                         @Html.EditorFor(m => m.Weight, new { htmlAttributes = new { @class = "form-control", placeholder = "kg" } })
                                                         @Html.ValidationMessageFor(m => m.Weight, "", new { @class = "text-danger" })
-                                                        <small class="text-muted">Maxsulot kategoriyasida "Hisob-kitoblar og'irlikka nisbatan qilinsin" belgilangan bo'lsa, bu maydon to'ldirilishi shart</small>
+                                                        <small class="text-muted">@L.T("Prd_WeightHint")</small>
                                                     </fieldset>
-                                                    <h6 class="invoice-to">O'lchamlari, mm (UxExB)</h6>
+                                                    <h6 class="invoice-to">@L.T("Prd_DimensionsMm")</h6>
                                                     <fieldset class="invoice-address form-group">
                                                         <div class="input-group">
-                                                            @Html.EditorFor(m => m.Length, new { htmlAttributes = new { @class = "form-control", placeholder = "Uzunligi" } })
+                                                            @Html.EditorFor(m => m.Length, new { htmlAttributes = new { @class = "form-control", placeholder = L.T("Prd_Length") } })
                                                             <span class="input-group-addon">x</span>
-                                                            @Html.EditorFor(m => m.Width, new { htmlAttributes = new { @class = "form-control", placeholder = "Eni" } })
+                                                            @Html.EditorFor(m => m.Width, new { htmlAttributes = new { @class = "form-control", placeholder = L.T("Prd_WidthEni") } })
                                                             <span class="input-group-addon">x</span>
-                                                            @Html.EditorFor(m => m.Height, new { htmlAttributes = new { @class = "form-control", placeholder = "Balandligi" } })
+                                                            @Html.EditorFor(m => m.Height, new { htmlAttributes = new { @class = "form-control", placeholder = L.T("Prd_Height") } })
                                                         </div>
                                                         @Html.ValidationMessageFor(m => m.Length, "", new { @class = "text-danger" })
                                                         @Html.ValidationMessageFor(m => m.Width, "", new { @class = "text-danger" })
                                                         @Html.ValidationMessageFor(m => m.Height, "", new { @class = "text-danger" })
                                                     </fieldset>
-                                                    <h6 class="invoice-to">Standart uzunlik (kesish uchun), mm</h6>
+                                                    <h6 class="invoice-to">@L.T("Prd_StdLength")</h6>
                                                     <fieldset class="invoice-address form-group">
-                                                        @Html.TextBoxFor(model => model.StandardLengthMm, new { @class = "form-control", @placeholder = "Masalan: 4000 (bo'sh bo'lsa — Uzunligi ishlatiladi)" })
-                                                        <small class="text-muted">Norma va BOM'dagi kesish/taxta soni hisobi shu qiymatdan foydalanadi.</small>
+                                                        @Html.TextBoxFor(model => model.StandardLengthMm, new { @class = "form-control", @placeholder = L.T("Prd_StdLengthPlaceholder") })
+                                                        <small class="text-muted">@L.T("Prd_StdLengthHint")</small>
                                                         @Html.ValidationMessageFor(model => model.StandardLengthMm, "", new { @class = "text-danger" })
                                                     </fieldset>
-                                                    <h6 class="invoice-to">O'lchov birligi</h6>
+                                                    <h6 class="invoice-to">@L.T("Prd_UnitOfMeasure")</h6>
                                                     <fieldset class="invoice-address form-group">
-                                                        @Html.DropDownListFor(m => m.UnitID, (SelectList)ViewBag.UNIT, "-- tanlang --", new { @class = "form-control" })
+                                                        @Html.DropDownListFor(m => m.UnitID, (SelectList)ViewBag.UNIT, L.T("SelectPlaceholder"), new { @class = "form-control" })
                                                         @Html.ValidationMessageFor(m => m.UnitID, "", new { @class = "text-danger" })
                                                     </fieldset>
                                                     @*<h6 class="invoice-to">HSCODES</h6>
@@ -120,12 +120,12 @@
                                                             @Html.DropDownListFor(model => model.HSCodeID, (SelectList)ViewBag.HSCODESS, "", new { @class = "form-control" })
                                                             @Html.ValidationMessageFor(model => model.HSCodeID, "", new { @class = "text-danger" })
                                                         </fieldset>*@
-                                                    <h6 class="invoice-to">Tavsifi </h6>
+                                                    <h6 class="invoice-to">@L.T("Prd_Description")</h6>
                                                     <fieldset class="invoice-address form-group">
                                                         @Html.TextAreaFor(m => m.Description, 4, 80, new { @class = "form-control" })
                                                         @Html.ValidationMessageFor(m => m.Description, "", new { @class = "text-danger" })
                                                     </fieldset>
-                                                    <h6 class="invoice-to">Alternativ Maxsulot raqamlari</h6>
+                                                    <h6 class="invoice-to">@L.T("Prd_AltPNos")</h6>
                                                     <fieldset class="invoice-address form-group">
                                                         <div class="row">
                                                             <div class="col-md-4">
@@ -154,7 +154,7 @@
                                                         <li class="list-group-item border-0 pb-0">
                                                             <button class="btn btn-primary btn-block subtotal-preview-btn" name="create" type="submit" value="Saqlash">
                                                                 <i class='bx bx-save'></i>
-                                                                Saqlash
+                                                                @L.T("Save")
                                                             </button>
                                                         </li>
                                                     </ul>

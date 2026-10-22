@@ -1,6 +1,6 @@
 @model tahsinERP.Models.EXPENS
 @{
-    ViewBag.Title = "Chiqim hujjatini o'chirish";
+    ViewBag.Title = L.T("Wh_ExpDeleteTitle");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -8,10 +8,10 @@
 @Html.Partial("~/Views/Incomes/_DocDeleteConfirm.cshtml", new tahsinERP.ViewModels.DocDeleteConfirmViewModel
 {
     Controller = "Expenses",
-    Title = "Chiqim hujjatini o'chirish",
-    ListTitle = "Ombor chiqimlari",
-    DocKind = "chiqim",
-    WarehouseLabel = "Yuboruvchi ombor",
+    Title = L.T("Wh_ExpDeleteTitle"),
+    ListTitle = L.T("Wh_ExpListTitle"),
+    DocKind = L.T("Wh_DeleteDocWarningExpense"),
+    WarehouseLabel = L.T("Wh_SenderWarehouse"),
     ID = Model.ID,
     DocNo = Model.DocNo,
     IssueDateTime = Model.IssueDateTime,

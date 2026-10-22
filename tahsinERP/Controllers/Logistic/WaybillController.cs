@@ -12,6 +12,7 @@ using tahsinERP.Services;
 using tahsinERP.Services.Common;
 using tahsinERP.ViewModels;
 using tahsinERP.Filters;
+using tahsinERP.I18n;
 
 namespace tahsinERP.Controllers
 {
@@ -116,6 +117,7 @@ namespace tahsinERP.Controllers
                         TotalPaid = totalPaid,
                         Outstanding = amount - totalPaid,
                         PaymentStatus = WaybillLedgerService.StatusOf(amount, totalPaid).ToDisplay(),
+                        PaymentBadgeClass = WaybillLedgerService.StatusOf(amount, totalPaid).BadgeClass(),
                         CargoTypeText = WaybillService.CargoTypeText(w.SalesInvoiceID, w.SalesOrderID, w.TTNKID, w.InvoiceID, w.PurchaseOrderID),
                         LinkedDoc = WaybillService.LinkedDocText(w.SalesInvoiceID, w.SalesOrderID, w.TTNKID, w.InvoiceID, w.PurchaseOrderID)
                     };
@@ -194,7 +196,7 @@ namespace tahsinERP.Controllers
                     }
 
                     LogHelper.LogToDatabase(User.Identity.Name, "WaybillController", "Create",
-                        $"{waybill.WaybillNo} - {LogisticsTerms.Waybill.ToLower()} yaratildi.");
+                        $"{waybill.WaybillNo} - yo'l varaqasi yaratildi.");
 
                     return RedirectToAction("Index");
                 }
@@ -237,7 +239,8 @@ namespace tahsinERP.Controllers
 
                 var totalPaid = WaybillLedgerService.GetPaidTotal(db, waybill.ID);
                 var outstanding = (waybill.Amount ?? 0) - totalPaid;
-                var paymentStatus = WaybillLedgerService.StatusOf(waybill.Amount ?? 0, totalPaid).ToDisplay();
+                var paymentStatusCode = WaybillLedgerService.StatusOf(waybill.Amount ?? 0, totalPaid);
+                var paymentStatus = paymentStatusCode.ToDisplay();
 
                 var linkedPayments = db.F_WAYBILL_PAYMENTS.AsNoTracking()
                     .Where(p => !p.IsDeleted &&
@@ -250,6 +253,7 @@ namespace tahsinERP.Controllers
                 ViewBag.TotalPaid = totalPaid;
                 ViewBag.Outstanding = outstanding;
                 ViewBag.PaymentStatus = paymentStatus;
+                ViewBag.PaymentStatusCode = paymentStatusCode;
                 ViewBag.Payments = linkedPayments;
 
                 return View(waybill);
@@ -308,13 +312,13 @@ namespace tahsinERP.Controllers
                         await db.SaveChangesAsync();
 
                         LogHelper.LogToDatabase(User.Identity.Name, "WaybillController", "Edit",
-                            $"{waybillToUpdate.WaybillNo} - {LogisticsTerms.Waybill.ToLower()} tahrirlandi.");
+                            $"{waybillToUpdate.WaybillNo} - yo'l varaqasi tahrirlandi.");
 
                         return RedirectToAction("Index");
                     }
                     catch (RetryLimitExceededException)
                     {
-                        ModelState.AddModelError("", "Oʻzgarishlarni saqlab boʻlmadi. Qayta urinib ko'ring va agar muammo davom etsa, tizim administratoriga murojaat qiling.");
+                        ModelState.AddModelError("", L.T("Log_SaveRetryError"));
                     }
                 }
 
@@ -358,8 +362,8 @@ namespace tahsinERP.Controllers
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 if (await SoftDeleteAsync<F_WAYBILLS>(db, ID, null,
-                        w => $"{w.WaybillNo} - {LogisticsTerms.Waybill.ToLower()} o'chirildi.",
-                        LogisticsTerms.Waybill + " topilmadi."))
+                        w => $"{w.WaybillNo} - yo'l varaqasi o'chirildi.",
+                        L.T("Log_WaybillNotFound")))
                     return RedirectToAction("Index");
             }
 

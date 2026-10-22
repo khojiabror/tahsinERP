@@ -7,6 +7,7 @@ using tahsinERP.Controllers;
 using tahsinERP.Services.Common;
 using tahsinERP.Services.DlocFifo;
 using tahsinERP.Services.Stock;
+using tahsinERP.I18n;
 
 namespace tahsinERP.Services
 {
@@ -126,7 +127,7 @@ namespace tahsinERP.Services
                 catch (WarehouseDlocException ex) when (ex.ErrorCode == "LOT_CONSUMED")
                 {
                     throw new InvalidOperationException(
-                        ex.Message + " Shu sabab bu ishlab chiqarish yozuvini tahrirlash mumkin emas.", ex);
+                        ex.Message + " " + L.T("Wh_Err_ProductionEditBlocked"), ex);
                 }
 
                 income.IsDeleted = true;
@@ -180,12 +181,12 @@ namespace tahsinERP.Services
         {
             if (!WarehouseRoles.Exists(db, receivingWhId))
             {
-                return "Ombor topilmadi.";
+                return L.T("Wh_WarehouseNotFoundDot");
             }
 
             if (WarehouseRoles.IsProductionOrSales(WarehouseRoles.GetType(db, receivingWhId)))
             {
-                return "Ishlab chiqarish va Savdo omborlariga qo'lda kirim yaratish mumkin emas. Faqat chiqim hujjatidan avtomatik yaratilgan kirimni qabul qiling.";
+                return L.T("Wh_Err_ManualIncomeProdSales");
             }
 
             return null;
@@ -198,19 +199,19 @@ namespace tahsinERP.Services
         {
             if (income == null)
             {
-                return "Kirim hujjati topilmadi.";
+                return L.T("Wh_Err_IncomeNotFound");
             }
 
             if (!WarehouseRoles.Exists(db, income.ReceivingWHID))
             {
-                return "Ombor topilmadi.";
+                return L.T("Wh_WarehouseNotFoundDot");
             }
 
             if (WarehouseRoles.IsProductionOrSales(WarehouseRoles.GetType(db, income.ReceivingWHID)))
             {
                 if (!IsAutoLinkedTransferIncome(income))
                 {
-                    return "Ushbu omborga faqat chiqimdan avtomatik yaratilgan kirimni qabul qilish mumkin.";
+                    return L.T("Wh_Err_OnlyAutoIncomeReceive");
                 }
             }
 
@@ -224,17 +225,17 @@ namespace tahsinERP.Services
         {
             if (income == null)
             {
-                return "Kirim hujjati topilmadi.";
+                return L.T("Wh_Err_IncomeNotFound");
             }
 
             if (!WarehouseRoles.Exists(db, income.ReceivingWHID))
             {
-                return "Ombor topilmadi.";
+                return L.T("Wh_WarehouseNotFoundDot");
             }
 
             if (WarehouseRoles.IsProductionOrSales(WarehouseRoles.GetType(db, income.ReceivingWHID)))
             {
-                return "Ishlab chiqarish va Savdo omborlaridagi kirimlarni qo'lda tahrirlash mumkin emas.";
+                return L.T("Wh_Err_ManualEditProdSales");
             }
 
             return null;
@@ -258,11 +259,11 @@ namespace tahsinERP.Services
                 {
                     var product = db.PRODUCTS.Find(productID);
                     if (product == null)
-                        throw new Exception($"Mahsulot topilmadi: {productID}");
+                        throw new Exception(L.T("Wh_Err_ProductNotFoundId", productID));
 
                     var productionWH = GetProductionWarehouse(db, shopID);
                     if (productionWH == null)
-                        throw new Exception("Ishlab chiqarish ombori topilmadi");
+                        throw new Exception(L.T("Wh_Err_ProductionWhNotFound"));
 
                     ProductionDlocGuard.RequireForProductionWarehouse(db, productionWH.ID, productionWH.WHName);
 
@@ -346,7 +347,7 @@ namespace tahsinERP.Services
             DateTime? transferDate = null)
         {
             if (lines == null || !lines.Any(l => l.Quantity > 0))
-                throw new ArgumentException("O'tkazma qatorlari bo'sh.", nameof(lines));
+                throw new ArgumentException(L.T("Wh_Err_TransferLinesEmpty"), nameof(lines));
 
             EXPENS expense = null;
             try
@@ -356,9 +357,9 @@ namespace tahsinERP.Services
                     var productionWH = GetProductionWarehouse(db);
                     var salesWH = GetSalesWarehouse(db);
                     if (productionWH == null)
-                        throw new Exception("Ishlab chiqarish ombori topilmadi");
+                        throw new Exception(L.T("Wh_Err_ProductionWhNotFound"));
                     if (salesWH == null)
-                        throw new Exception("Sotuv ombori topilmadi");
+                        throw new Exception(L.T("Wh_Err_SalesWhNotFound"));
 
                     var activeLines = lines.Where(l => l.Quantity > 0).ToList();
                     var productIds = activeLines.Select(l => l.ProductID).Distinct().ToList();
@@ -368,14 +369,13 @@ namespace tahsinERP.Services
                     foreach (var g in activeLines.GroupBy(l => l.ProductID))
                     {
                         if (!products.ContainsKey(g.Key))
-                            throw new Exception($"Mahsulot topilmadi: {g.Key}");
+                            throw new Exception(L.T("Wh_Err_ProductNotFoundId", g.Key));
                         var need = g.Sum(x => x.Quantity);
                         var available = StockLedger.GetOnHand(db, productionWH.ID, g.Key, lockForUpdate: true);
                         if (available + StockLedger.Epsilon < need)
                         {
                             throw new Exception(
-                                $"Ishlab chiqarish omborida yetarli mahsulot yo'q ({products[g.Key].PNo}). " +
-                                $"Mavjud: {QtyText.Plain(available)}, Talab qilinmoqda: {QtyText.Plain(need)}");
+                                L.T("Wh_Err_ProductionWhInsufficient", products[g.Key].PNo, QtyText.Plain(available), QtyText.Plain(need)));
                         }
                     }
 
@@ -491,11 +491,11 @@ namespace tahsinERP.Services
                 {
                     var product = db.PRODUCTS.Find(productID);
                     if (product == null)
-                        throw new Exception($"Mahsulot topilmadi: {productID}");
+                        throw new Exception(L.T("Wh_Err_ProductNotFoundId", productID));
 
                     var salesWH = GetSalesWarehouse(db);
                     if (salesWH == null)
-                        throw new Exception("Sotuv ombori topilmadi");
+                        throw new Exception(L.T("Wh_Err_SalesWhNotFound"));
 
                     decimal qtyToDeduct = quantity;
                     var availableQty = InventoryValuationService.GetQty(db, salesWH.ID, productID);
@@ -503,9 +503,7 @@ namespace tahsinERP.Services
                     if (availableQty + 0.000000001m < qtyToDeduct)
                     {
                         throw new Exception(
-                            $"Sotuv omborida yetarli mahsulot yo'q. " +
-                            $"Mahsulot: {product.PNo}, Mavjud: {QtyText.Plain(availableQty)}, Talab qilinmoqda: {QtyText.Plain(qtyToDeduct)}, " +
-                            $"Invoys: {invoiceNo}");
+                            L.T("Wh_Err_SalesWhInsufficient", product.PNo, QtyText.Plain(availableQty), QtyText.Plain(qtyToDeduct), invoiceNo));
                     }
 
                     int currencyId = GetDefaultCurrencyId(db);

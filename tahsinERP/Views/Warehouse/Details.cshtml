@@ -1,7 +1,7 @@
 @model tahsinERP.Models.Warehouse
 
 @{
-    ViewBag.Title = "Ombor ma'lumotlari";
+    ViewBag.Title = L.T("Wh_WarehouseInfo");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -22,10 +22,10 @@
                                         <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                     </li>
                                     <li class="breadcrumb-item">
-                                        <a href="~/Warehouse/Index">Korxona omborlari</a>
+                                        <a href="~/Warehouse/Index">@L.T("Wh_CompanyWarehouses")</a>
                                     </li>
                                     <li class="breadcrumb-item active">
-                                        Ombor ma'lumotlari
+                                        @L.T("Wh_WarehouseInfo")
                                     </li>
                                 </ol>
                             </div>
@@ -47,19 +47,24 @@
                                     <div class="row">
                                         <div class="col-md-6">
                                             <dl class="row">
-                                                <dt class="col-sm-4">Ombor nomi:</dt>
+                                                <dt class="col-sm-4">@L.T("Wh_WarehouseNameColon")</dt>
                                                 <dd class="col-sm-8">
                                                     <strong>@Html.DisplayFor(model => model.WHName)</strong>
                                                 </dd>
 
-                                                <dt class="col-sm-4">Tavsif:</dt>
+                                                <dt class="col-sm-4">@L.T("Wh_DescriptionColon")</dt>
                                                 <dd class="col-sm-8">
-                                                    @(string.IsNullOrEmpty(Model.Description) ? 
-                                                        "<span class='text-muted'>Tavsif kiritilmagan</span>" : 
-                                                        Model.Description)
+                                                    @if (string.IsNullOrEmpty(Model.Description))
+                                                    {
+                                                        <span class="text-muted">@L.T("Wh_NoDescription")</span>
+                                                    }
+                                                    else
+                                                    {
+                                                        @Model.Description
+                                                    }
                                                 </dd>
 
-                                                <dt class="col-sm-4">Sex:</dt>
+                                                <dt class="col-sm-4">@L.T("Wh_ShopColon")</dt>
                                                 <dd class="col-sm-8">
                                                     @if (Model.SHOP != null)
                                                     {
@@ -71,7 +76,7 @@
                                                     }
                                                 </dd>
 
-                                                <dt class="col-sm-4">MRP:</dt>
+                                                <dt class="col-sm-4">@L.T("Wh_MrpColon")</dt>
                                                 <dd class="col-sm-8">
                                                     @if (Model.USER != null)
                                                     {
@@ -79,19 +84,19 @@
                                                     }
                                                     else
                                                     {
-                                                        <span class="text-muted">Tayinlanmagan</span>
+                                                        <span class="text-muted">@L.T("Wh_NotAssigned")</span>
                                                     }
                                                 </dd>
 
-                                                <dt class="col-sm-4">Holati:</dt>
+                                                <dt class="col-sm-4">@L.T("Wh_StatusColon")</dt>
                                                 <dd class="col-sm-8">
                                                     @if (Model.IsDeleted == true)
                                                     {
-                                                        <span class="badge badge-danger">O'chirilgan</span>
+                                                        <span class="badge badge-danger">@L.T("Wh_DeletedState")</span>
                                                     }
                                                     else
                                                     {
-                                                        <span class="badge badge-success">Faol</span>
+                                                        <span class="badge badge-success">@L.T("Active")</span>
                                                     }
                                                 </dd>
                                             </dl>
@@ -103,17 +108,17 @@
                                     <div class="d-flex justify-content-between">
                                         <div>
                                             <a href="@Url.Action("Index", "Warehouse")" class="btn btn-secondary">
-                                                <i class="bx bx-arrow-back"></i> Orqaga
+                                                <i class="bx bx-arrow-back"></i> @L.T("Back")
                                             </a>
                                         </div>
                                         @if (changePermit)
                                         {
                                             <div>
                                                 <a href="@Url.Action("Edit", "Warehouse", new { id = Model.ID })" class="btn btn-primary">
-                                                    <i class="bx bx-edit-alt"></i> Tahrirlash
+                                                    <i class="bx bx-edit-alt"></i> @L.T("Edit")
                                                 </a>
                                                 <a href="@Url.Action("Delete", "Warehouse", new { id = Model.ID })" class="btn btn-danger">
-                                                    <i class="bx bx-trash"></i> O'chirish
+                                                    <i class="bx bx-trash"></i> @L.T("Delete")
                                                 </a>
                                             </div>
                                         }

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using tahsinERP.Filters;
+using tahsinERP.I18n;
 using tahsinERP.Models;
 using tahsinERP.Services;
 
@@ -22,7 +23,7 @@ namespace tahsinERP.Controllers
         {
             if (!contractId.HasValue)
             {
-                return Json(new { success = false, message = "Shartnoma IDsi kerak." });
+                return Json(new { success = false, message = L.T("Log_ContractIdRequired") });
             }
 
             using (DBTHSNEntities db = new DBTHSNEntities())
@@ -67,7 +68,7 @@ namespace tahsinERP.Controllers
                         {
                             success = true,
                             fromLocation = invoice.SUPPLIER?.Address,
-                            toLocation = "Bizning ombor",
+                            toLocation = L.T("Log_OurWarehouse"),
                             direction = 0, // Kiruvchi
                             currencyId = invoice.CurrencyID,
                             payerType = 0 // Bizning kompaniya
@@ -85,7 +86,7 @@ namespace tahsinERP.Controllers
                         return Json(new
                         {
                             success = true,
-                            fromLocation = "Bizning ombor",
+                            fromLocation = L.T("Log_OurWarehouse"),
                             toLocation = invoice.CUSTOMER?.Address,
                             direction = 1, // Chiquvchi
                             currencyId = invoice.CurrencyID,
@@ -94,7 +95,7 @@ namespace tahsinERP.Controllers
                     }
                 }
 
-                return Json(new { success = false, message = "Hisob-faktura topilmadi." });
+                return Json(new { success = false, message = L.T("Log_InvoiceNotFound") });
             }
         }
 

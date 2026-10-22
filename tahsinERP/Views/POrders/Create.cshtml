@@ -1,7 +1,7 @@
 @model tahsinERP.ViewModels.POrder.POrderCreateViewModel
 @using System.Collections.Generic
 @{
-    ViewBag.Title = "Yangi xarid buyurtmasi";
+    ViewBag.Title = L.T("Srm_NewPurchaseOrder");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -18,10 +18,10 @@
                                     <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                 </li>
                                 <li class="breadcrumb-item">
-                                    <a href="~/POrders/Index">Xarid buyurtmalari</a>
+                                    <a href="~/POrders/Index">@L.T("Menu_PurchaseOrders")</a>
                                 </li>
                                 <li class="breadcrumb-item active">
-                                    Yangi buyurtma
+                                    @L.T("Srm_NewOrder")
                                 </li>
                             </ol>
                         </div>
@@ -52,10 +52,10 @@
                                             <!-- Sales Orders Selection for BOM Generation - Only for Direct Purchase -->
                                             <div class="row mb-2 border-bottom pb-3">
                                                 <div class="col-12">
-                                                    <h5 class="mb-2">Sotuv buyurtmalaridan generatsiya qilish</h5>
+                                                    <h5 class="mb-2">@L.T("Srm_GenerateFromSalesOrders")</h5>
                                                     <div class="row">
                                                         <div class="col-md-8 col-12 form-group">
-                                                            <label for="SelectedSalesOrderIds">Sotuv buyurtmalari (bir yoki bir nechta tanlash mumkin)</label>
+                                                            <label for="SelectedSalesOrderIds">@L.T("Srm_SalesOrdersMulti")</label>
                                                             @Html.ListBoxFor(model => model.SelectedSalesOrderIds, 
                                                                 ViewBag.SalesOrders as MultiSelectList, 
                                                                 new { @class = "form-control select2", @multiple = "multiple", @id = "salesOrdersSelect" })
@@ -63,11 +63,11 @@
                                                         </div>
                                                         <div class="col-md-4 col-12 form-group d-flex align-items-end">
                                                             <button type="button" class="btn btn-primary w-100" id="generateBtn">
-                                                                <i class="bx bx-cog"></i> Generatsiya qilish
+                                                                <i class="bx bx-cog"></i> @L.T("Srm_Generate")
                                                             </button>
                                                         </div>
                                                     </div>
-                                                    <small class="text-muted">Sotuv buyurtmalarini tanlab, BOM asosida xom ashyo ehtiyojlarini avtomatik hisoblang</small>
+                                                    <small class="text-muted">@L.T("Srm_GenerateHint")</small>
                                                 </div>
                                             </div>
                                         }
@@ -77,7 +77,7 @@
                                             <div class="row mb-2">
                                                 <div class="col-12">
                                                     <div class="alert alert-info">
-                                                        <i class="bx bx-info-circle"></i> <strong>Indirect Purchase:</strong> Bu buyurtma PRequisition asosida yaratilmoqda. Mahsulotlar avtomatik yuklanadi.
+                                                        <i class="bx bx-info-circle"></i> <strong>@L.T("Srm_IndirectPurchase"):</strong> @L.T("Srm_IndirectOrderHint")
                                                     </div>
                                                 </div>
                                             </div>
@@ -86,54 +86,54 @@
                                         <!-- Order Header -->
                                         <div class="row">
                                             <div class="col-md-3 col-12 form-group">
-                                                <label for="OrderNo">Buyurtma raqami</label>
-                                                @Html.TextBoxFor(model => model.OrderNo, new { @class = "form-control", @placeholder = "Avtomatik generatsiya qilinadi" })
+                                                <label for="OrderNo">@L.T("Srm_OrderNo")</label>
+                                                @Html.TextBoxFor(model => model.OrderNo, new { @class = "form-control", @placeholder = L.T("Srm_AutoGenerated") })
                                                 @Html.ValidationMessageFor(model => model.OrderNo, "", new { @class = "text-danger" })
-                                                <small class="text-muted">Bo'sh qoldirilsa, avtomatik generatsiya qilinadi</small>
+                                                <small class="text-muted">@L.T("Srm_AutoGenIfEmpty")</small>
                                             </div>
                                             <div class="col-md-3 col-12 form-group">
-                                                <label for="IssuedDate">Sana</label>
+                                                <label for="IssuedDate">@L.T("Date")</label>
                                                 @Html.TextBoxFor(model => model.IssuedDate, "{0:yyyy-MM-dd}", new { @type = "date", @class = "form-control", @required = "required" })
                                                 @Html.ValidationMessageFor(model => model.IssuedDate, "", new { @class = "text-danger" })
                                             </div>
                                             @Html.HiddenFor(model => model.CompanyID, new { @Value = ViewBag.DefaultCompanyID ?? 0 })
 
                                             <div class="col-md-3 col-12 form-group">
-                                                <label for="CurrencyID">Valyuta</label>
-                                                @Html.DropDownListFor(model => model.CurrencyID, ViewBag.Currencies as SelectList, "---Tanlang---", new { @class = "form-control select2", @required = "required" })
+                                                <label for="CurrencyID">@L.T("Currency")</label>
+                                                @Html.DropDownListFor(model => model.CurrencyID, ViewBag.Currencies as SelectList, L.T("SelectPlaceholder"), new { @class = "form-control select2", @required = "required" })
                                                 @Html.ValidationMessageFor(model => model.CurrencyID, "", new { @class = "text-danger" })
                                             </div>
                                             <div class="col-md-3 col-12 form-group">
-                                                <label for="vatRateInput">QQS %</label>
+                                                <label for="vatRateInput">@L.T("Srm_VatPercentShort")</label>
                                                 <input type="number" id="vatRateInput" name="VatRate" class="form-control" value="@(Model != null ? Model.VatRate.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture) : "0")" step="0.01" min="0" max="100" />
                                             </div>
                                             <div class="col-md-12 col-12 form-group">
-                                                <label for="Description">Izoh</label>
-                                                @Html.TextAreaFor(model => model.Description, new { @class = "form-control", @rows = "2", @placeholder = "Qisqacha izoh" })
+                                                <label for="Description">@L.T("Comment")</label>
+                                                @Html.TextAreaFor(model => model.Description, new { @class = "form-control", @rows = "2", @placeholder = L.T("Srm_ShortComment") })
                                                 @Html.ValidationMessageFor(model => model.Description, "", new { @class = "text-danger" })
                                             </div>
                                         </div>
 
                                         <br />
-                                        <h5>Buyurtma mahsulotlari</h5>
+                                        <h5>@L.T("Srm_OrderProducts")</h5>
                                         
                                         <!-- Editable Products Table -->
                                         <div class="table-responsive">
                                             <table id="orderProductsTable" class="table table-bordered">
                                                 <thead>
                                                     <tr>
-                                                        <th>Mahsulot kodi</th>
-                                                        <th>Mahsulot nomi</th>
-                                                        <th>Miqdor</th>
-                                                        <th>Birlik</th>
-                                                        <th>Narx</th>
-                                                        <th>QQS miqdori</th>
-                                                        <th>Jami umumiy summa</th>
-                                                        <th>Jami QQS</th>
-                                                        <th>Jami</th>
+                                                        <th>@L.T("Srm_ProductCode")</th>
+                                                        <th>@L.T("Srm_ProductName")</th>
+                                                        <th>@L.T("Quantity")</th>
+                                                        <th>@L.T("Unit")</th>
+                                                        <th>@L.T("Price")</th>
+                                                        <th>@L.T("Srm_VatAmount")</th>
+                                                        <th>@L.T("Srm_TotalGrossAmount")</th>
+                                                        <th>@L.T("Srm_TotalVat")</th>
+                                                        <th>@L.T("Total")</th>
                                                         <th>MOQ</th>
-                                                        <th>Hisob tushuntirishi</th>
-                                                        <th>Amallar</th>
+                                                        <th>@L.T("Srm_CalcExplanation")</th>
+                                                        <th>@L.T("Actions")</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
@@ -141,17 +141,17 @@
                                                 </tbody>
                                                 <tfoot>
                                                     <tr>
-                                                        <td colspan="8" class="text-right"><strong>Jami:</strong></td>
+                                                        <td colspan="8" class="text-right"><strong>@L.T("Total"):</strong></td>
                                                         <td id="totalAmount" class="text-right"><strong>0.00</strong></td>
                                                         <td colspan="2"></td>
                                                     </tr>
                                                     <tr>
-                                                        <td colspan="8" class="text-right"><strong>Jami QQS:</strong></td>
+                                                        <td colspan="8" class="text-right"><strong>@L.T("Srm_TotalVat"):</strong></td>
                                                         <td id="totalVatAmount" class="text-right"><strong>0.00</strong></td>
                                                         <td colspan="2"></td>
                                                     </tr>
                                                     <tr>
-                                                        <td colspan="8" class="text-right"><strong>Jami umumiy summa (QQSsiz):</strong></td>
+                                                        <td colspan="8" class="text-right"><strong>@L.T("Srm_TotalWithoutVatLong"):</strong></td>
                                                         <td id="totalBaseAmount" class="text-right"><strong>0.00</strong></td>
                                                         <td colspan="2"></td>
                                                     </tr>
@@ -162,7 +162,7 @@
                                         <div class="row mt-2">
                                             <div class="col-12">
                                                 <button type="button" class="btn btn-outline-primary" id="addRowBtn">
-                                                    <i class="bx bx-plus"></i> Qo'shish
+                                                    <i class="bx bx-plus"></i> @L.T("Add")
                                                 </button>
                                             </div>
                                         </div>
@@ -170,10 +170,10 @@
                                         <div class="row mt-3">
                                             <div class="col-12">
                                                 <button type="submit" class="btn btn-success">
-                                                    <i class="bx bx-save"></i> Saqlash
+                                                    <i class="bx bx-save"></i> @L.T("Save")
                                                 </button>
                                                 <a href="@Url.Action("Index", "POrders")" class="btn btn-secondary">
-                                                    <i class="bx bx-x"></i> Bekor qilish
+                                                    <i class="bx bx-x"></i> @L.T("Cancel")
                                                 </a>
                                             </div>
                                         </div>
@@ -242,7 +242,7 @@
                     if (typeof $.fn.select2 !== 'undefined') {
                         if ($('#salesOrdersSelect').length > 0) {
                             $('#salesOrdersSelect').select2({
-                                placeholder: "Sotuv buyurtmalarini tanlang",
+                                placeholder: "@L.Js("Srm_SelectSalesOrders")",
                                 allowClear: true
                             });
                         }
@@ -339,13 +339,13 @@
                                         updateTotal();
                                     }
                                 } else {
-                                    var errorMsg = response && response.message ? response.message : 'Noma\'lum xatolik';
-                                    alert('Xatolik: ' + errorMsg);
+                                    var errorMsg = response && response.message ? response.message : '@L.Js("Srm_UnknownError")';
+                                    alert('@L.Js("Srm_ErrorPrefix")' + errorMsg);
                                 }
                             },
                             error: function (xhr, status, error) {
                                 console.error('AJAX Error:', status, error, xhr);
-                                alert('Requisition mahsulotlarini yuklashda xatolik yuz berdi');
+                                alert('@L.Js("Srm_RequisitionLoadError")');
                             }
                         });
                     }
@@ -354,12 +354,12 @@
                     $(document).on('click', '#generateBtn', function () {
                         var selectedIds = $('#salesOrdersSelect').val();
                         if (!selectedIds || selectedIds.length === 0) {
-                            alert('Iltimos, kamida bitta sotuv buyurtmasini tanlang');
+                            alert('@L.Js("Srm_SelectAtLeastOneSalesOrder")');
                             return;
                         }
 
                         // Show loading
-                        $('#generateBtn').prop('disabled', true).html('<i class="bx bx-loader-alt bx-spin"></i> Generatsiya qilinmoqda...');
+                        $('#generateBtn').prop('disabled', true).html('<i class="bx bx-loader-alt bx-spin"></i> @L.Js("Srm_Generating")');
 
                         $.ajax({
                             url: '@Url.Action("GenerateFromSalesOrders", "POrders")',
@@ -395,18 +395,18 @@
                                             }
                                         });
                                         updateTotal();
-                                        alert('Mahsulotlar muvaffaqiyatli generatsiya qilindi (' + response.data.length + ' ta mahsulot)');
+                                        alert('@L.Js("Srm_GeneratedCount")'.replace('{0}', response.data.length));
                                     } else {
-                                        alert('Generatsiya qilingan ma\'lumotlar topilmadi. BOM mavjud emas yoki xom ashyo topilmadi.');
+                                        alert('@L.Js("Srm_GeneratedNone")');
                                     }
                                 } else {
-                                    var errorMsg = response && response.message ? response.message : 'Noma\'lum xatolik';
-                                    alert('Xatolik: ' + errorMsg);
+                                    var errorMsg = response && response.message ? response.message : '@L.Js("Srm_UnknownError")';
+                                    alert('@L.Js("Srm_ErrorPrefix")' + errorMsg);
                                 }
                             },
                             error: function (xhr, status, error) {
                                 console.error('AJAX Error:', status, error, xhr);
-                                var errorMsg = 'Server xatoligi yuz berdi';
+                                var errorMsg = '@L.Js("Srm_ServerError")';
                                 if (xhr.responseJSON && xhr.responseJSON.message) {
                                     errorMsg = xhr.responseJSON.message;
                                 } else if (xhr.responseText) {
@@ -419,10 +419,10 @@
                                         // Ignore parse error
                                     }
                                 }
-                                alert('Xatolik: ' + errorMsg);
+                                alert('@L.Js("Srm_ErrorPrefix")' + errorMsg);
                             },
                             complete: function () {
-                                $('#generateBtn').prop('disabled', false).html('<i class="bx bx-cog"></i> Generatsiya qilish');
+                                $('#generateBtn').prop('disabled', false).html('<i class="bx bx-cog"></i> @L.Js("Srm_Generate")');
                             }
                         });
                     });
@@ -487,7 +487,7 @@
                             .attr('name', 'OrderProducts[' + productRowIndex + '].UnitID')
                             .addClass('form-control unit-select')
                             .attr('required', 'required');
-                        $unitSelect.append($('<option>').attr('value', '').text('---Tanlang---'));
+                        $unitSelect.append($('<option>').attr('value', '').text('@L.Js("SelectPlaceholder")'));
                         
                         units.forEach(function (unit) {
                             var $option = $('<option>')
@@ -645,7 +645,7 @@
                         // Validate at least one product
                         if ($('#orderProductsTable tbody tr').length === 0) {
                             e.preventDefault();
-                            alert('Kamida bitta mahsulot qo\'shilishi kerak');
+                            alert('@L.Js("Srm_AtLeastOneProduct")');
                             return false;
                         }
 
@@ -663,7 +663,7 @@
 
                         if (!isValid) {
                             e.preventDefault();
-                            alert('Barcha mahsulotlar uchun to\'liq ma\'lumot kiriting');
+                            alert('@L.Js("Srm_FillAllProducts")');
                             return false;
                         }
                     });

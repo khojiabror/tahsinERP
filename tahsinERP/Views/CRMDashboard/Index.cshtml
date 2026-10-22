@@ -1,10 +1,10 @@
 @model tahsinERP.ViewModels.CRMDashboardViewModel
 @{
-    ViewBag.Title = "CRM Dashboard";
+    ViewBag.Title = L.T("Menu_DashCrm");
     Layout = "~/Views/Shared/_Layout.cshtml";
     var fromDate = ViewBag.FromDate as DateTime?;
     var toDate = ViewBag.ToDate as DateTime?;
-    Func<decimal, string> fmtSom = v => string.Format("{0:N2}", v).Replace(",", " ").Replace(".", ",") + " so'm";
+    Func<decimal, string> fmtSom = v => string.Format("{0:N2}", v).Replace(",", " ").Replace(".", ",") + " " + L.Sum;
     var totalReceivable = Model.CustomerReceivables != null ? Model.CustomerReceivables.Sum(x => x.ReceivableAmount) : 0m;
     // Grafik ma'lumotlari JSON konfiguratsiyada (Scripts/crm/crm-dashboard.js) — XSS/qo'shtirnoq xavfsiz (CRM-S05)
     Func<IEnumerable<tahsinERP.ViewModels.CRMChartPoint>, object> chartJson = pts => new
@@ -39,8 +39,8 @@
                             <div class="breadcrumb-wrapper col-12">
                                 <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                     <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
-                                    <li class="breadcrumb-item"><a href="~/SOrder/Index">Sotuvlar</a></li>
-                                    <li class="breadcrumb-item active">CRM Dashboard</li>
+                                    <li class="breadcrumb-item"><a href="~/SOrder/Index">@L.T("Menu_Sales")</a></li>
+                                    <li class="breadcrumb-item active">@L.T("Menu_DashCrm")</li>
                                 </ol>
                             </div>
                         </div>
@@ -50,7 +50,7 @@
 
             <div class="content-body">
                 <div class="alert alert-light border mb-1 py-50">
-                    <i class="bx bx-info-circle"></i> Barcha summalar so'mda — har hujjat o'z sanasidagi CBU kursi bilan qayta hisoblangan (<a href="@Url.Action("Index", "CurrencyRates")">valyuta kurslari</a>).
+                    <i class="bx bx-info-circle"></i> @L.T("Crm_DashAllInSum") (<a href="@Url.Action("Index", "CurrencyRates")">@L.T("Crm_DashCurrencyRatesLink")</a>).
                 </div>
                 @if (ViewBag.CurrencyWarning != null)
                 {
@@ -63,18 +63,18 @@
                             <div class="card-body">
                                 <form method="get" action="@Url.Action("Index")" class="row align-items-end">
                                     <div class="col-md-3">
-                                        <label class="form-label">Dan</label>
+                                        <label class="form-label">@L.T("Crm_From")</label>
                                         <input type="date" name="fromDate" class="form-control" value="@(fromDate?.ToString("yyyy-MM-dd"))" />
                                     </div>
                                     <div class="col-md-3">
-                                        <label class="form-label">Gacha</label>
+                                        <label class="form-label">@L.T("Crm_To")</label>
                                         <input type="date" name="toDate" class="form-control" value="@(toDate?.ToString("yyyy-MM-dd"))" />
                                     </div>
                                     <div class="col-md-2">
-                                        <button type="submit" class="btn btn-primary"><i class="bx bx-filter-alt"></i> Filtrlash</button>
+                                        <button type="submit" class="btn btn-primary"><i class="bx bx-filter-alt"></i> @L.T("Filter")</button>
                                     </div>
                                     <div class="col-md-2">
-                                        <a href="@Url.Action("Index")" class="btn btn-outline-secondary">Tozalash</a>
+                                        <a href="@Url.Action("Index")" class="btn btn-outline-secondary">@L.T("Reset")</a>
                                     </div>
                                 </form>
                             </div>
@@ -90,9 +90,9 @@
                                 <div class="card-body">
                                     <div class="d-flex justify-content-between align-items-end">
                                         <div>
-                                            <p class="mb-0 text-muted">Jami shartnomalar</p>
+                                            <p class="mb-0 text-muted">@L.T("Crm_DashTotalContracts")</p>
                                             <h3 class="font-weight-bolder mb-0">@Model.TotalContracts</h3>
-                                            <small class="text-muted">Summa: @Model.ContractsTotalAmount.ToString("N0")</small>
+                                            <small class="text-muted">@L.T("Amount"): @Model.ContractsTotalAmount.ToString("N0")</small>
                                         </div>
                                         <div class="avatar bg-rgba-primary p-50 m-0">
                                             <div class="avatar-content"><i class="bx bx-file font-medium-3 text-primary"></i></div>
@@ -108,9 +108,9 @@
                                 <div class="card-body">
                                     <div class="d-flex justify-content-between align-items-end">
                                         <div>
-                                            <p class="mb-0 text-muted">Shartnoma muddati o'tgan</p>
+                                            <p class="mb-0 text-muted">@L.T("Crm_DashContractsOverdue")</p>
                                             <h3 class="font-weight-bolder mb-0 text-danger">@Model.ContractsOverdue</h3>
-                                            <small class="text-muted">Bajarilgan: @Model.ContractsCompleted</small>
+                                            <small class="text-muted">@L.T("Crm_DashCompleted"): @Model.ContractsCompleted</small>
                                         </div>
                                         <div class="avatar bg-rgba-danger p-50 m-0">
                                             <div class="avatar-content"><i class="bx bx-calendar-x font-medium-3 text-danger"></i></div>
@@ -126,9 +126,9 @@
                                 <div class="card-body">
                                     <div class="d-flex justify-content-between align-items-end">
                                         <div>
-                                            <p class="mb-0 text-muted">Jami buyurtmalar</p>
+                                            <p class="mb-0 text-muted">@L.T("Crm_DashTotalOrders")</p>
                                             <h3 class="font-weight-bolder mb-0">@Model.TotalOrders</h3>
-                                            <small class="text-muted">Invoysiz: <span class="text-warning">@Model.OrdersWithoutInvoice</span></small>
+                                            <small class="text-muted">@L.T("Crm_DashWithoutInvoice"): <span class="text-warning">@Model.OrdersWithoutInvoice</span></small>
                                         </div>
                                         <div class="avatar bg-rgba-success p-50 m-0">
                                             <div class="avatar-content"><i class="bx bx-cart font-medium-3 text-success"></i></div>
@@ -144,9 +144,9 @@
                                 <div class="card-body">
                                     <div class="d-flex justify-content-between align-items-end">
                                         <div>
-                                            <p class="mb-0 text-muted">Yetkazib berish kechikkan</p>
+                                            <p class="mb-0 text-muted">@L.T("Crm_DashDeliveryOverdue")</p>
                                             <h3 class="font-weight-bolder mb-0 text-warning">@Model.OrdersDeliveryOverdue</h3>
-                                            <small class="text-muted">Jami invoys: @Model.TotalInvoices</small>
+                                            <small class="text-muted">@L.T("Crm_DashTotalInvoices"): @Model.TotalInvoices</small>
                                         </div>
                                         <div class="avatar bg-rgba-warning p-50 m-0">
                                             <div class="avatar-content"><i class="bx bx-time-five font-medium-3 text-warning"></i></div>
@@ -165,9 +165,9 @@
                                 <div class="card-body">
                                     <div class="d-flex justify-content-between align-items-end">
                                         <div>
-                                            <p class="mb-0 text-muted">Invoyslar (muddati o'tgan)</p>
+                                            <p class="mb-0 text-muted">@L.T("Crm_DashInvoicesOverdueKpi")</p>
                                             <h3 class="font-weight-bolder mb-0">@Model.TotalInvoices <small class="text-danger">(@Model.InvoicesOverdue)</small></h3>
-                                            <small class="text-muted">Jami: @Model.InvoicesTotalAmount.ToString("N0")</small>
+                                            <small class="text-muted">@L.T("Total"): @Model.InvoicesTotalAmount.ToString("N0")</small>
                                         </div>
                                         <div class="avatar bg-rgba-info p-50 m-0">
                                             <div class="avatar-content"><i class="bx bx-receipt font-medium-3 text-info"></i></div>
@@ -183,9 +183,9 @@
                                 <div class="card-body">
                                     <div class="d-flex justify-content-between align-items-end">
                                         <div>
-                                            <p class="mb-0 text-muted">Xaridorlar</p>
+                                            <p class="mb-0 text-muted">@L.T("Menu_Customers")</p>
                                             <h3 class="font-weight-bolder mb-0">@Model.TotalCustomers</h3>
-                                            <small class="text-muted">Bu yil buyurtma: @Model.CustomersWithOrdersThisYear</small>
+                                            <small class="text-muted">@L.T("Crm_DashOrdersThisYear"): @Model.CustomersWithOrdersThisYear</small>
                                         </div>
                                         <div class="avatar bg-rgba-secondary p-50 m-0">
                                             <div class="avatar-content"><i class="bx bx-user font-medium-3 text-secondary"></i></div>
@@ -202,7 +202,7 @@
                     <div class="col-lg-6 col-12">
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">Shartnomalar - oy bo'yicha</h4>
+                                <h4 class="card-title">@L.T("Crm_DashContractsByMonth")</h4>
                             </div>
                             <div class="card-body">
                                 <div id="contractsByMonthChart" style="min-height: 320px;"></div>
@@ -212,7 +212,7 @@
                     <div class="col-lg-6 col-12">
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">Buyurtmalar - oy bo'yicha</h4>
+                                <h4 class="card-title">@L.T("Crm_DashOrdersByMonth")</h4>
                             </div>
                             <div class="card-body">
                                 <div id="ordersByMonthChart" style="min-height: 320px;"></div>
@@ -225,7 +225,7 @@
                     <div class="col-lg-6 col-12">
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">Buyurtma bajarilishi - invoys bilan / invoysiz</h4>
+                                <h4 class="card-title">@L.T("Crm_DashOrderFulfillment")</h4>
                             </div>
                             <div class="card-body">
                                 <div id="orderFulfillmentChart" style="min-height: 320px;"></div>
@@ -235,7 +235,7 @@
                     <div class="col-lg-6 col-12">
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">Shartnoma holati</h4>
+                                <h4 class="card-title">@L.T("Crm_DashContractStatus")</h4>
                             </div>
                             <div class="card-body">
                                 <div id="contractStatusChart" style="min-height: 320px;"></div>
@@ -248,7 +248,7 @@
                     <div class="col-12">
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">Mijozlar bo'yicha buyurtma summasi (TOP 10)</h4>
+                                <h4 class="card-title">@L.T("Crm_DashTopCustomers")</h4>
                             </div>
                             <div class="card-body">
                                 <div id="topCustomersChart" style="min-height: 350px;"></div>
@@ -261,16 +261,16 @@
                     <div class="col-12">
                         <div class="card">
                             <div class="card-header d-flex justify-content-between align-items-center">
-                                <h4 class="card-title mb-0">Korxonalar bo'yicha haqqimiz (Debitorlik)</h4>
-                                <div class="text-danger font-weight-bold">Jami: @fmtSom(totalReceivable)</div>
+                                <h4 class="card-title mb-0">@L.T("Crm_DashReceivables")</h4>
+                                <div class="text-danger font-weight-bold">@L.T("Total"): @fmtSom(totalReceivable)</div>
                             </div>
                             <div class="card-body p-0">
                                 <div class="table-responsive">
                                     <table id="tblCustomerReceivables" class="table table-hover mb-0">
                                         <thead>
                                             <tr>
-                                                <th style="width:70%">Korxona / Shartnoma</th>
-                                                <th class="text-right">Haqqimiz</th>
+                                                <th style="width:70%">@L.T("Crm_DashCompanyContract")</th>
+                                                <th class="text-right">@L.T("Crm_DashReceivable")</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -306,7 +306,7 @@
                                             }
                                             else
                                             {
-                                                <tr><td colspan="2" class="text-center text-muted">Haqqimiz qolmagan (yoki ma'lumot yo'q)</td></tr>
+                                                <tr><td colspan="2" class="text-center text-muted">@L.T("Crm_DashNoReceivables")</td></tr>
                                             }
                                         </tbody>
                                     </table>
@@ -321,18 +321,18 @@
                     <div class="col-12">
                         <div class="card">
                             <div class="card-header d-flex justify-content-between align-items-center">
-                                <h4 class="card-title mb-0">Invoys yaratilmagan buyurtmalar</h4>
-                                <a href="~/SOrder/Index" class="btn btn-sm btn-outline-primary">Barcha buyurtmalar</a>
+                                <h4 class="card-title mb-0">@L.T("Crm_DashOrdersWithoutInvoice")</h4>
+                                <a href="~/SOrder/Index" class="btn btn-sm btn-outline-primary">@L.T("Crm_DashAllOrders")</a>
                             </div>
                             <div class="card-body p-0">
                                 <div class="table-responsive">
                                     <table id="tblOrdersWithoutInvoice" class="table table-hover mb-0 crm-dashboard-datatable">
                                         <thead>
                                             <tr>
-                                                <th>Buyurtma Raqami</th>
-                                                <th>Xaridor</th>
-                                                <th>Sana</th>
-                                                <th>Summa</th>
+                                                <th>@L.T("Crm_OrderNo")</th>
+                                                <th>@L.T("Crm_Customer")</th>
+                                                <th>@L.T("Date")</th>
+                                                <th>@L.T("Amount")</th>
                                                 <th></th>
                                             </tr>
                                         </thead>
@@ -346,13 +346,13 @@
                                                         <td>@o.CustomerName</td>
                                                         <td>@o.IssuedDate.ToString("dd.MM.yyyy")</td>
                                                         <td>@(o.Amount?.ToString("N0") ?? "") @o.CurrencyCode</td>
-                                                        <td><a href="@Url.Action("Create", "SalesInvoices", new { orderID = o.OrderId })" class="btn btn-sm btn-success">Invoys yaratish</a></td>
+                                                        <td><a href="@Url.Action("Create", "SalesInvoices", new { orderID = o.OrderId })" class="btn btn-sm btn-success">@L.T("Crm_CreateInvoice")</a></td>
                                                     </tr>
                                                 }
                                             }
                                             else
                                             {
-                                                <tr><td colspan="5" class="text-center text-muted">Ma'lumot yo'q</td></tr>
+                                                <tr><td colspan="5" class="text-center text-muted">@L.T("NoData")</td></tr>
                                             }
                                         </tbody>
                                     </table>
@@ -366,18 +366,18 @@
                     <div class="col-lg-6 col-12">
                         <div class="card">
                             <div class="card-header d-flex justify-content-between align-items-center">
-                                <h4 class="card-title mb-0">Muddati o'tgan shartnomalar</h4>
-                                <a href="~/SContract/Index" class="btn btn-sm btn-outline-secondary">Shartnomalar</a>
+                                <h4 class="card-title mb-0">@L.T("Crm_DashOverdueContracts")</h4>
+                                <a href="~/SContract/Index" class="btn btn-sm btn-outline-secondary">@L.T("Menu_Contracts")</a>
                             </div>
                             <div class="card-body p-0">
                                 <div class="table-responsive">
                                     <table class="table table-hover mb-0">
                                         <thead>
                                             <tr>
-                                                <th>Shartnoma №</th>
-                                                <th>Xaridor</th>
-                                                <th>Muddat</th>
-                                                <th>Kechikish (kun)</th>
+                                                <th>@L.T("Crm_DashContractNo")</th>
+                                                <th>@L.T("Crm_Customer")</th>
+                                                <th>@L.T("Crm_DueDate")</th>
+                                                <th>@L.T("Crm_DashDelayDays")</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -395,7 +395,7 @@
                                             }
                                             else
                                             {
-                                                <tr><td colspan="4" class="text-center text-muted">Yo'q</td></tr>
+                                                <tr><td colspan="4" class="text-center text-muted">@L.T("No")</td></tr>
                                             }
                                         </tbody>
                                     </table>
@@ -406,19 +406,19 @@
                     <div class="col-lg-6 col-12">
                         <div class="card">
                             <div class="card-header d-flex justify-content-between align-items-center">
-                                <h4 class="card-title mb-0">Yetkazib berish kechikkan</h4>
-                                <a href="~/SOrder/Index" class="btn btn-sm btn-outline-secondary">Buyurtmalar</a>
+                                <h4 class="card-title mb-0">@L.T("Crm_DashDeliveryOverdue")</h4>
+                                <a href="~/SOrder/Index" class="btn btn-sm btn-outline-secondary">@L.T("Menu_Orders")</a>
                             </div>
                             <div class="card-body p-0">
                                 <div class="table-responsive">
                                     <table id="tblDeliveryOverdue" class="table table-hover mb-0 crm-dashboard-datatable">
                                         <thead>
                                             <tr>
-                                                <th>Buyurtma</th>
-                                                <th>Mahsulot</th>
-                                                <th>Reja sana</th>
-                                                <th>Yuborilgan</th>
-                                                <th>Kechikish</th>
+                                                <th>@L.T("Crm_Order")</th>
+                                                <th>@L.T("Crm_Product")</th>
+                                                <th>@L.T("Crm_DashPlanDate")</th>
+                                                <th>@L.T("Crm_DashShipped")</th>
+                                                <th>@L.T("Crm_DashDelay")</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -431,13 +431,13 @@
                                                         <td>@d.ProductName</td>
                                                         <td>@d.DeliveryDate.ToString("dd.MM.yyyy")</td>
                                                         <td>@d.QtyShipped / @d.QtyPlanned</td>
-                                                        <td><span class="badge badge-warning">@d.DaysOverdue kun</span></td>
+                                                        <td><span class="badge badge-warning">@L.T("Crm_DaysN", d.DaysOverdue)</span></td>
                                                     </tr>
                                                 }
                                             }
                                             else
                                             {
-                                                <tr><td colspan="5" class="text-center text-muted">Yo'q</td></tr>
+                                                <tr><td colspan="5" class="text-center text-muted">@L.T("No")</td></tr>
                                             }
                                         </tbody>
                                     </table>
@@ -451,21 +451,21 @@
                     <div class="col-12">
                         <div class="card">
                             <div class="card-header d-flex justify-content-between align-items-center">
-                                <h4 class="card-title mb-0">Muddati o'tgan invoyslar</h4>
-                                <a href="~/SalesInvoices/Index" class="btn btn-sm btn-outline-secondary">Invoyslar</a>
+                                <h4 class="card-title mb-0">@L.T("Crm_DashOverdueInvoices")</h4>
+                                <a href="~/SalesInvoices/Index" class="btn btn-sm btn-outline-secondary">@L.T("Menu_Invoices")</a>
                             </div>
                             <div class="card-body p-0">
                                 <div class="table-responsive">
                                     <table id="tblInvoicesOverdue" class="table table-hover mb-0 crm-dashboard-datatable">
                                         <thead>
                                             <tr>
-                                                <th>Invoys №</th>
-                                                <th>Xaridor</th>
-                                                <th>To'lov muddati</th>
-                                                <th>Kechikish (kun)</th>
-                                                <th>Summa (so'm)</th>
-                                                <th>To'langan</th>
-                                                <th>Qoldiq</th>
+                                                <th>@L.T("Crm_DashInvoiceNo")</th>
+                                                <th>@L.T("Crm_Customer")</th>
+                                                <th>@L.T("Crm_PaymentDue")</th>
+                                                <th>@L.T("Crm_DashDelayDays")</th>
+                                                <th>@L.T("Amount") (@L.Sum)</th>
+                                                <th>@L.T("Crm_DashPaid")</th>
+                                                <th>@L.T("Crm_DashBalance")</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -486,7 +486,7 @@
                                             }
                                             else
                                             {
-                                                <tr><td colspan="7" class="text-center text-muted">Yo'q</td></tr>
+                                                <tr><td colspan="7" class="text-center text-muted">@L.T("No")</td></tr>
                                             }
                                         </tbody>
                                     </table>

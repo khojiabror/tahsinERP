@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
 using tahsinERP.Models;
+using tahsinERP.I18n;
 
 namespace tahsinERP.Services.Stock
 {
@@ -48,9 +49,9 @@ namespace tahsinERP.Services.Stock
         /// <summary>"Xatolik: ... | Ichki xatolik: ..." — ichki istisnolar bilan.</summary>
         public static string ErrorMessage(Exception ex)
         {
-            var message = $"Xatolik: {ex.Message}";
+            var message = L.T("Wh_ErrorWithMessage", ex.Message);
             for (var inner = ex.InnerException; inner != null; inner = inner.InnerException)
-                message += $" | Ichki xatolik: {inner.Message}";
+                message += " | " + L.T("Wh_InnerErrorWithMessage", inner.Message);
             return message;
         }
 

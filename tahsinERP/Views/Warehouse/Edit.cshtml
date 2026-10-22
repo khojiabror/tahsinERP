@@ -1,6 +1,6 @@
 @model tahsinERP.Models.Warehouse
 @{
-    ViewBag.Title = "Omborni tahrirlash";
+    ViewBag.Title = L.T("Wh_EditWarehouse");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -24,10 +24,10 @@
                                             <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                         </li>
                                         <li class="breadcrumb-item">
-                                            <a href="~/Warehouse/Index">Korxona omborlari</a>
+                                            <a href="~/Warehouse/Index">@L.T("Wh_CompanyWarehouses")</a>
                                         </li>
                                         <li class="breadcrumb-item active">
-                                            Omborni tahrirlash
+                                            @L.T("Wh_EditWarehouse")
                                         </li>
                                     </ol>
                                 </div>
@@ -41,52 +41,52 @@
                             <div class="col-xl-9 col-md-8 col-12">
                                 <div class="card">
                                     <div class="card-header">
-                                        <h4 class="card-title">Omborni tahrirlash</h4>
+                                        <h4 class="card-title">@L.T("Wh_EditWarehouse")</h4>
                                     </div>
                                     <div class="card-content">
                                         <div class="card-body">
                                             @Html.ValidationSummary(true, "", new { @class = "alert alert-danger" })
                                             
                                             <div class="form-group">
-                                                <label for="WHName">Ombor nomi <span class="text-danger">*</span></label>
-                                                @Html.TextBoxFor(model => model.WHName, new { @class = "form-control", @placeholder = "Masalan: Ishlab chiqarish ombori", @required = "required" })
+                                                <label for="WHName">@L.T("Wh_WarehouseName") <span class="text-danger">*</span></label>
+                                                @Html.TextBoxFor(model => model.WHName, new { @class = "form-control", @placeholder = L.T("Wh_WhNamePlaceholder"), @required = "required" })
                                                 @Html.ValidationMessageFor(model => model.WHName, "", new { @class = "text-danger" })
                                             </div>
                                             
                                             <div class="form-group">
-                                                <label for="Description">Tavsif</label>
-                                                @Html.TextAreaFor(model => model.Description, new { @class = "form-control", @placeholder = "Ombor haqida qisqacha ma'lumot", @rows = "3" })
+                                                <label for="Description">@L.T("Description")</label>
+                                                @Html.TextAreaFor(model => model.Description, new { @class = "form-control", @placeholder = L.T("Wh_WhDescPlaceholder"), @rows = "3" })
                                                 @Html.ValidationMessageFor(model => model.Description, "", new { @class = "text-danger" })
                                             </div>
                                             
                                             <div class="form-group">
-                                                <label for="ShopID">Sex</label>
-                                                @Html.DropDownListFor(model => model.ShopID, ViewBag.ShopList as SelectList, "---Tanlang---", new { @class = "form-control select2"})
+                                                <label for="ShopID">@L.T("Wh_Shop")</label>
+                                                @Html.DropDownListFor(model => model.ShopID, ViewBag.ShopList as SelectList, L.T("Wh_SelectDashed"), new { @class = "form-control select2"})
                                                 @Html.ValidationMessageFor(model => model.ShopID, "", new { @class = "text-danger" })
                                             </div>
                                             
                                             <div class="form-group">
-                                                <label for="WarehouseType">Ombor turi</label>
-                                                @Html.DropDownListFor(model => model.WarehouseType, ViewBag.WarehouseTypes as SelectList, "--- Oddiy ombor ---", new { @class = "form-control" })
+                                                <label for="WarehouseType">@L.T("Wh_WarehouseType")</label>
+                                                @Html.DropDownListFor(model => model.WarehouseType, ViewBag.WarehouseTypes as SelectList, L.T("Wh_RegularWarehouseOpt"), new { @class = "form-control" })
                                                 @Html.ValidationMessageFor(model => model.WarehouseType, "", new { @class = "text-danger" })
-                                                <small class="text-muted">Ishlab chiqarish, savdo va xomashyo oqimlari shu tur bo'yicha aniqlanadi (nom bo'yicha emas).</small>
+                                                <small class="text-muted">@L.T("Wh_WarehouseTypeHint")</small>
                                             </div>
                                             <div class="form-group">
-                                                <label for="MRP">MRP (Moddiy javobgar shaxs) <span class="text-danger">*</span></label>
-                                                @Html.DropDownListFor(model => model.MRP, ViewBag.MRPUsers as SelectList, "---Tanlang---", new { @class = "form-control select2" })
+                                                <label for="MRP">@L.T("Wh_MrpLiable") <span class="text-danger">*</span></label>
+                                                @Html.DropDownListFor(model => model.MRP, ViewBag.MRPUsers as SelectList, L.T("Wh_SelectDashed"), new { @class = "form-control select2" })
                                                 @Html.ValidationMessageFor(model => model.MRP, "", new { @class = "text-danger" })
-                                                <small class="text-muted">Material Requirements Planning mas'ul shaxsi</small>
+                                                <small class="text-muted">@L.T("Wh_MrpHint")</small>
                                             </div>
                                             
                                             <div class="form-actions">
                                                 <button type="submit" class="btn btn-primary">
-                                                    <i class="bx bx-save"></i> Saqlash
+                                                    <i class="bx bx-save"></i> @L.T("Save")
                                                 </button>
                                                 <a href="@Url.Action("Index", "Warehouse")" class="btn btn-light">
-                                                    <i class="bx bx-x"></i> Bekor qilish
+                                                    <i class="bx bx-x"></i> @L.T("Cancel")
                                                 </a>
                                                 <a href="@Url.Action("Details", "Warehouse", new { id = Model.ID })" class="btn btn-info">
-                                                    <i class="bx bx-info-circle"></i> Batafsil
+                                                    <i class="bx bx-info-circle"></i> @L.T("Details")
                                                 </a>
                                             </div>
                                         </div>
@@ -103,7 +103,7 @@
     <script>
         $(document).ready(function () {
             $('.select2').select2({
-                placeholder: "Tanlang",
+                placeholder: "@L.Js("Select")",
                 allowClear: true
             });
         });

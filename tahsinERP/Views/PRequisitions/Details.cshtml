@@ -1,6 +1,6 @@
 @model tahsinERP.Models.P_REQUISITIONS
 @{
-    ViewBag.Title = "Xarid arizasi - " + Model.RequisitionNo;
+    ViewBag.Title = L.T("Srm_RequisitionTitleNo", Model.RequisitionNo);
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -21,7 +21,7 @@
                                     <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                 </li>
                                 <li class="breadcrumb-item">
-                                    <a href="~/PRequisitions/Index">Xarid arizalari</a>
+                                    <a href="~/PRequisitions/Index">@L.T("Menu_PurchaseRequests")</a>
                                 </li>
                                 <li class="breadcrumb-item active">
                                     @Model.RequisitionNo
@@ -40,21 +40,21 @@
                             <div class="card-body">
                                 <div class="row mb-2">
                                     <div class="col-12">
-                                        <h4 class="text-primary">Ariza ma'lumotlari</h4>
+                                        <h4 class="text-primary">@L.T("Srm_RequisitionInfo")</h4>
                                     </div>
                                 </div>
 
                                 <div class="row">
                                     <div class="col-md-3">
-                                        <strong>Ariza raqami:</strong><br />
+                                        <strong>@L.T("Srm_RequisitionNo"):</strong><br />
                                         @Model.RequisitionNo
                                     </div>
                                     <div class="col-md-3">
-                                        <strong>Ariza sanasi:</strong><br />
+                                        <strong>@L.T("Srm_RequisitionDate"):</strong><br />
                                         @Model.RequisitionDate.ToString("dd.MM.yyyy")
                                     </div>
                                     <div class="col-md-3">
-                                        <strong>Status:</strong><br />
+                                        <strong>@L.T("Status"):</strong><br />
                                         @{
                                             var statusClass = "badge-secondary";
                                             switch (Model.Status)
@@ -66,13 +66,13 @@
                                                 case "ConvertedToOrder": statusClass = "badge-primary"; break;
                                             }
                                         }
-                                        <span class="badge @statusClass">@Model.Status</span>
+                                        <span class="badge @statusClass">@tahsinERP.Services.Procurement.RequisitionText.Status(Model.Status)</span>
                                     </div>
                                     <div class="col-md-3">
                                         @if (changePermit && Model.Status == "Approved")
                                         {
                                             <a href="@Url.Action("ConvertToOrder", "PRequisitions", new { id = Model.ID })" class="btn btn-success">
-                                                <i class="bx bx-cart"></i> Buyurtmaga aylantirish
+                                                <i class="bx bx-cart"></i> @L.T("Srm_ConvertToOrder")
                                             </a>
                                         }
                                         @if (changePermit && Model.Status == "Draft")
@@ -80,8 +80,8 @@
                                             using (Html.BeginForm("Submit", "PRequisitions", new { id = Model.ID }, FormMethod.Post, new { @class = "d-inline" }))
                                             {
                                                 @Html.AntiForgeryToken()
-                                                <button type="submit" class="btn btn-primary" onclick="return confirm('Talabnomani tasdiqlashga yuborasizmi?');">
-                                                    <i class="bx bx-send"></i> Tasdiqlashga yuborish
+                                                <button type="submit" class="btn btn-primary" onclick="return confirm('@L.Js("Srm_ConfirmSubmitRequisition")');">
+                                                    <i class="bx bx-send"></i> @L.T("Srm_SendForApproval")
                                                 </button>
                                             }
                                         }
@@ -90,16 +90,16 @@
                                             using (Html.BeginForm("Approve", "PRequisitions", new { id = Model.ID }, FormMethod.Post, new { @class = "d-inline" }))
                                             {
                                                 @Html.AntiForgeryToken()
-                                                <button type="submit" class="btn btn-success mb-1" onclick="return confirm('Talabnomani tasdiqlaysizmi?');">
-                                                    <i class="bx bx-check"></i> Tasdiqlash
+                                                <button type="submit" class="btn btn-success mb-1" onclick="return confirm('@L.Js("Srm_ConfirmApproveRequisition")');">
+                                                    <i class="bx bx-check"></i> @L.T("Approve")
                                                 </button>
                                             }
                                             using (Html.BeginForm("Reject", "PRequisitions", new { id = Model.ID }, FormMethod.Post))
                                             {
                                                 @Html.AntiForgeryToken()
-                                                <textarea name="reason" class="form-control mb-1" rows="2" placeholder="Rad etish sababi" required></textarea>
+                                                <textarea name="reason" class="form-control mb-1" rows="2" placeholder="@L.T("Srm_RejectReason")" required></textarea>
                                                 <button type="submit" class="btn btn-danger">
-                                                    <i class="bx bx-x"></i> Rad etish
+                                                    <i class="bx bx-x"></i> @L.T("Reject")
                                                 </button>
                                             }
                                         }
@@ -115,14 +115,14 @@
                                 }
                                 @if (Model.Status == "Rejected" && !string.IsNullOrWhiteSpace(Model.RejectionReason))
                                 {
-                                    <div class="alert alert-warning mt-1"><strong>Rad etish sababi:</strong> @Model.RejectionReason</div>
+                                    <div class="alert alert-warning mt-1"><strong>@L.T("Srm_RejectReason"):</strong> @Model.RejectionReason</div>
                                 }
 
                                 <hr />
 
                                 <div class="row">
                                     <div class="col-md-6">
-                                        <strong>Bo'lim:</strong><br />
+                                        <strong>@L.T("Srm_Department"):</strong><br />
                                         @{
                                             var department = Model.DepartmentID.HasValue ? 
                                                 (ViewBag.Departments as List<tahsinERP.Models.HR_ORG_UNITS>)?.FirstOrDefault(d => d.ID == Model.DepartmentID.Value) : null;
@@ -130,7 +130,7 @@
                                         @(department?.Name ?? "-")
                                     </div>
                                     <div class="col-md-6">
-                                        <strong>So'rovchi:</strong><br />
+                                        <strong>@L.T("Srm_Requester"):</strong><br />
                                         @{
                                             var requester = ViewBag.Requesters as List<tahsinERP.Models.HR_EMPLOYEES>;
                                             var requesterEmployee = requester?.FirstOrDefault(e => e.ID == Model.RequesterID);
@@ -138,34 +138,34 @@
                                         @(requesterEmployee?.FullName ?? "-")
                                     </div>
                                     <div class="col-md-6 mt-2">
-                                        <strong>Aloqa telefon:</strong><br />
+                                        <strong>@L.T("Srm_ContactPhone"):</strong><br />
                                         @(Model.ContactPhone ?? "-")
                                     </div>
                                 </div>
 
                                 <div class="row mt-3">
                                     <div class="col-12">
-                                        <strong>Xarid qilish maqsadi:</strong><br />
+                                        <strong>@L.T("Srm_PurchasePurpose"):</strong><br />
                                         <p>@(Model.Purpose ?? "-")</p>
                                     </div>
                                 </div>
 
                                 <hr />
 
-                                <h5 class="mt-3">Mahsulotlar</h5>
+                                <h5 class="mt-3">@L.T("Srm_Products")</h5>
                                 <div class="table-responsive">
                                     <table class="table table-bordered">
                                         <thead>
                                             <tr>
                                                 <th>#</th>
-                                                <th>Mahsulot kodi</th>
-                                                <th>Mahsulot nomi</th>
-                                                <th>Miqdor</th>
-                                                <th>Birlik</th>
-                                                <th>Tahminiy narx</th>
-                                                <th>Summa</th>
-                                                <th>Prioritet</th>
-                                                <th>Kerak bo'lgan sana</th>
+                                                <th>@L.T("Srm_ProductCode")</th>
+                                                <th>@L.T("Srm_ProductName")</th>
+                                                <th>@L.T("Quantity")</th>
+                                                <th>@L.T("Unit")</th>
+                                                <th>@L.T("Srm_EstimatedPrice")</th>
+                                                <th>@L.T("Amount")</th>
+                                                <th>@L.T("Srm_Priority")</th>
+                                                <th>@L.T("Srm_RequiredDate")</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -189,7 +189,7 @@
                                                                 else if (product.Priority == "Medium") { priorityClass = "badge-warning"; }
                                                                 else if (product.Priority == "Low") { priorityClass = "badge-info"; }
                                                             }
-                                                            <span class="badge @priorityClass">@(product.Priority ?? "Medium")</span>
+                                                            <span class="badge @priorityClass">@tahsinERP.Services.Procurement.RequisitionText.Priority(product.Priority ?? "Medium")</span>
                                                         </td>
                                                         <td>@(product.RequiredDate?.ToString("dd.MM.yyyy") ?? "-")</td>
                                                     </tr>
@@ -199,7 +199,7 @@
                                         </tbody>
                                         <tfoot>
                                             <tr>
-                                                <td colspan="6" class="text-right"><strong>Jami:</strong></td>
+                                                <td colspan="6" class="text-right"><strong>@L.T("Total"):</strong></td>
                                                 <td><strong>@((Model.P_REQUISITION_PRODUCTS?.Sum(p => p.Amount ?? 0) ?? 0).ToString("N2"))</strong></td>
                                                 <td colspan="2"></td>
                                             </tr>
@@ -210,23 +210,23 @@
                                 @if (Model.P_REQUISITION_APPROVALS != null && Model.P_REQUISITION_APPROVALS.Any())
                                 {
                                     <hr />
-                                    <h5 class="mt-3">Tasdiqlash jarayoni</h5>
+                                    <h5 class="mt-3">@L.T("Srm_ApprovalProcess")</h5>
                                     <div class="table-responsive">
                                         <table class="table table-bordered">
                                             <thead>
                                                 <tr>
-                                                    <th>Rol</th>
-                                                    <th>Tasdiqlovchi</th>
-                                                    <th>Status</th>
-                                                    <th>Sana</th>
-                                                    <th>Izoh</th>
+                                                    <th>@L.T("Srm_Role")</th>
+                                                    <th>@L.T("Srm_Approver")</th>
+                                                    <th>@L.T("Status")</th>
+                                                    <th>@L.T("Date")</th>
+                                                    <th>@L.T("Comment")</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 @foreach (var approval in Model.P_REQUISITION_APPROVALS.OrderBy(a => a.SortOrder))
                                                 {
                                                     <tr>
-                                                        <td>@approval.Role</td>
+                                                        <td>@tahsinERP.Services.Procurement.RequisitionText.Role(approval.Role)</td>
                                                         <td>@(approval.ApproverName ?? "-")</td>
                                                         <td>
                                                             @{
@@ -234,7 +234,7 @@
                                                                 if (approval.Status == "Approved") { approvalStatusClass = "badge-success"; }
                                                                 else if (approval.Status == "Rejected") { approvalStatusClass = "badge-danger"; }
                                                             }
-                                                            <span class="badge @approvalStatusClass">@(approval.Status ?? "Pending")</span>
+                                                            <span class="badge @approvalStatusClass">@tahsinERP.Services.Procurement.RequisitionText.Status(approval.Status ?? "Pending")</span>
                                                         </td>
                                                         <td>@(approval.ApprovalDate?.ToString("dd.MM.yyyy") ?? "-")</td>
                                                         <td>@(approval.Comments ?? "-")</td>
@@ -248,7 +248,7 @@
                                 <div class="row mt-3">
                                     <div class="col-12">
                                         <a href="@Url.Action("Index", "PRequisitions")" class="btn btn-secondary">
-                                            <i class="bx bx-arrow-back"></i> Orqaga
+                                            <i class="bx bx-arrow-back"></i> @L.T("Back")
                                         </a>
                                     </div>
                                 </div>

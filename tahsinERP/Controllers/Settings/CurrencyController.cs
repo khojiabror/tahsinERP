@@ -27,7 +27,7 @@ namespace tahsinERP.Controllers.Settings
 
         protected override string LogModule => "Valyutalar";
 
-        protected override string NotFoundMessage => "Bunday valyuta topilmadi.";
+        protected override string NotFoundMessage => tahsinERP.I18n.L.T("Prd_CurrencyNotFound");
 
         protected override string CreatedLog(CURRENCy currency) => $"{currency.Shortname} - valyuta birligini kiritdi tizimga";
 

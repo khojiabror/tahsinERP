@@ -1,6 +1,6 @@
 @model List<tahsinERP.Models.SALES_INVOICES>
 @{
-    ViewBag.Title = "Ro'yxat";
+    ViewBag.Title = L.T("Menu_List");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -21,7 +21,7 @@
                                         <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                     </li>
                                     <li class="breadcrumb-item active">
-                                        Sotuv invoyslari
+                                        @L.T("Crm_InvSalesInvoices")
                                     </li>
                                 </ol>
                             </div>
@@ -35,7 +35,7 @@
                     {
                         <div class="invoice-create-btn mb-1">
                             <a href="@Url.Action("Create", "SalesInvoices")" class="btn btn-success bg-light invoice-create" role="button" aria-pressed="true">
-                                <i class="bx bx-plus"></i> Yangi invoys
+                                <i class="bx bx-plus"></i> @L.T("Crm_InvNewInvoice")
                             </a>
                         </div>
                     }
@@ -46,34 +46,34 @@
                         {
                             <div class="row border rounded py-2 mb-2">
                                 <div class="col-12 col-sm-6 col-lg-2">
-                                    <label>Qidirish</label>
-                                    <input type="text" name="searchTerm" class="form-control" placeholder="Invoys raqami..." value="@ViewBag.SearchTerm" />
+                                    <label>@L.T("Search")</label>
+                                    <input type="text" name="searchTerm" class="form-control" placeholder="@L.T("Crm_InvInvoiceNoPlaceholder")" value="@ViewBag.SearchTerm" />
                                 </div>
                                 <div class="col-12 col-sm-6 col-lg-2">
-                                    <label>Mijoz</label>
-                                    @Html.DropDownList("customerID", ViewBag.Customers as SelectList, "Barchasi", new { @class = "form-control" })
+                                    <label>@L.T("Crm_Client")</label>
+                                    @Html.DropDownList("customerID", ViewBag.Customers as SelectList, L.T("All"), new { @class = "form-control" })
                                 </div>
                                 <div class="col-12 col-sm-6 col-lg-2">
-                                    <label>Buyurtma</label>
-                                    @Html.DropDownList("orderID", ViewBag.Orders as SelectList, "Barchasi", new { @class = "form-control" })
+                                    <label>@L.T("Crm_Order")</label>
+                                    @Html.DropDownList("orderID", ViewBag.Orders as SelectList, L.T("All"), new { @class = "form-control" })
                                 </div>
                                 <div class="col-12 col-sm-6 col-lg-2">
-                                    <label>Dan</label>
+                                    <label>@L.T("Crm_From")</label>
                                     <input type="date" name="fromDate" class="form-control" value="@(ViewBag.FromDate?.ToString("yyyy-MM-dd"))" />
                                 </div>
                                 <div class="col-12 col-sm-6 col-lg-2">
-                                    <label>Gacha</label>
+                                    <label>@L.T("Crm_To")</label>
                                     <input type="date" name="toDate" class="form-control" value="@(ViewBag.ToDate?.ToString("yyyy-MM-dd"))" />
                                 </div>
                                 <div class="col-12 col-sm-6 col-lg-2 d-flex align-items-end">
                                     <button type="submit" class="btn btn-primary w-100">
-                                        <i class="bx bx-search"></i> Qidirish
+                                        <i class="bx bx-search"></i> @L.T("Search")
                                     </button>
                                 </div>
                                 <div class="col-12 mt-1 text-right">
                                     @* Filtrlangan BARCHA yozuvlar (DataTables eksporti faqat joriy sahifani olardi) *@
                                     <a class="btn btn-sm btn-success" href="@(Url.Action("ExportExcel", "SalesInvoices") + Request.Url.Query)">
-                                        <i class="bx bxs-file-excel"></i> Excel (barchasi)
+                                        <i class="bx bxs-file-excel"></i> @L.T("Crm_ExcelAll")
                                     </a>
                                 </div>
                             </div>
@@ -88,17 +88,17 @@
                                         <table id="invoiceDataTable" data-crm-table data-lock-last="@(changePermit ? "true" : "false")" class="table table-striped table-bordered" style="width:100%">
                                             <thead>
                                                 <tr>
-                                                    <th>Invoys raqami</th>
-                                                    <th>Sana</th>
-                                                    <th>Mijoz</th>
-                                                    <th>Shartnoma</th>
-                                                    <th>Buyurtma</th>
-                                                    <th>Summa</th>
-                                                    <th>Valyuta</th>
-                                                    <th>Holat</th>
+                                                    <th>@L.T("Crm_InvInvoiceNo")</th>
+                                                    <th>@L.T("Date")</th>
+                                                    <th>@L.T("Crm_Client")</th>
+                                                    <th>@L.T("Crm_Contract")</th>
+                                                    <th>@L.T("Crm_Order")</th>
+                                                    <th>@L.T("Amount")</th>
+                                                    <th>@L.T("Currency")</th>
+                                                    <th>@L.T("Status")</th>
                                                     @if (changePermit)
                                                     {
-                                                        <th class="text-center">Amallar</th>
+                                                        <th class="text-center">@L.T("Actions")</th>
                                                     }
                                                 </tr>
                                             </thead>
@@ -164,7 +164,7 @@
                                                                 @if (item.OrderID.HasValue)
                                                                 {
                                                                     <a href="@Url.Action("Details", "SOrder", new { id = item.OrderID })" class="font-weight-bold">
-                                                                        Buyurtma #@(string.IsNullOrEmpty(orderNo) ? item.OrderID.ToString() : orderNo)
+                                                                        @L.T("Crm_Order") #@(string.IsNullOrEmpty(orderNo) ? item.OrderID.ToString() : orderNo)
                                                                     </a>
                                                                 }
                                                                 else
@@ -186,7 +186,7 @@
                                                             <td>
                                                                 @if (tahsinERP.Services.Crm.SalesInvoiceStatus.IsCanceled(item.StatusCode))
                                                                 {
-                                                                    <span class="badge badge-light-danger">Bekor qilingan</span>
+                                                                    <span class="badge badge-light-danger">@L.T("Crm_InvCanceled")</span>
                                                                 }
                                                                 else
                                                                 {
@@ -197,13 +197,13 @@
                                                             {
                                                                 <td class="text-center">
                                                                     <a href="@Url.Action("Edit", "SalesInvoices", new { id = item.ID })" 
-                                                                       class="btn btn-sm btn-outline-primary" title="Tahrirlash">
+                                                                       class="btn btn-sm btn-outline-primary" title="@L.T("Edit")">
                                                                         <i class="bx bx-edit"></i>
                                                                     </a>
                                                                     @if (item.StatusCode != "PAID" && item.StatusCode != "CANCELED")
                                                                     {
                                                                         <a href="@Url.Action("Delete", "SalesInvoices", new { id = item.ID })"
-                                                                           class="btn btn-sm btn-outline-danger" title="Bekor qilish">
+                                                                           class="btn btn-sm btn-outline-danger" title="@L.T("Cancel")">
                                                                             <i class="bx bx-trash"></i>
                                                                         </a>
                                                                     }

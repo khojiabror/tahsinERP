@@ -1,5 +1,5 @@
 @{
-    ViewBag.Title = "Valyuta kurslari";
+    ViewBag.Title = L.T("Prd_CurrencyRates");
     Layout = "~/Views/Shared/_Layout.cshtml";
     var rows = ViewBag.Rows as List<tahsinERP.Controllers.CurrencyRatesController.RateRow> ?? new List<tahsinERP.Controllers.CurrencyRatesController.RateRow>();
     var names = ViewBag.CurrencyNames as Dictionary<int, string> ?? new Dictionary<int, string>();
@@ -15,8 +15,8 @@
             <div class="content-header-left col-12 mb-2 mt-1">
                 <ol class="breadcrumb rounded-pill breadcrumb-divider">
                     <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
-                    <li class="breadcrumb-item"><a href="~/Currency">Valyutalar</a></li>
-                    <li class="breadcrumb-item active">Kurslar</li>
+                    <li class="breadcrumb-item"><a href="~/Currency">@L.T("Menu_Currencies")</a></li>
+                    <li class="breadcrumb-item active">@L.T("Prd_Rates")</li>
                 </ol>
             </div>
         </div>
@@ -32,22 +32,22 @@
             @if (!tableExists)
             {
                 <div class="alert alert-warning">
-                    CURRENCY_RATES jadvali hali yaratilmagan (<code>Database_Migrations/CRM_2026_10_CurrencyRates.sql</code>).
-                    Hozircha hisobotlar kursni to'g'ridan-to'g'ri cbu.uz'dan oladi va saqlamaydi.
+                    @L.T("Prd_RatesTableMissing") (<code>Database_Migrations/CRM_2026_10_CurrencyRates.sql</code>).
+                    @L.T("Prd_RatesTableMissingHint")
                 </div>
             }
 
             <div class="card">
                 <div class="card-body">
                     <p class="text-muted mb-1">
-                        Kurs — 1 birlik valyuta necha so'm. CRM hisobotlari va dashboard summalarni hujjat sanasidagi kurs bilan so'mga o'giradi.
-                        Kurs jadvalda bo'lmasa cbu.uz'dan avtomatik olinib saqlanadi; bu yerda qo'lda tuzatish mumkin.
+                        @L.T("Prd_RatesHelp1")
+                        @L.T("Prd_RatesHelp2")
                     </p>
                     <form method="get" action="@Url.Action("Index")" class="row align-items-end">
-                        <div class="col-md-3"><label>Valyuta</label>@Html.DropDownList("currencyId", ViewBag.Currencies as SelectList, "Barchasi", new { @class = "form-control" })</div>
-                        <div class="col-md-3"><label>Dan</label><input type="date" name="fromDate" class="form-control" value="@from.ToString("yyyy-MM-dd")" /></div>
-                        <div class="col-md-3"><label>Gacha</label><input type="date" name="toDate" class="form-control" value="@to.ToString("yyyy-MM-dd")" /></div>
-                        <div class="col-md-3"><button type="submit" class="btn btn-primary w-100">Ko'rsatish</button></div>
+                        <div class="col-md-3"><label>@L.T("Currency")</label>@Html.DropDownList("currencyId", ViewBag.Currencies as SelectList, L.T("All"), new { @class = "form-control" })</div>
+                        <div class="col-md-3"><label>@L.T("Prd_From")</label><input type="date" name="fromDate" class="form-control" value="@from.ToString("yyyy-MM-dd")" /></div>
+                        <div class="col-md-3"><label>@L.T("Prd_To")</label><input type="date" name="toDate" class="form-control" value="@to.ToString("yyyy-MM-dd")" /></div>
+                        <div class="col-md-3"><button type="submit" class="btn btn-primary w-100">@L.T("Prd_Show")</button></div>
                     </form>
                 </div>
             </div>
@@ -58,14 +58,14 @@
                     <div class="col-md-6">
                         <div class="card">
                             <div class="card-body">
-                                <h6>Kursni qo'lda kiritish</h6>
+                                <h6>@L.T("Prd_EnterRateManually")</h6>
                                 @using (Html.BeginForm("Save", "CurrencyRates", FormMethod.Post, new { @class = "row align-items-end" }))
                                 {
                                     @Html.AntiForgeryToken()
                                     <div class="col-4">@Html.DropDownList("currencyId", ViewBag.Currencies as SelectList, new { @class = "form-control", required = "required" })</div>
                                     <div class="col-4"><input type="date" name="rateDate" class="form-control" value="@DateTime.Today.ToString("yyyy-MM-dd")" required /></div>
-                                    <div class="col-4"><input type="number" name="rate" class="form-control" step="0.000001" min="0.000001" placeholder="so'm" required /></div>
-                                    <div class="col-12 mt-1"><button type="submit" class="btn btn-success">Saqlash</button></div>
+                                    <div class="col-4"><input type="number" name="rate" class="form-control" step="0.000001" min="0.000001" placeholder="@L.Sum" required /></div>
+                                    <div class="col-12 mt-1"><button type="submit" class="btn btn-success">@L.T("Save")</button></div>
                                 }
                             </div>
                         </div>
@@ -73,14 +73,14 @@
                     <div class="col-md-6">
                         <div class="card">
                             <div class="card-body">
-                                <h6>CBU'dan davr bo'yicha yuklash</h6>
+                                <h6>@L.T("Prd_FetchFromCbu")</h6>
                                 @using (Html.BeginForm("FetchFromCbu", "CurrencyRates", FormMethod.Post, new { @class = "row align-items-end" }))
                                 {
                                     @Html.AntiForgeryToken()
                                     <div class="col-4">@Html.DropDownList("currencyId", ViewBag.Currencies as SelectList, new { @class = "form-control", required = "required" })</div>
                                     <div class="col-4"><input type="date" name="fromDate" class="form-control" value="@from.ToString("yyyy-MM-dd")" required /></div>
                                     <div class="col-4"><input type="date" name="toDate" class="form-control" value="@to.ToString("yyyy-MM-dd")" required /></div>
-                                    <div class="col-12 mt-1"><button type="submit" class="btn btn-outline-primary">Yetishmayotganlarni yuklash (≤ 92 kun)</button></div>
+                                    <div class="col-12 mt-1"><button type="submit" class="btn btn-outline-primary">@L.T("Prd_FetchMissing")</button></div>
                                 }
                             </div>
                         </div>
@@ -93,12 +93,12 @@
                     <div class="table-responsive">
                         <table class="table table-striped table-bordered">
                             <thead>
-                                <tr><th>Sana</th><th>Valyuta</th><th class="text-right">Kurs (so'm)</th><th>Manba</th></tr>
+                                <tr><th>@L.T("Date")</th><th>@L.T("Currency")</th><th class="text-right">@L.T("Prd_RateIn", L.Sum)</th><th>@L.T("Prd_Source")</th></tr>
                             </thead>
                             <tbody>
                                 @if (!rows.Any())
                                 {
-                                    <tr><td colspan="4" class="text-center text-muted">Bu davr uchun kurslar yo'q</td></tr>
+                                    <tr><td colspan="4" class="text-center text-muted">@L.T("Prd_NoRatesForPeriod")</td></tr>
                                 }
                                 @foreach (var r in rows)
                                 {
@@ -106,7 +106,7 @@
                                         <td>@r.RateDate.ToString("dd.MM.yyyy")</td>
                                         <td>@(names.ContainsKey(r.CurrencyID) ? names[r.CurrencyID] : "#" + r.CurrencyID)</td>
                                         <td class="text-right">@r.Rate.ToString("N4")</td>
-                                        <td>@(r.Source == "MANUAL" ? "Qo'lda" : r.Source)</td>
+                                        <td>@(r.Source == "MANUAL" ? L.T("Prd_SourceManual") : r.Source)</td>
                                     </tr>
                                 }
                             </tbody>

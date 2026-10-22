@@ -17,6 +17,7 @@ using tahsinERP.Services;
 using System.Data.Entity;
 using tahsinERP.Filters;
 using tahsinERP.Services.Common;
+using tahsinERP.I18n;
 
 namespace tahsinERP.Controllers
 {
@@ -66,10 +67,10 @@ namespace tahsinERP.Controllers
         {
             var items = new List<SelectListItem>
             {
-                new SelectListItem { Value = PRODUCT_TYPE_ALL, Text = "Barchasi" },
-                new SelectListItem { Value = PRODUCT_TYPE_FINISHED_GOOD, Text = "Maxsulot" },
-                new SelectListItem { Value = PRODUCT_TYPE_COMPONENT, Text = "Yarim tayyor maxsulot" },
-                new SelectListItem { Value = PRODUCT_TYPE_RAW_MATERIAL, Text = "Xomashyo" }
+                new SelectListItem { Value = PRODUCT_TYPE_ALL, Text = L.T("All") },
+                new SelectListItem { Value = PRODUCT_TYPE_FINISHED_GOOD, Text = L.T("Prd_TypeFinished") },
+                new SelectListItem { Value = PRODUCT_TYPE_COMPONENT, Text = L.T("Prd_SemiFinishedProduct") },
+                new SelectListItem { Value = PRODUCT_TYPE_RAW_MATERIAL, Text = L.T("Prd_TypeRaw") }
             };
 
             return new SelectList(items, "Value", "Text", selected);
@@ -80,9 +81,9 @@ namespace tahsinERP.Controllers
         {
             var items = new List<SelectListItem>
             {
-                new SelectListItem { Value = PRODUCT_TYPE_FINISHED_GOOD, Text = "Maxsulot" },
-                new SelectListItem { Value = PRODUCT_TYPE_COMPONENT, Text = "Yarim tayyor maxsulot" },
-                new SelectListItem { Value = PRODUCT_TYPE_RAW_MATERIAL, Text = "Xomashyo" }
+                new SelectListItem { Value = PRODUCT_TYPE_FINISHED_GOOD, Text = L.T("Prd_TypeFinished") },
+                new SelectListItem { Value = PRODUCT_TYPE_COMPONENT, Text = L.T("Prd_SemiFinishedProduct") },
+                new SelectListItem { Value = PRODUCT_TYPE_RAW_MATERIAL, Text = L.T("Prd_TypeRaw") }
             };
 
             return new SelectList(items, "Value", "Text", selected ?? PRODUCT_TYPE_FINISHED_GOOD);
@@ -213,7 +214,7 @@ namespace tahsinERP.Controllers
 
             if (imageFile.ContentLength >= productPhotoMaxLength)
             {
-                ModelState.AddModelError("", "Suratni yuklab bo'lmadi, u 2 MB dan ortiq. Qayta urinib ko'ring va muammo davom etsa, tizim administratoriga murojaat qiling.");
+                ModelState.AddModelError("", L.T("Prd_ImageTooLarge"));
                 return false;
             }
 
@@ -386,7 +387,7 @@ namespace tahsinERP.Controllers
                 .FirstOrDefaultAsync(s => s.FileName == "maxsulot.xlsx");
 
             if (sampleFile == null)
-                return HttpNotFound("Shablon fayl topilmadi");
+                return HttpNotFound(L.T("Prd_TemplateNotFound"));
 
             return File(sampleFile.File, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "maxsulot.xlsx");
         }
@@ -402,13 +403,13 @@ namespace tahsinERP.Controllers
         {
             if (file == null || file.ContentLength == 0)
             {
-                ViewBag.Message = "Fayl bo'm-bo'sh yoki yuklanmadi!";
+                ViewBag.Message = L.T("Prd_FileEmptyOrNotUploaded");
                 return View();
             }
 
             if (!file.FileName.EndsWith(".xlsx", StringComparison.OrdinalIgnoreCase))
             {
-                ViewBag.Message = "Format noto'g'ri. Faqat .xlsx fayllarni yuklash mumkin.";
+                ViewBag.Message = L.T("Prd_OnlyXlsx");
                 return View();
             }
 
@@ -421,7 +422,7 @@ namespace tahsinERP.Controllers
                     var worksheet = workbook.Worksheet(1);
                     if (worksheet.LastRowNumber() == 0)
                     {
-                        ViewBag.Message = "Excel fayl bo'sh!";
+                        ViewBag.Message = L.T("Prd_ExcelEmpty");
                         return View();
                     }
 
@@ -460,7 +461,7 @@ namespace tahsinERP.Controllers
             }
             catch (Exception ex)
             {
-                ViewBag.Message = $"Xatolik: {ex.Message}";
+                ViewBag.Message = L.T("Prd_ErrorWithMessage", ex.Message);
             }
 
             return View();
@@ -472,7 +473,7 @@ namespace tahsinERP.Controllers
         {
             if (string.IsNullOrWhiteSpace(dataTableModel))
             {
-                TempData["Error"] = "Ma'lumot topilmadi";
+                TempData["Error"] = L.T("Prd_DataNotFound");
                 return RedirectToAction("Index");
             }
 
@@ -482,13 +483,13 @@ namespace tahsinERP.Controllers
                 tableModel = JsonConvert.DeserializeObject<DataTable>(dataTableModel);
                 if (tableModel == null || tableModel.Rows.Count == 0)
                 {
-                    TempData["Error"] = "Excel faylda ma'lumot yo'q";
+                    TempData["Error"] = L.T("Prd_ExcelNoData");
                     return RedirectToAction("Index");
                 }
             }
             catch (JsonException)
             {
-                TempData["Error"] = "Ma'lumotlarni o'qishda xatolik yuz berdi";
+                TempData["Error"] = L.T("Prd_DataReadError");
                 return RedirectToAction("Index");
             }
 
@@ -502,7 +503,7 @@ namespace tahsinERP.Controllers
                 // Import qilingan mahsulot birligi — "dona" (UNITS.SystemCode = PCS)
                 int piecesUnitId = SystemRefs.UnitId(db, SystemCodes.Unit.Pieces) ?? 0;
                 if (piecesUnitId == 0)
-                    throw new InvalidOperationException("\"dona\" o'lchov birligi (SystemCode = PCS) bazada topilmadi.");
+                    throw new InvalidOperationException(L.T("Prd_PiecesUnitMissing"));
 
                 // Mavjud PNo'lar bir martada; yangi qatorlar birga qo'shiladi, bitta SaveChanges va bitta log
                 // (avval har qatorga AnyAsync + SaveChanges + log, MES-P24). Fayl ichidagi takror PNo ham o'tkazib yuboriladi.
@@ -548,11 +549,11 @@ namespace tahsinERP.Controllers
                         $"Excel orqali {savedCount} ta maxsulot yaratildi: {string.Join(", ", newProducts.Take(20).Select(p => p.PNo))}{(savedCount > 20 ? " ..." : "")}");
                 }
 
-                TempData["Success"] = $"{savedCount} ta maxsulot muvaffaqiyatli saqlandi";
+                TempData["Success"] = L.T("Prd_ProductsSaved", savedCount);
             }
             catch (Exception ex)
             {
-                TempData["Error"] = $"Xatolik: {ex.Message}";
+                TempData["Error"] = L.T("Prd_ErrorWithMessage", ex.Message);
             }
 
             return RedirectToAction("Index");

@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using tahsinERP.Models;
+using tahsinERP.I18n;
 
 namespace tahsinERP.Services.DlocFifo
 {
@@ -20,7 +21,7 @@ namespace tahsinERP.Services.DlocFifo
                 return false;
 
             if (locationId <= 0)
-                throw new WarehouseDlocException("DLOC_REQUIRED", "Joylashuv (DLOC) tanlanmagan.");
+                throw new WarehouseDlocException("DLOC_REQUIRED", L.T("Wh_Err_DlocNotSelected"));
 
             DlocCapacityGuard.ValidatePutaway(db, locationId, productId, qty);
 
@@ -48,13 +49,13 @@ SELECT CAST(SCOPE_IDENTITY() AS INT);";
             int incomeProductId, int productId, decimal qty, int locationId, DateTime receivedAt, string lotNoPrefix = "OPENING")
         {
             if (!DlocFifoSchema.IsEnabled(db))
-                throw new WarehouseDlocException("DLOC_DISABLED", "DLOC rejimi yoqilmagan.");
+                throw new WarehouseDlocException("DLOC_DISABLED", L.T("Wh_Err_DlocModeDisabled"));
 
             if (!DlocFifoDataAccess.WarehouseHasLocations(db, warehouseId))
-                throw new WarehouseDlocException("DLOC_NOT_CONFIGURED", "Omborda DLOC joylashuvlari sozlanmagan.");
+                throw new WarehouseDlocException("DLOC_NOT_CONFIGURED", L.T("Wh_Err_DlocNotConfigured"));
 
             if (locationId <= 0)
-                throw new WarehouseDlocException("DLOC_REQUIRED", "Joylashuv (DLOC) tanlanmagan.");
+                throw new WarehouseDlocException("DLOC_REQUIRED", L.T("Wh_Err_DlocNotSelected"));
 
             DlocCapacityGuard.ValidatePutaway(db, locationId, productId, qty);
 
@@ -131,7 +132,7 @@ UPDATE dbo.LOT_LOCATIONS SET QtyAvailable = QtyAvailable - @p2, LastMovementAt =
 WHERE LotID=@p0 AND LocationID=@p1 AND QtyAvailable >= @p2";
             var n = db.Database.ExecuteSqlCommand(sql, lotId, locationId, qty);
             if (n == 0)
-                throw new WarehouseDlocException("INSUFFICIENT_STOCK", "DLOC qoldig‘i yetarli emas.");
+                throw new WarehouseDlocException("INSUFFICIENT_STOCK", L.T("Wh_Err_DlocInsufficient"));
         }
 
         private static void ConsumeLot(DBTHSNEntities db, int lotId, decimal qty)

@@ -4,6 +4,7 @@ using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
+using tahsinERP.I18n;
 using tahsinERP.Models;
 using tahsinERP.Services;
 
@@ -61,7 +62,7 @@ namespace tahsinERP.Controllers
         {
             if (!CanChange("Supplier"))
             {
-                return Json(new { success = false, message = "Ruxsat yo'q" });
+                return Json(new { success = false, message = L.T("Error_NotAuthorized") });
             }
 
             try
@@ -69,10 +70,10 @@ namespace tahsinERP.Controllers
                 var name = await SoftDeleteAsync(id);
                 if (name == null)
                 {
-                    return Json(new { success = false, message = "Ta'minotchi topilmadi" });
+                    return Json(new { success = false, message = L.T("Srm_SupplierNotFound") });
                 }
 
-                return Json(new { success = true, message = "Ta'minotchi muvaffaqiyatli o'chirildi" });
+                return Json(new { success = true, message = L.T("Srm_SupplierDeleted") });
             }
             catch (Exception ex)
             {
@@ -156,7 +157,7 @@ namespace tahsinERP.Controllers
 
                         if (exists)
                         {
-                            ModelState.AddModelError("", "Bunday nom bilan Ta'minotchi kiritilgan, ma'lumotlarni qaytadan tekshiring.");
+                            ModelState.AddModelError("", L.T("Srm_SupplierNameExists"));
                             return View(supplier);
                         }
 
@@ -170,7 +171,7 @@ namespace tahsinERP.Controllers
                     }
                     catch (Exception ex)
                     {
-                        ModelState.AddModelError("", $"Xatolik: {ex.Message}");
+                        ModelState.AddModelError("", L.T("Srm_ErrorWithMessage", ex.Message));
                     }
                 }
             }
@@ -232,7 +233,7 @@ namespace tahsinERP.Controllers
 
                         if (exists)
                         {
-                            ModelState.AddModelError("", "Bunday nom bilan boshqa Ta'minotchi mavjud");
+                            ModelState.AddModelError("", L.T("Srm_SupplierNameExistsOther"));
                             return View(supplier);
                         }
 
@@ -257,7 +258,7 @@ namespace tahsinERP.Controllers
                     }
                     catch (Exception ex)
                     {
-                        ModelState.AddModelError("", $"Xatolik: {ex.Message}");
+                        ModelState.AddModelError("", L.T("Srm_ErrorWithMessage", ex.Message));
                     }
                 }
             }

@@ -1,6 +1,6 @@
 @model tahsinERP.Models.PRODUCT_CATEGORIES
 @{
-    ViewBag.Title = "Batafsil";
+    ViewBag.Title = L.T("Details");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 @if (tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
@@ -18,10 +18,10 @@
                                         <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                     </li>
                                     <li class="breadcrumb-item">
-                                        <a href="~/ProductCategory">Maxsulot turlari</a>
+                                        <a href="~/ProductCategory">@L.T("Menu_ProductTypes")</a>
                                     </li>
                                     <li class="breadcrumb-item active">
-                                        @Model.Name ma'lumotlari
+                                        @L.T("Prd_DataOf", Model.Name)
                                     </li>
                                 </ol>
                             </div>
@@ -41,173 +41,173 @@
                                         <div class="row invoice-info">
                                             <div class="col-lg-12 col-md-6 mt-25">
                                                 @Html.ValidationSummary(true, "", new { @class = "text-danger" })
-                                                <h4 class="text-primary">Maxsulot turi ma'lumotlari</h4>
+                                                <h4 class="text-primary">@L.T("Prd_ProductTypeInfo")</h4>
                                                 <hr />
                                                 <div class="row mb-2">
-                                                    <div class="col-4"><b>Kod:</b></div>
+                                                    <div class="col-4"><b>@L.T("Code"):</b></div>
                                                     <div class="col-8">@(Model.Code ?? "-")</div>
                                                 </div>
                                                 <div class="row mb-2">
-                                                    <div class="col-4"><b>Nomi:</b></div>
+                                                    <div class="col-4"><b>@L.T("Name"):</b></div>
                                                     <div class="col-8">@Model.Name</div>
                                                 </div>
                                                 <div class="row mb-2">
-                                                    <div class="col-4"><b>Tartib raqami:</b></div>
+                                                    <div class="col-4"><b>@L.T("Prd_SortOrder"):</b></div>
                                                     <div class="col-8">@Model.SortOrder</div>
                                                 </div>
                                                 <div class="row mb-2">
-                                                    <div class="col-4"><b>Material turi:</b></div>
-                                                    <div class="col-8">@(tahsinERP.Services.Common.SystemCodes.MaterialKind.All.Where(k => k.Key == Model.MaterialKind).Select(k => k.Value).FirstOrDefault() ?? "-")</div>
+                                                    <div class="col-4"><b>@L.T("Prd_MaterialKind"):</b></div>
+                                                    <div class="col-8">@(tahsinERP.Services.Common.SystemCodes.MaterialKind.IsValid(Model.MaterialKind) ? L.T("Prd_MaterialKind_" + Model.MaterialKind) : "-")</div>
                                                 </div>
                                                 <div class="row mb-2">
-                                                    <div class="col-4"><b>Xomashyo guruhi:</b></div>
+                                                    <div class="col-4"><b>@L.T("Prd_RawGroup"):</b></div>
                                                     <div class="col-8">@(Model.RawMaterialGroup ?? "-")</div>
                                                 </div>
                                                 <div class="row mb-2">
-                                                    <div class="col-4"><b>Xomashyo kichik guruhi:</b></div>
+                                                    <div class="col-4"><b>@L.T("Prd_RawSubGroup"):</b></div>
                                                     <div class="col-8">@(Model.RawMaterialSubGrp ?? "-")</div>
                                                 </div>
                                                 <hr />
-                                                <h6 class="text-primary">Xususiyatlar</h6>
+                                                <h6 class="text-primary">@L.T("Prd_Properties")</h6>
                                                 <div class="row mb-2">
-                                                    <div class="col-4"><b>Xomashyo:</b></div>
+                                                    <div class="col-4"><b>@L.T("Prd_TypeRaw"):</b></div>
                                                     <div class="col-8">
                                                         @if (Model.IsRawMaterial)
                                                         {
-                                                            <span class="badge badge-info">Ha</span>
+                                                            <span class="badge badge-info">@L.T("Yes")</span>
                                                         }
                                                         else
                                                         {
-                                                            <span class="badge badge-secondary">Yo'q</span>
+                                                            <span class="badge badge-secondary">@L.T("No")</span>
                                                         }
                                                     </div>
                                                 </div>
                                                 <div class="row mb-2">
-                                                    <div class="col-4"><b>Tayyor maxsulot:</b></div>
+                                                    <div class="col-4"><b>@L.T("Prd_FinishedProduct"):</b></div>
                                                     <div class="col-8">
                                                         @if (Model.IsFinishedGood)
                                                         {
-                                                            <span class="badge badge-success">Ha</span>
+                                                            <span class="badge badge-success">@L.T("Yes")</span>
                                                         }
                                                         else
                                                         {
-                                                            <span class="badge badge-secondary">Yo'q</span>
+                                                            <span class="badge badge-secondary">@L.T("No")</span>
                                                         }
                                                     </div>
                                                 </div>
                                                 <div class="row mb-2">
-                                                    <div class="col-4"><b>Yarim tayyor:</b></div>
+                                                    <div class="col-4"><b>@L.T("Prd_TypeSemi"):</b></div>
                                                     <div class="col-8">
                                                         @if (Model.IsComponent)
                                                         {
-                                                            <span class="badge badge-warning">Ha</span>
+                                                            <span class="badge badge-warning">@L.T("Yes")</span>
                                                         }
                                                         else
                                                         {
-                                                            <span class="badge badge-secondary">Yo'q</span>
+                                                            <span class="badge badge-secondary">@L.T("No")</span>
                                                         }
                                                     </div>
                                                 </div>
                                                 <div class="row mb-2">
-                                                    <div class="col-4"><b>Sarflanish:</b></div>
+                                                    <div class="col-4"><b>@L.T("Prd_Consumable"):</b></div>
                                                     <div class="col-8">
                                                         @if (Model.IsConsumable)
                                                         {
-                                                            <span class="badge badge-primary">Ha</span>
+                                                            <span class="badge badge-primary">@L.T("Yes")</span>
                                                         }
                                                         else
                                                         {
-                                                            <span class="badge badge-secondary">Yo'q</span>
+                                                            <span class="badge badge-secondary">@L.T("No")</span>
                                                         }
                                                     </div>
                                                 </div>
                                                 <div class="row mb-2">
-                                                    <div class="col-4"><b>NORM talab qiladi:</b></div>
+                                                    <div class="col-4"><b>@L.T("Prd_RequiresNorm"):</b></div>
                                                     <div class="col-8">
                                                         @if (Model.RequiresNORM)
                                                         {
-                                                            <span class="badge badge-success">Ha</span>
+                                                            <span class="badge badge-success">@L.T("Yes")</span>
                                                         }
                                                         else
                                                         {
-                                                            <span class="badge badge-secondary">Yo'q</span>
+                                                            <span class="badge badge-secondary">@L.T("No")</span>
                                                         }
                                                     </div>
                                                 </div>
                                                 <div class="row mb-2">
-                                                    <div class="col-4"><b>Kesish talab qiladi:</b></div>
+                                                    <div class="col-4"><b>@L.T("Prd_RequiresCutting"):</b></div>
                                                     <div class="col-8">
                                                         @if (Model.RequiresCutting)
                                                         {
-                                                            <span class="badge badge-success">Ha</span>
+                                                            <span class="badge badge-success">@L.T("Yes")</span>
                                                         }
                                                         else
                                                         {
-                                                            <span class="badge badge-secondary">Yo'q</span>
+                                                            <span class="badge badge-secondary">@L.T("No")</span>
                                                         }
                                                     </div>
                                                 </div>
                                                 <div class="row mb-2">
-                                                    <div class="col-4"><b>MRP ga kiritish:</b></div>
+                                                    <div class="col-4"><b>@L.T("Prd_IncludeInMrp"):</b></div>
                                                     <div class="col-8">
                                                         @if (Model.IncludeInMRP)
                                                         {
-                                                            <span class="badge badge-success">Ha</span>
+                                                            <span class="badge badge-success">@L.T("Yes")</span>
                                                         }
                                                         else
                                                         {
-                                                            <span class="badge badge-secondary">Yo'q</span>
+                                                            <span class="badge badge-secondary">@L.T("No")</span>
                                                         }
                                                     </div>
                                                 </div>
                                                 <div class="row mb-2">
-                                                    <div class="col-4"><b>Xarid qilishga ruxsat:</b></div>
+                                                    <div class="col-4"><b>@L.T("Prd_AllowPurchase"):</b></div>
                                                     <div class="col-8">
                                                         @if (Model.AllowPurchase)
                                                         {
-                                                            <span class="badge badge-success">Ha</span>
+                                                            <span class="badge badge-success">@L.T("Yes")</span>
                                                         }
                                                         else
                                                         {
-                                                            <span class="badge badge-secondary">Yo'q</span>
+                                                            <span class="badge badge-secondary">@L.T("No")</span>
                                                         }
                                                     </div>
                                                 </div>
                                                 <div class="row mb-2">
-                                                    <div class="col-4"><b>Sotishga ruxsat:</b></div>
+                                                    <div class="col-4"><b>@L.T("Prd_AllowSales"):</b></div>
                                                     <div class="col-8">
                                                         @if (Model.AllowSales)
                                                         {
-                                                            <span class="badge badge-success">Ha</span>
+                                                            <span class="badge badge-success">@L.T("Yes")</span>
                                                         }
                                                         else
                                                         {
-                                                            <span class="badge badge-secondary">Yo'q</span>
+                                                            <span class="badge badge-secondary">@L.T("No")</span>
                                                         }
                                                     </div>
                                                 </div>
                                                 <div class="row mb-2">
-                                                    <div class="col-4"><b>Faol:</b></div>
+                                                    <div class="col-4"><b>@L.T("Active"):</b></div>
                                                     <div class="col-8">
                                                         @if (Model.IsActive)
                                                         {
-                                                            <span class="badge badge-success">Ha</span>
+                                                            <span class="badge badge-success">@L.T("Yes")</span>
                                                         }
                                                         else
                                                         {
-                                                            <span class="badge badge-danger">Yo'q</span>
+                                                            <span class="badge badge-danger">@L.T("No")</span>
                                                         }
                                                     </div>
                                                 </div>
                                                 <hr />
                                                 <div class="row mb-2">
-                                                    <div class="col-4"><b>Yaratilgan sana:</b></div>
+                                                    <div class="col-4"><b>@L.T("Prd_CreatedDate"):</b></div>
                                                     <div class="col-8">@Model.CreatedDT.ToString("dd.MM.yyyy HH:mm")</div>
                                                 </div>
                                                 @if (Model.UpdatedDT.HasValue)
                                                 {
                                                     <div class="row mb-2">
-                                                        <div class="col-4"><b>Yangilangan sana:</b></div>
+                                                        <div class="col-4"><b>@L.T("Prd_UpdatedDate"):</b></div>
                                                         <div class="col-8">@Model.UpdatedDT.Value.ToString("dd.MM.yyyy HH:mm")</div>
                                                     </div>
                                                 }
@@ -215,9 +215,9 @@
                                                 <div class="mb-2">
                                                     @if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "ProductCategory", "Edit"))
                                                     {
-                                                        @Html.ActionLink("Tahrirlash", "Edit", new { id = Model.ID }, new { @class = "btn btn-primary" })
+                                                        @Html.ActionLink(L.T("Edit"), "Edit", new { id = Model.ID }, new { @class = "btn btn-primary" })
                                                     }
-                                                    @Html.ActionLink("Ortga", "Index", null, new { @class = "btn btn-outline-secondary" })
+                                                    @Html.ActionLink(L.T("Back"), "Index", null, new { @class = "btn btn-outline-secondary" })
                                                 </div>
                                             </div>
                                         </div>

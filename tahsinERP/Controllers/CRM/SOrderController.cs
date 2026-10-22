@@ -7,6 +7,7 @@ using System.Net;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using tahsinERP.Filters;
+using tahsinERP.I18n;
 using tahsinERP.Models;
 using tahsinERP.Services;
 using tahsinERP.Services.Common;
@@ -52,14 +53,14 @@ namespace tahsinERP.Controllers
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 var rows = BuildIndexQuery(db, searchTerm, orderNo, customerID, contractID, fromDate, toDate, sortOrder).ToList();
-                var bytes = ExcelExport.Create("Buyurtmalar", rows,
-                    ExcelExport.Col<S_ORDERS>("Buyurtma raqami", o => o.OrderNo),
-                    ExcelExport.Col<S_ORDERS>("Mijoz", o => o.CUSTOMER?.Name),
-                    ExcelExport.Col<S_ORDERS>("Shartnoma", o => o.S_CONTRACTS?.ContractNo),
-                    ExcelExport.Col<S_ORDERS>("Sana", o => o.IssuedDate, "dd.MM.yyyy"),
-                    ExcelExport.Col<S_ORDERS>("Summa", o => o.Amount, "#,##0.00"),
-                    ExcelExport.Col<S_ORDERS>("Valyuta", o => o.CURRENCy1?.Shortname));
-                return File(bytes, ExcelExport.ContentType, $"Buyurtmalar_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx");
+                var bytes = ExcelExport.Create(L.T("Menu_Orders"), rows,
+                    ExcelExport.Col<S_ORDERS>(L.T("Crm_OrderNo"), o => o.OrderNo),
+                    ExcelExport.Col<S_ORDERS>(L.T("Crm_Client"), o => o.CUSTOMER?.Name),
+                    ExcelExport.Col<S_ORDERS>(L.T("Crm_Contract"), o => o.S_CONTRACTS?.ContractNo),
+                    ExcelExport.Col<S_ORDERS>(L.T("Date"), o => o.IssuedDate, "dd.MM.yyyy"),
+                    ExcelExport.Col<S_ORDERS>(L.T("Amount"), o => o.Amount, "#,##0.00"),
+                    ExcelExport.Col<S_ORDERS>(L.T("Currency"), o => o.CURRENCy1?.Shortname));
+                return File(bytes, ExcelExport.ContentType, $"{L.T("Crm_OrdExcelFile")}_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx");
             }
         }
 
@@ -186,7 +187,7 @@ namespace tahsinERP.Controllers
                 }
                 catch (Exception ex)
                 {
-                    ModelState.AddModelError("", "Xatolik: " + InnermostMessage(ex));
+                    ModelState.AddModelError("", L.T("Crm_ErrorPrefix", InnermostMessage(ex)));
                     return FormError(db, model);
                 }
             }
@@ -308,7 +309,7 @@ namespace tahsinERP.Controllers
                 try
                 {
                     SalesOrderService.SaveDeliverySchedule(db, orderID, ParseScheduleItems(form), CurrentUserName);
-                    TempData["Success"] = "Yetkazib berish rejasi muvaffaqiyatli saqlandi";
+                    TempData["Success"] = L.T("Crm_OrdScheduleSaved");
                     return RedirectToAction("Details", new { id = orderID });
                 }
                 catch (SalesOrderException ex) when (ex.NotFound)
@@ -321,7 +322,7 @@ namespace tahsinERP.Controllers
                 }
                 catch (Exception ex)
                 {
-                    TempData["ErrorMessage"] = "Rejani saqlab bo'lmadi: " + InnermostMessage(ex);
+                    TempData["ErrorMessage"] = L.T("Crm_OrdScheduleSaveFailed", InnermostMessage(ex));
                 }
                 return RedirectToAction("DeliverySchedule", new { orderID });
             }
@@ -456,7 +457,7 @@ namespace tahsinERP.Controllers
                 }
                 catch (Exception ex)
                 {
-                    ModelState.AddModelError("", "Xatolik: " + InnermostMessage(ex));
+                    ModelState.AddModelError("", L.T("Crm_ErrorPrefix", InnermostMessage(ex)));
                     return FormError(db, model);
                 }
             }
@@ -515,7 +516,7 @@ namespace tahsinERP.Controllers
                 }
                 catch (Exception ex)
                 {
-                    TempData["ErrorMessage"] = "Buyurtmani o'chirishda xatolik: " + InnermostMessage(ex);
+                    TempData["ErrorMessage"] = L.T("Crm_OrdDeleteFailed", InnermostMessage(ex));
                 }
                 return RedirectToAction("Details", new { id });
             }
@@ -611,8 +612,8 @@ namespace tahsinERP.Controllers
         /// <summary>Create/Edit ro'yxatlari (avvalgi SetupViewBagForError ≡ SetupViewBagForEdit — D11).</summary>
         private void SetupFormLookups(DBTHSNEntities db, SOrderViewModel model)
         {
-            ViewBag.Customers = SalesLookups.CustomersWithPlaceholder(model.CustomerID, "0", "---Tanlang---");
-            ViewBag.SContract = SalesLookups.ContractsFor(db, model.CustomerID, model.ContractID, "0", "---Tanlang---");
+            ViewBag.Customers = SalesLookups.CustomersWithPlaceholder(model.CustomerID, "0", L.T("SelectPlaceholder"));
+            ViewBag.SContract = SalesLookups.ContractsFor(db, model.CustomerID, model.ContractID, "0", L.T("SelectPlaceholder"));
         }
     }
 }

@@ -1,10 +1,10 @@
 @using tahsinERP.ViewModels
 @{
-    ViewBag.Title = "SRM Dashboard";
+    ViewBag.Title = L.T("Menu_DashSrm");
     Layout = "~/Views/Shared/_Layout.cshtml";
     var spendBySupplier = ViewBag.SpendBySupplier as IEnumerable<SRMSpendBySupplierItem>;
     var payablesBySupplier = ViewBag.PayablesBySupplier as IEnumerable<SRMPayablesBySupplierItem>;
-    Func<decimal, string> fmtSom = v => string.Format("{0:N2}", v).Replace(",", " ").Replace(".", ",") + " so'm";
+    Func<decimal, string> fmtSom = v => string.Format("{0:N2}", v).Replace(",", " ").Replace(".", ",") + " " + L.Sum;
     var totalPayablesBySupplier = payablesBySupplier != null ? payablesBySupplier.Sum(x => x.Outstanding) : 0m;
 }
 <div class="app-content content">
@@ -15,8 +15,8 @@
                 <div class="breadcrumb-wrapper col-12">
                     <ol class="breadcrumb rounded-pill breadcrumb-divider">
                         <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
-                        <li class="breadcrumb-item"><a href="~/Supplier">Ta'minot (SRM)</a></li>
-                        <li class="breadcrumb-item active">SRM Hisobotlar</li>
+                        <li class="breadcrumb-item"><a href="~/Supplier">@L.T("Menu_Srm")</a></li>
+                        <li class="breadcrumb-item active">@L.T("Srm_SrmReports")</li>
                     </ol>
                 </div>
             </div>
@@ -25,16 +25,16 @@
             <form method="get" action="@Url.Action("Index")" class="mb-3">
                 <div class="row">
                     <div class="col-md-4">
-                        <label>Dan sana</label>
+                        <label>@L.T("Srm_DateFrom")</label>
                         <input type="date" name="fromDate" class="form-control" value="@ViewBag.FromDate" />
                     </div>
                     <div class="col-md-4">
-                        <label>Gacha sana</label>
+                        <label>@L.T("Srm_DateTo")</label>
                         <input type="date" name="toDate" class="form-control" value="@ViewBag.ToDate" />
                     </div>
                     <div class="col-md-4">
                         <label>&nbsp;</label>
-                        <button type="submit" class="btn btn-primary btn-block">Ko'rsatish</button>
+                        <button type="submit" class="btn btn-primary btn-block">@L.T("Srm_Show")</button>
                     </div>
                 </div>
             </form>
@@ -46,7 +46,7 @@
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
-                                    <h6 class="mb-0">Ta'minotchilar soni</h6>
+                                    <h6 class="mb-0">@L.T("Srm_SupplierCount")</h6>
                                     <h3 class="mb-0">@ViewBag.TotalSuppliers</h3>
                                 </div>
                                 <div class="avatar bg-light-primary"><i class="bx bxs-factory font-medium-5"></i></div>
@@ -59,7 +59,7 @@
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
-                                    <h6 class="mb-0">Jami xarajat</h6>
+                                    <h6 class="mb-0">@L.T("Srm_TotalSpend")</h6>
                                     <h3 class="mb-0">@(((decimal)ViewBag.TotalSpend).ToString("N0"))</h3>
                                 </div>
                                 <div class="avatar bg-light-success"><i class="bx bx-dollar font-medium-5"></i></div>
@@ -72,7 +72,7 @@
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
-                                    <h6 class="mb-0">Qarzdorlik (kreditor)</h6>
+                                    <h6 class="mb-0">@L.T("Srm_PayablesCreditor")</h6>
                                     <h3 class="mb-0">@(((decimal)ViewBag.TotalPayables).ToString("N0"))</h3>
                                 </div>
                                 <div class="avatar bg-light-warning"><i class="bx bx-money font-medium-5"></i></div>
@@ -85,7 +85,7 @@
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
-                                    <h6 class="mb-0">Vaqtida yetkazish</h6>
+                                    <h6 class="mb-0">@L.T("Srm_OnTimeDelivery")</h6>
                                     <h3 class="mb-0">@ViewBag.OnTimeRate%</h3>
                                     <small>@ViewBag.OnTimeCount / @ViewBag.TotalDeliveries</small>
                                 </div>
@@ -100,17 +100,17 @@
                 <div class="col-md-6">
                     <div class="card">
                         <div class="card-header">
-                            <h5>Xarajat ta'minotchi bo'yicha (top 15)</h5>
-                            <a href="~/FinDashboard/LiabilitiesDashboard" class="btn btn-sm btn-outline-primary">Batafsil</a>
+                            <h5>@L.T("Srm_SpendBySupplierTop")</h5>
+                            <a href="~/FinDashboard/LiabilitiesDashboard" class="btn btn-sm btn-outline-primary">@L.T("Details")</a>
                         </div>
                         <div class="card-body">
                             <div class="table-responsive">
                                 <table class="table table-sm">
                                     <thead>
                                         <tr>
-                                            <th>Ta'minotchi</th>
-                                            <th class="text-right">Invoyslar</th>
-                                            <th class="text-right">Summa</th>
+                                            <th>@L.T("Srm_Supplier")</th>
+                                            <th class="text-right">@L.T("Menu_Invoices")</th>
+                                            <th class="text-right">@L.T("Amount")</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -127,7 +127,7 @@
                                         }
                                         @if (spendBySupplier == null || !spendBySupplier.Any())
                                         {
-                                            <tr><td colspan="3" class="text-center">Ma'lumot yo'q</td></tr>
+                                            <tr><td colspan="3" class="text-center">@L.T("NoData")</td></tr>
                                         }
                                     </tbody>
                                 </table>
@@ -138,19 +138,19 @@
                 <div class="col-md-6">
                     <div class="card">
                         <div class="card-header">
-                            <h5>Ta'minotchilar bo'yicha qarzimiz (top 15)</h5>
-                            <a href="~/FinDashboard/LiabilitiesDashboard" class="btn btn-sm btn-outline-primary">Batafsil</a>
+                            <h5>@L.T("Srm_PayablesBySupplierTop")</h5>
+                            <a href="~/FinDashboard/LiabilitiesDashboard" class="btn btn-sm btn-outline-primary">@L.T("Details")</a>
                         </div>
                         <div class="card-body">
                             <div class="table-responsive">
                                 <table class="table table-sm table-hover mb-0">
                                     <thead>
                                         <tr>
-                                            <th class="font-weight-bold">Tashkilot</th>
-                                            <th class="text-right text-danger font-weight-bold">Qarzimiz</th>
+                                            <th class="font-weight-bold">@L.T("Srm_Organization")</th>
+                                            <th class="text-right text-danger font-weight-bold">@L.T("Srm_OurDebt")</th>
                                         </tr>
                                         <tr>
-                                            <th class="font-weight-bold">Jami</th>
+                                            <th class="font-weight-bold">@L.T("Total")</th>
                                             <th class="text-right text-danger font-weight-bold">@fmtSom(totalPayablesBySupplier)</th>
                                         </tr>
                                     </thead>
@@ -167,7 +167,7 @@
                                         }
                                         @if (payablesBySupplier == null || !payablesBySupplier.Any())
                                         {
-                                            <tr><td colspan="2" class="text-center">Ma'lumot yo'q</td></tr>
+                                            <tr><td colspan="2" class="text-center">@L.T("NoData")</td></tr>
                                         }
                                     </tbody>
                                 </table>

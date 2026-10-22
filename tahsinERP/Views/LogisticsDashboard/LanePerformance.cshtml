@@ -1,6 +1,6 @@
 ﻿@using tahsinERP.ViewModels
 @{
-    ViewBag.Title = "Marshrutlar samaradorligi";
+    ViewBag.Title = L.T("Log_LanePerformance");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -17,10 +17,10 @@
                                     <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                 </li>
                                 <li class="breadcrumb-item">
-                                    <a href="~/LogisticsDashboard">Logistika boshqaruv paneli</a>
+                                    <a href="~/LogisticsDashboard">@L.T("Log_DashboardTitle")</a>
                                 </li>
                                 <li class="breadcrumb-item active">
-                                    Marshrutlar samaradorligi
+                                    @L.T("Log_LanePerformance")
                                 </li>
                             </ol>
                         </div>
@@ -35,15 +35,15 @@
                 <div class="card-body">
                     <form method="get" action="@Url.Action("LanePerformance", "LogisticsDashboard")" class="row">
                         <div class="col-md-4">
-                            <label>Boshlanish sanasi</label>
+                            <label>@L.T("Log_StartDate")</label>
                             <input type="date" name="startDate" class="form-control" value="@ViewBag.StartDate" />
                         </div>
                         <div class="col-md-4">
-                            <label>Tugash sanasi</label>
+                            <label>@L.T("Log_EndDate")</label>
                             <input type="date" name="endDate" class="form-control" value="@ViewBag.EndDate" />
                         </div>
                         <div class="col-md-2 d-flex align-items-end">
-                            <button type="submit" class="btn btn-primary w-100">Qidirish</button>
+                            <button type="submit" class="btn btn-primary w-100">@L.T("Search")</button>
                         </div>
                     </form>
                 </div>
@@ -56,16 +56,16 @@
                             <table class="table table-striped">
                                 <thead>
                                     <tr>
-                                        <th>Qayerdan</th>
-                                        <th>Qayerga</th>
-                                        <th>Reyslar</th>
-                                        <th>Tonnaj</th>
+                                        <th>@L.T("Log_From")</th>
+                                        <th>@L.T("Log_To")</th>
+                                        <th>@L.T("Log_Trips")</th>
+                                        <th>@L.T("Log_Tonnage")</th>
                                         <th>CBM</th>
-                                        <th>Masofa</th>
-                                        <th>Jami xarajat</th>
-                                        <th>1 ton uchun</th>
-                                        <th>1 km uchun</th>
-                                        <th>Asosiy yuk tashuvchi</th>
+                                        <th>@L.T("Log_Distance")</th>
+                                        <th>@L.T("Log_TotalCost")</th>
+                                        <th>@L.T("Log_Per1Ton")</th>
+                                        <th>@L.T("Log_Per1Km")</th>
+                                        <th>@L.T("Log_MainForwarder")</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -93,7 +93,7 @@
                                     else
                                     {
                                         <tr>
-                                            <td colspan="10" class="text-center">Ma'lumot topilmadi</td>
+                                            <td colspan="10" class="text-center">@L.T("Log_NoDataFound")</td>
                                         </tr>
                                     }
                                 </tbody>

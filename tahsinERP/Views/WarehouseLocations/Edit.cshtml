@@ -1,6 +1,6 @@
 @model tahsinERP.ViewModels.WarehouseLocationEditViewModel
 @{
-    ViewBag.Title = "DLOC tahrirlash";
+    ViewBag.Title = L.T("Wh_Loc_Edit");
     Layout = "~/Views/Shared/_Layout.cshtml";
     var returnWarehouseId = Model.WarehouseID > 0 ? (int?)Model.WarehouseID : null;
 }
@@ -25,12 +25,12 @@
                                             <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                         </li>
                                         <li class="breadcrumb-item">
-                                            <a href="@Url.Action("Index", "Warehouse")">Korxona omborlari</a>
+                                            <a href="@Url.Action("Index", "Warehouse")">@L.T("Wh_CompanyWarehouses")</a>
                                         </li>
                                         <li class="breadcrumb-item">
                                             <a href="@Url.Action("Index", "WarehouseLocations", new { warehouseId = returnWarehouseId })">DLOC</a>
                                         </li>
-                                        <li class="breadcrumb-item active">DLOC tahrirlash</li>
+                                        <li class="breadcrumb-item active">@L.T("Wh_Loc_Edit")</li>
                                     </ol>
                                 </div>
                             </div>
@@ -43,40 +43,40 @@
                             <div class="col-xl-9 col-md-8 col-12">
                                 <div class="card">
                                     <div class="card-header">
-                                        <h4 class="card-title">Joylashuvni tahrirlash (DLOC)</h4>
+                                        <h4 class="card-title">@L.T("Wh_Loc_EditTitle")</h4>
                                     </div>
                                     <div class="card-content">
                                         <div class="card-body">
                                             @Html.ValidationSummary(true, "", new { @class = "alert alert-danger" })
 
                                             <div class="form-group">
-                                                <label for="WarehouseID">Ombor <span class="text-danger">*</span></label>
-                                                @Html.DropDownListFor(m => m.WarehouseID, ViewBag.Warehouses as SelectList, "---Tanlang---", new { @class = "form-control select2", required = "required" })
+                                                <label for="WarehouseID">@L.T("Wh_Warehouse") <span class="text-danger">*</span></label>
+                                                @Html.DropDownListFor(m => m.WarehouseID, ViewBag.Warehouses as SelectList, L.T("Wh_SelectDashed"), new { @class = "form-control select2", required = "required" })
                                                 @Html.ValidationMessageFor(m => m.WarehouseID, "", new { @class = "text-danger" })
                                             </div>
 
                                             <div class="form-group">
-                                                <label for="LocationCode">Joy kodi (DLOC) <span class="text-danger">*</span></label>
-                                                @Html.TextBoxFor(m => m.LocationCode, new { @class = "form-control", @placeholder = "Masalan: A-01-02", required = "required" })
+                                                <label for="LocationCode">@L.T("Wh_Loc_CodeDloc") <span class="text-danger">*</span></label>
+                                                @Html.TextBoxFor(m => m.LocationCode, new { @class = "form-control", @placeholder = L.T("Wh_Loc_CodePlaceholder"), required = "required" })
                                                 @Html.ValidationMessageFor(m => m.LocationCode, "", new { @class = "text-danger" })
                                             </div>
 
                                             <div class="form-group">
-                                                <label for="LocationName">Nomi</label>
-                                                @Html.TextBoxFor(m => m.LocationName, new { @class = "form-control", @placeholder = "Joy nomi (ixtiyoriy)" })
+                                                <label for="LocationName">@L.T("Name")</label>
+                                                @Html.TextBoxFor(m => m.LocationName, new { @class = "form-control", @placeholder = L.T("Wh_Loc_NamePlaceholder") })
                                             </div>
 
                                             <div class="row">
                                                 <div class="col-md-6">
                                                     <div class="form-group">
-                                                        <label for="MinCapacity">Min sig'im</label>
+                                                        <label for="MinCapacity">@L.T("Wh_Loc_MinCapacity")</label>
                                                         @Html.TextBoxFor(m => m.MinCapacity, new { @class = "form-control", type = "number", step = "0.01", min = "0" })
                                                         @Html.ValidationMessageFor(m => m.MinCapacity, "", new { @class = "text-danger" })
                                                     </div>
                                                 </div>
                                                 <div class="col-md-6">
                                                     <div class="form-group">
-                                                        <label for="MaxCapacity">Max sig'im</label>
+                                                        <label for="MaxCapacity">@L.T("Wh_Loc_MaxCapacity")</label>
                                                         @Html.TextBoxFor(m => m.MaxCapacity, new { @class = "form-control", type = "number", step = "0.01", min = "0" })
                                                         @Html.ValidationMessageFor(m => m.MaxCapacity, "", new { @class = "text-danger" })
                                                     </div>
@@ -86,28 +86,28 @@
                                             <div class="form-group">
                                                 <div class="custom-control custom-checkbox">
                                                     @Html.CheckBoxFor(m => m.AllowMixedLots, new { @class = "custom-control-input" })
-                                                    <label class="custom-control-label" for="AllowMixedLots">Lot aralashtirishga ruxsat</label>
+                                                    <label class="custom-control-label" for="AllowMixedLots">@L.T("Wh_Loc_AllowMixedLots")</label>
                                                 </div>
                                             </div>
                                             <div class="form-group">
                                                 <div class="custom-control custom-checkbox">
                                                     @Html.CheckBoxFor(m => m.AllowMixedProducts, new { @class = "custom-control-input" })
-                                                    <label class="custom-control-label" for="AllowMixedProducts">Mahsulot aralashtirishga ruxsat</label>
+                                                    <label class="custom-control-label" for="AllowMixedProducts">@L.T("Wh_Loc_AllowMixedProducts")</label>
                                                 </div>
                                             </div>
                                             <div class="form-group">
                                                 <div class="custom-control custom-checkbox">
                                                     @Html.CheckBoxFor(m => m.IsActive, new { @class = "custom-control-input" })
-                                                    <label class="custom-control-label" for="IsActive">Faol</label>
+                                                    <label class="custom-control-label" for="IsActive">@L.T("Active")</label>
                                                 </div>
                                             </div>
 
                                             <div class="form-actions">
                                                 <button type="submit" class="btn btn-primary">
-                                                    <i class="bx bx-save"></i> Saqlash
+                                                    <i class="bx bx-save"></i> @L.T("Save")
                                                 </button>
                                                 <a href="@Url.Action("Index", "WarehouseLocations", new { warehouseId = returnWarehouseId })" class="btn btn-light">
-                                                    <i class="bx bx-x"></i> Bekor qilish
+                                                    <i class="bx bx-x"></i> @L.T("Cancel")
                                                 </a>
                                             </div>
                                         </div>
@@ -123,7 +123,7 @@
 
     <script>
         $(document).ready(function () {
-            $('.select2').select2({ placeholder: "Tanlang", allowClear: true });
+            $('.select2').select2({ placeholder: "@L.Js("Select")", allowClear: true });
         });
     </script>
 }

@@ -21,7 +21,7 @@
             return;
         }
         var w = window.open('', '_blank');
-        w.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>Chop etish</title><style>' +
+        w.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>' + (window.erpT ? erpT('Js_Crm_Print') : 'Chop etish') + '</title><style>' +
             PRINT_STYLE + '</style></head><body>' + el.innerHTML + '</body></html>');
         w.document.close();
         w.focus();

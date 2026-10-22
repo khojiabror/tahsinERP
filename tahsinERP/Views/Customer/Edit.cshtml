@@ -1,7 +1,7 @@
 @model tahsinERP.Models.CUSTOMER
 
 @{
-    ViewBag.Title = "Tahrirlash";
+    ViewBag.Title = L.T("Edit");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 @* Ruxsat serverda tekshiriladi ([Permission] / controller) — CRM-S01 *@
@@ -22,10 +22,10 @@
                                             <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                         </li>
                                         <li class="breadcrumb-item">
-                                            <a href="~/Customer/Index">Xaridorlar</a>
+                                            <a href="~/Customer/Index">@L.T("Menu_Customers")</a>
                                         </li>
                                         <li class="breadcrumb-item active">
-                                            Xaridorni Tahrirlash
+                                            @L.T("Crm_CustEdit")
                                         </li>
                                     </ol>
                                 </div>
@@ -45,9 +45,9 @@
                                                     @Html.ValidationSummary(true, "", new { @class = "text-danger" })
                                                     @Html.HiddenFor(model => model.ID)
                                                     <hr>
-                                                    <h6 class="invoice-to">Nomi</h6>
+                                                    <h6 class="invoice-to">@L.T("Name")</h6>
                                                     <fieldset class="invoice-address form-group">
-                                                        @Html.TextBoxFor(model => model.Name, new { @class = "form-control round", @placeholder = "Nomi" })
+                                                        @Html.TextBoxFor(model => model.Name, new { @class = "form-control round", @placeholder = L.T("Name") })
                                                         @Html.ValidationMessageFor(model => model.Name, "", new { @class = "text-danger" })
                                                     </fieldset>
                                                     <h6 class="invoice-to">DUNS</h6>
@@ -55,51 +55,51 @@
                                                         @Html.TextBoxFor(model => model.DUNS, new { @class = "form-control round", @placeholder = "DUNS" })
                                                         @Html.ValidationMessageFor(model => model.DUNS, "", new { @class = "text-danger" })
                                                     </fieldset>
-                                                    <h6 class="invoice-to">Turi</h6>
+                                                    <h6 class="invoice-to">@L.T("Type")</h6>
                                                     <fieldset class="invoice-address form-group">
-                                                        @Html.TextBoxFor(model => model.Type, new { @class = "form-control round", @placeholder = "Turi" })
+                                                        @Html.TextBoxFor(model => model.Type, new { @class = "form-control round", @placeholder = L.T("Type") })
                                                         @Html.ValidationMessageFor(model => model.Type, "", new { @class = "text-danger" })
                                                     </fieldset>
-                                                    <h6 class="invoice-to">Mamlakat</h6>
+                                                    <h6 class="invoice-to">@L.T("Crm_CustCountry")</h6>
                                                     <fieldset class="invoice-address form-group">
-                                                        @Html.TextBoxFor(model => model.Country, new { @class = "form-control round", @placeholder = "Mamlakat" })
+                                                        @Html.TextBoxFor(model => model.Country, new { @class = "form-control round", @placeholder = L.T("Crm_CustCountry") })
                                                         @Html.ValidationMessageFor(model => model.Country, "", new { @class = "text-danger" })
                                                     </fieldset>
-                                                    <h6 class="invoice-to">Shahar</h6>
+                                                    <h6 class="invoice-to">@L.T("Crm_CustCity")</h6>
                                                     <fieldset class="invoice-address form-group">
-                                                        @Html.TextBoxFor(model => model.City, new { @class = "form-control round", @placeholder = "Shahar" })
+                                                        @Html.TextBoxFor(model => model.City, new { @class = "form-control round", @placeholder = L.T("Crm_CustCity") })
                                                         @Html.ValidationMessageFor(model => model.City, "", new { @class = "text-danger" })
                                                     </fieldset>
-                                                    <h6 class="invoice-to">Manzil</h6>
+                                                    <h6 class="invoice-to">@L.T("Address")</h6>
                                                     <fieldset class="invoice-address form-group">
-                                                        @Html.TextBoxFor(model => model.Address, new { @class = "form-control round", @placeholder = "Manzil" })
+                                                        @Html.TextBoxFor(model => model.Address, new { @class = "form-control round", @placeholder = L.T("Address") })
                                                         @Html.ValidationMessageFor(model => model.Address, "", new { @class = "text-danger" })
                                                     </fieldset>
-                                                    <h6 class="invoice-to">Telefon raqami</h6>
+                                                    <h6 class="invoice-to">@L.T("Crm_CustPhoneNumber")</h6>
                                                     <fieldset class="invoice-address form-group">
-                                                        @Html.TextBoxFor(model => model.Telephone, new { @class = "form-control round", @placeholder = "Telefon raqami" })
+                                                        @Html.TextBoxFor(model => model.Telephone, new { @class = "form-control round", @placeholder = L.T("Crm_CustPhoneNumber") })
                                                         @Html.ValidationMessageFor(model => model.Telephone, "", new { @class = "text-danger" })
                                                     </fieldset>
                                                     <h6 class="invoice-to">E-mail</h6>
                                                     <fieldset class="invoice-address form-group">
-                                                        @Html.TextBoxFor(model => model.Email, new { @class = "form-control round", @placeholder = "Elektron manzil" })
+                                                        @Html.TextBoxFor(model => model.Email, new { @class = "form-control round", @placeholder = L.T("Crm_CustEmail") })
                                                         @Html.ValidationMessageFor(model => model.Email, "", new { @class = "text-danger" })
                                                     </fieldset>
-                                                    <h6 class="invoice-to">Aloqa uchun hodim</h6>
+                                                    <h6 class="invoice-to">@L.T("Crm_CustContactPerson")</h6>
                                                     <fieldset class="invoice-address form-group">
-                                                        @Html.TextBoxFor(model => model.ContactPersonName, new { @class = "form-control round", @placeholder = "Aloqa uchun hodim" })
+                                                        @Html.TextBoxFor(model => model.ContactPersonName, new { @class = "form-control round", @placeholder = L.T("Crm_CustContactPerson") })
                                                         @Html.ValidationMessageFor(model => model.ContactPersonName, "", new { @class = "text-danger" })
                                                     </fieldset>
-                                                    <h6 class="invoice-to">Direktor ismi</h6>
+                                                    <h6 class="invoice-to">@L.T("Crm_CustDirectorName")</h6>
                                                     <fieldset class="invoice-address form-group">
-                                                        @Html.TextBoxFor(model => model.DirectorName, new { @class = "form-control round", @placeholder = "Direktor ismi" })
+                                                        @Html.TextBoxFor(model => model.DirectorName, new { @class = "form-control round", @placeholder = L.T("Crm_CustDirectorName") })
                                                         @Html.ValidationMessageFor(model => model.DirectorName, "", new { @class = "text-danger" })
                                                     </fieldset>
                                                     <ul class="list-group list-group-flush">
                                                         <li class="list-group-item border-0 pb-0">
                                                             <button class="btn btn-primary btn-block subtotal-preview-btn" name="edit" type="submit" value="Edit">
                                                                 <i class='bx bx-save'></i>
-                                                                Saqlash
+                                                                @L.T("Save")
                                                             </button>
                                                         </li>
                                                     </ul>

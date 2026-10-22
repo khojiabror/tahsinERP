@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using tahsinERP.Models;
 using tahsinERP.Services.DlocFifo;
 using tahsinERP.ViewModels;
+using tahsinERP.I18n;
 
 namespace tahsinERP.Services.Stock
 {
@@ -62,7 +63,7 @@ namespace tahsinERP.Services.Stock
             {
                 if (!line.LocationID.HasValue || line.LocationID.Value <= 0)
                 {
-                    errors.Add("Har bir mahsulot qatori uchun DLOC tanlanishi shart.");
+                    errors.Add(L.T("Wh_Err_DlocRequiredEachLine"));
                     continue;
                 }
 
@@ -87,7 +88,7 @@ namespace tahsinERP.Services.Stock
                 {
                     var after = DlocFifoDataAccess.GetLocationCurrentQty(db, locId) + pending;
                     if (after > loc.MaxCapacity)
-                        errors.Add($"DLOC {loc.LocationCode}: sig'im oshib ketadi (Max {loc.MaxCapacity:N2}, jami kirimdan keyin {after:N2}).");
+                        errors.Add(L.T("Wh_Err_DlocCapacityExceeded", loc.LocationCode, loc.MaxCapacity.ToString("N2"), after.ToString("N2")));
                 }
             }
             return errors.Distinct().ToList();

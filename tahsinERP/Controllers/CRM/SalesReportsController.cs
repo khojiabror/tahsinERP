@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using System.Web.Mvc;
+using tahsinERP.I18n;
 using tahsinERP.Models;
 using tahsinERP.Services.Common;
 using tahsinERP.Services.Crm;
@@ -94,8 +95,7 @@ namespace tahsinERP.Controllers
             var periodStart = new DateTime(y, m, 1);
             var periodEndExclusive = periodStart.AddMonths(1);
 
-            var ci = System.Globalization.CultureInfo.GetCultureInfo("uz-Latn-UZ");
-            var monthName = ci?.DateTimeFormat?.GetMonthName(m) ?? periodStart.ToString("MMMM");
+            var monthName = L.T("Month_" + m);
 
             using (var db = new DBTHSNEntities())
             {
@@ -157,7 +157,7 @@ namespace tahsinERP.Controllers
                 ViewBag.CurrencyWarning = uzs.Warning;
                 ViewBag.Year = y;
                 ViewBag.Month = m;
-                ViewBag.Months = Enumerable.Range(1, 12).Select(i => new SelectListItem { Value = i.ToString(), Text = new DateTime(2000, i, 1).ToString("MMMM", ci), Selected = i == m }).ToList();
+                ViewBag.Months = Enumerable.Range(1, 12).Select(i => new SelectListItem { Value = i.ToString(), Text = L.T("Month_" + i), Selected = i == m }).ToList();
                 ViewBag.Years = Enumerable.Range(DateTime.Now.Year - 5, 10).Select(i => new SelectListItem { Value = i.ToString(), Text = i.ToString(), Selected = i == y }).ToList();
                 return View(model);
             }

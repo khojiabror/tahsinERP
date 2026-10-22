@@ -1,6 +1,6 @@
 @model  List<tahsinERP.Models.SHOP>
 @{
-    ViewBag.Title = "Ro'yxat";
+    ViewBag.Title = L.T("Prd_Shops");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -25,7 +25,7 @@
                                     </li>
                                     
                                     <li class="breadcrumb-item active">
-                                        TSexlar
+                                        @L.T("Prd_Shops")
                                     </li>
 
                                 </ol>
@@ -41,8 +41,7 @@
                     {
                         <div class="invoice-create-btn mb-1">
                             <a href="@Url.Action("Create", "Shop")" class="btn btn-success bg-light invoice-create" role="button" aria-pressed="true">
-                                Yangi
-                                TSex qo'shish
+                                @L.T("Prd_AddShop")
                             </a>
                         </div>
                     }
@@ -57,11 +56,11 @@
                                                 <tr>
                                                     <th></th>
                                                     <th></th>
-                                                    <th>TSex nomi</th>
-                                                    <th>Batafsil</th>
+                                                    <th>@L.T("Prd_ShopName")</th>
+                                                    <th>@L.T("Details")</th>
                                                     @if (changePermit)
                                                     {
-                                                        <th>amallar</th>
+                                                        <th>@L.T("Actions")</th>
                                                     }
                                                 </tr>
                                             </thead>
@@ -79,8 +78,8 @@
                                                         {
                                                             <td>
                                                                 <div>
-                                                                    <a href="@Url.Action("Edit", "Shop", new { id = item.ID })" class="btn btn-sm btn-outline-success" title="Tahrirlash"><i class="bx bx-edit-alt"></i></a>
-                                                                    <a href="@Url.Action("Delete", "Shop", new { id = item.ID })" class="btn btn-sm btn-outline-danger" title="O'chirish"><i class="bx bx-trash"></i></a>
+                                                                    <a href="@Url.Action("Edit", "Shop", new { id = item.ID })" class="btn btn-sm btn-outline-success" title="@L.T("Edit")"><i class="bx bx-edit-alt"></i></a>
+                                                                    <a href="@Url.Action("Delete", "Shop", new { id = item.ID })" class="btn btn-sm btn-outline-danger" title="@L.T("Delete")"><i class="bx bx-trash"></i></a>
                                                                 </div>
                                                             </td>
                                                         }

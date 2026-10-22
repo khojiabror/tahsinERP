@@ -1,6 +1,6 @@
 @model tahsinERP.Models.UNIT
 @{
-    ViewBag.Title = "O'lchov birligini qo'shish";
+    ViewBag.Title = L.T("Prd_AddUnitTitle");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -21,10 +21,10 @@
                                             <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                         </li>
                                         <li class="breadcrumb-item">
-                                            <a href="~/UNIT/Index">O'lchov birliklari</a>
+                                            <a href="~/UNIT/Index">@L.T("Menu_Units")</a>
                                         </li>
                                         <li class="breadcrumb-item active">
-                                            Yangi o'lchov birligi qo'shish
+                                            @L.T("Prd_AddNewUnit")
                                         </li>
                                     </ol>
                                 </div>
@@ -44,26 +44,26 @@
                                                     @Html.AntiForgeryToken()
                                                     @Html.ValidationSummary(true, "", new { @class = "text-danger" })
                                                     <hr>
-                                                    <h6 class="invoice-to">Nomi:</h6>
+                                                    <h6 class="invoice-to">@L.T("Name"):</h6>
                                                     <fieldset class="invoice-address form-group">
-                                                        @Html.TextBoxFor(model => model.UnitName, new { @class = "form-control round", @placeholder = "O'lchov birligi nomini kiriting:" })
+                                                        @Html.TextBoxFor(model => model.UnitName, new { @class = "form-control round", @placeholder = L.T("Prd_EnterUnitName") })
                                                         @Html.ValidationMessageFor(model => model.UnitName, "", new { @class = "text-danger" })
                                                     </fieldset>
-                                                    <h6 class="invoice-to">Qisqa nomi:</h6>
+                                                    <h6 class="invoice-to">@L.T("Prd_ShortName"):</h6>
                                                     <fieldset class="invoice-address form-group">
-                                                        @Html.TextBoxFor(model => model.ShortName, new { @class = "form-control round", @placeholder = "qisqacha nomini kiriting:" })
+                                                        @Html.TextBoxFor(model => model.ShortName, new { @class = "form-control round", @placeholder = L.T("Prd_EnterShortName") })
                                                         @Html.ValidationMessageFor(model => model.ShortName, "", new { @class = "text-danger" })
                                                     </fieldset>
-                                                    <h6 class="invoice-to">Kodi:<i class='bx bx-info-circle' data-toggle="tooltip" data-placement="right" title="Bojxona tizimidagi o'lchov birliklari kodi"></i></h6>
+                                                    <h6 class="invoice-to">@L.T("Prd_CodeOf"):<i class='bx bx-info-circle' data-toggle="tooltip" data-placement="right" title="@L.T("Prd_UnitCustomsCodeHint")"></i></h6>
                                                     <fieldset class="invoice-address form-group">
-                                                        @Html.TextBoxFor(model => model.Code, new { @class = "form-control round", @placeholder = "kodini kiriting:" })
+                                                        @Html.TextBoxFor(model => model.Code, new { @class = "form-control round", @placeholder = L.T("Prd_EnterCode") })
                                                         @Html.ValidationMessageFor(model => model.Code, "", new { @class = "text-danger" })
                                                     </fieldset>
                                                     <ul class="list-group list-group-flush">
                                                         <li class="list-group-item border-0 pb-0">
                                                             <button class="btn btn-primary btn-block subtotal-preview-btn" name="create" type="submit" value="Create">
                                                                 <i class='bx bx-save'></i>
-                                                                Saqlash
+                                                                @L.T("Save")
                                                             </button>
                                                         </li>
                                                     </ul>

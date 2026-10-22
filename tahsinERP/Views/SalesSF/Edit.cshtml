@@ -1,6 +1,6 @@
 @model tahsinERP.Models.SALES_SF_HEADERS
 @{
-    ViewBag.Title = "Edit SF";
+    ViewBag.Title = L.T("Crm_SfEditTitle");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -25,7 +25,7 @@
                                         <a href="@Url.Action("Details", "SalesSF", new { id = Model.ID })">@Model.SFNumber</a>
                                     </li>
                                     <li class="breadcrumb-item active">
-                                        Tahrirlash
+                                        @L.T("Edit")
                                     </li>
                                 </ol>
                             </div>
@@ -43,7 +43,7 @@
                                         @if (Model.StatusCode == "SENT" || Model.StatusCode == "ACCEPTED")
                                         {
                                             <div class="alert alert-warning">
-                                                <strong>Diqqat!</strong> Yuborilgan yoki qabul qilingan SF ni tahrirlash mumkin emas.
+                                                <strong>@L.T("Crm_Attention")</strong> @L.T("Crm_SfCannotEditSent").
                                             </div>
                                         }
 
@@ -58,14 +58,14 @@
                                             <div class="row">
                                                 <div class="col-md-6">
                                                     <div class="form-group">
-                                                        <label>SF raqami *</label>
+                                                        <label>@L.T("Crm_SfNumber") *</label>
                                                         @Html.TextBoxFor(m => m.SFNumber, new { @class = "form-control", required = "required" })
                                                         @Html.ValidationMessageFor(m => m.SFNumber, "", new { @class = "text-danger" })
                                                     </div>
                                                 </div>
                                                 <div class="col-md-6">
                                                     <div class="form-group">
-                                                        <label>SF sanasi *</label>
+                                                        <label>@L.T("Crm_SfDate") *</label>
                                                         @Html.TextBoxFor(m => m.SFDate, new { @class = "form-control", type = "date", required = "required", Value = Model.SFDate.ToString("yyyy-MM-dd") })
                                                         @Html.ValidationMessageFor(m => m.SFDate, "", new { @class = "text-danger" })
                                                     </div>
@@ -75,14 +75,14 @@
                                             <div class="row">
                                                 <div class="col-md-6">
                                                     <div class="form-group">
-                                                        <label>Ta'minotchi INN *</label>
+                                                        <label>@L.T("Crm_SfSupplierInn") *</label>
                                                         @Html.TextBoxFor(m => m.SupplierINN, new { @class = "form-control", required = "required" })
                                                         @Html.ValidationMessageFor(m => m.SupplierINN, "", new { @class = "text-danger" })
                                                     </div>
                                                 </div>
                                                 <div class="col-md-6">
                                                     <div class="form-group">
-                                                        <label>Mijoz INN *</label>
+                                                        <label>@L.T("Crm_SfCustomerInn") *</label>
                                                         @Html.TextBoxFor(m => m.CustomerINN, new { @class = "form-control", required = "required" })
                                                         @Html.ValidationMessageFor(m => m.CustomerINN, "", new { @class = "text-danger" })
                                                     </div>
@@ -92,7 +92,7 @@
                                             <div class="row">
                                                 <div class="col-md-6">
                                                     <div class="form-group">
-                                                        <label>Holati</label>
+                                                        <label>@L.T("Status")</label>
                                                         @Html.DropDownListFor(m => m.StatusCode, new SelectList(new[] { "DRAFT", "SENT", "ACCEPTED", "REJECTED" }, Model.StatusCode), new { @class = "form-control" })
                                                     </div>
                                                 </div>
@@ -101,10 +101,10 @@
                                             <div class="row mt-3">
                                                 <div class="col-md-12">
                                                     <button type="submit" class="btn btn-primary" @(Model.StatusCode == "SENT" || Model.StatusCode == "ACCEPTED" ? "disabled" : "")>
-                                                        <i class="bx bx-save"></i> Saqlash
+                                                        <i class="bx bx-save"></i> @L.T("Save")
                                                     </button>
                                                     <a href="@Url.Action("Details", "SalesSF", new { id = Model.ID })" class="btn btn-secondary">
-                                                        Bekor qilish
+                                                        @L.T("Cancel")
                                                     </a>
                                                 </div>
                                             </div>

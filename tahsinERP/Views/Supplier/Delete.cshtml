@@ -1,6 +1,6 @@
 @model tahsinERP.Models.SUPPLIER
 @{
-    ViewBag.Title = "O'chirish";
+    ViewBag.Title = L.T("Delete");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 @using (Html.BeginForm("Delete", "Supplier", FormMethod.Post, new { enctype = "multipart/form-data" }))
@@ -19,10 +19,10 @@
                                         <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                     </li>
                                     <li class="breadcrumb-item ">
-                                        <a href="~/Supplier">Ta'minotchilar</a>
+                                        <a href="~/Supplier">@L.T("Menu_Suppliers")</a>
                                     </li>
                                     <li class="breadcrumb-item active">
-                                        @Model.Name ni o'chirib yuborish
+                                        @L.T("Srm_DeleteNamed", Model.Name)
                                     </li>
                                 </ol>
                             </div>
@@ -41,41 +41,41 @@
                                     <div class="card-body pb-0 mx-25">
                                         <div class="row invoice-info">
                                             <div class="col-lg-12 col-md-6 mt-25">
-                                                <h4 class="text-primary">Korxona ma'lumotlari</h4>
+                                                <h4 class="text-primary">@L.T("Srm_CompanyInfo")</h4>
                                                 <hr />
-                                                <span><b>Nomi</b>: @Html.DisplayFor(model => model.Name, new { @class = "form-control" })</span>
+                                                <span><b>@L.T("Name")</b>: @Html.DisplayFor(model => model.Name, new { @class = "form-control" })</span>
                                                 <br />
                                                 <span><b>DUNS</b>: @Html.DisplayFor(model => model.DUNS, new { @class = "form-control" })</span>
                                                 <hr />
                                                 <section>
                                                     <div>
-                                                        <h6 class="text-primary">Geografik ma'lumotlari</h6>
-                                                        <span><b>Source</b>: @Html.DisplayFor(model => model.Type, new { @class = "form-control" })</span>
+                                                        <h6 class="text-primary">@L.T("Srm_GeoInfo")</h6>
+                                                        <span><b>@L.T("Srm_Source")</b>: @Html.DisplayFor(model => model.Type, new { @class = "form-control" })</span>
                                                         <br />
-                                                        <span><b>Mamlakati</b>: @Html.DisplayFor(model => model.Country, new { @class = "form-control" })</span>
+                                                        <span><b>@L.T("Srm_CountryOf")</b>: @Html.DisplayFor(model => model.Country, new { @class = "form-control" })</span>
                                                         <br />
-                                                        <span><b>Shaxri</b>: @Html.DisplayFor(model => model.City, new { @class = "form-control" })</span>
+                                                        <span><b>@L.T("Srm_CityOf")</b>: @Html.DisplayFor(model => model.City, new { @class = "form-control" })</span>
                                                         <br />
-                                                        <span><b>Manzili</b>: @Html.DisplayFor(model => model.Address, new { @class = "form-control" })</span>
+                                                        <span><b>@L.T("Srm_AddressOf")</b>: @Html.DisplayFor(model => model.Address, new { @class = "form-control" })</span>
                                                         <br />
                                                         <hr />
                                                     </div>
                                                 </section>
-                                                <h6 class="text-primary">Murojaat uchun</h6>
-                                                <span><b>Rahbari</b>: @Html.DisplayFor(model => model.DirectorName, new { @class = "form-control" })</span>
+                                                <h6 class="text-primary">@L.T("Srm_ForContact")</h6>
+                                                <span><b>@L.T("Srm_Head")</b>: @Html.DisplayFor(model => model.DirectorName, new { @class = "form-control" })</span>
                                                 <br />
-                                                <span><b>Ma'sul xodimi</b>: @Html.DisplayFor(model => model.ContactPersonName, new { @class = "form-control" })</span>
+                                                <span><b>@L.T("Srm_ResponsibleEmployee")</b>: @Html.DisplayFor(model => model.ContactPersonName, new { @class = "form-control" })</span>
                                                 <br />
-                                                <span><b>E-mail</b>: @Html.DisplayFor(model => model.Email, new { @class = "form-control" })</span>
+                                                <span><b>@L.T("Srm_EmailLabel")</b>: @Html.DisplayFor(model => model.Email, new { @class = "form-control" })</span>
                                                 <br />
-                                                <span><b>Telefon raqami:</b>: @Html.DisplayFor(model => model.Telephone, new { @class = "form-control" })</span>
+                                                <span><b>@L.T("Srm_PhoneNumber"):</b>: @Html.DisplayFor(model => model.Telephone, new { @class = "form-control" })</span>
                                                 <br />
                                             </div>
                                             <ul class="list-group list-group-flush">
                                                 <li class="list-group-item border-0 pb-0">
-                                                    <button class="btn btn-danger bg-light btn-block subtotal-preview-btn" name="delete" type="submit" value="Delete" onclick="return confirm('Ushbu Invoice o\'chirib yuborishga ishonchingiz komilmi?')">
+                                                    <button class="btn btn-danger bg-light btn-block subtotal-preview-btn" name="delete" type="submit" value="Delete" onclick="return confirm('@L.Js("Srm_ConfirmDeleteInvoice")')">
                                                         <i class='bx bx-trash'></i>
-                                                        O'chirish
+                                                        @L.T("Delete")
                                                     </button>
                                                 </li>
                                             </ul>

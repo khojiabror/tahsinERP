@@ -1,7 +1,7 @@
 @model tahsinERP.Models.EXPENS
 @using System.Linq
 @{
-    ViewBag.Title = "Chiqim hujjati tafsilotlari";
+    ViewBag.Title = L.T("Wh_Exp_DetailsTitle");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 @* IsViewPermitted tekshiruvi Controller da amalga oshiriladi - duplicate olib tashlandi *@
@@ -18,10 +18,10 @@
                                         <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                     </li>
                                     <li class="breadcrumb-item">
-                                        <a href="~/Expenses/Index">Ombor chiqimlari</a>
+                                        <a href="~/Expenses/Index">@L.T("Wh_ExpListTitle")</a>
                                     </li>
                                     <li class="breadcrumb-item active">
-                                        Tafsilotlar
+                                        @L.T("Wh_DetailsCrumb")
                                     </li>
                                 </ol>
                             </div>
@@ -38,16 +38,16 @@
                     <div class="col-12">
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">Chiqim hujjati ma'lumotlari</h4>
+                                <h4 class="card-title">@L.T("Wh_Exp_DocInfo")</h4>
                                 <div class="heading-elements">
                                     @if (ViewBag.CanEdit == true)
                                     {
                                         <a href="@Url.Action("Edit", "Expenses", new { id = Model.ID })" class="btn btn-sm btn-warning">
-                                            <i class="bx bx-edit-alt"></i> Tahrirlash
+                                            <i class="bx bx-edit-alt"></i> @L.T("Edit")
                                         </a>
                                     }
                                     <a href="@Url.Action("Index", "Expenses")" class="btn btn-sm btn-secondary">
-                                        <i class="bx bx-arrow-back"></i> Orqaga
+                                        <i class="bx bx-arrow-back"></i> @L.T("Back")
                                     </a>
                                 </div>
                             </div>
@@ -57,19 +57,19 @@
                                         <div class="col-md-6">
                                             <table class="table table-borderless">
                                                 <tr>
-                                                    <th width="40%">Hujjat raqami:</th>
+                                                    <th width="40%">@L.T("Wh_DocNoColon")</th>
                                                     <td>@Model.DocNo</td>
                                                 </tr>
                                                 <tr>
-                                                    <th>Sana va vaqt:</th>
+                                                    <th>@L.T("Wh_DateTimeColon")</th>
                                                     <td>@Model.IssueDateTime.ToString("dd.MM.yyyy HH:mm")</td>
                                                 </tr>
                                                 <tr>
-                                                    <th>Yuboruvchi ombor:</th>
+                                                    <th>@L.T("Wh_SenderWarehouseColon")</th>
                                                     <td>@(Model.Warehouse?.WHName ?? "-")</td>
                                                 </tr>
                                                 <tr>
-                                                    <th>Qabul qiluvchi ombor:</th>
+                                                    <th>@L.T("Wh_ReceiverWarehouseColon")</th>
                                                     <td>@(Model.Warehouse1?.WHName ?? "-")</td>
                                                 </tr>
                                             </table>
@@ -77,32 +77,32 @@
                                         <div class="col-md-6">
                                             <table class="table table-borderless">
                                                 <tr>
-                                                    <th width="40%">Valyuta:</th>
+                                                    <th width="40%">@L.T("Wh_CurrencyColon")</th>
                                                     <td>@(Model.CURRENCy?.Shortname ?? "-")</td>
                                                 </tr>
                                                 <tr>
-                                                    <th>Jami miqdor:</th>
+                                                    <th>@L.T("Wh_TotalQtyColon")</th>
                                                     <td>@(Model.Amount?.ToString("N2") ?? "0.00")</td>
                                                 </tr>
                                                 <tr>
-                                                    <th>Jami summa:</th>
+                                                    <th>@L.T("Wh_TotalAmountColon")</th>
                                                     <td><strong>@(Model.TotalPrice?.ToString("N2") ?? "0.00")</strong></td>
                                                 </tr>
                                                 <tr>
-                                                    <th>Status:</th>
+                                                    <th>@L.T("Wh_StatusOnlyColon")</th>
                                                     <td>
                                                         @if (Model.SendStatus == true)
                                                         {
-                                                            <span class="badge badge-success">Yuborilgan</span>
+                                                            <span class="badge badge-success">@L.T("Wh_StSent")</span>
                                                         }
                                                         else
                                                         {
-                                                            <span class="badge badge-warning">Kutilmoqda</span>
+                                                            <span class="badge badge-warning">@L.T("Wh_StPending")</span>
                                                         }
                                                     </td>
                                                 </tr>
                                                 <tr>
-                                                    <th>Izoh:</th>
+                                                    <th>@L.T("Wh_CommentColon")</th>
                                                     <td>
                                                         @{
                                                             var desc = Model.Description ?? "-";
@@ -121,7 +121,7 @@
                                                         {
                                                             <div class="mt-1">
                                                                 <a href="@invoiceUrl" class="btn btn-sm btn-outline-primary">
-                                                                    <i class="bx bx-link-external"></i> Invoysga o'tish
+                                                                    <i class="bx bx-link-external"></i> @L.T("Wh_GoToInvoice")
                                                                 </a>
                                                             </div>
                                                         }
@@ -133,18 +133,18 @@
 
                                     <hr />
 
-                                    <h5>Chiqim mahsulotlari</h5>
+                                    <h5>@L.T("Wh_Exp_Products")</h5>
                                     <div class="table-responsive">
                                         <table class="table table-striped">
                                             <thead>
                                                 <tr>
-                                                    <th>Mahsulot kodi</th>
-                                                    <th>Mahsulot nomi</th>
-                                                    <th>Miqdor</th>
-                                                    <th>Birlik</th>
-                                                    <th>Dona narxi</th>
-                                                    <th>Jami</th>
-                                                    <th>Izoh</th>
+                                                    <th>@L.T("Wh_ProductCode")</th>
+                                                    <th>@L.T("Wh_ProductName")</th>
+                                                    <th>@L.T("Quantity")</th>
+                                                    <th>@L.T("Unit")</th>
+                                                    <th>@L.T("Wh_UnitPrice")</th>
+                                                    <th>@L.T("Total")</th>
+                                                    <th>@L.T("Comment")</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -166,7 +166,7 @@
                                                 else
                                                 {
                                                     <tr>
-                                                        <td colspan="7" class="text-center">Mahsulotlar topilmadi</td>
+                                                        <td colspan="7" class="text-center">@L.T("Wh_ProductsNotFound")</td>
                                                     </tr>
                                                 }
                                             </tbody>
@@ -177,13 +177,13 @@
                                     @if (expenseDocIds.Any())
                                     {
                                         <hr />
-                                        <h5>Chiqim hujjatlari</h5>
+                                        <h5>@L.T("Wh_Exp_Docs")</h5>
                                         <ul>
                                             @foreach (var docId in expenseDocIds)
                                             {
                                                 <li>
                                                     <a href="@Url.Action("DownloadDoc", "Expenses", new { id = docId })" target="_blank">
-                                                        <i class="bx bx-file"></i> Hujjat #@docId
+                                                        <i class="bx bx-file"></i> @L.T("Wh_DocNum", docId)
                                                     </a>
                                                 </li>
                                             }

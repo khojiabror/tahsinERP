@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Transactions;
 using System.Web.Mvc;
+using tahsinERP.I18n;
 using tahsinERP.Models;
 using tahsinERP.Services.DlocFifo;
 using tahsinERP.ViewModels.Sales;
@@ -140,7 +141,7 @@ namespace tahsinERP.Services.Crm
         private static void EnsureInvoiceNoFree(DBTHSNEntities db, string invoiceNo, long selfId)
         {
             if (db.SALES_INVOICES.Any(i => i.InvoiceNo == invoiceNo && i.ID != selfId))
-                throw new SalesInvoiceException($"\"{invoiceNo}\" raqamli invoys allaqachon mavjud. Raqamni bo'sh qoldiring — avtomatik beriladi.");
+                throw new SalesInvoiceException(L.T("Crm_InvNoAlreadyExists", invoiceNo));
         }
 
         // ───────────────────────────── Hisob-kitob (D6, D7) ─────────────────────────────
@@ -263,9 +264,9 @@ namespace tahsinERP.Services.Crm
                     .Include(i => i.SALES_INVOICE_LINES)
                     .FirstOrDefault(i => i.ID == posted.ID);
                 if (current == null)
-                    throw new SalesInvoiceException("Invoys topilmadi", notFound: true);
+                    throw new SalesInvoiceException(L.T("Crm_InvNotFound"), notFound: true);
                 if (SalesInvoiceStatus.IsLocked(current.StatusCode))
-                    throw new SalesInvoiceException("Yakunlangan/to'langan/bekor qilingan invoysni tahrirlash mumkin emas");
+                    throw new SalesInvoiceException(L.T("Crm_InvCannotEditLocked"));
 
                 ValidateLines(db, posted.ContractID, posted.OrderID, lines);
                 ApplyContractPrices(db, posted.ContractID, lines);
@@ -281,7 +282,7 @@ namespace tahsinERP.Services.Crm
                     bool hasDependents = db.SALES_SF_LINES.Any(l => l.SALES_INVOICE_LINES.InvoiceID == posted.ID)
                         || db.SALES_TTNK_LINES.Any(l => l.SALES_INVOICE_LINES.InvoiceID == posted.ID);
                     if (hasDependents)
-                        throw new SalesInvoiceException("Bu invoys qatorlari asosida SF/TTNK yaratilgan — qatorlarni o'zgartirish mumkin emas. Avval SF/TTNK ni o'chiring yoki faqat sarlavhani tahrirlang.");
+                        throw new SalesInvoiceException(L.T("Crm_InvHasDependents"));
                 }
 
                 if (stockChanged)
@@ -365,9 +366,9 @@ namespace tahsinERP.Services.Crm
             {
                 var invoice = db.SALES_INVOICES.FirstOrDefault(i => i.ID == id);
                 if (invoice == null)
-                    throw new SalesInvoiceException("Invoys topilmadi", notFound: true);
+                    throw new SalesInvoiceException(L.T("Crm_InvNotFound"), notFound: true);
                 if (invoice.StatusCode == SalesInvoiceStatus.Paid)
-                    throw new SalesInvoiceException("To'langan invoysni o'chirib bo'lmaydi.");
+                    throw new SalesInvoiceException(L.T("Crm_InvCannotDeletePaid"));
                 if (SalesInvoiceStatus.IsCanceled(invoice.StatusCode))
                     return invoice;
 
@@ -461,9 +462,9 @@ namespace tahsinERP.Services.Crm
                 .ToList();
 
             if (!result.Any())
-                throw new SalesInvoiceException("Kamida bitta maxsulot qo'shish kerak. Mahsulot tanlang, miqdor va QQS % kiriting.");
+                throw new SalesInvoiceException(L.T("Crm_InvAtLeastOneLine"));
             if (result.Any(l => l.Qty <= 0))
-                throw new SalesInvoiceException("Har bir qatorda miqdor 0 dan katta bo'lishi kerak.");
+                throw new SalesInvoiceException(L.T("Crm_InvQtyPositive"));
 
             foreach (var line in result)
                 line.VATRate = Math.Max(0m, Math.Min(100m, line.VATRate));
@@ -494,9 +495,9 @@ namespace tahsinERP.Services.Crm
             foreach (var line in lines)
             {
                 if (contractProductIds != null && contractProductIds.Count > 0 && !contractProductIds.Contains(line.ProductID))
-                    throw new SalesInvoiceException($"Mahsulot {names(line.ProductID)} tanlangan shartnomada mavjud emas.");
+                    throw new SalesInvoiceException(L.T("Crm_InvProductNotInContract", names(line.ProductID)));
                 if (orderProductIds != null && orderProductIds.Count > 0 && !orderProductIds.Contains(line.ProductID))
-                    throw new SalesInvoiceException($"Mahsulot {names(line.ProductID)} tanlangan buyurtmada mavjud emas.");
+                    throw new SalesInvoiceException(L.T("Crm_InvProductNotInOrder", names(line.ProductID)));
             }
         }
 
@@ -536,7 +537,7 @@ namespace tahsinERP.Services.Crm
         {
             var stock = GetSalesStockMap(db);
             if (stock == null)
-                throw new SalesInvoiceException("Sotuv ombori topilmadi");
+                throw new SalesInvoiceException(L.T("Crm_InvSalesWarehouseNotFound"));
 
             var names = ProductLabels(db, lines.Select(l => l.ProductID));
             var errors = new List<string>();
@@ -550,7 +551,7 @@ namespace tahsinERP.Services.Crm
                 var total = available + own;
                 var needed = g.Sum(l => l.Qty);
                 if (needed > total + 0.000000001m)
-                    errors.Add($"Mahsulot {names(g.Key)} uchun sotuv omborida yetarli qoldiq yo'q. Mavjud: {total:N2}, Talab: {needed:N2}");
+                    errors.Add(L.T("Crm_InvInsufficientStock", names(g.Key), total.ToString("N2"), needed.ToString("N2")));
             }
 
             if (errors.Any())
@@ -614,7 +615,7 @@ namespace tahsinERP.Services.Crm
             }
             catch (DbUpdateException ex) when (IsUniqueViolation(ex))
             {
-                throw new SalesInvoiceException("Invoys raqami band (boshqa foydalanuvchi bir vaqtda saqladi). Qayta urinib ko'ring.");
+                throw new SalesInvoiceException(L.T("Crm_InvNoTaken"));
             }
         }
 

@@ -1,6 +1,6 @@
 @model tahsinERP.Models.HSCODE
 @{
-    ViewBag.Title = "Tahrirlash";
+    ViewBag.Title = L.T("Edit");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -19,10 +19,10 @@
                                         <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                     </li>
                                     <li class="breadcrumb-item">
-                                        <a href="~/HSCODE/Index">HSCODE lar</a>
+                                        <a href="~/HSCODE/Index">@L.T("Prd_HsCodes")</a>
                                     </li>
                                     <li class="breadcrumb-item active">
-                                        HSCODE sahifasi
+                                        @L.T("Prd_PageOf", "HSCODE")
                                     </li>
                                 </ol>
                             </div>
@@ -39,7 +39,7 @@
 
                                 <div class="card-body pb-0 mx-25">
                                     <div class="row">
-                                        <h4 class="text-primary">HSCODE malumotlarini tahrirlash</h4>
+                                        <h4 class="text-primary">@L.T("Prd_EditHsCodeInfo")</h4>
 
                                         <div class="col-lg-12 col-md-6 mt-25">
                                             @Html.AntiForgeryToken()
@@ -47,12 +47,12 @@
                                             <hr>
                                             <h6 class="invoice-to"></h6>
                                             <fieldset class="invoice-address form-group">
-                                                @Html.TextBoxFor(model => model.HSCODE1, new { @class = "form-control round", @placeholder = "HsCODE ni kiriting:" })
+                                                @Html.TextBoxFor(model => model.HSCODE1, new { @class = "form-control round", @placeholder = L.T("Prd_EnterHsCode") })
                                                 @Html.ValidationMessageFor(model => model.HSCODE1, "", new { @class = "text-danger" })
                                             </fieldset>
-                                            <h6 class="invoice-to">Batafsil ma`lumot</h6>
+                                            <h6 class="invoice-to">@L.T("Prd_DetailedInfo")</h6>
                                             <fieldset class="invoice-address form-group">
-                                                @Html.TextBoxFor(model => model.Description, new { @class = "form-control round", @placeholder = "qisqacha malumot kiriting:" })
+                                                @Html.TextBoxFor(model => model.Description, new { @class = "form-control round", @placeholder = L.T("Prd_EnterShortInfo") })
                                                 @Html.ValidationMessageFor(model => model.Description, "", new { @class = "text-danger" })
                                             </fieldset>
 
@@ -63,7 +63,7 @@
                                         <li class="list-group-item border-0 pb-0">
                                             <button class="btn btn-primary btn-block subtotal-preview-btn" name="edit" type="submit" value="Edit">
                                                 <i class='bx bx-save'></i>
-                                                Saqlash
+                                                @L.T("Save")
                                             </button>
                                         </li>
                                     </ul>

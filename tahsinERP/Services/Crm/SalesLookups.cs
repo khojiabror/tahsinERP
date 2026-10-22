@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Web.Mvc;
+using tahsinERP.I18n;
 using tahsinERP.Models;
 using tahsinERP.Services.Common;
 
@@ -18,9 +19,9 @@ namespace tahsinERP.Services.Crm
         }
 
         /// <summary>"Tanlang" bandi bilan mijozlar (qiymati <paramref name="emptyValue"/>).</summary>
-        public static SelectList CustomersWithPlaceholder(int? selected, string emptyValue = "", string emptyText = "Tanlang")
+        public static SelectList CustomersWithPlaceholder(int? selected, string emptyValue = "", string emptyText = null)
         {
-            var items = new List<SelectListItem> { new SelectListItem { Value = emptyValue, Text = emptyText } };
+            var items = new List<SelectListItem> { new SelectListItem { Value = emptyValue, Text = emptyText ?? L.T("Select") } };
             items.AddRange(ReferenceDataCache.Get(ReferenceDataCache.Customers)
                 .Select(c => new SelectListItem { Value = c.ID.ToString(), Text = c.Name }));
             var selectedValue = selected.HasValue && selected.Value > 0 ? selected.Value.ToString() : emptyValue;
@@ -28,9 +29,9 @@ namespace tahsinERP.Services.Crm
         }
 
         /// <summary>Mijozning faol shartnomalari ("Tanlang" bilan).</summary>
-        public static SelectList ContractsFor(DBTHSNEntities db, int? customerId, int? selected, string emptyValue = "", string emptyText = "Tanlang")
+        public static SelectList ContractsFor(DBTHSNEntities db, int? customerId, int? selected, string emptyValue = "", string emptyText = null)
         {
-            var items = new List<SelectListItem> { new SelectListItem { Value = emptyValue, Text = emptyText } };
+            var items = new List<SelectListItem> { new SelectListItem { Value = emptyValue, Text = emptyText ?? L.T("Select") } };
             if (customerId.HasValue && customerId.Value > 0)
             {
                 items.AddRange(db.S_CONTRACTS.AsNoTracking()
@@ -47,7 +48,7 @@ namespace tahsinERP.Services.Crm
         /// <summary>Shartnomaning faol buyurtmalari ("Tanlang" bilan).</summary>
         public static SelectList OrdersFor(DBTHSNEntities db, int? contractId, int? selected)
         {
-            var items = new List<SelectListItem> { new SelectListItem { Value = "", Text = "Tanlang" } };
+            var items = new List<SelectListItem> { new SelectListItem { Value = "", Text = L.T("Select") } };
             if (contractId.HasValue && contractId.Value > 0)
             {
                 items.AddRange(db.S_ORDERS.AsNoTracking()

@@ -1,7 +1,7 @@
 ﻿@model tahsinERP.Models.F_WAYBILLS
 @using tahsinERP.Services
 @{
-    ViewBag.Title = "Yo'l varaqasi o'chirish";
+    ViewBag.Title = L.T("Log_WaybillDeleteTitle");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -21,7 +21,7 @@
                                     <a href="~/Waybill/Index">@LogisticsTerms.Waybills</a>
                                 </li>
                                 <li class="breadcrumb-item active">
-                                    @Model.WaybillNo raqamli @LogisticsTerms.Waybill.ToLower()ni o'chirish
+                                    @L.T("Log_WaybillDeleteCrumb", Model.WaybillNo)
                                 </li>
                             </ol>
                         </div>
@@ -38,21 +38,21 @@
                                 <div class="row invoice-info">
                                     <div class="col-lg-12 col-md-6 mt-25">
                                         @Html.ValidationSummary(true, "", new { @class = "text-danger" })
-                                        <h4 class="text-primary">@LogisticsTerms.Waybill ma'lumotlari</h4>
+                                        <h4 class="text-primary">@L.T("Log_WaybillInfo")</h4>
                                         <hr />
-                                        <span><b>@LogisticsTerms.Waybill raqami</b>: @Html.DisplayFor(model => model.WaybillNo)</span>
+                                        <span><b>@L.T("Log_WaybillNo")</b>: @Html.DisplayFor(model => model.WaybillNo)</span>
                                         <hr />
-                                        <span><b>Sana</b>: @(Model.IssueDate?.ToString("dd.MM.yyyy") ?? "")</span>
+                                        <span><b>@L.T("Date")</b>: @(Model.IssueDate?.ToString("dd.MM.yyyy") ?? "")</span>
                                         <hr />
                                         <span><b>@LogisticsTerms.Forwarder</b>: @(Model.FORWARDER?.ForwarderName ?? Model.F_CONTRACTS?.FORWARDER?.ForwarderName ?? "")</span>
                                         <hr />
-                                        <span><b>Shartnoma</b>: @(Model.F_CONTRACTS?.ContractNo ?? "")</span>
+                                        <span><b>@L.T("Log_Contract")</b>: @(Model.F_CONTRACTS?.ContractNo ?? "")</span>
                                         <hr />
-                                        <span><b>Transport turi</b>: @(Model.F_TRANSPORT_TYPES?.TransportType ?? "")</span>
+                                        <span><b>@L.T("Log_TransportType")</b>: @(Model.F_TRANSPORT_TYPES?.TransportType ?? "")</span>
                                         <hr />
-                                        <span><b>Qayerdan</b>: @(Model.FromLocation ?? "")</span>
+                                        <span><b>@L.T("Log_From")</b>: @(Model.FromLocation ?? "")</span>
                                         <hr />
-                                        <span><b>Qayerga</b>: @(Model.ToLocation ?? "")</span>
+                                        <span><b>@L.T("Log_To")</b>: @(Model.ToLocation ?? "")</span>
                                         <hr />
                                     </div>
                                 </div>
@@ -61,9 +61,9 @@
                                         @using (Html.BeginForm("Delete", "Waybill", FormMethod.Post, new { enctype = "multipart/form-data" }))
                                         {
                                             @Html.AntiForgeryToken()
-                                            <button class="btn btn-danger bg-light btn-block subtotal-preview-btn" name="delete" type="submit" value="Delete" onclick="return confirm('Ushbu yo''l varaqasini o''chirishga ishonchingiz komilmi?')">
+                                            <button class="btn btn-danger bg-light btn-block subtotal-preview-btn" name="delete" type="submit" value="Delete" onclick="return confirm('@L.Js("Log_ConfirmDeleteWaybill")')">
                                                 <i class='bx bx-trash'></i>
-                                                O'chirish
+                                                @L.T("Delete")
                                             </button>
                                         }
                                     </li>

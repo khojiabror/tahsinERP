@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using tahsinERP.Models;
+using tahsinERP.I18n;
 
 namespace tahsinERP.Controllers.Settings
 {
@@ -33,13 +34,12 @@ namespace tahsinERP.Controllers.Settings
         protected abstract string UpdatedLog(T entity);
         protected abstract string DeletedLog(T entity);
 
-        protected virtual string NotFoundMessage => "Bunday yozuv topilmadi.";
+        protected virtual string NotFoundMessage => L.T("Prd_RecordNotFound");
 
         /// <summary>O'chirib bo'lmaydigan yozuv (masalan, tizim kodi bor birlik) — true bo'lsa o'chirilmaydi.</summary>
         protected virtual bool IsProtected(T entity) => false;
 
-        private const string SaveFailedMessage =
-            "Oʻzgarishlarni saqlab boʻlmadi. Qayta urinib ko'ring va agar muammo davom etsa, tizim administratoriga murojaat qiling.";
+        private static string SaveFailedMessage => L.T("Prd_SaveFailed");
 
         public async Task<ActionResult> Index()
         {

@@ -23,6 +23,7 @@ namespace tahsinERP.ViewModels
         public decimal TotalPaid { get; set; }
         public decimal Outstanding { get; set; }
         public string PaymentStatus { get; set; }
+        public string PaymentBadgeClass { get; set; }
         public string CargoTypeText { get; set; }
         public string LinkedDoc { get; set; }
     }

@@ -59,7 +59,7 @@
                 '<td>' + (scheduleRowIndex + 1) + '</td>' +
                 '<td>' +
                 '<select name="' + prefix + 'OrderProductID" class="form-control order-product-select" required>' +
-                '<option value="">---Tanlang---</option>';
+                '<option value="">' + (window.erpT ? erpT('Js_Crm_SelectDashed') : '---Tanlang---') + '</option>';
 
             for (var i = 0; i < orderProducts.length; i++) {
                 var product = orderProducts[i];
@@ -92,7 +92,7 @@
         });
 
         $(document).on('click', '.remove-schedule-row', function () {
-            if (confirm('Ushbu qatorni o\'chirishni tasdiqlaysizmi?')) {
+            if (confirm((window.erpT ? erpT('Js_Crm_ConfirmDeleteRow') : 'Ushbu qatorni o\'chirishni tasdiqlaysizmi?'))) {
                 $(this).closest('tr').remove();
                 updateRowNumbers();
             }
@@ -118,7 +118,7 @@
 
             if (qty > maxQty) {
                 $(this).addClass('is-invalid');
-                alert('Miqdor qolgan miqdordan (' + maxQty.toFixed(2) + ') oshib ketdi!');
+                alert((window.erpT ? erpT('Js_Crm_QtyExceedsRemaining', [maxQty.toFixed(2)]) : 'Miqdor qolgan miqdordan (' + maxQty.toFixed(2) + ') oshib ketdi!'));
                 $(this).val(maxQty);
             } else {
                 $(this).removeClass('is-invalid');
@@ -129,7 +129,7 @@
             var hasRows = $('#scheduleTableBody tr').length > 0;
             if (!hasRows) {
                 e.preventDefault();
-                alert('Kamida bitta yetkazib berish rejasi qo\'shish kerak!');
+                alert((window.erpT ? erpT('Js_Crm_AtLeastOneSchedule') : 'Kamida bitta yetkazib berish rejasi qo\'shish kerak!'));
                 return false;
             }
 
@@ -149,7 +149,7 @@
 
             if (!isValid) {
                 e.preventDefault();
-                alert('Barcha miqdorlar to\'g\'ri kiritilganligini tekshiring!');
+                alert((window.erpT ? erpT('Js_Crm_CheckQuantities') : 'Barcha miqdorlar to\'g\'ri kiritilganligini tekshiring!'));
                 return false;
             }
         });

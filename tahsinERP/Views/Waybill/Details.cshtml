@@ -1,12 +1,12 @@
 ﻿@model tahsinERP.Models.F_WAYBILLS
 @using tahsinERP.Services
 @{
-    ViewBag.Title = "Yo'l varaqasi tafsilotlari";
+    ViewBag.Title = L.T("Log_WaybillDetailsTitle");
     Layout = "~/Views/Shared/_Layout.cshtml";
     var currencyShortname = Model.CURRENCy?.Shortname ?? "";
     var totalPaid = (ViewBag.TotalPaid as decimal?) ?? 0;
     var outstanding = (ViewBag.Outstanding as decimal?) ?? 0;
-    var paymentStatus = (ViewBag.PaymentStatus as string) ?? "To'lanmagan";
+    var paymentStatus = (ViewBag.PaymentStatus as string) ?? L.T("Log_PayStatus_Unpaid");
     var payments = ViewBag.Payments as IEnumerable<tahsinERP.Models.F_WAYBILL_PAYMENTS>;
     var hasPayments = false;
     if (payments != null)
@@ -17,7 +17,8 @@
             break;
         }
     }
-    var statusClass = paymentStatus == "To'langan" ? "success" : paymentStatus == "Qisman" ? "warning" : "danger";
+    var paymentStatusCode = ViewBag.PaymentStatusCode as tahsinERP.Services.WaybillPaymentStatus? ?? tahsinERP.Services.WaybillPaymentStatus.Unpaid;
+    var statusClass = paymentStatusCode == tahsinERP.Services.WaybillPaymentStatus.Paid ? "success" : paymentStatusCode == tahsinERP.Services.WaybillPaymentStatus.Partial ? "warning" : "danger";
 }
 <div class="app-content content">
     <div class="content-overlay"></div>
@@ -35,7 +36,7 @@
                                     <a href="~/Waybill/Index">@LogisticsTerms.Waybills</a>
                                 </li>
                                 <li class="breadcrumb-item active">
-                                    @LogisticsTerms.Waybill tafsilotlari
+                                    @L.T("Log_WaybillDetailsTitle")
                                 </li>
                             </ol>
                         </div>
@@ -49,20 +50,20 @@
                     <div class="card">
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-center mb-2">
-                                <h4 class="text-primary mb-0">@LogisticsTerms.Waybill ma'lumotlari</h4>
+                                <h4 class="text-primary mb-0">@L.T("Log_WaybillInfo")</h4>
                                 <span class="badge badge-light-primary">@Model.WaybillNo</span>
                             </div>
                             <div class="table-responsive">
                                 <table class="table table-borderless table-sm mb-0">
-                                    <tr><td style="width:220px"><b>Sana</b></td><td>@(Model.IssueDate?.ToString("dd.MM.yyyy") ?? "")</td></tr>
+                                    <tr><td style="width:220px"><b>@L.T("Date")</b></td><td>@(Model.IssueDate?.ToString("dd.MM.yyyy") ?? "")</td></tr>
                                     <tr><td><b>@LogisticsTerms.Forwarder</b></td><td>@(Model.FORWARDER?.ForwarderName ?? Model.F_CONTRACTS?.FORWARDER?.ForwarderName ?? "")</td></tr>
-                                    <tr><td><b>Shartnoma</b></td><td>@(Model.F_CONTRACTS?.ContractNo ?? "")</td></tr>
-                                    <tr><td><b>Transport turi</b></td><td>@(Model.F_TRANSPORT_TYPES?.TransportType ?? "")</td></tr>
-                                    <tr><td><b>Marshrut</b></td><td>@(Model.FromLocation ?? "") → @(Model.ToLocation ?? "")</td></tr>
-                                    <tr><td><b>Haydovchi / Mashina</b></td><td>@(Model.DriverName ?? "-") / @(Model.TruckNo ?? "-")</td></tr>
-                                    <tr><td><b>Masofa</b></td><td>@(Model.DistanceKm?.ToString("N2") ?? "0") km</td></tr>
-                                    <tr><td><b>Vazn / CBM</b></td><td>@(Model.GrWeight?.ToString("N2") ?? "0") ton / @(Model.CBM?.ToString("N2") ?? "0")</td></tr>
-                                    <tr><td><b>Izoh</b></td><td>@(Model.Description ?? "-")</td></tr>
+                                    <tr><td><b>@L.T("Log_Contract")</b></td><td>@(Model.F_CONTRACTS?.ContractNo ?? "")</td></tr>
+                                    <tr><td><b>@L.T("Log_TransportType")</b></td><td>@(Model.F_TRANSPORT_TYPES?.TransportType ?? "")</td></tr>
+                                    <tr><td><b>@L.T("Log_Route")</b></td><td>@(Model.FromLocation ?? "") → @(Model.ToLocation ?? "")</td></tr>
+                                    <tr><td><b>@L.T("Log_DriverTruck")</b></td><td>@(Model.DriverName ?? "-") / @(Model.TruckNo ?? "-")</td></tr>
+                                    <tr><td><b>@L.T("Log_Distance")</b></td><td>@(Model.DistanceKm?.ToString("N2") ?? "0") @L.T("Log_UnitKm")</td></tr>
+                                    <tr><td><b>@L.T("Log_WeightCbm")</b></td><td>@(Model.GrWeight?.ToString("N2") ?? "0") @L.T("Log_UnitTon") / @(Model.CBM?.ToString("N2") ?? "0")</td></tr>
+                                    <tr><td><b>@L.T("Comment")</b></td><td>@(Model.Description ?? "-")</td></tr>
                                 </table>
                             </div>
                         </div>
@@ -71,20 +72,20 @@
                 <div class="col-lg-4 col-12">
                     <div class="card">
                         <div class="card-body">
-                            <h5 class="mb-1">To'lov holati</h5>
+                            <h5 class="mb-1">@L.T("Log_PaymentStatus")</h5>
                             <div class="mb-1">
                                 <span class="badge badge-@statusClass" style="font-size: 0.95rem;">@paymentStatus</span>
                             </div>
                             <div class="d-flex justify-content-between mb-50">
-                                <span>Jami summa</span>
+                                <span>@L.T("Log_TotalAmount")</span>
                                 <b>@((Model.Amount ?? 0).ToString("N2")) @currencyShortname</b>
                             </div>
                             <div class="d-flex justify-content-between mb-50">
-                                <span>To'langan</span>
+                                <span>@L.T("Log_Paid")</span>
                                 <b class="text-success">@totalPaid.ToString("N2") @currencyShortname</b>
                             </div>
                             <div class="d-flex justify-content-between mb-1">
-                                <span>Qoldiq</span>
+                                <span>@L.T("Log_Outstanding")</span>
                                 <b class="text-danger">@outstanding.ToString("N2") @currencyShortname</b>
                             </div>
                             <div class="progress progress-bar-@statusClass" style="height: 8px;">
@@ -98,13 +99,13 @@
                     </div>
                     <div class="card">
                         <div class="card-body">
-                            <h6 class="mb-1">Yetkazish</h6>
+                            <h6 class="mb-1">@L.T("Log_Delivery")</h6>
                             <div class="d-flex justify-content-between mb-50">
-                                <span>Rejalashtirilgan</span>
+                                <span>@L.T("Log_Planned")</span>
                                 <b>@(Model.PlannedDeliveryDate?.ToString("dd.MM.yyyy") ?? "-")</b>
                             </div>
                             <div class="d-flex justify-content-between">
-                                <span>Haqiqiy</span>
+                                <span>@L.T("Log_Actual")</span>
                                 <b>@(Model.ActualDeliveryDate?.ToString("dd.MM.yyyy") ?? "-")</b>
                             </div>
                         </div>
@@ -114,9 +115,9 @@
                     <div class="card">
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-center mb-1">
-                                <h5 class="mb-0">Bog'langan to'lovlar</h5>
+                                <h5 class="mb-0">@L.T("Log_LinkedPayments")</h5>
                                 <a href="@Url.Action("Create", "WaybillPayment")" class="btn btn-sm btn-outline-primary">
-                                    <i class="bx bx-plus"></i> To'lov qo'shish
+                                    <i class="bx bx-plus"></i> @L.T("Log_AddPayment")
                                 </a>
                             </div>
                             <div class="table-responsive">
@@ -124,11 +125,11 @@
                                     <thead>
                                         <tr>
                                             <th>ID</th>
-                                            <th>Sana</th>
-                                            <th>Summa</th>
-                                            <th>Valyuta</th>
+                                            <th>@L.T("Date")</th>
+                                            <th>@L.T("Amount")</th>
+                                            <th>@L.T("Currency")</th>
                                             <th>@LogisticsTerms.Forwarder</th>
-                                            <th>Izoh</th>
+                                            <th>@L.T("Comment")</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -148,7 +149,7 @@
                                         }
                                         else
                                         {
-                                            <tr><td colspan="6" class="text-center text-muted">To'lovlar topilmadi</td></tr>
+                                            <tr><td colspan="6" class="text-center text-muted">@L.T("Log_PaymentsNotFound")</td></tr>
                                         }
                                     </tbody>
                                 </table>

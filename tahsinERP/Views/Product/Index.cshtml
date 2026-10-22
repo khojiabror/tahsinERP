@@ -1,7 +1,7 @@
 @model List<tahsinERP.Models.PRODUCT>
 
 @{
-    ViewBag.Title = "Maxsulotlar";
+    ViewBag.Title = L.T("Menu_Products");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -22,10 +22,10 @@
                                         <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                     </li>
                                     <li class="breadcrumb-item">
-                                        Sahifalar
+                                        @L.T("Prd_Pages")
                                     </li>
                                     <li class="breadcrumb-item active">
-                                        Maxsulotlar
+                                        @L.T("Menu_Products")
                                     </li>
                                 </ol>
                             </div>
@@ -39,9 +39,9 @@
                     @if (changePermit)
                     {
                         <div class="invoice-create-btn mb-1">
-                            @Html.ActionLink("Yangi maxsulot", "Create", null, new { @class = "btn btn-outline-success mr-1 mb-1" })
+                            @Html.ActionLink(L.T("Prd_NewProduct"), "Create", null, new { @class = "btn btn-outline-success mr-1 mb-1" })
                             <button type="button" class="btn btn-outline-primary mr-1 mb-1" id="exportButton" onclick="window.location.href='/Product/UploadWithExcel'">
-                                <i class="bx bx-file"></i><span class="align-middle ml-25">Excel orqali maxsulot qo'shish</span>
+                                <i class="bx bx-file"></i><span class="align-middle ml-25">@L.T("Prd_AddViaExcel")</span>
                             </button>
                         </div>
                     }
@@ -49,7 +49,7 @@
                         <form>
                             <div class="row border rounded py-2 mb-2">
                                 <div class="col-12 col-sm-12 col-lg-4">
-                                    <label for="typeFilter">Turi</label>
+                                    <label for="typeFilter">@L.T("Type")</label>
                                     @Html.DropDownList(
                                         "typeFilter",
                                         (SelectList)ViewBag.TypeFilterList,
@@ -68,16 +68,16 @@
                                         <table id="productDataTable" class="table table-striped table-bordered">
                                             <thead>
                                                 <tr>
-                                                    <th>Maxsulot raqami</th>
-                                                    <th>Turi</th>
-                                                    <th>Nomi</th>
-                                                    <th>O'lchamlari, mm (U×E×B)</th>
-                                                    <th>m³ (CBM)</th>
-                                                    <th>O'lchov birligi</th>
-                                                    <th>Og'irligi</th>
+                                                    <th>@L.T("Prd_PNo")</th>
+                                                    <th>@L.T("Type")</th>
+                                                    <th>@L.T("Name")</th>
+                                                    <th>@L.T("Prd_DimensionsMm")</th>
+                                                    <th>@L.T("Prd_CbmHeader")</th>
+                                                    <th>@L.T("Prd_UnitOfMeasure")</th>
+                                                    <th>@L.T("Prd_Weight")</th>
                                                     @if (changePermit)
                                                     {
-                                                        <th>Amallar</th>
+                                                        <th>@L.T("Actions")</th>
                                                     }
                                                 </tr>
                                             </thead>
@@ -87,9 +87,9 @@
                                                     var typeCode = item.IsFinishedGood == true ? "MAXSULOT" :
                                                                    item.IsComponent == true ? "YARIM_TAYYOR" :
                                                                    item.IsRawMaterial == true ? "XOMASHYO" : "";
-                                                    var typeDisplay = item.IsFinishedGood == true ? "Maxsulot" :
-                                                                      item.IsComponent == true ? "Yarim tayyor" :
-                                                                      item.IsRawMaterial == true ? "Xomashyo" : "-";
+                                                    var typeDisplay = item.IsFinishedGood == true ? L.T("Prd_TypeFinished") :
+                                                                      item.IsComponent == true ? L.T("Prd_TypeSemi") :
+                                                                      item.IsRawMaterial == true ? L.T("Prd_TypeRaw") : "-";
                                                     var badgeClass = item.IsFinishedGood == true ? "badge-success" :
                                                                      item.IsComponent == true ? "badge-warning" :
                                                                      item.IsRawMaterial == true ? "badge-info" : "badge-secondary";
@@ -107,9 +107,9 @@
                                                         @if (changePermit)
                                                         {
                                                             <td>
-                                                                <a href="@Url.Action("Details", "Product", new { id = item.ID })" class="btn btn-sm btn-outline-info" title="Ko'rish"><i class="bx bx-show"></i></a>
-                                                                <a href="@Url.Action("Edit", "Product", new { id = item.ID })" class="btn btn-sm btn-outline-success" title="Tahrirlash"><i class="bx bx-pencil"></i></a>
-                                                                <a href="@Url.Action("Delete", "Product", new { id = item.ID })" class="btn btn-sm btn-outline-danger" title="O'chirish"><i class="bx bx-trash"></i></a>
+                                                                <a href="@Url.Action("Details", "Product", new { id = item.ID })" class="btn btn-sm btn-outline-info" title="@L.T("View")"><i class="bx bx-show"></i></a>
+                                                                <a href="@Url.Action("Edit", "Product", new { id = item.ID })" class="btn btn-sm btn-outline-success" title="@L.T("Edit")"><i class="bx bx-pencil"></i></a>
+                                                                <a href="@Url.Action("Delete", "Product", new { id = item.ID })" class="btn btn-sm btn-outline-danger" title="@L.T("Delete")"><i class="bx bx-trash"></i></a>
                                                             </td>
                                                         }
                                                     </tr>
@@ -160,20 +160,6 @@
 
             // Initialize DataTable
             var table = $('#productDataTable').DataTable({
-                "language": {
-                    "search": "Qidirish:",
-                    "lengthMenu": "_MENU_ ta ko'rsatish",
-                    "info": "_TOTAL_ ta yozuvdan _START_ dan _END_ gacha",
-                    "infoEmpty": "Yozuvlar yo'q",
-                    "infoFiltered": "(jami _MAX_ ta yozuvdan filtrlangan)",
-                    "paginate": {
-                        "first": "Birinchi",
-                        "last": "Oxirgi",
-                        "next": "Keyingi",
-                        "previous": "Oldingi"
-                    },
-                    "zeroRecords": "Ma'lumot topilmadi"
-                },
                 "pageLength": 25,
                 "order": [[0, "asc"]],
                 dom: 'lBfrtip',

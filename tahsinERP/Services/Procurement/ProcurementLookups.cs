@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.Caching;
 using System.Threading.Tasks;
 using System.Web.Mvc;
+using tahsinERP.I18n;
 using tahsinERP.Models;
 using tahsinERP.Services.Common;
 
@@ -273,5 +274,60 @@ namespace tahsinERP.Services.Procurement
     {
         public int ID { get; set; }
         public string Text { get; set; }
+    }
+
+    /// <summary>
+    /// Xarid arizasi status/prioritet/rol kodlarini joriy tilda ko'rsatish (bazadagi kod o'zgarmaydi).
+    /// Noma'lum kod o'zicha qaytariladi.
+    /// </summary>
+    public static class RequisitionText
+    {
+        private static readonly Dictionary<string, string> StatusKeys = new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            { "Draft", "Srm_ReqStatus_Draft" },
+            { "Submitted", "Srm_ReqStatus_Submitted" },
+            { "Approved", "Srm_ReqStatus_Approved" },
+            { "Rejected", "Srm_ReqStatus_Rejected" },
+            { "ConvertedToOrder", "Srm_ReqStatus_ConvertedToOrder" },
+            { "Pending", "Srm_ReqStatus_Pending" },
+        };
+
+        private static readonly Dictionary<string, string> PriorityKeys = new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            { "High", "Srm_Priority_High" },
+            { "Medium", "Srm_Priority_Medium" },
+            { "Low", "Srm_Priority_Low" },
+        };
+
+        private static readonly Dictionary<string, string> RoleKeys = new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            { "Requester", "Srm_ReqRole_Requester" },
+            { "DepartmentHead", "Srm_ReqRole_DepartmentHead" },
+            { "Financier", "Srm_ReqRole_Financier" },
+            { "PurchaseManager", "Srm_ReqRole_PurchaseManager" },
+        };
+
+        internal static string Map(Dictionary<string, string> keys, string code) =>
+            code != null && keys.TryGetValue(code, out var key) ? L.T(key) : code;
+
+        public static string Status(string code) => Map(StatusKeys, code);
+
+        public static string Priority(string code) => Map(PriorityKeys, code);
+
+        public static string Role(string code) => Map(RoleKeys, code);
+    }
+
+    /// <summary>Xarid buyurtmasi kuzatuv statusini (Created/ContractCreated/Invoiced/Received) joriy tilda ko'rsatish.</summary>
+    public static class TrackingText
+    {
+        private static readonly Dictionary<string, string> StatusKeys = new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            { "Created", "Srm_TrackStatus_Created" },
+            { "ContractCreated", "Srm_TrackStatus_ContractCreated" },
+            { "Invoiced", "Srm_TrackStatus_Invoiced" },
+            { "Received", "Srm_TrackStatus_Received" },
+        };
+
+        public static string Status(string code) => RequisitionText.Map(StatusKeys, code);
     }
 }

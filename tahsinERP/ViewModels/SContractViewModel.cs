@@ -14,7 +14,7 @@ namespace tahsinERP.ViewModels
         public string Incoterms { get; set; }
         public string PaymentTerms { get; set; }
         /// <summary>To'lov muddati (kun) — invoysning DueDate'i shundan hisoblanadi.</summary>
-        [Range(0, 3650, ErrorMessage = "To'lov muddati 0–3650 kun oralig'ida bo'lishi kerak")]
+        [Range(0, 3650, ErrorMessage = "Crm_CtrPaymentDaysRange")]
         public int? PaymentDays { get; set; }
         public int CurrencyID { get; set; }
         public decimal Amount { get; set; }

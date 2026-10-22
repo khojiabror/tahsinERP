@@ -19,30 +19,30 @@
 }
 <div class="row mt-2">
     <div class="col-12">
-        <h5 class="text-primary mb-2">Elektron hujjat (EDO)</h5>
+        <h5 class="text-primary mb-2">@L.T("Crm_EdocPanelTitle")</h5>
         <div class="row">
             <div class="col-md-6">
-                <span><b>Holati</b>: <span class="badge badge-@EDocumentStatus.Badge(Model.Status)">@EDocumentStatus.Title(Model.Status)</span></span><br />
+                <span><b>@L.T("Status")</b>: <span class="badge badge-@EDocumentStatus.Badge(Model.Status)">@EDocumentStatus.Title(Model.Status)</span></span><br />
                 @if (!isLocal)
                 {
-                    <span><b>Provayder</b>: @(EDocumentProviders.ByCode(Model.ExternalSystemCode)?.Title ?? Model.ExternalSystemCode)</span><br />
-                    <span><b>Tashqi ID</b>: @(Model.ExternalKey ?? "—")</span><br />
-                    <span><b>Oxirgi sinxronlash</b>: @(Model.LastSyncDT?.ToString("dd.MM.yyyy HH:mm") ?? "—")</span><br />
+                    <span><b>@L.T("Crm_EdocProvider")</b>: @(EDocumentProviders.ByCode(Model.ExternalSystemCode)?.Title ?? Model.ExternalSystemCode)</span><br />
+                    <span><b>@L.T("Crm_EdocExternalId")</b>: @(Model.ExternalKey ?? "—")</span><br />
+                    <span><b>@L.T("Crm_EdocLastSync")</b>: @(Model.LastSyncDT?.ToString("dd.MM.yyyy HH:mm") ?? "—")</span><br />
                 }
                 @if (!string.IsNullOrEmpty(Model.LastMessage))
                 {
-                    <span><b>Xabar</b>: @Model.LastMessage</span><br />
+                    <span><b>@L.T("Crm_EdocMessage")</b>: @Model.LastMessage</span><br />
                 }
             </div>
             <div class="col-md-6">
-                <span><b>Ulangan tizim</b>: @Model.ActiveProviderTitle</span><br />
+                <span><b>@L.T("Crm_EdocConnectedSystem")</b>: @Model.ActiveProviderTitle</span><br />
                 @if (!Model.ActiveProviderIsExternal)
                 {
-                    <small class="text-muted">@docTitle tahsinERP ichida saqlanadi. Didox yoki Faktura.uz ulanganda shu yerdan yuboriladi.</small>
+                    <small class="text-muted">@L.T("Crm_EdocStoredInternallyHint", docTitle)</small>
                 }
                 else if (!Model.ActiveProviderConfigured)
                 {
-                    <small class="text-danger">@Model.ActiveProviderTitle tanlangan, lekin ulanish sozlamalari to'liq emas (Docs/EDocuments_Integration.md).</small>
+                    <small class="text-danger">@L.T("Crm_EdocProviderIncomplete", Model.ActiveProviderTitle)</small>
                 }
             </div>
         </div>
@@ -50,7 +50,7 @@
         @if (Model.Warnings.Any())
         {
             <div class="alert alert-warning mt-1 mb-1">
-                <b>Yuborishdan oldin to'ldirish kerak:</b>
+                <b>@L.T("Crm_EdocFillBeforeSend")</b>
                 <ul class="mb-0">
                     @foreach (var w in Model.Warnings)
                     {
@@ -62,15 +62,15 @@
 
         <div class="mt-1">
             <a href="@Url.Action("EDocumentPayload", Model.ControllerName, new { id = Model.DocumentID })" target="_blank" class="btn btn-sm btn-outline-secondary">
-                <i class="bx bx-code-alt"></i> E-hujjat ma'lumotlari (JSON)
+                <i class="bx bx-code-alt"></i> @L.T("Crm_EdocPayloadJson")
             </a>
             @if (Model.CanChange && Model.ActiveProviderIsExternal && Model.ActiveProviderConfigured && !EDocumentStatus.IsDelivered(Model.Status) && !Model.Warnings.Any())
             {
                 using (Html.BeginForm("SendEDocument", Model.ControllerName, new { id = Model.DocumentID }, FormMethod.Post, new { @class = "d-inline" }))
                 {
                     @Html.AntiForgeryToken()
-                    <button type="submit" class="btn btn-sm btn-primary" onclick="return confirm('@docTitle @Model.ActiveProviderTitle ga yuborilsinmi?');">
-                        <i class="bx bx-send"></i> @Model.ActiveProviderTitle ga yuborish
+                    <button type="submit" class="btn btn-sm btn-primary" onclick="return confirm('@HttpUtility.JavaScriptStringEncode(L.T("Crm_EdocSendConfirm", docTitle, Model.ActiveProviderTitle))');">
+                        <i class="bx bx-send"></i> @L.T("Crm_EdocSendTo", Model.ActiveProviderTitle)
                     </button>
                 }
             }
@@ -79,7 +79,7 @@
                 using (Html.BeginForm("RefreshEDocument", Model.ControllerName, new { id = Model.DocumentID }, FormMethod.Post, new { @class = "d-inline" }))
                 {
                     @Html.AntiForgeryToken()
-                    <button type="submit" class="btn btn-sm btn-outline-primary"><i class="bx bx-refresh"></i> Holatni yangilash</button>
+                    <button type="submit" class="btn btn-sm btn-outline-primary"><i class="bx bx-refresh"></i> @L.T("Crm_EdocRefreshStatus")</button>
                 }
             }
         </div>

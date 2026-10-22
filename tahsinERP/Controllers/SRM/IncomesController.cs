@@ -15,6 +15,7 @@ using tahsinERP.Services.DlocFifo;
 using tahsinERP.Services.Stock;
 using tahsinERP.ViewModels;
 using tahsinERP.Filters;
+using tahsinERP.I18n;
 
 namespace tahsinERP.Controllers.SRM
 {
@@ -173,15 +174,15 @@ namespace tahsinERP.Controllers.SRM
                 var rows = await OrderIndexQuery(BuildIndexQuery(db, status, warehouseId, fromDate, toDate, q), 5, true)
                     .ToListAsync();
 
-                var bytes = ExcelExport.Create("Ombor kirimlari", rows,
-                    ExcelExport.Col<IncomeIndexRow>("Hujjat raqami", r => r.DocNo),
-                    ExcelExport.Col<IncomeIndexRow>("Invoys raqami", r => r.InvoiceNo),
-                    ExcelExport.Col<IncomeIndexRow>("Ombor", r => r.WarehouseName),
-                    ExcelExport.Col<IncomeIndexRow>("Jami summa", r => r.TotalPrice ?? 0, "#,##0.00"),
-                    ExcelExport.Col<IncomeIndexRow>("Status", r => r.Received ? "Qabul qilingan" : "Kutilmoqda"),
-                    ExcelExport.Col<IncomeIndexRow>("Sana", r => r.IssueDateTime, "dd.MM.yyyy"));
+                var bytes = ExcelExport.Create(L.T("Wh_IncListTitle"), rows,
+                    ExcelExport.Col<IncomeIndexRow>(L.T("Wh_DocNo"), r => r.DocNo),
+                    ExcelExport.Col<IncomeIndexRow>(L.T("Wh_InvoiceNo"), r => r.InvoiceNo),
+                    ExcelExport.Col<IncomeIndexRow>(L.T("Wh_Warehouse"), r => r.WarehouseName),
+                    ExcelExport.Col<IncomeIndexRow>(L.T("Wh_TotalAmount"), r => r.TotalPrice ?? 0, "#,##0.00"),
+                    ExcelExport.Col<IncomeIndexRow>(L.T("Status"), r => r.Received ? L.T("Wh_StReceived") : L.T("Wh_StPending")),
+                    ExcelExport.Col<IncomeIndexRow>(L.T("Date"), r => r.IssueDateTime, "dd.MM.yyyy"));
 
-                return File(bytes, ExcelExport.ContentType, $"Ombor_kirimlari_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx");
+                return File(bytes, ExcelExport.ContentType, $"{L.T("Wh_Inc_FileName")}_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx");
             }
         }
 
@@ -267,7 +268,7 @@ namespace tahsinERP.Controllers.SRM
         {
             if (IsIncomesReadOnlyUser())
             {
-                TempData["Error"] = "Siz faqat kirimlarni ko'rishingiz mumkin. Yaratish va tahrirlash huquqi yo'q.";
+                TempData["Error"] = L.T("Wh_Inc_ViewOnlyNoCreate");
                 return RedirectToAction("Index");
             }
             
@@ -281,14 +282,14 @@ namespace tahsinERP.Controllers.SRM
                 var assignedWarehouseId = await GetAssignedWarehouseIdAsync(db);
                 if (!assignedWarehouseId.HasValue)
                 {
-                    ViewBag.NoWarehouseError = "Sizga biriktirilgan ombor mavjud emas";
+                    ViewBag.NoWarehouseError = L.T("Wh_NoAssignedWarehouse");
                     return View();
                 }
 
                 if (!WarehouseFlowService.CanCreateManualIncome(db, assignedWarehouseId.Value))
                 {
                     TempData["Error"] = WarehouseFlowService.ValidateManualIncomeCreate(db, assignedWarehouseId.Value, null)
-                        ?? "Ushbu omborga qo'lda kirim yaratish mumkin emas. Kutilayotgan kirimlarni ro'yxatdan tanlab qabul qiling.";
+                        ?? L.T("Wh_Inc_ManualCreateNotAllowed");
                     return RedirectToAction("Index");
                 }
 
@@ -320,11 +321,11 @@ namespace tahsinERP.Controllers.SRM
             using (var db = new DBTHSNEntities())
             {
                 if (!DlocFifoSchema.IsEnabled(db))
-                    return Json(new { success = false, message = "DLOC moduli yoqilmagan" }, JsonRequestBehavior.AllowGet);
+                    return Json(new { success = false, message = L.T("Wh_DlocDisabled") }, JsonRequestBehavior.AllowGet);
 
                 var loc = DlocFifoDataAccess.GetLocation(db, locationId);
                 if (loc == null)
-                    return Json(new { success = false, message = "DLOC topilmadi" }, JsonRequestBehavior.AllowGet);
+                    return Json(new { success = false, message = L.T("Wh_DlocNotFound") }, JsonRequestBehavior.AllowGet);
 
                 var current = DlocFifoDataAccess.GetLocationCurrentQty(db, locationId);
                 var max = loc.MaxCapacity;
@@ -344,8 +345,8 @@ namespace tahsinERP.Controllers.SRM
                     afterQty = after,
                     isOk = ok,
                     message = ok
-                        ? $"Joriy: {current:N2} / Max: {max:N2}. Kirimdan keyin: {after:N2}"
-                        : $"Sig'im oshib ketadi! Joriy: {current:N2}, kirim: {incoming:N2}, jami: {after:N2}, Max: {max:N2}"
+                        ? L.T("Wh_Inc_CapacityOk", current.ToString("N2"), max.ToString("N2"), after.ToString("N2"))
+                        : L.T("Wh_Inc_CapacityExceeded", current.ToString("N2"), incoming.ToString("N2"), after.ToString("N2"), max.ToString("N2"))
                 }, JsonRequestBehavior.AllowGet);
             }
         }
@@ -419,7 +420,7 @@ namespace tahsinERP.Controllers.SRM
         {
             if (IsIncomesReadOnlyUser())
             {
-                TempData["Error"] = "Siz faqat kirimlarni ko'rishingiz mumkin. Yaratish va tahrirlash huquqi yo'q.";
+                TempData["Error"] = L.T("Wh_Inc_ViewOnlyNoCreate");
                 return RedirectToAction("Index");
             }
 
@@ -453,13 +454,13 @@ namespace tahsinERP.Controllers.SRM
                             var assignedWarehouseId = await GetAssignedWarehouseIdAsync(db);
                             if (!assignedWarehouseId.HasValue)
                             {
-                                TempData["Error"] = "Sizga biriktirilgan ombor mavjud emas";
+                                TempData["Error"] = L.T("Wh_NoAssignedWarehouse");
                                 return RedirectToAction("Index");
                             }
 
                             if (model.ReceivingWHID != assignedWarehouseId.Value)
                             {
-                                TempData["Error"] = "Siz faqat biriktirilgan omborga kirim qilishingiz mumkin.";
+                                TempData["Error"] = L.T("Wh_Inc_OnlyAssignedWarehouse");
                                 return RedirectToAction("Index");
                             }
 
@@ -520,7 +521,7 @@ namespace tahsinERP.Controllers.SRM
                                     {
                                         if (!product.LocationID.HasValue || product.LocationID.Value <= 0)
                                             throw new WarehouseDlocException("DLOC_REQUIRED",
-                                                $"Mahsulot {productEntity?.PNo ?? product.ProductID.ToString()}: DLOC tanlanishi shart.");
+                                                L.T("Wh_DlocRequiredForProduct", productEntity?.PNo ?? product.ProductID.ToString()));
 
                                         StockLedger.ReceiveLine(db, income.ReceivingWHID, income.ID, incomeProduct.ID,
                                             product.ProductID, product.Amount, unitId, product.LocationID, income.IssueDateTime);
@@ -625,7 +626,7 @@ namespace tahsinERP.Controllers.SRM
             
             if (isReadOnlyRole)
             {
-                TempData["Error"] = "Siz faqat kirimlarni ko'rishingiz mumkin. Tahrirlash huquqi yo'q.";
+                TempData["Error"] = L.T("Wh_Inc_ViewOnlyNoEdit");
                 return RedirectToAction("Index");
             }
             
@@ -653,7 +654,7 @@ namespace tahsinERP.Controllers.SRM
                 var editorWarehouseIds = await GetAssignedWarehouseIdsAsync(db);
                 if (editorWarehouseIds.Count == 0)
                 {
-                    TempData["Error"] = "Sizga biriktirilgan ombor mavjud emas";
+                    TempData["Error"] = L.T("Wh_NoAssignedWarehouse");
                     return RedirectToAction("Index");
                 }
                 if (!editorWarehouseIds.Contains(income.ReceivingWHID))
@@ -664,7 +665,7 @@ namespace tahsinERP.Controllers.SRM
                 // Tekshirish agar already received (RecieveStatus == true)
                 if (income.RecieveStatus == true)
                 {
-                    TempData["Error"] = "Bu kirim hujjati allaqachon qabul qilingan va tahrirlash mumkin emas.";
+                    TempData["Error"] = L.T("Wh_Inc_AlreadyReceivedNoEdit");
                     return RedirectToAction("Index");
                 }
 
@@ -717,7 +718,7 @@ namespace tahsinERP.Controllers.SRM
         {
             if (IsIncomesReadOnlyUser())
             {
-                TempData["Error"] = "Siz faqat kirimlarni ko'rishingiz mumkin. Tahrirlash huquqi yo'q.";
+                TempData["Error"] = L.T("Wh_Inc_ViewOnlyNoEdit");
                 return RedirectToAction("Index");
             }
 
@@ -746,7 +747,7 @@ namespace tahsinERP.Controllers.SRM
                             var assignedWarehouseIds = await GetAssignedWarehouseIdsAsync(db);
                             if (assignedWarehouseIds.Count == 0)
                             {
-                                TempData["Error"] = "Sizga biriktirilgan ombor mavjud emas";
+                                TempData["Error"] = L.T("Wh_NoAssignedWarehouse");
                                 return RedirectToAction("Index");
                             }
                             // Eski va yangi qabul qiluvchi ombor ham foydalanuvchiga biriktirilgan bo'lishi shart
@@ -758,7 +759,7 @@ namespace tahsinERP.Controllers.SRM
 
                             if (income.RecieveStatus == true)
                             {
-                                TempData["Error"] = "Bu kirim hujjati allaqachon qabul qilingan va tahrirlash mumkin emas.";
+                                TempData["Error"] = L.T("Wh_Inc_AlreadyReceivedNoEdit");
                                 return RedirectToAction("Index");
                             }
 
@@ -902,7 +903,7 @@ namespace tahsinERP.Controllers.SRM
 
                         if (income.RecieveStatus == true)
                         {
-                            TempData["Error"] = "Bu kirim hujjati allaqachon qabul qilingan.";
+                            TempData["Error"] = L.T("Wh_Inc_AlreadyReceived");
                             return RedirectToAction("Details", new { id });
                         }
 
@@ -917,7 +918,7 @@ namespace tahsinERP.Controllers.SRM
 
                         if (income.INCOME_PRODUCTS == null || !income.INCOME_PRODUCTS.Any())
                         {
-                            TempData["Error"] = "Kirim hujjatida mahsulotlar yo'q.";
+                            TempData["Error"] = L.T("Wh_Inc_NoProducts");
                             return RedirectToAction("Details", new { id });
                         }
 
@@ -928,7 +929,7 @@ namespace tahsinERP.Controllers.SRM
                         if (claimed == 0)
                         {
                             transaction.Rollback();
-                            TempData["Error"] = "Bu kirim hujjati allaqachon qabul qilingan.";
+                            TempData["Error"] = L.T("Wh_Inc_AlreadyReceived");
                             return RedirectToAction("Details", new { id });
                         }
 
@@ -948,7 +949,7 @@ namespace tahsinERP.Controllers.SRM
                                 if (!lineLocationId.HasValue)
                                 {
                                     transaction.Rollback();
-                                    TempData["Error"] = "Har bir mahsulot uchun DLOC tanlanishi shart.";
+                                    TempData["Error"] = L.T("Wh_DlocRequiredEach");
                                     return RedirectToAction("Details", new { id });
                                 }
                             }
@@ -969,7 +970,7 @@ namespace tahsinERP.Controllers.SRM
                         tahsinERP.Areas.Distribution.Services.Orders.OrderService.AfterExternalReceipt(income.ReceivingWHID,
                             db.INCOME_PRODUCTS.Where(p => p.IncomeID == income.ID).Select(p => p.ProductID).Distinct().ToList());
 
-                        TempData["Success"] = $"Kirim «{income.DocNo}» qabul qilindi. Ombor qoldig'i yangilandi.";
+                        TempData["Success"] = L.T("Wh_Inc_Received", income.DocNo);
 
                         LogHelper.LogToDatabase(User.Identity.Name, "Incomes",
                             $"Receive - {income.DocNo} kirim hujjati qabul qilindi");
@@ -985,7 +986,7 @@ namespace tahsinERP.Controllers.SRM
                     catch (Exception ex)
                     {
                         transaction.Rollback();
-                        TempData["Error"] = $"Xatolik: {ex.Message}";
+                        TempData["Error"] = L.T("Wh_ErrorWithMessage", ex.Message);
                         return RedirectToAction("Details", new { id });
                     }
                 }
@@ -1022,13 +1023,13 @@ namespace tahsinERP.Controllers.SRM
                         var isTransferIncome = WarehouseFlowService.IsAutoLinkedTransferIncome(income);
                         if (!isTransferIncome || income.RecieveStatus != true)
                         {
-                            TempData["Error"] = "Bu hujjat uchun repair qo'llab bo'lmaydi.";
+                            TempData["Error"] = L.T("Wh_Inc_RepairNotApplicable");
                             return RedirectToAction("Details", new { id });
                         }
 
                         if (!string.IsNullOrEmpty(income.Description) && income.Description.Contains("| STOCK_REPAIRED"))
                         {
-                            TempData["Error"] = "Repair allaqachon bajarilgan.";
+                            TempData["Error"] = L.T("Wh_Inc_RepairAlreadyDone");
                             return RedirectToAction("Details", new { id });
                         }
 
@@ -1050,7 +1051,7 @@ namespace tahsinERP.Controllers.SRM
                         await db.SaveChangesAsync();
                         transaction.Commit();
 
-                        TempData["Success"] = "Transfer kirimi uchun qoldiq qayta tiklandi.";
+                        TempData["Success"] = L.T("Wh_Inc_RepairDone");
                         LogHelper.LogToDatabase(User.Identity.Name, "Incomes",
                             $"RepairTransferStock - {income.DocNo} uchun qoldiq qayta tiklandi");
                         return RedirectToAction("Details", new { id });
@@ -1058,7 +1059,7 @@ namespace tahsinERP.Controllers.SRM
                     catch (Exception ex)
                     {
                         transaction.Rollback();
-                        TempData["Error"] = $"Xatolik: {ex.Message}";
+                        TempData["Error"] = L.T("Wh_ErrorWithMessage", ex.Message);
                         return RedirectToAction("Details", new { id });
                     }
                 }
@@ -1098,14 +1099,14 @@ namespace tahsinERP.Controllers.SRM
                             income.ID).FirstOrDefaultAsync();
                         if (income.RecieveStatus == true || receivedNow == 1)
                         {
-                            TempData["Error"] = "Bu kirim hujjati allaqachon qabul qilingan va rad etib bo'lmaydi.";
+                            TempData["Error"] = L.T("Wh_Inc_AlreadyReceivedNoReject");
                             return RedirectToAction("Details", new { id });
                         }
 
                         var expense = await FindLinkedExpenseAsync(db, income, includeLines: true);
                         if (expense == null)
                         {
-                            TempData["Error"] = "Bog'langan chiqim topilmadi. Rad etish mumkin emas.";
+                            TempData["Error"] = L.T("Wh_Inc_LinkedExpenseNotFound");
                             return RedirectToAction("Details", new { id });
                         }
 
@@ -1144,7 +1145,7 @@ namespace tahsinERP.Controllers.SRM
                     catch (Exception ex)
                     {
                         transaction.Rollback();
-                        TempData["Error"] = $"Xatolik: {ex.Message}";
+                        TempData["Error"] = L.T("Wh_ErrorWithMessage", ex.Message);
                         return RedirectToAction("Details", new { id });
                     }
                 }
@@ -1258,7 +1259,7 @@ namespace tahsinERP.Controllers.SRM
                     catch (Exception ex)
                     {
                         transaction.Rollback();
-                        TempData["Error"] = $"Xatolik: {ex.Message}";
+                        TempData["Error"] = L.T("Wh_ErrorWithMessage", ex.Message);
                         return RedirectToAction("Index");
                     }
                 }
@@ -1450,7 +1451,7 @@ namespace tahsinERP.Controllers.SRM
                 invoiceSelectItems.Insert(0, new SelectListItem
                 {
                     Value = "",
-                    Text = "---naqdga olingan invoys yo'q---"
+                    Text = L.T("Wh_Inc_NoCashInvoiceOpt")
                 });
             }
 

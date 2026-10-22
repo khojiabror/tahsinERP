@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
+using tahsinERP.I18n;
 using tahsinERP.Helpers;
 using tahsinERP.Models;
 using tahsinERP.Services;
@@ -99,7 +100,7 @@ namespace tahsinERP.Controllers
                             contractId = r.ContractID,
                             contractNo = r.ContractNo,
                             amount = gross.ToString("N2"),
-                            vatNote = rate > 0 ? $"{(r.Net ?? gross):N2} + QQS {rate:0.##}%" : null,
+                            vatNote = rate > 0 ? L.T("Srm_VatNote", (r.Net ?? gross).ToString("N2"), rate.ToString("0.##")) : null,
                             date = r.InvoiceDate.ToString("dd.MM.yyyy")
                         };
                     })
@@ -126,16 +127,16 @@ namespace tahsinERP.Controllers
                 }
 
                 var rows = await PInvoiceService.OrderIndex(query, 6, true).ToListAsync();
-                var bytes = ExcelExport.Create("Xarid invoyslari", rows,
-                    ExcelExport.Col<PInvoiceService.IndexRow>("Invoys raqami", r => r.InvoiceNo),
-                    ExcelExport.Col<PInvoiceService.IndexRow>("Ta'minotchi", r => r.SupplierName),
-                    ExcelExport.Col<PInvoiceService.IndexRow>("Turi", r => r.PurchaseType == ProcurementLookups.IndirectPurchase ? "Indirect" : "Direct"),
-                    ExcelExport.Col<PInvoiceService.IndexRow>("Buyurtma raqami", r => r.OrderNo),
-                    ExcelExport.Col<PInvoiceService.IndexRow>("Shartnoma raqami", r => r.ContractNo),
-                    ExcelExport.Col<PInvoiceService.IndexRow>("Invoys summasi (QQS bilan)", r => r.Amount ?? 0, "#,##0.00"),
-                    ExcelExport.Col<PInvoiceService.IndexRow>("Sana", r => r.InvoiceDate, "dd.MM.yyyy"));
+                var bytes = ExcelExport.Create(L.T("Menu_PurchaseInvoices"), rows,
+                    ExcelExport.Col<PInvoiceService.IndexRow>(L.T("Srm_InvoiceNo"), r => r.InvoiceNo),
+                    ExcelExport.Col<PInvoiceService.IndexRow>(L.T("Srm_Supplier"), r => r.SupplierName),
+                    ExcelExport.Col<PInvoiceService.IndexRow>(L.T("Type"), r => r.PurchaseType == ProcurementLookups.IndirectPurchase ? "Indirect" : "Direct"),
+                    ExcelExport.Col<PInvoiceService.IndexRow>(L.T("Srm_OrderNo"), r => r.OrderNo),
+                    ExcelExport.Col<PInvoiceService.IndexRow>(L.T("Srm_ContractNo"), r => r.ContractNo),
+                    ExcelExport.Col<PInvoiceService.IndexRow>(L.T("Srm_InvoiceAmountWithVat"), r => r.Amount ?? 0, "#,##0.00"),
+                    ExcelExport.Col<PInvoiceService.IndexRow>(L.T("Date"), r => r.InvoiceDate, "dd.MM.yyyy"));
 
-                return File(bytes, ExcelExport.ContentType, $"Xarid_invoyslari_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx");
+                return File(bytes, ExcelExport.ContentType, L.T("Srm_FilePurchaseInvoices") + $"_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx");
             }
         }
 

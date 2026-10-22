@@ -5,6 +5,8 @@ using System.Linq;
 using tahsinERP.Models;
 using tahsinERP.ViewModels;
 
+using tahsinERP.I18n;
+
 namespace tahsinERP.Services
 {
     /// <summary>
@@ -122,7 +124,7 @@ namespace tahsinERP.Services
                     {
                         var best = g.OrderByDescending(x => x.Trips).First();
                         string name;
-                        return names.TryGetValue(best.ForwarderID.Value, out name) ? name : "Noma'lum";
+                        return names.TryGetValue(best.ForwarderID.Value, out name) ? name : L.T("Log_Unknown");
                     });
             }
 
@@ -139,7 +141,7 @@ namespace tahsinERP.Services
                 AvgCostPerKm = x.S.AvgPerKm,
                 MainForwarder = mainForwarder == null
                     ? null
-                    : (mainForwarder.TryGetValue(LaneKey(x.From, x.To), out var mf) ? mf : "Noma'lum")
+                    : (mainForwarder.TryGetValue(LaneKey(x.From, x.To), out var mf) ? mf : L.T("Log_Unknown"))
             }).ToList();
         }
 
@@ -187,7 +189,7 @@ namespace tahsinERP.Services
             return rows.Select(x => new ForwarderComparisonViewModel
             {
                 ForwarderID = x.ForwarderID,
-                ForwarderName = names.TryGetValue(x.ForwarderID, out var n) ? n : "Noma'lum",
+                ForwarderName = names.TryGetValue(x.ForwarderID, out var n) ? n : L.T("Log_Unknown"),
                 TripCount = x.S.Trips,
                 TotalCost = x.S.Cost,
                 TotalTonnage = x.S.Tonnage,
@@ -243,7 +245,7 @@ namespace tahsinERP.Services
                 .Where(f => list.Contains(f.ID))
                 .Select(f => new { f.ID, f.ForwarderName })
                 .ToList()
-                .ToDictionary(x => x.ID, x => x.ForwarderName ?? "Noma'lum");
+                .ToDictionary(x => x.ID, x => x.ForwarderName ?? L.T("Log_Unknown"));
         }
 
         private static string LaneKey(string from, string to) => from + "\u0001" + to;

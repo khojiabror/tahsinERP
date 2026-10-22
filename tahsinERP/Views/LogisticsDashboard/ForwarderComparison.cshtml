@@ -1,6 +1,6 @@
 ﻿@using tahsinERP.ViewModels
 @{
-    ViewBag.Title = "Yuk tashuvchilarni taqqoslash";
+    ViewBag.Title = L.T("Log_ForwarderComparison");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -17,10 +17,10 @@
                                     <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                 </li>
                                 <li class="breadcrumb-item">
-                                    <a href="~/LogisticsDashboard">Logistika boshqaruv paneli</a>
+                                    <a href="~/LogisticsDashboard">@L.T("Log_DashboardTitle")</a>
                                 </li>
                                 <li class="breadcrumb-item active">
-                                    Yuk tashuvchilarni taqqoslash
+                                    @L.T("Log_ForwarderComparison")
                                 </li>
                             </ol>
                         </div>
@@ -35,23 +35,23 @@
                 <div class="card-body">
                     <form method="get" action="@Url.Action("ForwarderComparison", "LogisticsDashboard")" class="row">
                         <div class="col-md-3">
-                            <label>Boshlanish sanasi</label>
+                            <label>@L.T("Log_StartDate")</label>
                             <input type="date" name="startDate" class="form-control" value="@ViewBag.StartDate" />
                         </div>
                         <div class="col-md-3">
-                            <label>Tugash sanasi</label>
+                            <label>@L.T("Log_EndDate")</label>
                             <input type="date" name="endDate" class="form-control" value="@ViewBag.EndDate" />
                         </div>
                         <div class="col-md-3">
-                            <label>Qayerdan (marshrut)</label>
-                            <input type="text" name="laneFrom" class="form-control" value="@ViewBag.LaneFrom" placeholder="Masalan: Toshkent" />
+                            <label>@L.T("Log_FromLane")</label>
+                            <input type="text" name="laneFrom" class="form-control" value="@ViewBag.LaneFrom" placeholder="@L.T("Log_ExampleTashkent")" />
                         </div>
                         <div class="col-md-3">
-                            <label>Qayerga (marshrut)</label>
-                            <input type="text" name="laneTo" class="form-control" value="@ViewBag.LaneTo" placeholder="Masalan: Samarqand" />
+                            <label>@L.T("Log_ToLane")</label>
+                            <input type="text" name="laneTo" class="form-control" value="@ViewBag.LaneTo" placeholder="@L.T("Log_ExampleSamarkand")" />
                         </div>
                         <div class="col-md-2 d-flex align-items-end mt-1">
-                            <button type="submit" class="btn btn-primary w-100">Qidirish</button>
+                            <button type="submit" class="btn btn-primary w-100">@L.T("Search")</button>
                         </div>
                     </form>
                 </div>
@@ -64,13 +64,13 @@
                             <table class="table table-striped">
                                 <thead>
                                     <tr>
-                                        <th>Yuk tashuvchi</th>
-                                        <th>Reyslar</th>
-                                        <th>Jami xarajat</th>
-                                        <th>Tonnaj</th>
-                                        <th>Masofa</th>
-                                        <th>1 ton uchun</th>
-                                        <th>1 km uchun</th>
+                                        <th>@L.T("Log_Forwarder")</th>
+                                        <th>@L.T("Log_Trips")</th>
+                                        <th>@L.T("Log_TotalCost")</th>
+                                        <th>@L.T("Log_Tonnage")</th>
+                                        <th>@L.T("Log_Distance")</th>
+                                        <th>@L.T("Log_Per1Ton")</th>
+                                        <th>@L.T("Log_Per1Km")</th>
                                         <th>OTIF %</th>
                                     </tr>
                                 </thead>
@@ -97,7 +97,7 @@
                                     else
                                     {
                                         <tr>
-                                            <td colspan="8" class="text-center">Ma'lumot topilmadi</td>
+                                            <td colspan="8" class="text-center">@L.T("Log_NoDataFound")</td>
                                         </tr>
                                     }
                                 </tbody>

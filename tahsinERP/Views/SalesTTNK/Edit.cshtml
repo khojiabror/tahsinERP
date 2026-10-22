@@ -1,6 +1,6 @@
 @model tahsinERP.Models.SALES_TTNK_HEADERS
 @{
-    ViewBag.Title = "Edit TTNK";
+    ViewBag.Title = L.T("Crm_TtnEditTitle");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -25,7 +25,7 @@
                                         <a href="@Url.Action("Details", "SalesTTNK", new { id = Model.ID })">@Model.TTNKNumber</a>
                                     </li>
                                     <li class="breadcrumb-item active">
-                                        Tahrirlash
+                                        @L.T("Edit")
                                     </li>
                                 </ol>
                             </div>
@@ -43,7 +43,7 @@
                                         @if (Model.StatusCode == "FINALIZED" || Model.StatusCode == "SENT")
                                         {
                                             <div class="alert alert-warning">
-                                                <strong>Diqqat!</strong> Yakunlangan yoki yuborilgan TTNK ni tahrirlash mumkin emas.
+                                                <strong>@L.T("Crm_Attention")</strong> @L.T("Crm_TtnCannotEditFinal").
                                             </div>
                                         }
 
@@ -56,149 +56,149 @@
                                             @Html.HiddenFor(m => m.OrderID)
                                             @Html.HiddenFor(m => m.ContractID)
 
-                                            <h5>Asosiy ma'lumotlar</h5>
+                                            <h5>@L.T("Crm_MainInfo")</h5>
                                             <div class="row">
                                                 <div class="col-md-6">
                                                     <div class="form-group">
-                                                        <label>TTNK raqami *</label>
+                                                        <label>@L.T("Crm_TtnNumber") *</label>
                                                         @Html.TextBoxFor(m => m.TTNKNumber, new { @class = "form-control", required = "required" })
                                                         @Html.ValidationMessageFor(m => m.TTNKNumber, "", new { @class = "text-danger" })
                                                     </div>
                                                 </div>
                                                 <div class="col-md-6">
                                                     <div class="form-group">
-                                                        <label>TTNK sanasi *</label>
+                                                        <label>@L.T("Crm_TtnDate") *</label>
                                                         @Html.TextBoxFor(m => m.TTNKDate, new { @class = "form-control", type = "date", required = "required", Value = Model.TTNKDate.ToString("yyyy-MM-dd") })
                                                         @Html.ValidationMessageFor(m => m.TTNKDate, "", new { @class = "text-danger" })
                                                     </div>
                                                 </div>
                                             </div>
 
-                                            <h5 class="mt-3">Yuk tashuvchi ma'lumotlari</h5>
+                                            <h5 class="mt-3">@L.T("Crm_TtnCarrierInfo")</h5>
                                             <div class="row">
                                                 <div class="col-md-6">
                                                     <div class="form-group">
-                                                        <label>Yuk tashuvchi nomi</label>
+                                                        <label>@L.T("Crm_TtnCarrierName")</label>
                                                         @Html.TextBoxFor(m => m.CarrierName, new { @class = "form-control" })
                                                     </div>
                                                 </div>
                                                 <div class="col-md-6">
                                                     <div class="form-group">
-                                                        <label>Yuk tashuvchi INN</label>
+                                                        <label>@L.T("Crm_TtnCarrierInn")</label>
                                                         @Html.TextBoxFor(m => m.CarrierINN, new { @class = "form-control" })
                                                     </div>
                                                 </div>
                                             </div>
 
-                                            <h5 class="mt-3">Yuk beruvchi va oluvchi</h5>
+                                            <h5 class="mt-3">@L.T("Crm_TtnShipperConsignee")</h5>
                                             <div class="row">
                                                 <div class="col-md-6">
                                                     <div class="form-group">
-                                                        <label>Yuk beruvchi nomi</label>
+                                                        <label>@L.T("Crm_TtnShipperName")</label>
                                                         @Html.TextBoxFor(m => m.ShipperName, new { @class = "form-control" })
                                                     </div>
                                                     <div class="form-group">
-                                                        <label>Yuk beruvchi INN</label>
+                                                        <label>@L.T("Crm_TtnShipperInn")</label>
                                                         @Html.TextBoxFor(m => m.ShipperINN, new { @class = "form-control" })
                                                     </div>
                                                 </div>
                                                 <div class="col-md-6">
                                                     <div class="form-group">
-                                                        <label>Yuk oluvchi nomi</label>
+                                                        <label>@L.T("Crm_TtnConsigneeName")</label>
                                                         @Html.TextBoxFor(m => m.ConsigneeName, new { @class = "form-control" })
                                                     </div>
                                                     <div class="form-group">
-                                                        <label>Yuk oluvchi INN</label>
+                                                        <label>@L.T("Crm_TtnConsigneeInn")</label>
                                                         @Html.TextBoxFor(m => m.ConsigneeINN, new { @class = "form-control" })
                                                     </div>
                                                 </div>
                                             </div>
 
-                                            <h5 class="mt-3">Transport ma'lumotlari</h5>
+                                            <h5 class="mt-3">@L.T("Crm_TtnTransportInfo")</h5>
                                             <div class="row">
                                                 <div class="col-md-6">
                                                     <div class="form-group">
-                                                        <label>Haydovchi</label>
+                                                        <label>@L.T("Crm_TtnDriver")</label>
                                                         @Html.TextBoxFor(m => m.DriverName, new { @class = "form-control" })
                                                     </div>
                                                     <div class="form-group">
-                                                        <label>Haydovchi PINFL</label>
+                                                        <label>@L.T("Crm_TtnDriverPinfl")</label>
                                                         @Html.TextBoxFor(m => m.DriverPINFL, new { @class = "form-control" })
                                                     </div>
                                                     <div class="form-group">
-                                                        <label>Mas'ul shaxs</label>
+                                                        <label>@L.T("Crm_TtnResponsible")</label>
                                                         @Html.TextBoxFor(m => m.ResponsiblePersonName, new { @class = "form-control" })
                                                     </div>
                                                     <div class="form-group">
-                                                        <label>Mas'ul shaxs PINFL</label>
+                                                        <label>@L.T("Crm_TtnResponsiblePinfl")</label>
                                                         @Html.TextBoxFor(m => m.ResponsiblePersonPINFL, new { @class = "form-control" })
                                                     </div>
                                                 </div>
                                                 <div class="col-md-6">
                                                     <div class="form-group">
-                                                        <label>Mashina raqami</label>
+                                                        <label>@L.T("Crm_TtnTruckNo")</label>
                                                         @Html.TextBoxFor(m => m.TruckNo, new { @class = "form-control" })
                                                     </div>
                                                     <div class="form-group">
-                                                        <label>Mashina modeli</label>
+                                                        <label>@L.T("Crm_TtnTruckModel")</label>
                                                         @Html.TextBoxFor(m => m.TruckModel, new { @class = "form-control" })
                                                     </div>
                                                     <div class="form-group">
-                                                        <label>Pritsep raqami</label>
+                                                        <label>@L.T("Crm_TtnTrailerNo")</label>
                                                         @Html.TextBoxFor(m => m.TrailerNo, new { @class = "form-control" })
                                                     </div>
                                                     <div class="form-group">
-                                                        <label>Pritsep modeli</label>
+                                                        <label>@L.T("Crm_TtnTrailerModel")</label>
                                                         @Html.TextBoxFor(m => m.TrailerModel, new { @class = "form-control" })
                                                     </div>
                                                 </div>
                                             </div>
 
-                                            <h5 class="mt-3">Marshrut</h5>
+                                            <h5 class="mt-3">@L.T("Crm_TtnRoute")</h5>
                                             <div class="row">
                                                 <div class="col-md-6">
                                                     <div class="form-group">
-                                                        <label>Jo'nash manzili</label>
+                                                        <label>@L.T("Crm_TtnDepartureAddress")</label>
                                                         @Html.TextBoxFor(m => m.DepartureAddress, new { @class = "form-control" })
                                                     </div>
                                                     <div class="form-group">
-                                                        <label>Jo'nash viloyati</label>
+                                                        <label>@L.T("Crm_TtnDepartureRegion")</label>
                                                         @Html.TextBoxFor(m => m.DepartureRegion, new { @class = "form-control" })
                                                     </div>
                                                 </div>
                                                 <div class="col-md-6">
                                                     <div class="form-group">
-                                                        <label>Yetkazish manzili</label>
+                                                        <label>@L.T("Crm_TtnArrivalAddress")</label>
                                                         @Html.TextBoxFor(m => m.ArrivalAddress, new { @class = "form-control" })
                                                     </div>
                                                     <div class="form-group">
-                                                        <label>Yetkazish viloyati</label>
+                                                        <label>@L.T("Crm_TtnArrivalRegion")</label>
                                                         @Html.TextBoxFor(m => m.ArrivalRegion, new { @class = "form-control" })
                                                     </div>
                                                     <div class="form-group">
-                                                        <label>Masofa (km)</label>
+                                                        <label>@L.T("Crm_TtnDistanceKm")</label>
                                                         @Html.TextBoxFor(m => m.DistanceKm, new { @class = "form-control", type = "number", step = "0.01", Value = Model.DistanceKm?.ToString() ?? "" })
                                                     </div>
                                                 </div>
                                             </div>
 
-                                            <h5 class="mt-3">Yuk ma'lumotlari</h5>
+                                            <h5 class="mt-3">@L.T("Crm_TtnCargoInfo")</h5>
                                             <div class="row">
                                                 <div class="col-md-4">
                                                     <div class="form-group">
-                                                        <label>Yuk og'irligi (brutto, t)</label>
+                                                        <label>@L.T("Crm_TtnCargoGross")</label>
                                                         @Html.TextBoxFor(m => m.CargoWeightGrossT, new { @class = "form-control", type = "number", step = "0.01", Value = Model.CargoWeightGrossT?.ToString() ?? "" })
                                                     </div>
                                                 </div>
                                                 <div class="col-md-4">
                                                     <div class="form-group">
-                                                        <label>Yuk og'irligi (netto, t)</label>
+                                                        <label>@L.T("Crm_TtnCargoNet")</label>
                                                         @Html.TextBoxFor(m => m.CargoWeightNetT, new { @class = "form-control", type = "number", step = "0.01", Value = Model.CargoWeightNetT?.ToString() ?? "" })
                                                     </div>
                                                 </div>
                                                 <div class="col-md-4">
                                                     <div class="form-group">
-                                                        <label>Valyuta</label>
+                                                        <label>@L.T("Currency")</label>
                                                         @Html.TextBoxFor(m => m.CurrencyCode, new { @class = "form-control" })
                                                     </div>
                                                 </div>
@@ -207,19 +207,19 @@
                                             <div class="row">
                                                 <div class="col-md-4">
                                                     <div class="form-group">
-                                                        <label>Yetkazib berish narxi</label>
+                                                        <label>@L.T("Crm_TtnDeliveryCost")</label>
                                                         @Html.TextBoxFor(m => m.DeliveryCost, new { @class = "form-control", type = "number", step = "0.01", Value = Model.DeliveryCost.ToString() })
                                                     </div>
                                                 </div>
                                                 <div class="col-md-4">
                                                     <div class="form-group">
-                                                        <label>QQS summa</label>
+                                                        <label>@L.T("Crm_VatAmount")</label>
                                                         @Html.TextBoxFor(m => m.VATAmount, new { @class = "form-control", type = "number", step = "0.01", Value = Model.VATAmount.ToString() })
                                                     </div>
                                                 </div>
                                                 <div class="col-md-4">
                                                     <div class="form-group">
-                                                        <label>Holati</label>
+                                                        <label>@L.T("Status")</label>
                                                         @Html.DropDownListFor(m => m.StatusCode, new SelectList(new[] { "DRAFT", "CONFIRMED", "FINALIZED", "SENT" }, Model.StatusCode), new { @class = "form-control" })
                                                     </div>
                                                 </div>
@@ -228,10 +228,10 @@
                                             <div class="row mt-3">
                                                 <div class="col-md-12">
                                                     <button type="submit" class="btn btn-primary" @(Model.StatusCode == "FINALIZED" || Model.StatusCode == "SENT" ? "disabled" : "")>
-                                                        <i class="bx bx-save"></i> Saqlash
+                                                        <i class="bx bx-save"></i> @L.T("Save")
                                                     </button>
                                                     <a href="@Url.Action("Details", "SalesTTNK", new { id = Model.ID })" class="btn btn-secondary">
-                                                        Bekor qilish
+                                                        @L.T("Cancel")
                                                     </a>
                                                 </div>
                                             </div>

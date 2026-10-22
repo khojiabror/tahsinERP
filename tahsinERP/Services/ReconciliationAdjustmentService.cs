@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
+using tahsinERP.I18n;
 using tahsinERP.Models;
 
 namespace tahsinERP.Services
@@ -94,7 +95,7 @@ namespace tahsinERP.Services
         public static void Save(DBTHSNEntities db, byte counterpartyType, int counterpartyId, int contractId, int entryYear, DateTime cutoffDate, decimal party1Debit, decimal party1Credit, string note, int userId)
         {
             if (userId <= 0)
-                throw new InvalidOperationException("Foydalanuvchi aniqlanmadi.");
+                throw new InvalidOperationException(L.T("Crm_RecUserNotFound"));
 
             var existing = LoadForYear(db, counterpartyType, counterpartyId, contractId, entryYear);
             var now = DateTime.UtcNow;

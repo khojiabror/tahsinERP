@@ -9,6 +9,7 @@ using tahsinERP.Models;
 using tahsinERP.ViewModels;
 using tahsinERP.Filters;
 using tahsinERP.Services.Common;
+using tahsinERP.I18n;
 
 namespace tahsinERP.Controllers.Settings
 {
@@ -74,7 +75,7 @@ namespace tahsinERP.Controllers.Settings
             if (!string.IsNullOrEmpty(color))
             {
                 if (!BrandingService.IsValidColor(color))
-                    return "Brend rangi #RRGGBB ko'rinishida bo'lishi kerak.";
+                    return L.T("Prd_BrandColorInvalid");
                 // Standart rang tanlansa NULL saqlanadi (keyinchalik standart o'zgarsa ham shunga ergashadi)
                 db.Database.ExecuteSqlCommand("UPDATE dbo.COMPANIES SET BrandColor = @p0 WHERE ID = @p1",
                     string.Equals(color, BrandingService.DefaultColor, StringComparison.OrdinalIgnoreCase) ? (object)DBNull.Value : color.ToUpperInvariant(), companyId);
@@ -90,9 +91,9 @@ namespace tahsinERP.Controllers.Settings
             if (file != null && file.ContentLength > 0)
             {
                 if (file.ContentLength > LogoMaxBytes)
-                    return "Logo 200 KB dan katta.";
+                    return L.T("Prd_LogoTooLarge");
                 if (Array.IndexOf(LogoTypes, (file.ContentType ?? "").ToLowerInvariant()) < 0)
-                    return "Logo PNG yoki JPG bo'lishi kerak.";
+                    return L.T("Prd_LogoBadType");
                 var bytes = new byte[file.ContentLength];
                 file.InputStream.Read(bytes, 0, bytes.Length);
                 db.Database.ExecuteSqlCommand("UPDATE dbo.COMPANIES SET LogoImage = @p0, LogoContentType = @p1 WHERE ID = @p2",

@@ -9,7 +9,7 @@
 (function () {
     'use strict';
 
-    var NO_DATA = '<p class="text-center text-muted">Ma\'lumot yo\'q</p>';
+    var NO_DATA = '<p class="text-center text-muted">' + (window.erpT ? erpT('Js_Crm_NoData') : 'Ma\'lumot yo\'q') + '</p>';
 
     function readConfig() {
         var el = document.getElementById('crmDashboardConfig');
@@ -45,7 +45,7 @@
         if (isNaN(n)) return val;
         var parts = n.toFixed(2).split('.');
         parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
-        return parts.join(',') + ' so\'m';
+        return parts.join(',') + ' ' + (window.erpT ? erpT('Js_Crm_Sum') : 'so\'m');
     }
 
     function renderCharts(cfg) {
@@ -53,7 +53,7 @@
         if (contracts.labels.length && contracts.series.length) {
             new ApexCharts(document.querySelector('#contractsByMonthChart'), {
                 chart: { type: 'bar', height: 320 },
-                series: [{ name: 'Shartnomalar', data: contracts.series }],
+                series: [{ name: (window.erpT ? erpT('Js_Crm_Contracts') : 'Shartnomalar'), data: contracts.series }],
                 xaxis: { categories: contracts.labels },
                 plotOptions: { bar: { borderRadius: 4, columnWidth: '60%' } },
                 colors: ['#7367F0'],
@@ -67,7 +67,7 @@
         if (orders.labels.length && orders.series.length) {
             new ApexCharts(document.querySelector('#ordersByMonthChart'), {
                 chart: { type: 'line', height: 320 },
-                series: [{ name: 'Buyurtmalar', data: orders.series }],
+                series: [{ name: (window.erpT ? erpT('Js_Crm_Orders') : 'Buyurtmalar'), data: orders.series }],
                 xaxis: { categories: orders.labels },
                 stroke: { curve: 'smooth', width: 2 },
                 colors: ['#28a745'],
@@ -108,7 +108,7 @@
             new ApexCharts(document.querySelector('#topCustomersChart'), {
                 chart: { type: 'bar', height: 350, toolbar: { show: false } },
                 plotOptions: { bar: { horizontal: true, borderRadius: 4, barHeight: '65%' } },
-                series: [{ name: 'Summa', data: top.series }],
+                series: [{ name: (window.erpT ? erpT('Js_Crm_Amount') : 'Summa'), data: top.series }],
                 xaxis: { categories: top.labels },
                 dataLabels: {
                     enabled: true,
@@ -125,16 +125,7 @@
         if (!$.fn.DataTable) return;
         var crmDtOptions = {
             pageLength: 25,
-            lengthMenu: [[25, 50, 100, -1], ['25', '50', '100', 'Barchasi']],
-            language: {
-                lengthMenu: "Ko'rsatish: _MENU_",
-                info: '_TOTAL_ ta yozuvdan _START_ - _END_',
-                infoEmpty: "Yozuv yo'q",
-                infoFiltered: '(_MAX_ ta yozuvdan filtrlangan)',
-                search: 'Qidirish:',
-                paginate: { first: 'Birinchi', last: 'Oxirgi', next: 'Keyingi', previous: 'Oldingi' },
-                zeroRecords: 'Hech narsa topilmadi'
-            },
+            lengthMenu: [[25, 50, 100, -1], ['25', '50', '100', (window.erpT ? erpT('Js_Crm_All') : 'Barchasi')]],
             order: [],
             dom: '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>rtip'
         };
@@ -167,7 +158,7 @@
         // ApexCharts yuklanmasa — avvalgidek qolgan qismlar ham ishga tushmaydi
         if (typeof ApexCharts === 'undefined') {
             $('#contractsByMonthChart, #ordersByMonthChart, #orderFulfillmentChart, #contractStatusChart, #topCustomersChart')
-                .html('<p class="text-center text-muted">ApexCharts yuklanmadi</p>');
+                .html('<p class="text-center text-muted">' + (window.erpT ? erpT('Js_Crm_ApexNotLoaded') : 'ApexCharts yuklanmadi') + '</p>');
             return;
         }
 

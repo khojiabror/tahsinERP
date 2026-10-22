@@ -6,6 +6,7 @@ using System.Net;
 using System.Web.Mvc;
 using tahsinERP.Filters;
 using tahsinERP.Models;
+using tahsinERP.I18n;
 
 namespace tahsinERP.Models
 {
@@ -32,7 +33,7 @@ namespace tahsinERP.Controllers
     [Permission]
     public abstract class LookupCrudController<T> : BaseController where T : class, ISoftDeleteLookup, new()
     {
-        private const string SaveErrorMessage = "Oʻzgarishlarni saqlab boʻlmadi. Qayta urinib ko'ring va agar muammo davom etsa, tizim administratoriga murojaat qiling.";
+        private static string SaveErrorMessage => L.T("Prd_SaveFailed");
 
         protected abstract DbSet<T> Set(DBTHSNEntities db);
 

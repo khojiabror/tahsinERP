@@ -22,8 +22,8 @@
                                 <ol class="breadcrumb rounded-pill breadcrumb-divider">
                                     <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
                                     <li class="breadcrumb-item"><a href="~/Waybill/Index">@LogisticsTerms.Waybills</a></li>
-                                    <li class="breadcrumb-item"><a href="~/WaybillPayment/Index">@LogisticsTerms.Waybill to'lovlari</a></li>
-                                    <li class="breadcrumb-item active">@(isEdit ? "To'lovni tahrirlash" : "Yangi to'lov")</li>
+                                    <li class="breadcrumb-item"><a href="~/WaybillPayment/Index">@L.T("Log_WaybillPayments")</a></li>
+                                    <li class="breadcrumb-item active">@(isEdit ? L.T("Log_PaymentEditCrumb") : L.T("Log_NewPayment"))</li>
                                 </ol>
                             </div>
                         </div>
@@ -37,70 +37,70 @@
                             <div class="card">
                                 <div class="card-content">
                                     <div class="card-body pb-0 mx-25">
-                                        <h4 class="text-primary mb-1">@LogisticsTerms.Waybill to'lovi</h4>
+                                        <h4 class="text-primary mb-1">@L.T("Log_WaybillPayment")</h4>
                                         <p class="text-muted small">
                                             @if (isEdit)
                                             {
-                                                @:O'zgartirilsa, moliyadagi Chiqim tranzaksiyasi (summa / sana / hisob) ham yangilanadi.
+                                                @:@L.T("Log_PayEditFinHint")
                                             }
                                             else
                                             {
-                                                @:To'lov saqlanganda moliyada avtomatik &quot;Chiqim&quot; (M.Tash / T.Tash) tranzaksiyasi yaratiladi.
+                                                @:@L.T("Log_PayCreateFinHint")
                                             }
                                         </p>
                                         @Html.ValidationSummary(true, "", new { @class = "text-danger" })
                                         <hr />
                                         <div class="form-group">
-                                            <label>@LogisticsTerms.Waybill lar *</label>
+                                            <label>@L.T("Log_Waybills") *</label>
                                             @Html.ListBox("SelectedWaybillIDs", ViewBag.waybillItems as IEnumerable<SelectListItem>, new { @class = "form-control select2", @multiple = "multiple" })
-                                            <small class="text-muted">Bitta to'lovga bir nechta yo'l varaqasi bog'lashingiz mumkin.</small>
+                                            <small class="text-muted">@L.T("Log_PayMultiWaybillHint")</small>
                                             @Html.ValidationMessage("WaybillID", "", new { @class = "text-danger" })
                                         </div>
                                         <div class="form-group">
-                                            <label>@LogisticsTerms.Forwarder *</label>
-                                            @Html.DropDownListFor(model => model.ForwarderID, (IEnumerable<SelectListItem>)ViewBag.forwarders, $"{LogisticsTerms.Forwarder}ni tanlang:", new { @class = "form-control select2" })
+                                            <label>@L.T("Log_Forwarder") *</label>
+                                            @Html.DropDownListFor(model => model.ForwarderID, (IEnumerable<SelectListItem>)ViewBag.forwarders, L.T("Log_SelectForwarder"), new { @class = "form-control select2" })
                                             @Html.ValidationMessageFor(model => model.ForwarderID, "", new { @class = "text-danger" })
                                         </div>
                                         <div class="form-group">
-                                            <label>To'lov miqdori *</label>
+                                            <label>@L.T("Log_PaymentAmount") *</label>
                                             @Html.TextBoxFor(model => model.Payment_Amount, "{0:0.######}", new { @class = "form-control", @type = "number", @step = "0.01", @min = "0.01", @placeholder = "0" })
                                             @Html.ValidationMessageFor(model => model.Payment_Amount, "", new { @class = "text-danger" })
                                         </div>
                                         <div class="form-group">
-                                            <label>To'lov sanasi</label>
+                                            <label>@L.T("Log_PaymentDate")</label>
                                             @Html.TextBoxFor(model => model.PaymentDate, "{0:yyyy-MM-dd}", new { @class = "form-control", @type = "date" })
                                         </div>
                                         <div class="form-group">
-                                            <label>Valyuta</label>
+                                            <label>@L.T("Currency")</label>
                                             @Html.DropDownListFor(model => model.CurrencyID, ViewBag.currencies as SelectList, new { @class = "form-control select2" })
                                         </div>
                                         <div class="form-group">
-                                            <label>To'lov hisobi (Hisob-raqam)</label>
-                                            @Html.DropDownList("AccountID", ViewBag.accounts as SelectList, "Hisob-raqamni tanlang (ixtiyoriy)", new { @class = "form-control select2" })
+                                            <label>@L.T("Log_PaymentAccount")</label>
+                                            @Html.DropDownList("AccountID", ViewBag.accounts as SelectList, L.T("Log_SelectAccountOptional"), new { @class = "form-control select2" })
                                             <small class="text-muted">
-                                                Faqat bank hisob-raqamlari ko'rsatiladi.
-                                                @(isEdit ? "O'zgartirsangiz, moliyadagi yozuv ham yangilanadi." : "Bo'sh qoldirilsa, valyutaga mos default hisob-raqam tanlanadi.")
+                                                @L.T("Log_OnlyBankAccounts")
+                                                @(isEdit ? L.T("Log_AccountEditHint") : L.T("Log_AccountDefaultHint"))
                                             </small>
                                         </div>
                                         <div class="form-group">
-                                            <label>Izoh</label>
+                                            <label>@L.T("Comment")</label>
                                             @if (isEdit)
                                             {
-                                                @Html.TextAreaFor(model => model.Comment, new { @class = "form-control", @rows = 2, @placeholder = "Izoh (ixtiyoriy)" })
+                                                @Html.TextAreaFor(model => model.Comment, new { @class = "form-control", @rows = 2, @placeholder = L.T("Log_CommentOptional") })
                                             }
                                             else
                                             {
-                                                @Html.TextAreaFor(model => model.Comment, new { @class = "form-control", @rows = 2, @placeholder = "Izoh (majburiy)", @required = "required" })
+                                                @Html.TextAreaFor(model => model.Comment, new { @class = "form-control", @rows = 2, @placeholder = L.T("Log_CommentRequired"), @required = "required" })
                                             }
                                         </div>
                                         <hr />
                                         <button type="submit" class="btn btn-primary">
-                                            <i class="bx bx-save"></i> Saqlash
+                                            <i class="bx bx-save"></i> @L.T("Save")
                                         </button>
-                                        <a href="@Url.Action("Index", "WaybillPayment")" class="btn btn-outline-secondary ml-1">Bekor qilish</a>
+                                        <a href="@Url.Action("Index", "WaybillPayment")" class="btn btn-outline-secondary ml-1">@L.T("Cancel")</a>
                                         @if (isEdit)
                                         {
-                                            <a href="@Url.Action("Details", "WaybillPayment", new { id = Model.ID })" class="btn btn-outline-info ml-1">Tafsilotlar</a>
+                                            <a href="@Url.Action("Details", "WaybillPayment", new { id = Model.ID })" class="btn btn-outline-info ml-1">@L.T("Details")</a>
                                         }
                                     </div>
                                 </div>

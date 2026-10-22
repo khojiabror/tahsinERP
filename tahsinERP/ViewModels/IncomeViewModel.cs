@@ -14,32 +14,32 @@ namespace tahsinERP.ViewModels
     {
         public string DocNo { get; set; }
         
-        [Required(ErrorMessage = "Sana kiritilishi shart")]
-        [Display(Name = "Sana")]
+        [Required(ErrorMessage = "Val_Required")]
+        [Display(Name = "Date")]
         public DateTime IssueDateTime { get; set; } = DateTime.Now;
         
-        [Required(ErrorMessage = "Qabul qiluvchi ombor tanlanishi shart")]
-        [Display(Name = "Qabul qiluvchi ombor")]
+        [Required(ErrorMessage = "Val_Required")]
+        [Display(Name = "Wh_ReceiverWarehouse")]
         public int ReceivingWHID { get; set; }
         
-        [Display(Name = "Yuboruvchi ombor")]
+        [Display(Name = "Wh_SenderWarehouse")]
         public int? SenderWHID { get; set; }
         
-        [Display(Name = "Invoys")]
+        [Display(Name = "Wh_Invoice")]
         public int? InvoiceID { get; set; }
         
-        [Required(ErrorMessage = "Valyuta tanlanishi shart")]
-        [Display(Name = "Valyuta")]
+        [Required(ErrorMessage = "Val_Required")]
+        [Display(Name = "Currency")]
         public int CurrencyID { get; set; }
         
-        [Display(Name = "Izoh")]
+        [Display(Name = "Comment")]
         public string Description { get; set; }
 
-        [Display(Name = "Joylashuv (DLOC)")]
+        [Display(Name = "Wh_LocationDloc")]
         public int? LocationID { get; set; }
         
         [DataType(DataType.Upload)]
-        [Display(Name = "Hujjat fayli")]
+        [Display(Name = "Wh_Pts_DocFile")]
         public HttpPostedFileBase IncomeFile { get; set; }
         
         public List<IncomeProductViewModel> IncomeProducts { get; set; }
@@ -59,33 +59,33 @@ namespace tahsinERP.ViewModels
     {
         public int ID { get; set; }
         
-        [Required(ErrorMessage = "Hujjat raqami kiritilishi shart")]
-        [Display(Name = "Hujjat raqami")]
+        [Required(ErrorMessage = "Val_Required")]
+        [Display(Name = "Wh_DocNo")]
         public string DocNo { get; set; }
         
-        [Required(ErrorMessage = "Sana kiritilishi shart")]
-        [Display(Name = "Sana")]
+        [Required(ErrorMessage = "Val_Required")]
+        [Display(Name = "Date")]
         public DateTime IssueDateTime { get; set; }
         
-        [Required(ErrorMessage = "Qabul qiluvchi ombor tanlanishi shart")]
-        [Display(Name = "Qabul qiluvchi ombor")]
+        [Required(ErrorMessage = "Val_Required")]
+        [Display(Name = "Wh_ReceiverWarehouse")]
         public int ReceivingWHID { get; set; }
         
-        [Display(Name = "Yuboruvchi ombor")]
+        [Display(Name = "Wh_SenderWarehouse")]
         public int? SenderWHID { get; set; }
         
-        [Display(Name = "Invoys")]
+        [Display(Name = "Wh_Invoice")]
         public int? InvoiceID { get; set; }
         
-        [Required(ErrorMessage = "Valyuta tanlanishi shart")]
-        [Display(Name = "Valyuta")]
+        [Required(ErrorMessage = "Val_Required")]
+        [Display(Name = "Currency")]
         public int CurrencyID { get; set; }
         
-        [Display(Name = "Izoh")]
+        [Display(Name = "Comment")]
         public string Description { get; set; }
         
         [DataType(DataType.Upload)]
-        [Display(Name = "Hujjat fayli")]
+        [Display(Name = "Wh_Pts_DocFile")]
         public HttpPostedFileBase IncomeFile { get; set; }
         
         public List<IncomeProductViewModel> IncomeProducts { get; set; }
@@ -95,10 +95,10 @@ namespace tahsinERP.ViewModels
         public string InvoiceNo { get; set; }
         public bool RecieveStatus { get; set; }
         
-        [Display(Name = "Jami miqdor")]
+        [Display(Name = "Wh_TotalQty")]
         public decimal? Amount { get; set; }
         
-        [Display(Name = "Jami summa")]
+        [Display(Name = "Wh_TotalAmount")]
         public decimal? TotalPrice { get; set; }
         
         public IncomeEditViewModel()
@@ -111,39 +111,39 @@ namespace tahsinERP.ViewModels
     {
         public int? ID { get; set; }
         
-        [Required(ErrorMessage = "Mahsulot tanlanishi shart")]
-        [Display(Name = "Mahsulot")]
+        [Required(ErrorMessage = "Val_Required")]
+        [Display(Name = "Wh_Product")]
         public int ProductID { get; set; }
         
         public string ProductPNo { get; set; }
         public string ProductName { get; set; }
         
-        [Required(ErrorMessage = "Miqdor kiritilishi shart")]
-        [Range(0.01, double.MaxValue, ErrorMessage = "Miqdor 0 dan katta bo'lishi kerak")]
-        [Display(Name = "Miqdor")]
+        [Required(ErrorMessage = "Val_Required")]
+        [Range(0.01, double.MaxValue, ErrorMessage = "Wh_Val_QtyPositive")]
+        [Display(Name = "Quantity")]
         public decimal Amount { get; set; }
         
-        [Required(ErrorMessage = "Birlik tanlanishi shart")]
-        [Display(Name = "Birlik")]
+        [Required(ErrorMessage = "Val_Required")]
+        [Display(Name = "Unit")]
         public int? UnitID { get; set; }
         
         public string UnitName { get; set; }
         
-        [Display(Name = "Narx (dona)")]
+        [Display(Name = "Wh_PricePerUnit")]
         public decimal? PiecePrice { get; set; }
 
         /// <summary>QQS foizi (0–100). 0 = QQS yo‘q.</summary>
-        [Display(Name = "QQS %")]
-        [Range(0, 100, ErrorMessage = "QQS 0 dan 100 gacha")]
+        [Display(Name = "Wh_VatPct")]
+        [Range(0, 100, ErrorMessage = "Wh_Val_VatRange")]
         public decimal VATRate { get; set; }
         
-        [Display(Name = "Jami summa")]
+        [Display(Name = "Wh_TotalAmount")]
         public decimal? TotalPrice { get; set; }
         
-        [Display(Name = "Izoh")]
+        [Display(Name = "Comment")]
         public string Comment { get; set; }
 
-        [Display(Name = "Joylashuv (DLOC)")]
+        [Display(Name = "Wh_LocationDloc")]
         public int? LocationID { get; set; }
         
         // For cutting materials

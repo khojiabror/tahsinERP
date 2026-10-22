@@ -1,6 +1,6 @@
 @model tahsinERP.Models.SUPPLIER
 @{
-    ViewBag.Title = "Ta'minotchi tafsilotlari";
+    ViewBag.Title = L.T("Srm_SupplierDetailsTitle");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -23,10 +23,10 @@
                                     <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                 </li>
                                 <li class="breadcrumb-item">
-                                    <a href="~/Supplier">Ta'minotchilar</a>
+                                    <a href="~/Supplier">@L.T("Menu_Suppliers")</a>
                                 </li>
                                 <li class="breadcrumb-item active">
-                                    @Model.Name ma'lumotlari
+                                    @L.T("Srm_NamedInfo", Model.Name)
                                 </li>
                             </ol>
                         </div>
@@ -39,16 +39,16 @@
                 <div class="col-12">
                     <div class="card">
                         <div class="card-header">
-                            <h4 class="card-title">Ta'minotchi ma'lumotlari</h4>
+                            <h4 class="card-title">@L.T("Srm_SupplierInfo")</h4>
                             <div class="heading-elements">
                                 @if (changePermit)
                                 {
                                     <a href="@Url.Action("Edit", "Supplier", new { id = Model.ID })" class="btn btn-sm btn-warning">
-                                        <i class="bx bx-edit-alt"></i> Tahrirlash
+                                        <i class="bx bx-edit-alt"></i> @L.T("Edit")
                                     </a>
                                 }
                                 <a href="@Url.Action("Index", "Supplier")" class="btn btn-sm btn-secondary">
-                                    <i class="bx bx-arrow-back"></i> Orqaga
+                                    <i class="bx bx-arrow-back"></i> @L.T("Back")
                                 </a>
                             </div>
                         </div>
@@ -56,10 +56,10 @@
                             <div class="card-body">
                                 <div class="row">
                                     <div class="col-md-6">
-                                        <h5 class="text-primary">Asosiy ma'lumotlar</h5>
+                                        <h5 class="text-primary">@L.T("Srm_MainInfo")</h5>
                                         <table class="table table-borderless">
                                             <tr>
-                                                <th width="40%">Nomi:</th>
+                                                <th width="40%">@L.T("Name"):</th>
                                                 <td><strong>@Model.Name</strong></td>
                                             </tr>
                                             <tr>
@@ -67,24 +67,24 @@
                                                 <td>@(Model.DUNS ?? "-")</td>
                                             </tr>
                                             <tr>
-                                                <th>Turi:</th>
+                                                <th>@L.T("Type"):</th>
                                                 <td>@(Model.Type ?? "-")</td>
                                             </tr>
                                         </table>
                                     </div>
                                     <div class="col-md-6">
-                                        <h5 class="text-primary">Geografik ma'lumotlar</h5>
+                                        <h5 class="text-primary">@L.T("Srm_GeoData")</h5>
                                         <table class="table table-borderless">
                                             <tr>
-                                                <th width="40%">Mamlakat:</th>
+                                                <th width="40%">@L.T("Srm_Country"):</th>
                                                 <td>@(Model.Country ?? "-")</td>
                                             </tr>
                                             <tr>
-                                                <th>Shahar:</th>
+                                                <th>@L.T("Srm_City"):</th>
                                                 <td>@(Model.City ?? "-")</td>
                                             </tr>
                                             <tr>
-                                                <th>Manzil:</th>
+                                                <th>@L.T("Address"):</th>
                                                 <td>@(Model.Address ?? "-")</td>
                                             </tr>
                                         </table>
@@ -95,22 +95,22 @@
 
                                 <div class="row">
                                     <div class="col-md-6">
-                                        <h5 class="text-primary">Murojaat ma'lumotlari</h5>
+                                        <h5 class="text-primary">@L.T("Srm_ContactInfo")</h5>
                                         <table class="table table-borderless">
                                             <tr>
-                                                <th width="40%">Direktor:</th>
+                                                <th width="40%">@L.T("Srm_Director"):</th>
                                                 <td>@(Model.DirectorName ?? "-")</td>
                                             </tr>
                                             <tr>
-                                                <th>Aloqa shaxsi:</th>
+                                                <th>@L.T("Srm_ContactPerson"):</th>
                                                 <td>@(Model.ContactPersonName ?? "-")</td>
                                             </tr>
                                             <tr>
-                                                <th>Telefon:</th>
+                                                <th>@L.T("Phone"):</th>
                                                 <td>@(Model.Telephone ?? "-")</td>
                                             </tr>
                                             <tr>
-                                                <th>Email:</th>
+                                                <th>@L.T("Email"):</th>
                                                 <td>@(Model.Email ?? "-")</td>
                                             </tr>
                                         </table>
@@ -122,16 +122,16 @@
                                 <!-- Related Documents Section -->
                                 <div class="row mt-3">
                                     <div class="col-12">
-                                        <h5 class="text-primary mb-3">Bog'liq hujjatlar</h5>
+                                        <h5 class="text-primary mb-3">@L.T("Srm_RelatedDocs")</h5>
                                         <div class="btn-group" role="group">
                                             <a href="@Url.Action("Index", "PContracts", new { supplierID = Model.ID })" class="btn btn-outline-primary">
-                                                <i class="bx bx-file"></i> Shartnomalar (@ViewBag.ContractsCount)
+                                                <i class="bx bx-file"></i> @L.T("Menu_Contracts") (@ViewBag.ContractsCount)
                                             </a>
                                             <a href="@Url.Action("Index", "POrders", new { supplierID = Model.ID })" class="btn btn-outline-primary">
-                                                <i class="bx bx-list-ul"></i> Buyurtmalar (@ViewBag.OrdersCount)
+                                                <i class="bx bx-list-ul"></i> @L.T("Menu_Orders") (@ViewBag.OrdersCount)
                                             </a>
                                             <a href="@Url.Action("Index", "PInvoices", new { supplierID = Model.ID })" class="btn btn-outline-primary">
-                                                <i class="bx bx-receipt"></i> Invoyslar (@ViewBag.InvoicesCount)
+                                                <i class="bx bx-receipt"></i> @L.T("Menu_Invoices") (@ViewBag.InvoicesCount)
                                             </a>
                                         </div>
                                     </div>

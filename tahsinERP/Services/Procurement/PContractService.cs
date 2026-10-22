@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
+using tahsinERP.I18n;
 using tahsinERP.Models;
 using tahsinERP.Services.Common;
 using tahsinERP.ViewModels.PContract;
@@ -247,7 +248,7 @@ namespace tahsinERP.Services.Procurement
             // shu raqamli o'chirilgan hujjat bo'lsa, uning raqami arxivlanadi va raqam bo'shaydi (SRM-D4, POrders bilan bir xil)
             if (await DocumentNumberService.ActiveNumberExistsAsync(_db, "P_CONTRACTS", "ContractNo", number, excludeId))
             {
-                _errors.AddModelError("ContractNo", "Shu raqamli shartnoma allaqachon mavjud.");
+                _errors.AddModelError("ContractNo", L.T("Srm_ContractNoExists"));
                 return null;
             }
 

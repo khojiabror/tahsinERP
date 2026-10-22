@@ -15,19 +15,19 @@ namespace tahsinERP.ViewModels
         /// <summary>Joriy yil uchun yozuv mavjud bo'lsa — tahrirlash.</summary>
         public int EntryYear { get; set; }
 
-        [Required(ErrorMessage = "Sana kiritilishi shart.")]
-        [Display(Name = "Tuzatish sanasi (shu sanagacha)")]
+        [Required(ErrorMessage = "Crm_RecValDateRequired")]
+        [Display(Name = "Crm_RecCutoffDate")]
         public DateTime CutoffDate { get; set; }
 
-        [Display(Name = "Debet (bizning korxona)")]
-        [Range(typeof(decimal), "0", "9999999999999", ErrorMessage = "Musbat qiymat")]
+        [Display(Name = "Crm_RecDebitOurs")]
+        [Range(typeof(decimal), "0", "9999999999999", ErrorMessage = "Crm_RecValPositive")]
         public decimal Party1Debit { get; set; }
 
-        [Display(Name = "Kredit (bizning korxona)")]
-        [Range(typeof(decimal), "0", "9999999999999", ErrorMessage = "Musbat qiymat")]
+        [Display(Name = "Crm_RecCreditOurs")]
+        [Range(typeof(decimal), "0", "9999999999999", ErrorMessage = "Crm_RecValPositive")]
         public decimal Party1Credit { get; set; }
 
-        [Display(Name = "Izoh")]
+        [Display(Name = "Comment")]
         [StringLength(500)]
         public string Note { get; set; }
 

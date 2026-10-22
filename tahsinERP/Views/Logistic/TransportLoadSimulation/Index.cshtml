@@ -1,5 +1,5 @@
 @{
-    ViewBag.Title = "Transport Load Simulation";
+    ViewBag.Title = L.T("Log_LoadSimTitle");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -18,10 +18,10 @@
                                         <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                     </li>
                                     <li class="breadcrumb-item">
-                                        Logistika
+                                        @L.T("Menu_Logistics")
                                     </li>
                                     <li class="breadcrumb-item active">
-                                        Transport yuklash simulyatsiyasi
+                                        @L.T("Log_LoadSimTitle")
                                     </li>
                                 </ol>
                             </div>
@@ -36,19 +36,19 @@
                         <div class="col-12">
                             <div class="card">
                                 <div class="card-header">
-                                    <h4 class="card-title">Yuklash parametrlari</h4>
+                                    <h4 class="card-title">@L.T("Log_LoadParams")</h4>
                                 </div>
                                 <div class="card-content">
                                     <div class="card-body">
                                         <div class="row">
                                             <div class="col-md-5 col-sm-12 form-group">
-                                                <label>Mahsulot</label>
+                                                <label>@L.T("Log_Product")</label>
                                                 <select id="productSelect" class="form-control" data-search-url="@Url.Action("SearchProducts", "TransportLoadSimulation")"></select>
                                             </div>
                                             <div class="col-md-5 col-sm-12 form-group">
-                                                <label>Transport turi</label>
+                                                <label>@L.T("Log_TransportType")</label>
                                                 <select id="transportSelect" class="form-control select2">
-                                                    <option value="">---Tanlang---</option>
+                                                    <option value="">---@L.T("Select")---</option>
                                                     @if (ViewBag.TransportTypes != null)
                                                     {
                                                         foreach (var transport in ViewBag.TransportTypes)
@@ -62,7 +62,7 @@
                                             </div>
                                             <div class="col-md-2 col-sm-12 form-group d-flex align-items-end">
                                                 <button type="button" id="simulateBtn" class="btn btn-primary btn-block">
-                                                    <i class="bx bx-calculator"></i> Simulyatsiya
+                                                    <i class="bx bx-calculator"></i> @L.T("Log_Simulate")
                                                 </button>
                                             </div>
                                         </div>
@@ -75,7 +75,7 @@
                         <div class="col-12" id="resultsPanel" style="display: none;">
                             <div class="card">
                                 <div class="card-header">
-                                    <h4 class="card-title">Natijalar</h4>
+                                    <h4 class="card-title">@L.T("Log_Results")</h4>
                                 </div>
                                 <div class="card-content">
                                     <div class="card-body">
@@ -84,15 +84,15 @@
                                             <div class="col-md-6 col-sm-12">
                                                 <div class="card border-primary">
                                                     <div class="card-header bg-primary text-white">
-                                                        <h5>Mahsulot ma'lumotlari</h5>
+                                                        <h5>@L.T("Log_ProductInfo")</h5>
                                                     </div>
                                                     <div class="card-body">
-                                                        <p><strong>Nomi:</strong> <span id="productName"></span></p>
+                                                        <p><strong>@L.T("Log_NameColon")</strong> <span id="productName"></span></p>
                                                         <p><strong>PNo:</strong> <span id="productPNo"></span></p>
-                                                        <p><strong>O'lchamlari:</strong> 
+                                                        <p><strong>@L.T("Log_DimensionsColon")</strong> 
                                                             <span id="productDimensions"></span> mm
                                                         </p>
-                                                        <p><strong>Hajmi:</strong> 
+                                                        <p><strong>@L.T("Log_VolumeColon")</strong> 
                                                             <span id="productVolume"></span> m³
                                                         </p>
                                                     </div>
@@ -103,14 +103,14 @@
                                             <div class="col-md-6 col-sm-12">
                                                 <div class="card border-info">
                                                     <div class="card-header bg-info text-white">
-                                                        <h5>Transport ma'lumotlari</h5>
+                                                        <h5>@L.T("Log_TransportInfo")</h5>
                                                     </div>
                                                     <div class="card-body">
-                                                        <p><strong>Nomi:</strong> <span id="transportName"></span></p>
-                                                        <p><strong>Ichki o'lchamlari:</strong> 
+                                                        <p><strong>@L.T("Log_NameColon")</strong> <span id="transportName"></span></p>
+                                                        <p><strong>@L.T("Log_InnerDimensionsColon")</strong> 
                                                             <span id="transportDimensions"></span> mm
                                                         </p>
-                                                        <p><strong>Hajmi:</strong> 
+                                                        <p><strong>@L.T("Log_VolumeColon")</strong> 
                                                             <span id="transportVolume"></span> m³
                                                         </p>
                                                     </div>
@@ -125,31 +125,31 @@
                                             <div class="col-12">
                                                 <div class="card border-success">
                                                     <div class="card-header bg-success text-white">
-                                                        <h5>Hisoblash natijalari</h5>
+                                                        <h5>@L.T("Log_CalcResults")</h5>
                                                     </div>
                                                     <div class="card-body">
                                                         <div class="row">
                                                             <div class="col-md-3 col-sm-6">
-                                                                <p><strong>Maksimal miqdor:</strong></p>
+                                                                <p><strong>@L.T("Log_MaxQuantityColon")</strong></p>
                                                                 <h3 class="text-primary" id="maxQuantity">0</h3>
                                                             </div>
                                                             <div class="col-md-3 col-sm-6">
-                                                                <p><strong>Optimal orientatsiya:</strong></p>
+                                                                <p><strong>@L.T("Log_BestOrientationColon")</strong></p>
                                                                 <h4 class="text-info" id="bestOrientation">-</h4>
                                                             </div>
                                                             <div class="col-md-3 col-sm-6">
-                                                                <p><strong>Jami hajm:</strong></p>
+                                                                <p><strong>@L.T("Log_TotalVolumeColon")</strong></p>
                                                                 <h4 class="text-success" id="totalCbm">0.000</h4>
                                                                 <small>m³</small>
                                                             </div>
                                                             <div class="col-md-3 col-sm-6">
-                                                                <p><strong>Foydalanish:</strong></p>
+                                                                <p><strong>@L.T("Log_UtilizationColon")</strong></p>
                                                                 <h4 id="utilizationPercent" class="utilization-badge">0.00%</h4>
                                                             </div>
                                                         </div>
                                                         <div class="row mt-2">
                                                             <div class="col-12">
-                                                                <p><strong>Joylashtirish:</strong> 
+                                                                <p><strong>@L.T("Log_LayoutColon")</strong> 
                                                                     <span id="layoutInfo"></span>
                                                                 </p>
                                                             </div>
@@ -164,10 +164,10 @@
                                             <div class="col-12">
                                                 <div class="card">
                                                     <div class="card-header">
-                                                        <h5>3D Vizualizatsiya</h5>
+                                                        <h5>@L.T("Log_3dView")</h5>
                                                         <div class="card-header-actions">
                                                             <button type="button" id="toggleOrientationBtn" class="btn btn-sm btn-outline-secondary">
-                                                                <i class="bx bx-refresh"></i> Alternativ orientatsiyani ko'rsatish
+                                                                <i class="bx bx-refresh"></i> @L.T("Log_ShowAltOrientation")
                                                             </button>
                                                         </div>
                                                     </div>
@@ -176,14 +176,14 @@
                                                             <div id="threejsContainer" style="width: 100%; height: 100%;"></div>
                                                             <div id="loadingIndicator" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: none;">
                                                                 <div class="spinner-border text-primary" role="status">
-                                                                    <span class="sr-only">Yuklanmoqda...</span>
+                                                                    <span class="sr-only">@L.T("Loading")</span>
                                                                 </div>
                                                             </div>
                                                         </div>
                                                         <div class="mt-2">
                                                             <small class="text-muted">
                                                                 <i class="bx bx-info-circle"></i> 
-                                                                Sichqoncha bilan aylantirish, scroll bilan kattalashtirish/kichiklashtirish mumkin
+                                                                @L.T("Log_3dHint")
                                                             </small>
                                                         </div>
                                                     </div>
@@ -242,12 +242,12 @@ else
                             ensureThreeJS();
                             renderVisualization(response.data, false);
                         } else {
-                            alert('Xatolik: ' + (response && response.error ? response.error : "Noma'lum xatolik"));
+                            alert('@L.Js("Log_ErrorPrefix") ' + (response && response.error ? response.error : '@L.Js("Log_UnknownError")'));
                         }
                     })
                     .fail(function () {
                         $('#loadingIndicator').hide();
-                        alert("Hisoblashda xatolik yuz berdi. Qayta urinib ko'ring.");
+                        alert('@L.Js("Log_CalcError")');
                     });
             }
 
@@ -274,7 +274,7 @@ else
                     .addClass(utilization >= 80 ? 'text-success' : utilization >= 50 ? 'text-warning' : 'text-danger');
 
                 $('#layoutInfo').text(
-                    data.CountLength + ' × ' + data.CountWidth + ' × ' + data.CountHeight + ' (' + data.BestOrientation + ' orientatsiyada)');
+                    data.CountLength + ' × ' + data.CountWidth + ' × ' + data.CountHeight + ' (' + '@L.Js("Log_InOrientation")'.replace('{0}', data.BestOrientation) + ')');
             }
 
             // Sahna bir marta yaratiladi; har simulyatsiyada faqat obyektlar almashtiriladi (LOG-P12)
@@ -417,7 +417,7 @@ else
                 var productSelect = $('#productSelect');
                 productSelect.select2({
                     width: '100%',
-                    placeholder: '---Tanlang---',
+                    placeholder: '---@L.Js("Select")---',
                     minimumInputLength: 1,
                     ajax: {
                         url: productSelect.data('search-url'),
@@ -434,7 +434,7 @@ else
                     var productId = $('#productSelect').val();
                     var transportId = $('#transportSelect').val();
                     if (!productId || !transportId) {
-                        alert('Iltimos, mahsulot va transport turini tanlang');
+                        alert('@L.Js("Log_SelectProductAndTransport")');
                         return;
                     }
                     performSimulation(productId, transportId);

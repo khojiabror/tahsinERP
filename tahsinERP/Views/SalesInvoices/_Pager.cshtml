@@ -21,9 +21,9 @@
 }
 <div class="row mt-2 align-items-center">
     <div class="col-md-5 text-muted">
-        Jami: @totalItems ta yozuv, sahifa @currentPage / @totalPages
+        @L.T("Crm_InvPagerInfo", totalItems, currentPage, totalPages)
         <span class="ml-1">
-            | Sahifada:
+            | @L.T("Crm_InvPerPage")
             @foreach (var size in new[] { 25, 50, 100, 200 })
             {
                 if (size == pageSize)
@@ -46,7 +46,7 @@
                         <a class="page-link" href="@pageUrl(1, pageSize)">&laquo;</a>
                     </li>
                     <li class="page-item @(currentPage <= 1 ? "disabled" : "")">
-                        <a class="page-link" href="@pageUrl(Math.Max(1, currentPage - 1), pageSize)">Oldingi</a>
+                        <a class="page-link" href="@pageUrl(Math.Max(1, currentPage - 1), pageSize)">@L.T("Previous")</a>
                     </li>
                     @for (int i = first; i <= last; i++)
                     {
@@ -55,7 +55,7 @@
                         </li>
                     }
                     <li class="page-item @(currentPage >= totalPages ? "disabled" : "")">
-                        <a class="page-link" href="@pageUrl(Math.Min(totalPages, currentPage + 1), pageSize)">Keyingi</a>
+                        <a class="page-link" href="@pageUrl(Math.Min(totalPages, currentPage + 1), pageSize)">@L.T("Next")</a>
                     </li>
                     <li class="page-item @(currentPage >= totalPages ? "disabled" : "")">
                         <a class="page-link" href="@pageUrl(totalPages, pageSize)">&raquo;</a>

@@ -4,6 +4,7 @@ using System;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using tahsinERP.Filters;
+using tahsinERP.I18n;
 using tahsinERP.Models;
 using tahsinERP.Services;
 using System.Linq;
@@ -71,7 +72,7 @@ namespace tahsinERP.Controllers
                     }
                     catch (Exception ex)
                     {
-                        ModelState.AddModelError("", "Ma'lumotni saqlashda xatolik yuz berdi. Qayta urinib ko'ring.");
+                        ModelState.AddModelError("", L.T("Log_SaveError"));
                         LogHelper.LogToDatabase(User.Identity.Name, "FTransportTypeController", "Create", $"Xatolik: {ex.Message}");
                         ViewBag.units = new SelectList(db.UNITS.ToList(), "ID", "UnitName");
                     }
@@ -79,7 +80,7 @@ namespace tahsinERP.Controllers
             }
             else
             {
-                ModelState.AddModelError("", "Iltimos, majburiy maydonlarni to'ldiring.");
+                ModelState.AddModelError("", L.T("Log_FillRequired"));
             }
 
             // agar ModelState is not valid, return the view bilan the ViewModel
@@ -189,14 +190,14 @@ namespace tahsinERP.Controllers
                     }
                     catch (Exception ex)
                     {
-                        ModelState.AddModelError("", "Ma'lumotni saqlashda xatolik yuz berdi. Qayta urinib ko'ring.");
+                        ModelState.AddModelError("", L.T("Log_SaveError"));
                         LogHelper.LogToDatabase(User.Identity.Name, "FTransportTypeController", "Edit", $"Xatolik: {ex.Message}");
                     }
                 }
             }
             else
             {
-                ModelState.AddModelError("", "Iltimos, majburiy maydonlarni to'ldiring.");
+                ModelState.AddModelError("", L.T("Log_FillRequired"));
             }
 
             // agar ModelState is not valid, return the view bilan the ViewModel
@@ -234,7 +235,7 @@ namespace tahsinERP.Controllers
                 if (await SoftDeleteAsync<F_TRANSPORT_TYPES>(db, ID,
                         (ctx, t) => SoftDeleteReferenceService.AfterTransportTypeSoftDeletedAsync(ctx, t.ID),
                         t => $"{t.TransportType} - transport turi o'chirildi.",
-                        "Transport turi topilmadi."))
+                        L.T("Log_TransportTypeNotFound")))
                     return RedirectToAction("Index");
             }
 

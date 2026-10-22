@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web.Mvc;
 using tahsinERP.Configuration.Tenancy;
+using tahsinERP.I18n;
 using tahsinERP.Models;
 
 namespace tahsinERP.Services.Stock
@@ -91,9 +92,9 @@ namespace tahsinERP.Services.Stock
         {
             switch (warehouseType)
             {
-                case Supply: return "Xomashyo (ta'minot)";
-                case Production: return "Ishlab chiqarish";
-                case Sales: return "Savdo";
+                case Supply: return L.T("Wh_Role_Supply");
+                case Production: return L.T("Wh_Role_Production");
+                case Sales: return L.T("Wh_Role_Sales");
                 default: return "—";
             }
         }

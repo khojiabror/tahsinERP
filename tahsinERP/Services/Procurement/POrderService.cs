@@ -4,6 +4,7 @@ using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
+using tahsinERP.I18n;
 using tahsinERP.Models;
 using tahsinERP.Services.Common;
 using tahsinERP.ViewModels.POrder;
@@ -116,7 +117,7 @@ namespace tahsinERP.Services.Procurement
                     model.OrderNo = model.OrderNo.Trim();
                     if (await ActiveOrderNoExistsAsync(model.OrderNo, excludeOrderId: null))
                     {
-                        _errors.AddModelError("OrderNo", "Bu buyurtma raqami allaqachon mavjud (faol buyurtma).");
+                        _errors.AddModelError("OrderNo", L.T("Srm_OrderNoExists"));
                         return null;
                     }
 
@@ -265,7 +266,7 @@ namespace tahsinERP.Services.Procurement
             {
                 if (await ActiveOrderNoExistsAsync(editOrderNo, excludeOrderId: model.ID))
                 {
-                    _errors.AddModelError("OrderNo", "Bu buyurtma raqami allaqachon mavjud (faol buyurtma).");
+                    _errors.AddModelError("OrderNo", L.T("Srm_OrderNoExists"));
                     return false;
                 }
 

@@ -26,7 +26,7 @@
     }
 
     function deleteCustomerBase($, id, name) {
-        if (!confirm('"' + name + '" ni o\'chirishni tasdiqlaysizmi?')) {
+        if (!confirm((window.erpT ? erpT('Js_Crm_ConfirmDeleteNamed', [name]) : '"' + name + '" ni o\'chirishni tasdiqlaysizmi?'))) {
             return;
         }
 
@@ -40,40 +40,26 @@
                 if (response.success) {
                     location.reload();
                 } else {
-                    alert('Xatolik: ' + response.message);
+                    alert((window.erpT ? erpT('Js_Crm_ErrorPrefix', [response.message]) : 'Xatolik: ' + response.message));
                 }
             },
             error: function () {
-                alert('Server xatoligi yuz berdi');
+                alert((window.erpT ? erpT('Js_Crm_ServerError') : 'Server xatoligi yuz berdi'));
             }
         });
     }
 
     function initTable($) {
         $('#customerBaseTable').DataTable({
-            "language": {
-                "search": "Qidirish:",
-                "lengthMenu": "_MENU_ ta ko'rsatish",
-                "info": "_TOTAL_ ta yozuvdan _START_ dan _END_ gacha",
-                "infoEmpty": "Yozuvlar yo'q",
-                "infoFiltered": "(jami _MAX_ ta yozuvdan filtrlangan)",
-                "paginate": {
-                    "first": "Birinchi",
-                    "last": "Oxirgi",
-                    "next": "Keyingi",
-                    "previous": "Oldingi"
-                },
-                "zeroRecords": "Ma'lumot topilmadi"
-            },
             "pageLength": 25,
-            "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Barchasi"]],
+            "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, (window.erpT ? erpT('Js_Crm_All') : 'Barchasi')]],
             "order": [[3, "desc"]],
             "columnDefs": [
                 { "type": "date", "targets": 3 }
             ],
             "scrollX": true,
             dom: 'lBfrtip',
-            buttons: erpDataTable.buttons({ fileName: 'Xaridorlar', pdfTitle: 'Xaridorlar' })
+            buttons: erpDataTable.buttons({ fileName: (window.erpT ? erpT('Js_Crm_Customers') : 'Xaridorlar'), pdfTitle: (window.erpT ? erpT('Js_Crm_Customers') : 'Xaridorlar') })
         });
     }
 

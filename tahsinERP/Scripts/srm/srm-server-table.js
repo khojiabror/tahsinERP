@@ -34,7 +34,7 @@
         if (options.exportUrl) {
             buttons.push({
                 text: '<i class="bx bxs-file-excel"></i> Excel',
-                titleAttr: "Filtr bo'yicha barcha yozuvlarni Excelga yuklash",
+                titleAttr: window.erpT ? erpT('Js_Srm_ExportFilteredExcel') : "Filtr bo'yicha barcha yozuvlarni Excelga yuklash",
                 className: 'btn btn-success mr-1',
                 action: function () {
                     var params = filterParams();
@@ -59,21 +59,14 @@
                 type: 'GET',
                 data: function (d) { $.extend(d, filterParams()); },
                 error: function (xhr) {
-                    var msg = xhr.status === 403 ? "Ruxsat yo'q." : "Ro'yxatni yuklashda xatolik.";
+                    var msg = xhr.status === 403
+                        ? (window.erpT ? erpT('Js_Srm_NoAccess') : "Ruxsat yo'q.")
+                        : (window.erpT ? erpT('Js_Srm_ListLoadError') : "Ro'yxatni yuklashda xatolik.");
                     $(selector).find('tbody').html('<tr><td colspan="20" class="text-danger">' + msg + '</td></tr>');
                 }
             },
-            columns: options.columns,
-            language: {
-                search: 'Qidirish:',
-                lengthMenu: "_MENU_ ta ko'rsatish",
-                info: '_TOTAL_ ta yozuvdan _START_ dan _END_ gacha',
-                infoEmpty: "Yozuvlar yo'q",
-                infoFiltered: '(jami _MAX_ ta yozuvdan filtrlangan)',
-                processing: 'Yuklanmoqda...',
-                paginate: { first: 'Birinchi', last: 'Oxirgi', next: 'Keyingi', previous: 'Oldingi' },
-                zeroRecords: "Ma'lumot topilmadi"
-            }
+            columns: options.columns
+            // Til matnlari — layout'dagi umumiy DataTables standarti (joriy tilda)
         });
 
         return table;

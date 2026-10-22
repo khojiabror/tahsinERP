@@ -13,131 +13,131 @@ namespace tahsinERP.ViewModels
     {
         public int? ID { get; set; }
 
-        [Display(Name = "Waybill raqami")]
+        [Display(Name = "Log_WaybillNo")]
         public string WaybillNo { get; set; }
 
-        [Required(ErrorMessage = "Sana majburiy")]
-        [Display(Name = "Sana")]
+        [Required(ErrorMessage = "Log_Val_DateRequired")]
+        [Display(Name = "Date")]
         [DataType(DataType.Date)]
         public DateTime? IssueDate { get; set; }
 
-        [Display(Name = "Yo'nalish")]
+        [Display(Name = "Log_Direction")]
         public byte? Direction { get; set; } // 0=Inbound, 1=Outbound, 2=Internal
 
-        [Display(Name = "Forwarder")]
+        [Display(Name = "Log_Forwarder")]
         public int? ForwarderID { get; set; }
         public List<SelectListItem> Forwarders { get; set; }
 
-        [Display(Name = "Shartnoma")]
+        [Display(Name = "Log_Contract")]
         public int? ContractID { get; set; }
         public List<SelectListItem> Contracts { get; set; }
 
-        [Display(Name = "Transport turi")]
+        [Display(Name = "Log_TransportType")]
         public int? TransportTypeID { get; set; }
         public List<SelectListItem> TransportTypes { get; set; }
 
-        [Display(Name = "Tarif")]
+        [Display(Name = "Log_Tariff")]
         public int? TariffID { get; set; }
         public List<SelectListItem> Tariffs { get; set; }
 
         /// <summary>Edit ochilgandagi tarif: o'zgarmasa stavka qayta yozilmaydi (LOG-B05).</summary>
         public int? OriginalTariffID { get; set; }
 
-        [Display(Name = "Qayerdan")]
+        [Display(Name = "Log_From")]
         public string FromLocation { get; set; }
 
-        [Display(Name = "Qayerga")]
+        [Display(Name = "Log_To")]
         public string ToLocation { get; set; }
 
-        [Display(Name = "Masofa (km)")]
+        [Display(Name = "Log_DistanceKm")]
         public decimal? DistanceKm { get; set; }
 
         // Cargo information
-        [Display(Name = "Brut vazn (ton)")]
+        [Display(Name = "Log_GrossWeightTon")]
         public decimal? GrWeight { get; set; }
 
-        [Display(Name = "Net vazn (ton)")]
+        [Display(Name = "Log_NetWeightTon")]
         public decimal? NetWeight { get; set; }
 
-        [Display(Name = "Hajm (CBM)")]
+        [Display(Name = "Log_VolumeCbm")]
         public decimal? CBM { get; set; }
 
-        [Display(Name = "Palletlar soni")]
+        [Display(Name = "Log_PalletsCount")]
         public int? PalletsCount { get; set; }
 
         // Cost information
-        [Display(Name = "Tarif asosi")]
+        [Display(Name = "Log_TariffBasis")]
         public byte? FreightBasis { get; set; } // 0=PerTruck, 1=PerTon, 2=PerKm, 3=Flat
 
-        [Display(Name = "Narx")]
+        [Display(Name = "Price")]
         public decimal? Rate { get; set; }
 
-        [Display(Name = "Jami summa")]
+        [Display(Name = "Log_TotalAmount")]
         public decimal? Amount { get; set; }
 
-        [Display(Name = "Valyuta")]
+        [Display(Name = "Currency")]
         public int? CurrencyID { get; set; }
         public List<SelectListItem> Currencies { get; set; }
 
-        [Display(Name = "To'lovchi")]
+        [Display(Name = "Log_Payer")]
         public byte? PayerType { get; set; } // 0=OurCompany, 1=Customer, 2=Supplier, 3=Shared
 
-        [Display(Name = "To'lovchi ID")]
+        [Display(Name = "Log_PayerId")]
         public int? PayerID { get; set; }
 
         // Links to business documents
-        [Display(Name = "Xarid invoysi")]
+        [Display(Name = "Log_PurchaseInvoice")]
         public int? InvoiceID { get; set; }
         public List<SelectListItem> PurchaseInvoices { get; set; }
 
-        [Display(Name = "Sotuv invoysi")]
+        [Display(Name = "Log_SalesInvoice")]
         public long? SalesInvoiceID { get; set; }
         public List<SelectListItem> SalesInvoices { get; set; }
 
-        [Display(Name = "Sotuv buyurtmasi")]
+        [Display(Name = "Log_SalesOrder")]
         public int? SalesOrderID { get; set; }
         public List<SelectListItem> SalesOrders { get; set; }
 
-        [Display(Name = "Xarid buyurtmasi")]
+        [Display(Name = "Log_PurchaseOrder")]
         public int? PurchaseOrderID { get; set; }
         public List<SelectListItem> PurchaseOrders { get; set; }
 
-        [Display(Name = "TTNK")]
+        [Display(Name = "Log_Ttnk")]
         public long? TTNKID { get; set; }
         public List<SelectListItem> TTNKs { get; set; }
 
         // Vehicle and driver
-        [Display(Name = "Yuk mashinasi raqami")]
+        [Display(Name = "Log_TruckNumber")]
         public string TruckNo { get; set; }
 
-        [Display(Name = "Traler raqami")]
+        [Display(Name = "Log_TrailerNo")]
         public string TrailerNo { get; set; }
 
-        [Display(Name = "Yuk mashinasi modeli")]
+        [Display(Name = "Log_TruckModelFull")]
         public string TruckModel { get; set; }
 
-        [Display(Name = "Traler modeli")]
+        [Display(Name = "Log_TrailerModel")]
         public string TrailerModel { get; set; }
 
-        [Display(Name = "Haydovchi ismi")]
+        [Display(Name = "Log_DriverName")]
         public string DriverName { get; set; }
 
-        [Display(Name = "Haydovchi PINFL")]
+        [Display(Name = "Log_DriverPinfl")]
         public string DriverPINFL { get; set; }
 
         // Dates for OTIF tracking
-        [Display(Name = "Rejalashtirilgan yetkazish sanasi")]
+        [Display(Name = "Log_PlannedDeliveryDate")]
         [DataType(DataType.Date)]
         public DateTime? PlannedDeliveryDate { get; set; }
 
-        [Display(Name = "Haqiqiy yetkazish sanasi")]
+        [Display(Name = "Log_ActualDeliveryDate")]
         [DataType(DataType.Date)]
         public DateTime? ActualDeliveryDate { get; set; }
 
-        [Display(Name = "Izoh")]
+        [Display(Name = "Comment")]
         public string Description { get; set; }
 
-        [Display(Name = "Qo'lda tuzatish sababi")]
+        [Display(Name = "Log_ManualCorrectionReason")]
         public string ManualCorrectionReason { get; set; }
 
         // Helper properties for UI

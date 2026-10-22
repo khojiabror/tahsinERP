@@ -6,6 +6,7 @@ using System.Net;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using tahsinERP.Filters;
+using tahsinERP.I18n;
 using tahsinERP.Models;
 using tahsinERP.Services.Common;
 using tahsinERP.Services.Crm;
@@ -148,7 +149,7 @@ namespace tahsinERP.Controllers
                 var existingSF = db.SALES_SF_HEADERS.FirstOrDefault(sf => sf.InvoiceID == invoiceID);
                 if (existingSF != null)
                 {
-                    TempData["InfoMessage"] = "Bu invoys uchun SF allaqachon yaratilgan";
+                    TempData["InfoMessage"] = L.T("Crm_SfAlreadyForInvoice");
                     return RedirectToAction("Details", new { id = existingSF.ID });
                 }
 
@@ -182,7 +183,7 @@ namespace tahsinERP.Controllers
         {
             if (lines == null || !lines.Any())
             {
-                ModelState.AddModelError("", "SF qatorlari yo'q");
+                ModelState.AddModelError("", L.T("Crm_SfNoLines"));
             }
 
             if (ModelState.IsValid)
@@ -197,11 +198,11 @@ namespace tahsinERP.Controllers
 
                         if (invoice == null)
                         {
-                            ModelState.AddModelError("", "Invoys topilmadi yoki bekor qilingan");
+                            ModelState.AddModelError("", L.T("Crm_SfInvoiceNotFound"));
                         }
                         else if (db.SALES_SF_HEADERS.Any(sf => sf.InvoiceID == sfHeader.InvoiceID))
                         {
-                            ModelState.AddModelError("", "Bu invoys uchun SF allaqachon yaratilgan");
+                            ModelState.AddModelError("", L.T("Crm_SfAlreadyForInvoice"));
                         }
                         else
                         {
@@ -218,7 +219,7 @@ namespace tahsinERP.Controllers
                             var built = BuildLines(invoice, lines);
                             if (built == null)
                             {
-                                ModelState.AddModelError("", "SF qatorlari shu invoys qatorlariga mos emas.");
+                                ModelState.AddModelError("", L.T("Crm_SfLinesMismatch"));
                             }
                             else
                             {
@@ -244,7 +245,7 @@ namespace tahsinERP.Controllers
                     }
                     catch (Exception ex)
                     {
-                        ModelState.AddModelError("", "Xatolik: " + CrmErrors.Describe(ex));
+                        ModelState.AddModelError("", L.T("Crm_ErrorPrefix", CrmErrors.Describe(ex)));
                     }
                 }
             }
@@ -282,7 +283,7 @@ namespace tahsinERP.Controllers
 
                 if (sfHeader.StatusCode == "SENT" || sfHeader.StatusCode == "ACCEPTED")
                 {
-                    TempData["ErrorMessage"] = "Yuborilgan yoki qabul qilingan SF ni tahrirlash mumkin emas";
+                    TempData["ErrorMessage"] = L.T("Crm_SfCannotEditSent");
                     return RedirectToAction("Details", new { id = id });
                 }
 
@@ -307,7 +308,7 @@ namespace tahsinERP.Controllers
 
                     if (existingSF.StatusCode == "SENT" || existingSF.StatusCode == "ACCEPTED")
                     {
-                        ModelState.AddModelError("", "Yuborilgan yoki qabul qilingan SF ni tahrirlash mumkin emas");
+                        ModelState.AddModelError("", L.T("Crm_SfCannotEditSent"));
                         return View(sfHeader);
                     }
 
@@ -327,7 +328,7 @@ namespace tahsinERP.Controllers
                             var built = invoice != null ? BuildLines(invoice, lines) : null;
                             if (built == null)
                             {
-                                ModelState.AddModelError("", "SF qatorlari invoys qatorlariga mos emas.");
+                                ModelState.AddModelError("", L.T("Crm_SfLinesMismatch"));
                                 return View(sfHeader);
                             }
 
@@ -347,7 +348,7 @@ namespace tahsinERP.Controllers
                     }
                     catch (Exception ex)
                     {
-                        ModelState.AddModelError("", "Xatolik: " + CrmErrors.Describe(ex));
+                        ModelState.AddModelError("", L.T("Crm_ErrorPrefix", CrmErrors.Describe(ex)));
                     }
                 }
             }
@@ -430,7 +431,7 @@ namespace tahsinERP.Controllers
         {
             var result = await EDocumentService.SendInvoiceAsync(id, CurrentUserName);
             if (result.Success)
-                TempData["EDocSuccess"] = "SF yuborildi: " + EDocumentStatus.Title(result.Status) + (string.IsNullOrEmpty(result.ExternalId) ? "" : " (ID: " + result.ExternalId + ")");
+                TempData["EDocSuccess"] = L.T("Crm_SfSent", EDocumentStatus.Title(result.Status)) + (string.IsNullOrEmpty(result.ExternalId) ? "" : " (ID: " + result.ExternalId + ")");
             else
                 TempData["EDocError"] = result.Message;
             return RedirectToAction("Details", new { id });
@@ -442,7 +443,7 @@ namespace tahsinERP.Controllers
         {
             var result = await EDocumentService.RefreshAsync(EDocumentKind.Invoice, id);
             if (result.Success)
-                TempData["EDocSuccess"] = "Holat: " + EDocumentStatus.Title(result.Status);
+                TempData["EDocSuccess"] = L.T("Crm_EdocStatusLabel", EDocumentStatus.Title(result.Status));
             else
                 TempData["EDocError"] = result.Message;
             return RedirectToAction("Details", new { id });

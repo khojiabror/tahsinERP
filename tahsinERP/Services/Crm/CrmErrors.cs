@@ -1,6 +1,7 @@
 using System;
 using System.Data.Entity.Validation;
 using System.Linq;
+using tahsinERP.I18n;
 
 namespace tahsinERP.Services.Crm
 {
@@ -20,7 +21,7 @@ namespace tahsinERP.Services.Crm
                     .Select(e => e.PropertyName + ": " + e.ErrorMessage)
                     .Distinct()
                     .ToList();
-                return "Majburiy maydonlar to'ldirilmagan yoki noto'g'ri — " + string.Join("; ", fields);
+                return L.T("Crm_CommonRequiredFieldsInvalid", string.Join("; ", fields));
             }
 
             return ex?.GetBaseException().Message ?? "";

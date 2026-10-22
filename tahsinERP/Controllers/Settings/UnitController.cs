@@ -31,7 +31,7 @@ namespace tahsinERP.Controllers.Settings
 
         protected override string LogModule => "O'lchov birliklar";
 
-        protected override string NotFoundMessage => "Bunday o'lchov birligi topilmadi.";
+        protected override string NotFoundMessage => tahsinERP.I18n.L.T("Prd_UnitNotFound");
 
         protected override string CreatedLog(UNIT unit) => $"{unit.ShortName} - birligini kiritdi tizimga";
 

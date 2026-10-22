@@ -1,6 +1,6 @@
 @model tahsinERP.Models.SALES_INVOICES
 @{
-    ViewBag.Title = "Edit Invoice";
+    ViewBag.Title = L.T("Crm_InvEditTitle");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -19,13 +19,13 @@
                                         <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                     </li>
                                     <li class="breadcrumb-item">
-                                        <a href="~/SalesInvoices">Invoyslar</a>
+                                        <a href="~/SalesInvoices">@L.T("Menu_Invoices")</a>
                                     </li>
                                     <li class="breadcrumb-item">
                                         <a href="@Url.Action("Details", "SalesInvoices", new { id = Model.ID })">@Model.InvoiceNo</a>
                                     </li>
                                     <li class="breadcrumb-item active">
-                                        Tahrirlash
+                                        @L.T("Edit")
                                     </li>
                                 </ol>
                             </div>
@@ -43,7 +43,7 @@
                                         @if (Model.StatusCode == "FINALIZED" || Model.StatusCode == "PAID")
                                         {
                                             <div class="alert alert-warning">
-                                                <strong>Diqqat!</strong> Yakunlangan yoki to'langan invoysni tahrirlash mumkin emas.
+                                                <strong>@L.T("Crm_Attention")</strong> @L.T("Crm_InvCannotEditFinal")
                                             </div>
                                         }
                                         @if (TempData["ErrorMessage"] != null)
@@ -63,14 +63,14 @@
                                             <div class="row">
                                                 <div class="col-md-6">
                                                     <div class="form-group">
-                                                        <label>Invoys raqami *</label>
+                                                        <label>@L.T("Crm_InvInvoiceNo") *</label>
                                                         @Html.TextBoxFor(m => m.InvoiceNo, new { @class = "form-control", required = "required" })
                                                         @Html.ValidationMessageFor(m => m.InvoiceNo, "", new { @class = "text-danger" })
                                                     </div>
                                                 </div>
                                                 <div class="col-md-6">
                                                     <div class="form-group">
-                                                        <label>Invoys sanasi *</label>
+                                                        <label>@L.T("Crm_InvInvoiceDate") *</label>
                                                         @Html.TextBoxFor(m => m.InvoiceDate, new { @class = "form-control", type = "date", required = "required", Value = Model.InvoiceDate.ToString("yyyy-MM-dd") })
                                                         @Html.ValidationMessageFor(m => m.InvoiceDate, "", new { @class = "text-danger" })
                                                     </div>
@@ -79,9 +79,9 @@
                                             <div class="row">
                                                 <div class="col-md-6">
                                                     <div class="form-group">
-                                                        <label>To'lov muddati</label>
+                                                        <label>@L.T("Crm_PaymentDue")</label>
                                                         @Html.TextBoxFor(m => m.DueDate, new { @class = "form-control", type = "date", Value = Model.DueDate.HasValue ? Model.DueDate.Value.ToString("yyyy-MM-dd") : "" })
-                                                        <small class="text-muted">Bo'sh qoldirilsa shartnomadagi to'lov muddati (kun) bo'yicha hisoblanadi.</small>
+                                                        <small class="text-muted">@L.T("Crm_InvDueDateHint")</small>
                                                         @Html.ValidationMessageFor(m => m.DueDate, "", new { @class = "text-danger" })
                                                     </div>
                                                 </div>
@@ -90,20 +90,20 @@
                                             <div class="row">
                                                 <div class="col-md-4">
                                                     <div class="form-group">
-                                                        <label>Mijoz *</label>
+                                                        <label>@L.T("Crm_Client") *</label>
                                                         @Html.DropDownListFor(m => m.CustomerID, ViewBag.Customers as SelectList, new { @class = "form-control", @id = "CustomerID", required = "required" })
                                                         @Html.ValidationMessageFor(m => m.CustomerID, "", new { @class = "text-danger" })
                                                     </div>
                                                 </div>
                                                 <div class="col-md-4">
                                                     <div class="form-group">
-                                                        <label>Shartnoma *</label>
+                                                        <label>@L.T("Crm_Contract") *</label>
                                                         @Html.DropDownListFor(m => m.ContractID, ViewBag.Contracts as SelectList, new { @class = "form-control", @id = "ContractID", required = "required" })
                                                     </div>
                                                 </div>
                                                 <div class="col-md-4">
                                                     <div class="form-group">
-                                                        <label>Buyurtma</label>
+                                                        <label>@L.T("Crm_Order")</label>
                                                         @Html.DropDownListFor(m => m.OrderID, ViewBag.Orders as SelectList, new { @class = "form-control", @id = "OrderID" })
                                                     </div>
                                                 </div>
@@ -112,7 +112,7 @@
                                             <div class="row">
                                                 <div class="col-md-6">
                                                     <div class="form-group">
-                                                        <label>Valyuta *</label>
+                                                        <label>@L.T("Currency") *</label>
                                                         @Html.DropDownListFor(m => m.CurrencyID, ViewBag.Currencies as SelectList, new { @class = "form-control", required = "required" })
                                                         @Html.ValidationMessageFor(m => m.CurrencyID, "", new { @class = "text-danger" })
                                                     </div>
@@ -120,21 +120,21 @@
                                             </div>
 
                                             <hr />
-                                            <h5>Invoys qatorlari</h5>
+                                            <h5>@L.T("Crm_InvLines")</h5>
                                             <div class="alert alert-info mb-2">
-                                                <i class="bx bx-info-circle"></i> Tayyor maxsulot tanlang, miqdor va QQS % kiriting. Birlik narxi shartnomadan avtomatik yuklanadi.
+                                                <i class="bx bx-info-circle"></i> @L.T("Crm_InvLinesHint")
                                             </div>
 
                                             <div class="table-responsive">
                                                 <table class="table table-bordered" id="invoiceLinesTable">
                                                     <thead>
                                                         <tr>
-                                                            <th>Mahsulot</th>
-                                                            <th>Tavsif</th>
-                                                            <th>Miqdor</th>
-                                                            <th>Birlik narxi</th>
-                                                            <th>QQS %</th>
-                                                            <th>Amallar</th>
+                                                            <th>@L.T("Crm_Product")</th>
+                                                            <th>@L.T("Description")</th>
+                                                            <th>@L.T("Quantity")</th>
+                                                            <th>@L.T("Crm_UnitPrice")</th>
+                                                            <th>@L.T("Crm_VatPercent")</th>
+                                                            <th>@L.T("Actions")</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody>
@@ -148,7 +148,7 @@
                                                             <tr>
                                                                 <td>
                                                                     @* Har qator uchun alohida SelectList — saqlangan mahsulot tanlangan bo'ladi (CRM-B03; <select>'da Value atributi ishlamaydi) *@
-                                                                    @Html.DropDownList($"lines[{lineIndex}].ProductID", new SelectList(productItems, "Value", "Text", line.ProductID.ToString()), "Tanlang", new { @class = "form-control product-select", required = "required" })
+                                                                    @Html.DropDownList($"lines[{lineIndex}].ProductID", new SelectList(productItems, "Value", "Text", line.ProductID.ToString()), L.T("Select"), new { @class = "form-control product-select", required = "required" })
                                                                 </td>
                                                                 <td>
                                                                     <input type="text" name="lines[@lineIndex].Description" class="form-control" value="@(line.Description ?? "")" />
@@ -163,40 +163,40 @@
                                                                     <input type="number" name="lines[@lineIndex].VATRate" class="form-control vat-input" step="0.01" min="0" max="100" value="@line.VATRate.ToString(inv)" required readonly />
                                                                 </td>
                                                                 <td>
-                                                                    <button type="button" class="btn btn-sm btn-danger remove-line">O'chirish</button>
+                                                                    <button type="button" class="btn btn-sm btn-danger remove-line">@L.T("Delete")</button>
                                                                 </td>
                                                             </tr>
                                                             lineIndex++;
                                                         }
                                                     </tbody>
                                                 </table>
-                                                @Html.DropDownList("productSelectTemplate", new SelectList(productItems, "Value", "Text"), "Tanlang", new { @class = "form-control product-select d-none", id = "productSelectTemplate", disabled = "disabled" })
+                                                @Html.DropDownList("productSelectTemplate", new SelectList(productItems, "Value", "Text"), L.T("Select"), new { @class = "form-control product-select d-none", id = "productSelectTemplate", disabled = "disabled" })
                                             </div>
-                                            <small class="text-muted">Mahsulot yoki miqdor o'zgarsa, avvalgi ombor chiqimi qaytariladi va yangisi yoziladi.</small>
+                                            <small class="text-muted">@L.T("Crm_InvEditStockHint")</small>
 
                                             <div class="row mt-2">
                                                 <div class="col-md-12">
                                                     <button type="button" class="btn btn-sm btn-primary" id="addLine">
-                                                        <i class="bx bx-plus"></i> Qator qo'shish
+                                                        <i class="bx bx-plus"></i> @L.T("Crm_AddRow")
                                                     </button>
                                                 </div>
                                             </div>
 
                                             <div class="row mt-3">
                                                 <div class="col-md-12 text-right">
-                                                    <strong>Jami summa: <span id="totalAmount">0.00</span> @tahsinERP.Services.Crm.SalesLookups.CurrencyCode(Model.CurrencyID)</strong><br />
-                                                    <strong>QQS: <span id="totalVAT">0.00</span> @tahsinERP.Services.Crm.SalesLookups.CurrencyCode(Model.CurrencyID)</strong><br />
-                                                    <strong>Jami (QQS bilan): <span id="totalWithVAT">0.00</span> @tahsinERP.Services.Crm.SalesLookups.CurrencyCode(Model.CurrencyID)</strong>
+                                                    <strong>@L.T("Crm_TotalAmount"): <span id="totalAmount">0.00</span> @tahsinERP.Services.Crm.SalesLookups.CurrencyCode(Model.CurrencyID)</strong><br />
+                                                    <strong>@L.T("Crm_Vat"): <span id="totalVAT">0.00</span> @tahsinERP.Services.Crm.SalesLookups.CurrencyCode(Model.CurrencyID)</strong><br />
+                                                    <strong>@L.T("Crm_TotalWithVat"): <span id="totalWithVAT">0.00</span> @tahsinERP.Services.Crm.SalesLookups.CurrencyCode(Model.CurrencyID)</strong>
                                                 </div>
                                             </div>
 
                                             <div class="row mt-3">
                                                 <div class="col-md-12">
                                                     <button type="submit" class="btn btn-primary">
-                                                        <i class="bx bx-save"></i> Saqlash
+                                                        <i class="bx bx-save"></i> @L.T("Save")
                                                     </button>
                                                     <a href="@Url.Action("Details", "SalesInvoices", new { id = Model.ID })" class="btn btn-secondary">
-                                                        Bekor qilish
+                                                        @L.T("Cancel")
                                                     </a>
                                                 </div>
                                             </div>

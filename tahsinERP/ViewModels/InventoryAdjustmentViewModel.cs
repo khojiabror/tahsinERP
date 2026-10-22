@@ -5,14 +5,14 @@ namespace tahsinERP.ViewModels
 {
     public class InventoryAdjustmentViewModel
     {
-        [Required(ErrorMessage = "Ombor tanlanishi shart")]
-        [Display(Name = "Ombor")]
+        [Required(ErrorMessage = "Val_Required")]
+        [Display(Name = "Wh_Warehouse")]
         public int WarehouseId { get; set; }
 
-        [Display(Name = "Excel fayl")]
+        [Display(Name = "Wh_ExcelFile")]
         public HttpPostedFileBase ExcelFile { get; set; }
 
-        [Display(Name = "Tasdiqlash")]
+        [Display(Name = "Confirm")]
         public bool Confirmed { get; set; }
     }
 }

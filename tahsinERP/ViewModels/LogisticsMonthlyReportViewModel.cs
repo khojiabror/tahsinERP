@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Web.Mvc;
 
+using tahsinERP.I18n;
+
 namespace tahsinERP.ViewModels
 {
     public class LogisticsMonthlyReportViewModel
@@ -11,7 +13,7 @@ namespace tahsinERP.ViewModels
         public int Month { get; set; }
         public int? ForwarderId { get; set; }
         public string PeriodTitle => new DateTime(Year, Month, 1).ToString("yyyy-MM");
-        public string PeriodTitleUz => new DateTime(Year, Month, 1).ToString("MMMM yyyy", new CultureInfo("uz-Latn-UZ"));
+        public string PeriodTitleUz => L.T("Month_" + Month) + " " + Year;
         public string ReportDate { get; set; }
         public string CompanyName { get; set; }
         public List<LogisticsMonthlyReportRowViewModel> Rows { get; set; } = new List<LogisticsMonthlyReportRowViewModel>();

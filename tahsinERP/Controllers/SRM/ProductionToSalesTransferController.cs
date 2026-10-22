@@ -12,6 +12,7 @@ using tahsinERP.Services;
 using tahsinERP.Services.Common;
 using tahsinERP.Controllers;
 using tahsinERP.Filters;
+using tahsinERP.I18n;
 
 namespace tahsinERP.Controllers.SRM
 {
@@ -80,7 +81,7 @@ namespace tahsinERP.Controllers.SRM
 
                 if (productionWH == null || salesWH == null)
                 {
-                    TempData["ErrorMessage"] = "Ishlab chiqarish yoki sotuv ombori topilmadi. Avval omborlarni sozlash kerak.";
+                    TempData["ErrorMessage"] = L.T("Wh_Pts_WarehousesNotConfigured");
                     return RedirectToAction("Index");
                 }
 
@@ -108,7 +109,7 @@ namespace tahsinERP.Controllers.SRM
             // Transfer date max = today (server validation)
             if (viewModel.TransferDate.Date > DateTime.Today)
             {
-                ModelState.AddModelError("TransferDate", "O'tkazma sanasi bugungi kunidan oshmasligi kerak.");
+                ModelState.AddModelError("TransferDate", L.T("Wh_Pts_DateInFuture"));
             }
 
             if (ModelState.IsValid && lines != null && lines.Any(l => l.Quantity > 0))
@@ -129,8 +130,8 @@ namespace tahsinERP.Controllers.SRM
                             {
                                 var product = db.PRODUCTS.Find(line.ProductID);
                                 ModelState.AddModelError("", 
-                                    $"Mahsulot {product?.PNo ?? line.ProductID.ToString()} uchun ishlab chiqarish omborida yetarli qoldiq yo'q. " +
-                                    $"Mavjud: {QtyText.Plain(availableStock)}, Talab qilinmoqda: {QtyText.Plain(line.Quantity)}");
+                                    L.T("Wh_Pts_InsufficientStock", product?.PNo ?? line.ProductID.ToString(),
+                                        QtyText.Plain(availableStock), QtyText.Plain(line.Quantity)));
                                 ReloadViewBag(db, viewModel);
                                 return View(viewModel);
                             }
@@ -139,7 +140,7 @@ namespace tahsinERP.Controllers.SRM
                             {
                                 var product = db.PRODUCTS.Find(line.ProductID);
                                 ModelState.AddModelError("", 
-                                    $"Mahsulot {product?.PNo ?? line.ProductID.ToString()} uchun sifat nazoratidan o'tgan lot tanlash majburiy.");
+                                    L.T("Wh_Pts_LotRequired", product?.PNo ?? line.ProductID.ToString()));
                                 ReloadViewBag(db, viewModel);
                                 return View(viewModel);
                             }
@@ -149,7 +150,7 @@ namespace tahsinERP.Controllers.SRM
                                 var allocSum = allocations.Sum(a => a.Quantity);
                                 if (Math.Abs(allocSum - line.Quantity) > 0.001m)
                                 {
-                                    ModelState.AddModelError("", $"Mahsulot uchun tanlangan lotlar yig'indisi ({QtyText.Plain(allocSum)}) kiritilgan miqdor ({QtyText.Plain(line.Quantity)})ga mos kelmadi.");
+                                    ModelState.AddModelError("", L.T("Wh_Pts_LotSumMismatch", QtyText.Plain(allocSum), QtyText.Plain(line.Quantity)));
                                     ReloadViewBag(db, viewModel);
                                     return View(viewModel);
                                 }
@@ -195,7 +196,7 @@ namespace tahsinERP.Controllers.SRM
                         LogHelper.LogToDatabase(User.Identity.Name, "ProductionToSalesTransfer", "Create",
                             $"Ishlab chiqarishdan sotuv omboriga o'tkazma yaratildi. Hujjat raqami: {transferDocNo}");
 
-                        TempData["Success"] = "O'tkazma muvaffaqiyatli yaratildi";
+                        TempData["Success"] = L.T("Wh_Pts_Created");
                         return RedirectToAction("Index");
                     }
                     catch (Exception ex)
@@ -239,10 +240,11 @@ namespace tahsinERP.Controllers.SRM
                 .OrderBy(s => s.PRODUCT.PNo)
                 .ToList();
 
+            var availableLabel = L.T("Wh_AvailableColon"); // view JS shu yorliq bo'yicha qoldiqni ajratadi
             var selectItems = products.Select(p => new SelectListItem
             {
                 Value = p.ProductID.ToString(),
-                Text = $"{p.PRODUCT.PNo} - {p.PRODUCT.Name} (Mavjud: {p.Amount:0.######})"
+                Text = $"{p.PRODUCT.PNo} - {p.PRODUCT.Name} ({availableLabel} {p.Amount:0.######})"
             }).ToList();
 
             return new SelectList(selectItems, "Value", "Text", selectedProductId);

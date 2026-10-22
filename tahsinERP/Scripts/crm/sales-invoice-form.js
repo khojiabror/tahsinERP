@@ -27,7 +27,7 @@
 
     function resetSelect(id) {
         var sel = document.getElementById(id);
-        if (sel) sel.innerHTML = '<option value="">Tanlang</option>';
+        if (sel) sel.innerHTML = '<option value="">' + (window.erpT ? erpT('Js_Select') : 'Tanlang') + '</option>';
     }
 
     function resetCurrencyValue() {
@@ -46,11 +46,11 @@
             var sel = document.getElementById('ContractID');
             if (!sel) return;
             sel.disabled = true;
-            sel.innerHTML = '<option value="">Yuklanmoqda...</option>';
+            sel.innerHTML = '<option value="">' + (window.erpT ? erpT('Js_Loading') : 'Yuklanmoqda...') + '</option>';
             fetch(urls.contracts + '?customerId=' + customerId)
                 .then(function (r) { return r.json(); })
                 .then(function (data) {
-                    sel.innerHTML = '<option value="">Tanlang</option>';
+                    sel.innerHTML = '<option value="">' + (window.erpT ? erpT('Js_Select') : 'Tanlang') + '</option>';
                     if (data && data.length) {
                         data.forEach(function (c) {
                             var opt = document.createElement('option');
@@ -64,7 +64,7 @@
                     if (cfg.resetCurrency) resetCurrencyValue();
                 })
                 .catch(function () {
-                    sel.innerHTML = '<option value="">Xatolik</option>';
+                    sel.innerHTML = '<option value="">' + (window.erpT ? erpT('Js_Crm_Error') : 'Xatolik') + '</option>';
                     sel.disabled = false;
                 });
         }
@@ -73,11 +73,11 @@
             var sel = document.getElementById('OrderID');
             if (!sel) return;
             sel.disabled = true;
-            sel.innerHTML = '<option value="">Yuklanmoqda...</option>';
+            sel.innerHTML = '<option value="">' + (window.erpT ? erpT('Js_Loading') : 'Yuklanmoqda...') + '</option>';
             fetch(urls.orders + '?contractId=' + contractId)
                 .then(function (r) { return r.json(); })
                 .then(function (data) {
-                    sel.innerHTML = '<option value="">Tanlang</option>';
+                    sel.innerHTML = '<option value="">' + (window.erpT ? erpT('Js_Select') : 'Tanlang') + '</option>';
                     if (data && data.length) {
                         data.forEach(function (o) {
                             var opt = document.createElement('option');
@@ -89,7 +89,7 @@
                     sel.disabled = false;
                 })
                 .catch(function () {
-                    sel.innerHTML = '<option value="">Xatolik</option>';
+                    sel.innerHTML = '<option value="">' + (window.erpT ? erpT('Js_Crm_Error') : 'Xatolik') + '</option>';
                     sel.disabled = false;
                 });
             fetch(urls.currency + '?contractId=' + contractId)
@@ -157,7 +157,7 @@
             var hint = row.querySelector('.available-stock-hint');
             if (!sel || !hint) return;
             var available = productStockMap[sel.value];
-            hint.textContent = available ? ('Mavjud: ' + available) : '';
+            hint.textContent = available ? (window.erpT ? erpT('Js_Crm_Available', [available]) : ('Mavjud: ' + available)) : '';
         }
 
         function calculateTotals() {
@@ -229,7 +229,7 @@
                 var btn = document.createElement('button');
                 btn.type = 'button';
                 btn.className = 'btn btn-sm btn-danger remove-line';
-                btn.textContent = 'O\'chirish';
+                btn.textContent = (window.erpT ? erpT('Js_Crm_Delete') : 'O\'chirish');
                 // O'chirish document darajasidagi delegat orqali (avval ikki marta tasdiq so'ralardi — CRM-B20)
                 tdBtn.appendChild(btn);
                 newRow.appendChild(tdBtn);
@@ -247,7 +247,7 @@
 
         document.addEventListener('click', function (e) {
             if (e.target && e.target.classList && e.target.classList.contains('remove-line')) {
-                if (confirm('Bu qatorni o\'chirishni tasdiqlaysizmi?')) {
+                if (confirm((window.erpT ? erpT('Js_Crm_ConfirmDeleteRow') : 'Ushbu qatorni o\'chirishni tasdiqlaysizmi?'))) {
                     var tr = e.target.closest('tr');
                     if (tr) { tr.remove(); calculateTotals(); }
                 }

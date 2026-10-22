@@ -1,6 +1,6 @@
 @model tahsinERP.Models.CUSTOMER_BASE
 @{
-    ViewBag.Title = "Tafsilotlar";
+    ViewBag.Title = L.T("Details");
     Layout = "~/Views/Shared/_Layout.cshtml";
     bool changePermit = ViewBag.ChangePermit as bool? ?? false;
 }
@@ -18,10 +18,10 @@
                                         <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                     </li>
                                     <li class="breadcrumb-item">
-                                        <a href="~/CustomerBase">Ma'lumotnoma</a>
+                                        <a href="~/CustomerBase">@L.T("Menu_Directory")</a>
                                     </li>
                                     <li class="breadcrumb-item active">
-                                        @Model.CompanyName ma'lumotlari
+                                        @L.T("Crm_CustDataOf", Model.CompanyName)
                                     </li>
                                 </ol>
                             </div>
@@ -34,16 +34,16 @@
                     <div class="col-12">
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">Ma'lumotlar</h4>
+                                <h4 class="card-title">@L.T("Crm_CustData")</h4>
                                 <div class="heading-elements">
                                     @if (changePermit)
                                     {
                                         <a href="@Url.Action("Edit", "CustomerBase", new { id = Model.ID })" class="btn btn-sm btn-warning">
-                                            <i class="bx bx-edit-alt"></i> Tahrirlash
+                                            <i class="bx bx-edit-alt"></i> @L.T("Edit")
                                         </a>
                                     }
                                     <a href="@Url.Action("Index", "CustomerBase")" class="btn btn-sm btn-secondary">
-                                        <i class="bx bx-arrow-back"></i> Orqaga
+                                        <i class="bx bx-arrow-back"></i> @L.T("Back")
                                     </a>
                                 </div>
                             </div>
@@ -51,31 +51,31 @@
                                 <div class="card-body">
                                     <div class="row">
                                         <div class="col-md-6">
-                                            <h5 class="text-primary">Asosiy ma'lumotlar</h5>
+                                            <h5 class="text-primary">@L.T("Crm_MainInfo")</h5>
                                             <table class="table table-borderless">
                                                 <tr>
-                                                    <th width="40%">Korxona / Do'kon:</th>
+                                                    <th width="40%">@L.T("Crm_CustCompanyShop"):</th>
                                                     <td><strong>@(Model.CompanyName ?? "-")</strong></td>
                                                 </tr>
                                                 <tr>
-                                                    <th>Maxsulot turi:</th>
+                                                    <th>@L.T("Crm_CustProductType"):</th>
                                                     <td>@(Model.ProductType ?? "-")</td>
                                                 </tr>
                                             </table>
                                         </div>
                                         <div class="col-md-6">
-                                            <h5 class="text-primary">Geografik ma'lumotlar</h5>
+                                            <h5 class="text-primary">@L.T("Crm_CustGeoInfo")</h5>
                                             <table class="table table-borderless">
                                                 <tr>
-                                                    <th width="40%">Davlat:</th>
+                                                    <th width="40%">@L.T("Crm_CustCountry"):</th>
                                                     <td>@(Model.Country ?? "-")</td>
                                                 </tr>
                                                 <tr>
-                                                    <th>Viloyat:</th>
+                                                    <th>@L.T("Crm_CustProvince"):</th>
                                                     <td>@(Model.Province ?? "-")</td>
                                                 </tr>
                                                 <tr>
-                                                    <th>Region:</th>
+                                                    <th>@L.T("Crm_CustRegion"):</th>
                                                     <td>@(Model.Region ?? "-")</td>
                                                 </tr>
                                             </table>
@@ -86,27 +86,27 @@
 
                                     <div class="row">
                                         <div class="col-md-6">
-                                            <h5 class="text-primary">Murojaat ma'lumotlari</h5>
+                                            <h5 class="text-primary">@L.T("Crm_CustContactInfo")</h5>
                                             <table class="table table-borderless">
                                                 <tr>
-                                                    <th width="40%">Aloqa uchun:</th>
+                                                    <th width="40%">@L.T("Crm_CustContactPerson"):</th>
                                                     <td>@(Model.ContactPerson ?? "-")</td>
                                                 </tr>
                                                 <tr>
-                                                    <th>Lavozimi:</th>
+                                                    <th>@L.T("Crm_CustPosition"):</th>
                                                     <td>@(Model.Position ?? "-")</td>
                                                 </tr>
                                                 <tr>
-                                                    <th>Telefon:</th>
+                                                    <th>@L.T("Phone"):</th>
                                                     <td>@(Model.Phone ?? "-")</td>
                                                 </tr>
                                             </table>
                                         </div>
                                         <div class="col-md-6">
-                                            <h5 class="text-primary">Qo'shimcha ma'lumotlar</h5>
+                                            <h5 class="text-primary">@L.T("Crm_CustExtraInfo")</h5>
                                             <table class="table table-borderless">
                                                 <tr>
-                                                    <th width="40%">Izoh:</th>
+                                                    <th width="40%">@L.T("Comment"):</th>
                                                     <td>@(Model.Comment ?? "-")</td>
                                                 </tr>
                                             </table>

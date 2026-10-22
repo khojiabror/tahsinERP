@@ -1,6 +1,6 @@
 @model tahsinERP.ViewModels.MonthlySalesReportViewModel
 @{
-    ViewBag.Title = "Oylik savdo hisoboti";
+    ViewBag.Title = L.T("Menu_MonthlySalesReport");
     Layout = "~/Views/Shared/_Layout.cshtml";
     var year = ViewBag.Year as int? ?? DateTime.Now.Year;
     var month = ViewBag.Month as int? ?? DateTime.Now.Month;
@@ -18,14 +18,14 @@
                     <div class="breadcrumb-wrapper col-12">
                         <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                             <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
-                            <li class="breadcrumb-item"><a href="~/SalesReports">Sotuv hisobotlari</a></li>
-                            <li class="breadcrumb-item active">Oylik savdo hisoboti</li>
+                            <li class="breadcrumb-item"><a href="~/SalesReports">@L.T("Crm_RepSalesReports")</a></li>
+                            <li class="breadcrumb-item active">@L.T("Menu_MonthlySalesReport")</li>
                         </ol>
                     </div>
                 </div>
             </div>
             <div class="content-body">
-                <div class="alert alert-light border mb-1 py-50 no-print">Summalar so'mda — har hujjat o'z sanasidagi CBU kursi bilan.</div>
+                <div class="alert alert-light border mb-1 py-50 no-print">@L.T("Crm_RepAmountsInUzsNote")</div>
                 @if (ViewBag.CurrencyWarning != null)
                 {
                     <div class="alert alert-warning mb-1 no-print">@ViewBag.CurrencyWarning</div>
@@ -36,7 +36,7 @@
                             <div class="card-body">
                                 <form method="get" action="@Url.Action("MonthlyReport")" class="row align-items-end">
                                     <div class="col-md-2">
-                                        <label class="form-label">Yil</label>
+                                        <label class="form-label">@L.T("Crm_RepYear")</label>
                                         @if (years != null)
                                         {
                                             <select name="year" class="form-control">@foreach (var y in years) { <option value="@y.Value" selected="@y.Selected">@y.Text</option> }</select>
@@ -47,7 +47,7 @@
                                         }
                                     </div>
                                     <div class="col-md-3">
-                                        <label class="form-label">Oy</label>
+                                        <label class="form-label">@L.T("Crm_RepMonth")</label>
                                         @if (months != null)
                                         {
                                             <select name="month" class="form-control">@foreach (var m in months) { <option value="@m.Value" selected="@m.Selected">@m.Text</option> }</select>
@@ -58,7 +58,7 @@
                                         }
                                     </div>
                                     <div class="col-md-2">
-                                        <button type="submit" class="btn btn-primary"><i class="bx bx-refresh"></i> Ko'rsatish</button>
+                                        <button type="submit" class="btn btn-primary"><i class="bx bx-refresh"></i> @L.T("Crm_RepShow")</button>
                                     </div>
                                 </form>
                             </div>
@@ -68,7 +68,7 @@
                 <div class="row mb-2 no-print">
                     <div class="col-12 text-right">
                         <button type="button" id="btnPrintReport" data-print-area="printArea" class="btn btn-primary">
-                            <i class="bx bx-printer"></i> Chop etish
+                            <i class="bx bx-printer"></i> @L.T("Print")
                         </button>
                     </div>
                 </div>
@@ -77,23 +77,23 @@
                     <div class="card-body report-document">
                         <div class="report-header text-center mb-4">
                             <h5 class="mb-0 font-weight-bold">@(Model.CompanyName ?? "Tahsin ERP")</h5>
-                            <h6 class="text-uppercase mt-2 mb-0" style="letter-spacing: 0.05em;">Oylik savdo hisoboti</h6>
-                            <p class="mb-0 mt-1 text-muted">@Model.MonthName @Model.Year yil</p>
-                            <p class="mb-0 small text-muted">Buyurtmalar: @Model.TotalOrderCount ta | Invoyslar: @Model.TotalInvoiceCount ta</p>
+                            <h6 class="text-uppercase mt-2 mb-0" style="letter-spacing: 0.05em;">@L.T("Menu_MonthlySalesReport")</h6>
+                            <p class="mb-0 mt-1 text-muted">@L.T("Crm_RepMonthYear", Model.MonthName, Model.Year)</p>
+                            <p class="mb-0 small text-muted">@L.T("Crm_RepOrderInvoiceCounts", Model.TotalOrderCount, Model.TotalInvoiceCount)</p>
                         </div>
 
                         <table class="table table-bordered table-sm report-table">
                             <thead>
                                 <tr class="table-light">
                                     <th style="width: 2%;">№</th>
-                                    <th style="width: 10%;">Mahsulot kodi</th>
-                                    <th style="width: 22%;">Mahsulot nomi</th>
-                                    <th style="width: 6%;">O'lchov</th>
-                                    <th style="width: 10%;" class="text-right">Buyurtma miqdori</th>
-                                    <th style="width: 12%;" class="text-right">Buyurtma summa</th>
-                                    <th style="width: 10%;" class="text-right">Sotilgan miqdor</th>
-                                    <th style="width: 12%;" class="text-right">Sotuv summa</th>
-                                    <th style="width: 8%;" class="text-right">Konversiya %</th>
+                                    <th style="width: 10%;">@L.T("Crm_ProductCode")</th>
+                                    <th style="width: 22%;">@L.T("Crm_ProductName")</th>
+                                    <th style="width: 6%;">@L.T("Crm_RepUnit")</th>
+                                    <th style="width: 10%;" class="text-right">@L.T("Crm_OrderQty")</th>
+                                    <th style="width: 12%;" class="text-right">@L.T("Crm_RepOrderAmount")</th>
+                                    <th style="width: 10%;" class="text-right">@L.T("Crm_RepSoldQty")</th>
+                                    <th style="width: 12%;" class="text-right">@L.T("Crm_RepSalesAmount")</th>
+                                    <th style="width: 8%;" class="text-right">@L.T("Crm_RepConversionPct")</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -118,12 +118,12 @@
                                 }
                                 else
                                 {
-                                    <tr><td colspan="9" class="text-center text-muted">Shu oy uchun ma'lumot topilmadi.</td></tr>
+                                    <tr><td colspan="9" class="text-center text-muted">@L.T("Crm_RepNoDataMonth")</td></tr>
                                 }
                             </tbody>
                             <tfoot>
                                 <tr class="table-light fw-bold">
-                                    <td colspan="4" class="text-right">JAMI:</td>
+                                    <td colspan="4" class="text-right">@L.T("Crm_RepTotalCaps")</td>
                                     <td class="text-right">@(Model.Lines?.Sum(l => l.OrderQty).ToString("N2") ?? "0")</td>
                                     <td class="text-right">@(Model.Lines?.Sum(l => l.OrderAmount).ToString("N0") ?? "0")</td>
                                     <td class="text-right">@(Model.Lines?.Sum(l => l.SoldQty).ToString("N2") ?? "0")</td>
@@ -136,17 +136,17 @@
                         <div class="report-signatures mt-5 pt-4">
                             <div class="row">
                                 <div class="col-6">
-                                    <p class="mb-1"><strong>Savdo xodimi:</strong></p>
+                                    <p class="mb-1"><strong>@L.T("Crm_RepSalesEmployee")</strong></p>
                                     <p class="mb-0" style="border-bottom: 1px solid #333; width: 220px; height: 24px;"></p>
-                                    <p class="small text-muted mt-1">Qo'l qo'yildi</p>
+                                    <p class="small text-muted mt-1">@L.T("Crm_RepSigned")</p>
                                 </div>
                                 <div class="col-6 text-right">
-                                    <p class="mb-1"><strong>Rahbariyat:</strong></p>
+                                    <p class="mb-1"><strong>@L.T("Crm_RepManagement")</strong></p>
                                     <p class="mb-0 d-inline-block text-right" style="border-bottom: 1px solid #333; width: 220px; height: 24px;"></p>
-                                    <p class="small text-muted mt-1">Tasdiqlandi</p>
+                                    <p class="small text-muted mt-1">@L.T("Crm_RepApproved")</p>
                                 </div>
                             </div>
-                            <p class="small text-muted mt-3 mb-0">Sana: @DateTime.Now.ToString("dd.MM.yyyy") | Hisobot dinamik ma'lumotlar asosida tuzildi.</p>
+                            <p class="small text-muted mt-3 mb-0">@L.T("Crm_RepDateLabel") @DateTime.Now.ToString("dd.MM.yyyy") | @L.T("Crm_RepDynamicNote")</p>
                         </div>
                     </div>
                 </div>

@@ -22,10 +22,10 @@
                                         <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                     </li>
                                     <li class="breadcrumb-item">
-                                        <a href="~/Forwarder/Index">Yuk tashuvchilar</a>
+                                        <a href="~/Forwarder/Index">@L.T("Log_Forwarders")</a>
                                     </li>
                                     <li class="breadcrumb-item active">
-                                        @(isEdit ? "Yuk tashuvchini tahrirlash" : "Yangi yuk tashuvchi qo'shish")
+                                        @(isEdit ? L.T("Log_ForwarderEditTitle") : L.T("Log_NewForwarder"))
                                     </li>
                                 </ol>
                             </div>
@@ -46,26 +46,26 @@
                                                 @Html.ValidationSummary(true, "", new { @class = "text-danger" })
                                                 <hr>
                                                 
-                                                <h4 class="text-primary">Yuk tashuvchi nomi</h4>
+                                                <h4 class="text-primary">@L.T("Log_ForwarderName")</h4>
                                                 <fieldset class="invoice-address form-group">
-                                                    @Html.TextBoxFor(model => model.ForwarderName, new { @class = "form-control round", @placeholder = "Yuk tashuvchi nomi" })
+                                                    @Html.TextBoxFor(model => model.ForwarderName, new { @class = "form-control round", @placeholder = L.T("Log_ForwarderName") })
                                                     @Html.ValidationMessageFor(model => model.ForwarderName, "", new { @class = "text-danger" })
                                                 </fieldset>
-                                                <h6 class="invoice-to">Direktor</h6>
+                                                <h6 class="invoice-to">@L.T("Log_Director")</h6>
                                                 <fieldset class="invoice-address form-group">
-                                                    @Html.TextBoxFor(model => model.Director, new { @class = "form-control round", @placeholder = "Direktor" })
+                                                    @Html.TextBoxFor(model => model.Director, new { @class = "form-control round", @placeholder = L.T("Log_Director") })
                                                     @Html.ValidationMessageFor(model => model.Director, "", new { @class = "text-danger" })
                                                 </fieldset>
                                                 <br />
-                                                <h6 class="invoice-to">Bog`lanish uchun shaxs</h6>
+                                                <h6 class="invoice-to">@L.T("Log_ContactPerson")</h6>
                                                 <fieldset class="form-group">
-                                                    @Html.TextBoxFor(model => model.ContactPerson, new { @class = "form-control round", @placeholder = "Bog`lanish uchun shaxs" })
+                                                    @Html.TextBoxFor(model => model.ContactPerson, new { @class = "form-control round", @placeholder = L.T("Log_ContactPerson") })
                                                     @Html.ValidationMessageFor(model => model.ContactPerson, "", new { @class = "text-danger" })
                                                 </fieldset>
                                                 <br />
-                                                <h6 class="invoice-to">Qisqacha bayoni</h6>
+                                                <h6 class="invoice-to">@L.T("Log_ShortDescription")</h6>
                                                 <fieldset class="invoice-address form-group">
-                                                    @Html.TextBoxFor(model => model.Description, new { @class = "form-control round", @placeholder = "tavsifi" })
+                                                    @Html.TextBoxFor(model => model.Description, new { @class = "form-control round", @placeholder = L.T("Log_DescriptionPh") })
                                                     @Html.ValidationMessageFor(model => model.Description, "", new { @class = "text-danger" })
                                                 </fieldset>
 
@@ -73,7 +73,7 @@
                                                     <li class="list-group-item border-0 pb-0">
                                                         <button class="btn btn-primary btn-block subtotal-preview-btn" type="submit">
                                                             <i class='bx bx-save'></i>
-                                                            Saqlash
+                                                            @L.T("Save")
                                                         </button>
                                                     </li>
                                                 </ul>

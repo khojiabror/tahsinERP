@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using System.Web.Mvc;
+using tahsinERP.I18n;
 using tahsinERP.Models;
 using tahsinERP.Services.Common;
 using tahsinERP.Services.Crm;
@@ -211,8 +212,8 @@ namespace tahsinERP.Controllers
                 // ——— Buyurtma bajarilishi: invoys bilan / invoysiz ———
                 model.OrderFulfillmentStatus = new List<CRMChartPoint>
                 {
-                    new CRMChartPoint { Label = "Invoys yaratilgan", Value = model.OrdersWithInvoice },
-                    new CRMChartPoint { Label = "Invoys yaratilmagan", Value = model.OrdersWithoutInvoice }
+                    new CRMChartPoint { Label = L.T("Crm_DashInvoiceCreated"), Value = model.OrdersWithInvoice },
+                    new CRMChartPoint { Label = L.T("Crm_DashInvoiceNotCreated"), Value = model.OrdersWithoutInvoice }
                 };
 
                 // ——— Shartnoma holati: muddati o'tgan / bajarilgan (invoys bor) / davom etayotgan ———
@@ -222,9 +223,9 @@ namespace tahsinERP.Controllers
                 if (contractInProgress < 0) contractInProgress = 0;
                 model.ContractCompletionStatus = new List<CRMChartPoint>
                 {
-                    new CRMChartPoint { Label = "Muddati o'tgan", Value = contractOverdueCount },
-                    new CRMChartPoint { Label = "Bajarilgan (invoys bor)", Value = contractWithInvoice },
-                    new CRMChartPoint { Label = "Jarayonda", Value = contractInProgress }
+                    new CRMChartPoint { Label = L.T("Crm_DashOverdue"), Value = contractOverdueCount },
+                    new CRMChartPoint { Label = L.T("Crm_DashCompletedWithInvoice"), Value = contractWithInvoice },
+                    new CRMChartPoint { Label = L.T("Crm_DashInProgress"), Value = contractInProgress }
                 };
 
                 // ——— Invoys yaratilmagan buyurtmalar ro'yxati ———
@@ -502,7 +503,7 @@ namespace tahsinERP.Controllers
                 }
 
                 var customerNames = ReferenceDataCache.Get(ReferenceDataCache.Customers)
-                    .ToDictionary(c => c.ID, c => c.Name ?? "Noma'lum");
+                    .ToDictionary(c => c.ID, c => c.Name ?? L.T("Crm_DashUnknown"));
                 var contractNosById = contractMetaById.ToDictionary(x => x.Key, x => x.Value.Item1);
 
                 var invoiceAggByCustomerContract = receivableInvoices
@@ -557,7 +558,7 @@ namespace tahsinERP.Controllers
                                 return new CRMCustomerReceivableContractItem
                                 {
                                     ContractId = contractIdByKey.ContainsKey(key) ? contractIdByKey[key] : null,
-                                    ContractNo = string.IsNullOrWhiteSpace(key.Item2) ? "(Shartnoma ko'rsatilmagan)" : key.Item2,
+                                    ContractNo = string.IsNullOrWhiteSpace(key.Item2) ? L.T("Crm_DashNoContract") : key.Item2,
                                     InvoicedAmount = invoiced,
                                     PaidAmount = paid - unapplied,
                                     ReceivableAmount = receivable
@@ -570,7 +571,7 @@ namespace tahsinERP.Controllers
                         return new CRMCustomerReceivableItem
                         {
                             CustomerId = customerId,
-                            CustomerName = customerNames.ContainsKey(customerId) ? customerNames[customerId] : $"Customer #{customerId}",
+                            CustomerName = customerNames.ContainsKey(customerId) ? customerNames[customerId] : L.T("Crm_DashCustomerN", customerId),
                             InvoicedAmount = contractsForCustomer.Sum(c => c.InvoicedAmount),
                             PaidAmount = contractsForCustomer.Sum(c => c.PaidAmount),
                             ReceivableAmount = contractsForCustomer.Sum(c => c.ReceivableAmount),

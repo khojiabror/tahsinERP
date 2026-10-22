@@ -1,6 +1,6 @@
 ﻿@model  tahsinERP.Models.F_TRANSPORT_TYPES
 @{
-    ViewBag.Title = "Transport turi tafsilotlari";
+    ViewBag.Title = L.T("Log_TransportTypeDetailsTitle");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -17,10 +17,10 @@
                                     <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                 </li>
                                 <li class="breadcrumb-item ">
-                                    <a href="~/FTransportType/Index">Transport turlari</a>
+                                    <a href="~/FTransportType/Index">@L.T("Log_TransportTypes")</a>
                                 </li>
                                 <li class="breadcrumb-item active">
-                                    @Model.TransportType ma`lumotlari
+                                    @L.T("Log_TransportTypeInfoCrumb", Model.TransportType)
                                 </li>
                             </ol>
                         </div>
@@ -37,37 +37,37 @@
                                 <div class="row invoice-info">
                                     <div class="col-lg-12 col-md-12 mt-25">
                                         @Html.ValidationSummary(true, "", new { @class = "text-danger" })
-                                        <h4 class="text-primary">Transport turi ma'lumotlari</h4>
+                                        <h4 class="text-primary">@L.T("Log_TransportTypeInfo")</h4>
                                         <br />
                                         <hr />
-                                        <span><b>Transport turi</b>: @Html.DisplayFor(model => model.TransportType)</span>
+                                        <span><b>@L.T("Log_TransportType")</b>: @Html.DisplayFor(model => model.TransportType)</span>
                                         <br />
                                         <hr />
-                                        <span><b>O'lchov birligi</b>: @Html.DisplayFor(model => model.UNIT.UnitName)</span>
+                                        <span><b>@L.T("Log_UnitOfMeasure")</b>: @Html.DisplayFor(model => model.UNIT.UnitName)</span>
                                         <br />
                                         <hr />
-                                        <span><b>Transport og`irligi (kg)</b>: @(Model.TransportWeight?.ToString("0.######"))</span>
+                                        <span><b>@L.T("Log_TransportWeightKg")</b>: @(Model.TransportWeight?.ToString("0.######"))</span>
                                         <br />
                                         <hr />
-                                        <span><b>Maks. Ko`tarish qobilyati (kg)</b>: @(Model.CapableOfLifting?.ToString("0.######"))</span>
+                                        <span><b>@L.T("Log_MaxLiftKg")</b>: @(Model.CapableOfLifting?.ToString("0.######"))</span>
                                         <br />
                                         <br />
                                         <div class="row">
                                             <div class="col-12 col-md-12">
                                                 <div class="card mb-3">
                                                     <div class="card-body">
-                                                        <h4 class="card-title text-primary">Tashqi</h4>
+                                                        <h4 class="card-title text-primary">@L.T("Log_External")</h4>
                                                         <hr />
-                                                        <span><b>Uzunligi</b>: @Model.ExtLgth.ToString("0.######") mm</span>
+                                                        <span><b>@L.T("Log_Length")</b>: @Model.ExtLgth.ToString("0.######") mm</span>
                                                         <br />
                                                         <hr />
-                                                        <span><b>Kengligi</b>: @Model.ExtWdth.ToString("0.######") mm</span>
+                                                        <span><b>@L.T("Log_Width")</b>: @Model.ExtWdth.ToString("0.######") mm</span>
                                                         <br />
                                                         <hr />
-                                                        <span><b>Balandligi</b>: @Model.ExtHght.ToString("0.######") mm</span>
+                                                        <span><b>@L.T("Log_Height")</b>: @Model.ExtHght.ToString("0.######") mm</span>
                                                         <br />
                                                         <hr />
-                                                        <span><b>Tashqi hajm</b>: @(ViewBag.ExternalCBM != null ? ((double)ViewBag.ExternalCBM).ToString("N2") + " m³" : "-")</span>
+                                                        <span><b>@L.T("Log_ExtVolume")</b>: @(ViewBag.ExternalCBM != null ? ((double)ViewBag.ExternalCBM).ToString("N2") + " m³" : "-")</span>
                                                         <br />
                                                           <hr />
                                                     </div>
@@ -76,22 +76,22 @@
                                             <div class="col-12 col-md-12">
                                                 <div class="card mb-3">
                                                     <div class="card-body">
-                                                        <h4 class="card-title text-primary">Ichki</h4>
+                                                        <h4 class="card-title text-primary">@L.T("Log_Internal")</h4>
                                                         <hr />
-                                                        <span><b>Uzunligi</b>: @Model.IntLgth.ToString("0.######") mm</span>
+                                                        <span><b>@L.T("Log_Length")</b>: @Model.IntLgth.ToString("0.######") mm</span>
                                                         <br />
                                                         <hr />
-                                                        <span><b>Kengligi</b>: @Model.IntWdth.ToString("0.######") mm</span>
+                                                        <span><b>@L.T("Log_Width")</b>: @Model.IntWdth.ToString("0.######") mm</span>
                                                         <br />
                                                         <hr />
-                                                        <span><b>Balandligi</b>: @Model.IntHght.ToString("0.######") mm</span>
+                                                        <span><b>@L.T("Log_Height")</b>: @Model.IntHght.ToString("0.######") mm</span>
                                                         <br />
                                                         <hr />
                                                         @* LOG-B10: hajm va palletlar mm o'lchamlardan (TransportLoadCalculator) *@
-                                                        <span><b>Ichki hajm</b>: @(ViewBag.CBMCapacity != null ? ((double)ViewBag.CBMCapacity).ToString("N2") + " m³" : "-")</span>
+                                                        <span><b>@L.T("Log_IntVolume")</b>: @(ViewBag.CBMCapacity != null ? ((double)ViewBag.CBMCapacity).ToString("N2") + " m³" : "-")</span>
                                                         <br />
                                                         <hr />
-                                                        <span><b>Palletlar (1200×1000, bir qatlam)</b>: @(ViewBag.PalletCount ?? "-")</span>
+                                                        <span><b>@L.T("Log_PalletsOneLayer")</b>: @(ViewBag.PalletCount ?? "-")</span>
                                                         <br />
                                                         <hr />
                                                     </div>

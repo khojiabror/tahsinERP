@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Globalization;
+using tahsinERP.I18n;
 
 namespace tahsinERP.ViewModels
 {
@@ -15,7 +15,8 @@ namespace tahsinERP.ViewModels
         public int Year { get; set; }
         public int Month { get; set; }
         public string PeriodTitle => new DateTime(Year, Month, 1).ToString("yyyy-MM");
-        public string PeriodTitleUz => new DateTime(Year, Month, 1).ToString("MMMM yyyy", new CultureInfo("uz-Latn-UZ"));
+        /// <summary>Joriy til bo'yicha oy nomi va yil (nomi tarixiy).</summary>
+        public string PeriodTitleUz => L.T("Month_" + Month) + " " + Year;
         public DateTime PeriodStart => new DateTime(Year, Month, 1);
         public DateTime PeriodEnd => PeriodStart.AddMonths(1).AddDays(-1);
         public string ReportDate { get; set; }

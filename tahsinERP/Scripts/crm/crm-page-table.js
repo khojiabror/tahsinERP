@@ -24,9 +24,10 @@
             }
 
             var searching = $table.attr('data-searching') !== 'false';
-            var language = { zeroRecords: "Ma'lumot topilmadi" };
+            // Standart til layout'da (erpDataTable); faqat qidiruv yozuvi — "sahifada" (sahifalash serverda)
+            var language = {};
             if (searching) {
-                language.search = 'Sahifada qidirish:';
+                language.search = (window.erpT ? erpT('Js_Crm_SearchOnPage') : 'Sahifada qidirish:');
             }
 
             $table.DataTable({

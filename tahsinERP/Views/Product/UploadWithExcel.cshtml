@@ -1,5 +1,5 @@
 @{
-    ViewBag.Title = "Excel orqali yuklash";
+    ViewBag.Title = L.T("Prd_UploadViaExcel");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -18,9 +18,9 @@
                                         <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                     </li>
                                     <li class="breadcrumb-item">
-                                        <a href="~/Product">Maxsulotlar</a>
+                                        <a href="~/Product">@L.T("Menu_Products")</a>
                                     </li>
-                                    <li class="breadcrumb-item active">Excel orqali yuklash</li>
+                                    <li class="breadcrumb-item active">@L.T("Prd_UploadViaExcel")</li>
                                 </ol>
                             </div>
                         </div>
@@ -33,22 +33,22 @@
                         <div class="col-md-12">
                             <div class="card">
                                 <div class="card-header">
-                                    <h4 class="card-title">Excel orqali yuklash</h4>
+                                    <h4 class="card-title">@L.T("Prd_UploadViaExcel")</h4>
                                 </div>
                                 <div class="card-content">
                                     <div class="card-body">
                                         <div class="alert alert-info mb-2">
-                                            <h6 class="alert-heading"><i class="bx bx-info-circle"></i> Type ustuni qiymatlari:</h6>
+                                            <h6 class="alert-heading"><i class="bx bx-info-circle"></i> @L.T("Prd_TypeColumnValues")</h6>
                                             <ul class="mb-0">
-                                                <li><strong>MAXSULOT</strong> - Tayyor maxsulot</li>
-                                                <li><strong>YARIM TAYYOR</strong> - Yarim tayyor maxsulot</li>
-                                                <li><strong>XOMASHYO</strong> - Xomashyo</li>
+                                                <li><strong>MAXSULOT</strong> - @L.T("Prd_FinishedProduct")</li>
+                                                <li><strong>YARIM TAYYOR</strong> - @L.T("Prd_SemiFinishedProduct")</li>
+                                                <li><strong>XOMASHYO</strong> - @L.T("Prd_TypeRaw")</li>
                                             </ul>
                                         </div>
                                         <div class="row">
                                             <div class="col-lg-6 col-md-12">
                                                 <fieldset class="form-group">
-                                                    <label>Shablon faylni yuklab oling</label>
+                                                    <label>@L.T("Prd_DownloadTemplate")</label>
                                                     <br />
                                                     @Html.ActionLink("maxsulot.xlsx", "Download", null, new { @class = "btn btn-outline-info" })
                                                 </fieldset>
@@ -58,13 +58,13 @@
                                                 {
                                                     @Html.AntiForgeryToken()
                                                     <fieldset class="form-group">
-                                                        <label>To'ldirilgan faylni yuklash</label>
+                                                        <label>@L.T("Prd_UploadFilled")</label>
                                                         <div class="custom-file">
                                                             <input type="file" class="custom-file-input" id="inputGroupFile01" name="file">
-                                                            <label class="custom-file-label" for="inputGroupFile01">Faylni tanlang</label>
+                                                            <label class="custom-file-label" for="inputGroupFile01">@L.T("Prd_ChooseFile")</label>
                                                         </div>
                                                     </fieldset>
-                                                    <input type="submit" class="btn btn-primary round" value="Yuklash" />
+                                                    <input type="submit" class="btn btn-primary round" value="@L.T("Upload")" />
                                                 }
                                             </div>
                                         </div>
@@ -91,7 +91,7 @@
 
                                 <div class="card">
                                     <div class="card-header">
-                                        <h4 class="card-title">Excel orqali yuklangan ma'lumot</h4>
+                                        <h4 class="card-title">@L.T("Prd_ExcelUploadedData")</h4>
                                     </div>
                                     <div class="card-content">
                                         <div class="card-body">
@@ -123,7 +123,7 @@
                                             {
                                                 <div class="alert alert-warning mt-2">
                                                     <i class="bx bx-error-circle"></i>
-                                                    <strong>Diqqat!</strong> @existingCount ta yozuv allaqachon bazada mavjud va o'tkazib yuboriladi.
+                                                    <strong>@L.T("Prd_Attention")</strong> @L.T("Prd_ExistingSkipped", existingCount)
                                                 </div>
                                             }
 
@@ -132,9 +132,9 @@
                                                 @Html.AntiForgeryToken()
                                                 <textarea name="dataTableModel" style="display:none;">@ViewBag.DataTableModel</textarea>
                                                 <div class="mt-2">
-                                                    <p>Agar ma'lumotlar to'g'riliga ishonch xosil qilgan bo'lsangiz quyidagi tugma orqali saqlang.</p>
-                                                    <input type="submit" value="Saqlash" class="btn btn-success round" />
-                                                    @Html.ActionLink("Bekor qilish", "Index", null, new { @class = "btn btn-outline-secondary round ml-1" })
+                                                    <p>@L.T("Prd_ConfirmSaveHint")</p>
+                                                    <input type="submit" value="@L.T("Save")" class="btn btn-success round" />
+                                                    @Html.ActionLink(L.T("Cancel"), "Index", null, new { @class = "btn btn-outline-secondary round ml-1" })
                                                 </div>
                                             }
                                         </div>

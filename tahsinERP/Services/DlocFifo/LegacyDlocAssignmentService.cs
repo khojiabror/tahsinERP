@@ -5,6 +5,7 @@ using tahsinERP.Controllers;
 using tahsinERP.Models;
 using tahsinERP.Services.Common;
 using tahsinERP.Services.Stock;
+using tahsinERP.I18n;
 
 namespace tahsinERP.Services.DlocFifo
 {
@@ -88,21 +89,21 @@ ORDER BY w.WHName, p.PNo";
             IList<AssignDlocLineRequest> lines, string userEmail)
         {
             if (lines == null || !lines.Any())
-                throw new InvalidOperationException("Joylashtirish uchun kamida bitta qator tanlang.");
+                throw new InvalidOperationException(L.T("Wh_Err_AsgSelectOneLine"));
 
             if (!DlocFifoSchema.IsEnabled(db))
-                throw new InvalidOperationException("DLOC rejimi yoqilmagan.");
+                throw new InvalidOperationException(L.T("Wh_Err_DlocModeDisabled"));
 
             var activeLocations = DlocFifoDataAccess.GetLocations(db, warehouseId, activeOnly: true);
             if (activeLocations == null || !activeLocations.Any())
-                throw new InvalidOperationException("Tanlangan omborda faol DLOC joylashuvi yo'q.");
+                throw new InvalidOperationException(L.T("Wh_Err_AsgNoActiveDloc"));
 
             var validLines = lines
                 .Where(l => l.LocationID > 0 && l.AssignQty > QtyEpsilon)
                 .ToList();
 
             if (!validLines.Any())
-                throw new InvalidOperationException("DLOC va miqdor tanlangan qatorlar yo'q.");
+                throw new InvalidOperationException(L.T("Wh_Err_AsgNoValidLines"));
 
             var activeLocationIds = new HashSet<int>(activeLocations.Select(l => l.ID));
             var assignedCount = 0;
@@ -121,14 +122,13 @@ ORDER BY w.WHName, p.PNo";
                     if (requested > unassigned + QtyEpsilon)
                     {
                         throw new InvalidOperationException(
-                            $"Mahsulot ID {g.Key}: joylashtirish miqdori ({requested:N3}) " +
-                            $"joylashtirilmagan qoldiqdan ({unassigned:N3}) oshib ketdi.");
+                            L.T("Wh_Err_AsgQtyExceeds", g.Key, requested.ToString("N3"), unassigned.ToString("N3")));
                     }
                 }
 
                 var badLocation = validLines.FirstOrDefault(l => !activeLocationIds.Contains(l.LocationID));
                 if (badLocation != null)
-                    throw new InvalidOperationException($"DLOC ID {badLocation.LocationID} ushbu omborda faol emas.");
+                    throw new InvalidOperationException(L.T("Wh_Err_AsgLocationInactive", badLocation.LocationID));
 
                 var warehouseName = ReferenceDataCache.NameOf(ReferenceDataCache.Warehouses, warehouseId);
                 var now = DateTime.Now;

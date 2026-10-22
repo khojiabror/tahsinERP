@@ -1,15 +1,16 @@
+using tahsinERP.I18n;
+
 namespace tahsinERP.Services
 {
     /// <summary>
-    /// Markaziy logistika terminlari.
-    /// View va log matnlarida shu konstantalardan foydalaniladi.
+    /// Markaziy logistika terminlari (joriy tilda).
     /// </summary>
     public static class LogisticsTerms
     {
-        public const string Waybill = "Yo'l varaqasi";
-        public const string Waybills = "Yo'l varaqalari";
-        public const string Forwarder = "Yuk tashuvchi";
-        public const string TariffBasis = "Tarif asosi";
-        public const string TariffRate = "Tarif stavkasi";
+        public static string Waybill => L.T("Log_Waybill");
+        public static string Waybills => L.T("Log_Waybills");
+        public static string Forwarder => L.T("Log_Forwarder");
+        public static string TariffBasis => L.T("Log_TariffBasis");
+        public static string TariffRate => L.T("Log_TariffRate");
     }
 }

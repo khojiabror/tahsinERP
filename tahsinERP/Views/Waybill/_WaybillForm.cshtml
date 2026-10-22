@@ -36,7 +36,7 @@
                                         <a href="~/Waybill/Index">@LogisticsTerms.Waybills</a>
                                     </li>
                                     <li class="breadcrumb-item active">
-                                        @(isEdit ? LogisticsTerms.Waybill + " tahrirlash" : "Yangi " + LogisticsTerms.Waybill.ToLower())
+                                        @(isEdit ? L.T("Log_WaybillEditTitle") : L.T("Log_NewWaybill"))
                                     </li>
                                 </ol>
                             </div>
@@ -53,92 +53,92 @@
                                     @Html.ValidationSummary(true, "", new { @class = "text-danger" })
 
                                     <div class="mb-1">
-                                        <h5 class="text-primary mb-0">Asosiy ma'lumotlar</h5>
-                                        <small class="text-muted">Reys identifikatori, sana va yo'nalish.</small>
+                                        <h5 class="text-primary mb-0">@L.T("Log_MainInfo")</h5>
+                                        <small class="text-muted">@L.T("Log_MainInfoHint")</small>
                                     </div>
 
                                     <div class="row">
                                         <div class="col-md-3">
-                                            <label>@LogisticsTerms.Waybill raqami</label>
+                                            <label>@L.T("Log_WaybillNo")</label>
                                             @Html.TextBoxFor(model => model.WaybillNo, new { @class = "form-control", @placeholder = "TB_0001" })
                                             @Html.ValidationMessageFor(model => model.WaybillNo, "", new { @class = "text-danger" })
                                         </div>
                                         <div class="col-md-3">
-                                            <label>Sana</label>
+                                            <label>@L.T("Date")</label>
                                             @Html.TextBoxFor(model => model.IssueDate, "{0:yyyy-MM-dd}", new { @class = "form-control", @type = "date" })
                                             @Html.ValidationMessageFor(model => model.IssueDate, "", new { @class = "text-danger" })
                                         </div>
                                         <div class="col-md-3">
-                                            <label>Yo'nalish</label>
-                                            @Html.DropDownListFor(model => model.Direction, LogisticsEnums.DirectionList(), "Tanlang", new { @class = "form-control" })
+                                            <label>@L.T("Log_Direction")</label>
+                                            @Html.DropDownListFor(model => model.Direction, LogisticsEnums.DirectionList(), L.T("Select"), new { @class = "form-control" })
                                         </div>
                                         <div class="col-md-3">
                                             <label>@LogisticsTerms.Forwarder</label>
-                                            @Html.DropDownListFor(model => model.ForwarderID, Model.Forwarders, "Tanlang", new { @class = "form-control select2" })
+                                            @Html.DropDownListFor(model => model.ForwarderID, Model.Forwarders, L.T("Select"), new { @class = "form-control select2" })
                                         </div>
                                     </div>
 
                                     <hr />
                                     <div class="mb-1">
-                                        <h5 class="text-primary mb-0">Shartnoma va transport</h5>
-                                        <small class="text-muted">Shartnoma bo'yicha tariflarni avtomatik tanlash uchun kerak.</small>
+                                        <h5 class="text-primary mb-0">@L.T("Log_ContractTransport")</h5>
+                                        <small class="text-muted">@L.T("Log_ContractTransportHint")</small>
                                     </div>
 
                                     <div class="row">
                                         <div class="col-md-4">
-                                            <label>Shartnoma</label>
-                                            @Html.DropDownListFor(model => model.ContractID, Model.Contracts, "Tanlang", new { @class = "form-control select2", @id = "contractSelect" })
+                                            <label>@L.T("Log_Contract")</label>
+                                            @Html.DropDownListFor(model => model.ContractID, Model.Contracts, L.T("Select"), new { @class = "form-control select2", @id = "contractSelect" })
                                             @Html.ValidationMessageFor(model => model.ContractID, "", new { @class = "text-danger" })
                                         </div>
                                         <div class="col-md-4">
-                                            <label>Transport turi</label>
-                                            @Html.DropDownListFor(model => model.TransportTypeID, Model.TransportTypes, "Tanlang", new { @class = "form-control select2", @id = "transportTypeSelect" })
+                                            <label>@L.T("Log_TransportType")</label>
+                                            @Html.DropDownListFor(model => model.TransportTypeID, Model.TransportTypes, L.T("Select"), new { @class = "form-control select2", @id = "transportTypeSelect" })
                                             @Html.ValidationMessageFor(model => model.TransportTypeID, "", new { @class = "text-danger" })
                                         </div>
                                         <div class="col-md-4">
-                                            <label>Valyuta</label>
-                                            @Html.DropDownListFor(model => model.CurrencyID, Model.Currencies, "Tanlang", new { @class = "form-control", @id = "currencySelect" })
+                                            <label>@L.T("Currency")</label>
+                                            @Html.DropDownListFor(model => model.CurrencyID, Model.Currencies, L.T("Select"), new { @class = "form-control", @id = "currencySelect" })
                                         </div>
                                     </div>
 
                                     <div class="row mt-1">
                                         <div class="col-md-6">
-                                            <label>Tarif</label>
-                                            @Html.DropDownListFor(model => model.TariffID, Model.Tariffs ?? new List<SelectListItem>(), "Tanlang", new { @class = "form-control select2", @id = "tariffSelect" })
+                                            <label>@L.T("Log_Tariff")</label>
+                                            @Html.DropDownListFor(model => model.TariffID, Model.Tariffs ?? new List<SelectListItem>(), L.T("Select"), new { @class = "form-control select2", @id = "tariffSelect" })
                                             @Html.ValidationMessageFor(model => model.TariffID, "", new { @class = "text-danger" })
                                         </div>
                                     </div>
 
                                     <div class="mb-1 mt-1">
-                                        <h5 class="text-primary mb-0">Marshrut</h5>
-                                        <small class="text-muted">Qayerdan va qayerga yetkazilishi.</small>
+                                        <h5 class="text-primary mb-0">@L.T("Log_Route")</h5>
+                                        <small class="text-muted">@L.T("Log_RouteHint")</small>
                                     </div>
                                     <div class="mb-1 mt-1">
-                                        <h5 class="text-primary mb-0">Yuk parametrlari</h5>
-                                        <small class="text-muted">Vazn, hajm va palletlar soni.</small>
+                                        <h5 class="text-primary mb-0">@L.T("Log_CargoParams")</h5>
+                                        <small class="text-muted">@L.T("Log_CargoParamsHint")</small>
                                     </div>
                                     <div class="row mt-1">
                                         <div class="col-md-4">
-                                            <label>Qayerdan</label>
-                                            @Html.TextBoxFor(model => model.FromLocation, new { @class = "form-control", @placeholder = "Manzil" })
+                                            <label>@L.T("Log_From")</label>
+                                            @Html.TextBoxFor(model => model.FromLocation, new { @class = "form-control", @placeholder = L.T("Address") })
                                         </div>
                                         <div class="col-md-4">
-                                            <label>Qayerga</label>
-                                            @Html.TextBoxFor(model => model.ToLocation, new { @class = "form-control", @placeholder = "Manzil" })
+                                            <label>@L.T("Log_To")</label>
+                                            @Html.TextBoxFor(model => model.ToLocation, new { @class = "form-control", @placeholder = L.T("Address") })
                                         </div>
                                         <div class="col-md-4">
-                                            <label>Masofa (km)</label>
+                                            <label>@L.T("Log_DistanceKm")</label>
                                             @Html.TextBoxFor(model => model.DistanceKm, "{0:0.######}", new { @class = "form-control", @placeholder = "0.00" })
                                         </div>
                                     </div>
 
                                     <div class="row mt-1">
                                         <div class="col-md-3">
-                                            <label>Brut vazn (ton)</label>
+                                            <label>@L.T("Log_GrossWeightTon")</label>
                                             @Html.TextBoxFor(model => model.GrWeight, "{0:0.######}", new { @class = "form-control", @placeholder = "0.00" })
                                         </div>
                                         <div class="col-md-3">
-                                            <label>Net vazn (ton)</label>
+                                            <label>@L.T("Log_NetWeightTon")</label>
                                             @Html.TextBoxFor(model => model.NetWeight, "{0:0.######}", new { @class = "form-control", @placeholder = "0.00" })
                                         </div>
                                         <div class="col-md-3">
@@ -146,100 +146,100 @@
                                             @Html.TextBoxFor(model => model.CBM, "{0:0.######}", new { @class = "form-control", @placeholder = "0.00" })
                                         </div>
                                         <div class="col-md-3">
-                                            <label>Palletlar soni</label>
+                                            <label>@L.T("Log_PalletsCount")</label>
                                             @Html.TextBoxFor(model => model.PalletsCount, new { @class = "form-control", @placeholder = "0" })
                                         </div>
                                     </div>
 
                                     <hr />
                                     <div class="mb-1">
-                                        <h5 class="text-primary mb-0">Tarif va summa</h5>
-                                        <small class="text-muted">@LogisticsTerms.TariffBasis va yakuniy summa.</small>
+                                        <h5 class="text-primary mb-0">@L.T("Log_TariffAmount")</h5>
+                                        <small class="text-muted">@L.T("Log_TariffAmountHint")</small>
                                     </div>
 
                                     <div class="row">
                                         <div class="col-md-4">
                                             <label>@LogisticsTerms.TariffBasis</label>
-                                            @Html.DropDownListFor(model => model.FreightBasis, LogisticsEnums.FreightBasisList(), "Tanlang", new { @class = "form-control", @id = "freightBasisSelect" })
+                                            @Html.DropDownListFor(model => model.FreightBasis, LogisticsEnums.FreightBasisList(), L.T("Select"), new { @class = "form-control", @id = "freightBasisSelect" })
                                         </div>
                                         <div class="col-md-4">
                                             <label>@LogisticsTerms.TariffRate</label>
                                             @Html.TextBoxFor(model => model.Rate, "{0:0.######}", new { @class = "form-control", @placeholder = "0.00", @id = "rateInput" })
                                         </div>
                                         <div class="col-md-4">
-                                            <label>Jami summa</label>
+                                            <label>@L.T("Log_TotalAmount")</label>
                                             @Html.TextBoxFor(model => model.Amount, "{0:0.######}", new { @class = "form-control", @placeholder = "0.00", @id = "amountInput" })
                                         </div>
                                     </div>
 
                                     <div class="row mt-1">
                                         <div class="col-md-4">
-                                            <label>To'lovchi</label>
-                                            @Html.DropDownListFor(model => model.PayerType, LogisticsEnums.PayerTypeList(), "Tanlang", new { @class = "form-control" })
+                                            <label>@L.T("Log_Payer")</label>
+                                            @Html.DropDownListFor(model => model.PayerType, LogisticsEnums.PayerTypeList(), L.T("Select"), new { @class = "form-control" })
                                         </div>
                                         <div class="col-md-4">
-                                            <label>To'lovchi ID</label>
+                                            <label>@L.T("Log_PayerId")</label>
                                             @Html.TextBoxFor(model => model.PayerID, new { @class = "form-control", @placeholder = "ID" })
                                         </div>
                                         <div class="col-md-4">
                                             <label>TTNK</label>
-                                            @Html.DropDownListFor(model => model.TTNKID, Model.TTNKs, "Tanlang", new { @class = "form-control waybill-doc-select", data_doc_type = "ttnk" })
+                                            @Html.DropDownListFor(model => model.TTNKID, Model.TTNKs, L.T("Select"), new { @class = "form-control waybill-doc-select", data_doc_type = "ttnk" })
                                         </div>
                                     </div>
 
                                     <hr />
                                     <div class="mb-1">
-                                        <h5 class="text-primary mb-0">Bog'langan hujjatlar</h5>
-                                        <small class="text-muted">Xarid/sotuv hujjatlari bilan bog'lash.</small>
+                                        <h5 class="text-primary mb-0">@L.T("Log_LinkedDocs")</h5>
+                                        <small class="text-muted">@L.T("Log_LinkedDocsHint")</small>
                                     </div>
 
                                     <div class="row">
                                         <div class="col-md-3">
-                                            <label>Xarid invoysi</label>
-                                            @Html.DropDownListFor(model => model.InvoiceID, Model.PurchaseInvoices, "Tanlang", new { @class = "form-control waybill-doc-select", @id = "purchaseInvoiceSelect", data_doc_type = "pinvoice" })
+                                            <label>@L.T("Log_PurchaseInvoice")</label>
+                                            @Html.DropDownListFor(model => model.InvoiceID, Model.PurchaseInvoices, L.T("Select"), new { @class = "form-control waybill-doc-select", @id = "purchaseInvoiceSelect", data_doc_type = "pinvoice" })
                                         </div>
                                         <div class="col-md-3">
-                                            <label>Sotuv invoysi</label>
-                                            @Html.DropDownListFor(model => model.SalesInvoiceID, Model.SalesInvoices, "Tanlang", new { @class = "form-control waybill-doc-select", @id = "salesInvoiceSelect", data_doc_type = "sinvoice" })
+                                            <label>@L.T("Log_SalesInvoice")</label>
+                                            @Html.DropDownListFor(model => model.SalesInvoiceID, Model.SalesInvoices, L.T("Select"), new { @class = "form-control waybill-doc-select", @id = "salesInvoiceSelect", data_doc_type = "sinvoice" })
                                         </div>
                                         <div class="col-md-3">
-                                            <label>Sotuv buyurtmasi</label>
-                                            @Html.DropDownListFor(model => model.SalesOrderID, Model.SalesOrders, "Tanlang", new { @class = "form-control waybill-doc-select", data_doc_type = "sorder" })
+                                            <label>@L.T("Log_SalesOrder")</label>
+                                            @Html.DropDownListFor(model => model.SalesOrderID, Model.SalesOrders, L.T("Select"), new { @class = "form-control waybill-doc-select", data_doc_type = "sorder" })
                                         </div>
                                         <div class="col-md-3">
-                                            <label>Xarid buyurtmasi</label>
-                                            @Html.DropDownListFor(model => model.PurchaseOrderID, Model.PurchaseOrders, "Tanlang", new { @class = "form-control waybill-doc-select", data_doc_type = "porder" })
+                                            <label>@L.T("Log_PurchaseOrder")</label>
+                                            @Html.DropDownListFor(model => model.PurchaseOrderID, Model.PurchaseOrders, L.T("Select"), new { @class = "form-control waybill-doc-select", data_doc_type = "porder" })
                                         </div>
                                     </div>
 
                                     <hr />
                                     <div class="mb-1">
-                                        <h5 class="text-primary mb-0">Transport va haydovchi</h5>
-                                        <small class="text-muted">Avtomobil va haydovchi ma'lumotlari.</small>
+                                        <h5 class="text-primary mb-0">@L.T("Log_TransportDriver")</h5>
+                                        <small class="text-muted">@L.T("Log_TransportDriverHint")</small>
                                     </div>
 
                                     <div class="row">
                                         <div class="col-md-3">
-                                            <label>Mashina raqami</label>
+                                            <label>@L.T("Log_TruckNo")</label>
                                             @Html.TextBoxFor(model => model.TruckNo, new { @class = "form-control" })
                                         </div>
                                         <div class="col-md-3">
-                                            <label>Traler raqami</label>
+                                            <label>@L.T("Log_TrailerNo")</label>
                                             @Html.TextBoxFor(model => model.TrailerNo, new { @class = "form-control" })
                                         </div>
                                         <div class="col-md-3">
-                                            <label>Mashina modeli</label>
+                                            <label>@L.T("Log_TruckModel")</label>
                                             @Html.TextBoxFor(model => model.TruckModel, new { @class = "form-control" })
                                         </div>
                                         <div class="col-md-3">
-                                            <label>Traler modeli</label>
+                                            <label>@L.T("Log_TrailerModel")</label>
                                             @Html.TextBoxFor(model => model.TrailerModel, new { @class = "form-control" })
                                         </div>
                                     </div>
 
                                     <div class="row mt-1">
                                         <div class="col-md-4">
-                                            <label>Haydovchi</label>
+                                            <label>@L.T("Log_Driver")</label>
                                             @Html.TextBoxFor(model => model.DriverName, new { @class = "form-control" })
                                         </div>
                                         <div class="col-md-4">
@@ -247,25 +247,25 @@
                                             @Html.TextBoxFor(model => model.DriverPINFL, new { @class = "form-control" })
                                         </div>
                                         <div class="col-md-4">
-                                            <label>Rejalashtirilgan yetkazish</label>
+                                            <label>@L.T("Log_PlannedDelivery")</label>
                                             @Html.TextBoxFor(model => model.PlannedDeliveryDate, "{0:yyyy-MM-dd}", new { @class = "form-control", @type = "date" })
                                         </div>
                                     </div>
 
                                     <div class="row mt-1">
                                         <div class="col-md-4">
-                                            <label>Haqiqiy yetkazish</label>
+                                            <label>@L.T("Log_ActualDelivery")</label>
                                             @Html.TextBoxFor(model => model.ActualDeliveryDate, "{0:yyyy-MM-dd}", new { @class = "form-control", @type = "date" })
                                         </div>
                                         <div class="col-md-8">
-                                            <label>Izoh</label>
+                                            <label>@L.T("Comment")</label>
                                             @Html.TextAreaFor(model => model.Description, new { @class = "form-control", @rows = 2 })
                                         </div>
                                     </div>
 
                                     <div class="row mt-1">
                                         <div class="col-md-12">
-                                            <label>Qo'lda tuzatish sababi</label>
+                                            <label>@L.T("Log_ManualCorrectionReason")</label>
                                             @Html.TextAreaFor(model => model.ManualCorrectionReason, new { @class = "form-control", @rows = 2 })
                                         </div>
                                     </div>
@@ -273,9 +273,9 @@
                                     <div class="row mt-2">
                                         <div class="col-md-12">
                                             <button class="btn btn-primary" type="submit">
-                                                <i class="bx bx-save"></i> Saqlash
+                                                <i class="bx bx-save"></i> @L.T("Save")
                                             </button>
-                                            <a href="@Url.Action("Index", "Waybill")" class="btn btn-outline-secondary ml-1">Bekor qilish</a>
+                                            <a href="@Url.Action("Index", "Waybill")" class="btn btn-outline-secondary ml-1">@L.T("Cancel")</a>
                                         </div>
                                     </div>
                                     <hr />

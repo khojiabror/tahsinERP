@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using tahsinERP.I18n;
 
 namespace tahsinERP.Services.Crm.EDocuments
 {
@@ -84,7 +85,7 @@ namespace tahsinERP.Services.Crm.EDocuments
     public sealed class InternalEDocumentProvider : IEDocumentProvider
     {
         public string Code => EDocumentSettings.InternalCode;
-        public string Title => "Ichki (faqat tahsinERP)";
+        public string Title => L.T("Crm_EdocProviderInternal");
         public bool IsExternal => false;
         public bool IsConfigured => true;
 
@@ -105,7 +106,7 @@ namespace tahsinERP.Services.Crm.EDocuments
 
         private static EDocumentResult Local()
         {
-            return new EDocumentResult { Success = true, Status = EDocumentStatus.Local, Message = "Hujjat tizim ichida saqlangan." };
+            return new EDocumentResult { Success = true, Status = EDocumentStatus.Local, Message = L.T("Crm_EdocStoredLocally") };
         }
     }
 
@@ -146,7 +147,7 @@ namespace tahsinERP.Services.Crm.EDocuments
         {
             var path = Setting("WaybillPath");
             if (string.IsNullOrEmpty(path))
-                return Task.FromResult(EDocumentResult.Fail(Title + ": TTN yuborish manzili (EDoc:" + SettingsPrefix + ":WaybillPath) sozlanmagan."));
+                return Task.FromResult(EDocumentResult.Fail(L.T("Crm_EdocWaybillPathMissing", Title, "EDoc:" + SettingsPrefix + ":WaybillPath")));
             return PostAsync(path, MapWaybill(document));
         }
 
@@ -154,9 +155,9 @@ namespace tahsinERP.Services.Crm.EDocuments
         {
             var path = Setting("StatusPath");
             if (!IsConfigured || string.IsNullOrEmpty(path))
-                return EDocumentResult.Fail(Title + ": holat so'rash manzili (EDoc:" + SettingsPrefix + ":StatusPath) sozlanmagan.");
+                return EDocumentResult.Fail(L.T("Crm_EdocStatusPathMissing", Title, "EDoc:" + SettingsPrefix + ":StatusPath"));
             if (string.IsNullOrEmpty(externalId))
-                return EDocumentResult.Fail("Hujjat hali provayderga yuborilmagan.");
+                return EDocumentResult.Fail(L.T("Crm_EdocNotSentYet"));
 
             var url = Combine(path.Replace("{id}", Uri.EscapeDataString(externalId)).Replace("{kind}", KindSegment(kind)));
             try
@@ -175,7 +176,7 @@ namespace tahsinERP.Services.Crm.EDocuments
             }
             catch (Exception ex)
             {
-                return EDocumentResult.Fail(Title + " bilan aloqa xatosi: " + ex.GetBaseException().Message);
+                return EDocumentResult.Fail(L.T("Crm_EdocConnectionError", Title, ex.GetBaseException().Message));
             }
         }
 
@@ -216,7 +217,7 @@ namespace tahsinERP.Services.Crm.EDocuments
 
             var message = Pick("message", "error", "errorMessage", "data.message") ?? (json == null ? Truncate(body, 300) : null);
             if (!httpSuccess)
-                return EDocumentResult.Fail(Title + " xato qaytardi: " + (message ?? "noma'lum xato"));
+                return EDocumentResult.Fail(L.T("Crm_EdocProviderReturnedError", Title, message ?? L.T("Crm_EdocUnknownError")));
 
             var status = (Pick("status", "doc_status", "data.status", "state") ?? "").ToUpperInvariant();
             return new EDocumentResult
@@ -240,7 +241,7 @@ namespace tahsinERP.Services.Crm.EDocuments
         private async Task<EDocumentResult> PostAsync(string path, object payload)
         {
             if (!IsConfigured)
-                return EDocumentResult.Fail(Title + " ulanishi sozlanmagan (EDoc:" + SettingsPrefix + ":BaseUrl / :Token / :InvoicePath).");
+                return EDocumentResult.Fail(L.T("Crm_EdocProviderNotConfigured", Title, "EDoc:" + SettingsPrefix + ":BaseUrl / :Token / :InvoicePath"));
 
             try
             {
@@ -257,7 +258,7 @@ namespace tahsinERP.Services.Crm.EDocuments
             }
             catch (Exception ex)
             {
-                return EDocumentResult.Fail(Title + " bilan aloqa xatosi: " + ex.GetBaseException().Message);
+                return EDocumentResult.Fail(L.T("Crm_EdocConnectionError", Title, ex.GetBaseException().Message));
             }
         }
 

@@ -6,30 +6,30 @@ namespace tahsinERP.ViewModels
     {
         public int ID { get; set; }
 
-        [Required]
-        [Display(Name = "Ombor")]
+        [Required(ErrorMessage = "Val_Required")]
+        [Display(Name = "Wh_Warehouse")]
         public int WarehouseID { get; set; }
 
-        [Required]
-        [Display(Name = "Joy kodi (DLOC)")]
+        [Required(ErrorMessage = "Val_Required")]
+        [Display(Name = "Wh_Loc_CodeDloc")]
         public string LocationCode { get; set; }
 
-        [Display(Name = "Nomi")]
+        [Display(Name = "Name")]
         public string LocationName { get; set; }
 
-        [Display(Name = "Min sig‘im")]
+        [Display(Name = "Wh_Loc_MinCapacity")]
         public decimal MinCapacity { get; set; }
 
-        [Display(Name = "Max sig‘im")]
+        [Display(Name = "Wh_Loc_MaxCapacity")]
         public decimal MaxCapacity { get; set; }
 
-        [Display(Name = "Lot aralashtirish")]
+        [Display(Name = "Wh_Loc_MixLots")]
         public bool AllowMixedLots { get; set; }
 
-        [Display(Name = "Mahsulot aralashtirish")]
+        [Display(Name = "Wh_Loc_MixProducts")]
         public bool AllowMixedProducts { get; set; }
 
-        [Display(Name = "Faol")]
+        [Display(Name = "Active")]
         public bool IsActive { get; set; } = true;
     }
 }

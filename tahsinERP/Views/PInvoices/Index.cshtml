@@ -1,5 +1,5 @@
 @{
-    ViewBag.Title = "Xarid invoyslari";
+    ViewBag.Title = L.T("Menu_PurchaseInvoices");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -19,7 +19,7 @@
                                         <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                     </li>
                                     <li class="breadcrumb-item active">
-                                        Xarid invoyslari
+                                        @L.T("Menu_PurchaseInvoices")
                                     </li>
                                 </ol>
                             </div>
@@ -33,7 +33,7 @@
                     {
                         <div class="invoice-create-btn mb-1">
                             <a href="@Url.Action("Create", "PInvoices")" class="btn btn-success bg-light invoice-create" role="button" aria-pressed="true">
-                                <i class="bx bx-plus"></i> Yangi invoys
+                                <i class="bx bx-plus"></i> @L.T("Srm_NewInvoice")
                             </a>
                         </div>
                     }
@@ -44,35 +44,35 @@
                             {
                                 <div class="row">
                                     <div class="col-md-2 form-group mb-1">
-                                        <label for="purchaseTypeFilter">Xarid turi</label>
+                                        <label for="purchaseTypeFilter">@L.T("Srm_PurchaseType")</label>
                                         @Html.DropDownList("purchaseTypeFilter", new SelectList(new[]
                                         {
-                                            new { Value = "", Text = "Barchasi" },
-                                            new { Value = "Direct", Text = "Direct Purchase" },
-                                            new { Value = "Indirect", Text = "Indirect Purchase" }
+                                            new { Value = "", Text = L.T("All") },
+                                            new { Value = "Direct", Text = L.T("Srm_DirectPurchase") },
+                                            new { Value = "Indirect", Text = L.T("Srm_IndirectPurchase") }
                                         }, "Value", "Text", ViewBag.PurchaseTypeFilter), new { @class = "form-control" })
                                     </div>
                                     <div class="col-md-3 form-group mb-1">
-                                        <label for="supplierID">Ta'minotchi</label>
-                                        @Html.DropDownList("supplierID", ViewBag.Suppliers as SelectList, "Barchasi", new { @class = "form-control" })
+                                        <label for="supplierID">@L.T("Srm_Supplier")</label>
+                                        @Html.DropDownList("supplierID", ViewBag.Suppliers as SelectList, L.T("All"), new { @class = "form-control" })
                                     </div>
                                     <div class="col-md-3 form-group mb-1">
-                                        <label for="contractID">Shartnoma</label>
-                                        @Html.DropDownList("contractID", ViewBag.Contracts as SelectList, "Barchasi", new { @class = "form-control" })
+                                        <label for="contractID">@L.T("Srm_Contract")</label>
+                                        @Html.DropDownList("contractID", ViewBag.Contracts as SelectList, L.T("All"), new { @class = "form-control" })
                                     </div>
                                     <div class="col-md-2 form-group mb-1">
-                                        <label for="fromDate">Dan</label>
+                                        <label for="fromDate">@L.T("Srm_From")</label>
                                         <input type="date" id="fromDate" name="fromDate" class="form-control" value="@(ViewBag.FromDate != null ? ((DateTime)ViewBag.FromDate).ToString("yyyy-MM-dd") : "")" />
                                     </div>
                                     <div class="col-md-2 form-group mb-1">
-                                        <label for="toDate">Gacha</label>
+                                        <label for="toDate">@L.T("Srm_To")</label>
                                         <input type="date" id="toDate" name="toDate" class="form-control" value="@(ViewBag.ToDate != null ? ((DateTime)ViewBag.ToDate).ToString("yyyy-MM-dd") : "")" />
                                     </div>
                                 </div>
                                 <div class="row">
                                     <div class="col-md-12">
-                                        <button type="submit" class="btn btn-primary btn-sm mr-1"><i class="bx bx-filter"></i> Filtrlash</button>
-                                        <a href="@Url.Action("Index", "PInvoices")" class="btn btn-outline-secondary btn-sm">Tozalash</a>
+                                        <button type="submit" class="btn btn-primary btn-sm mr-1"><i class="bx bx-filter"></i> @L.T("Filter")</button>
+                                        <a href="@Url.Action("Index", "PInvoices")" class="btn btn-outline-secondary btn-sm">@L.T("Reset")</a>
                                     </div>
                                 </div>
                             }
@@ -87,16 +87,16 @@
                                         <table id="pInvoicesTable" class="table dt-responsive nowrap" style="width:100%">
                                             <thead>
                                                 <tr>
-                                                    <th>Invoys raqami</th>
-                                                    <th>Ta'minotchi</th>
-                                                    <th>Turi</th>
-                                                    <th>Buyurtma raqami</th>
-                                                    <th>Shartnoma raqami</th>
-                                                    <th>Invoys summasi (QQS bilan)</th>
-                                                    <th>Sana</th>
+                                                    <th>@L.T("Srm_InvoiceNo")</th>
+                                                    <th>@L.T("Srm_Supplier")</th>
+                                                    <th>@L.T("Type")</th>
+                                                    <th>@L.T("Srm_OrderNo")</th>
+                                                    <th>@L.T("Srm_ContractNo")</th>
+                                                    <th>@L.T("Srm_InvoiceAmountWithVat")</th>
+                                                    <th>@L.T("Date")</th>
                                                     @if (changePermit)
                                                     {
-                                                        <th>Amallar</th>
+                                                        <th>@L.T("Actions")</th>
                                                     }
                                                 </tr>
                                             </thead>
@@ -143,9 +143,9 @@
                 columns.push({
                     data: null, orderable: false, render: function (v, t, r) {
                         return '<div class="d-flex">' +
-                            '<a href="' + detailsUrl + r.id + '" class="btn btn-sm btn-icon btn-outline-primary mr-1" title="Ko&#39;rish"><i class="bx bx-show"></i></a>' +
-                            '<a href="' + editUrl + r.id + '" class="btn btn-sm btn-icon btn-outline-warning mr-1" title="Tahrirlash"><i class="bx bx-edit-alt"></i></a>' +
-                            '<a href="' + deleteUrl + r.id + '" class="btn btn-sm btn-icon btn-outline-danger" title="O&#39;chirish" onclick="return confirm(&quot;Ushbu invoysni o&#39;chirishni tasdiqlaysizmi?&quot;);"><i class="bx bx-trash"></i></a>' +
+                            '<a href="' + detailsUrl + r.id + '" class="btn btn-sm btn-icon btn-outline-primary mr-1" title="@L.Js("View")"><i class="bx bx-show"></i></a>' +
+                            '<a href="' + editUrl + r.id + '" class="btn btn-sm btn-icon btn-outline-warning mr-1" title="@L.Js("Edit")"><i class="bx bx-edit-alt"></i></a>' +
+                            '<a href="' + deleteUrl + r.id + '" class="btn btn-sm btn-icon btn-outline-danger" title="@L.Js("Delete")" onclick="return confirm(&quot;@L.Js("Srm_ConfirmDeleteInvoiceShort")&quot;);"><i class="bx bx-trash"></i></a>' +
                             '</div>';
                     }
                 });

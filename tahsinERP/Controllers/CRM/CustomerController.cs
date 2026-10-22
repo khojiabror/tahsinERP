@@ -7,6 +7,7 @@ using System.Net;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using tahsinERP.Filters;
+using tahsinERP.I18n;
 using tahsinERP.Models;
 using tahsinERP.Services.Common;
 using tahsinERP.Services.Crm;
@@ -39,18 +40,18 @@ namespace tahsinERP.Controllers
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
                 var rows = BuildIndexQuery(db, searchTerm, sortOrder).ToList();
-                var bytes = ExcelExport.Create("Haridorlar", rows,
-                    ExcelExport.Col<CUSTOMER>("Haridor", c => c.Name),
-                    ExcelExport.Col<CUSTOMER>("Elektron manzil", c => c.Email),
+                var bytes = ExcelExport.Create(L.T("Menu_Customers"), rows,
+                    ExcelExport.Col<CUSTOMER>(L.T("Crm_Customer"), c => c.Name),
+                    ExcelExport.Col<CUSTOMER>(L.T("Crm_CustEmail"), c => c.Email),
                     ExcelExport.Col<CUSTOMER>("DUNS", c => c.DUNS),
-                    ExcelExport.Col<CUSTOMER>("Turi", c => c.Type),
-                    ExcelExport.Col<CUSTOMER>("Davlat", c => c.Country),
-                    ExcelExport.Col<CUSTOMER>("Shahar", c => c.City),
-                    ExcelExport.Col<CUSTOMER>("Manzil", c => c.Address),
-                    ExcelExport.Col<CUSTOMER>("Telefon", c => c.Telephone),
-                    ExcelExport.Col<CUSTOMER>("Mas'ul shaxs", c => c.ContactPersonName),
-                    ExcelExport.Col<CUSTOMER>("Direktor", c => c.DirectorName));
-                return File(bytes, ExcelExport.ContentType, $"Haridorlar_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx");
+                    ExcelExport.Col<CUSTOMER>(L.T("Type"), c => c.Type),
+                    ExcelExport.Col<CUSTOMER>(L.T("Crm_CustCountry"), c => c.Country),
+                    ExcelExport.Col<CUSTOMER>(L.T("Crm_CustCity"), c => c.City),
+                    ExcelExport.Col<CUSTOMER>(L.T("Address"), c => c.Address),
+                    ExcelExport.Col<CUSTOMER>(L.T("Phone"), c => c.Telephone),
+                    ExcelExport.Col<CUSTOMER>(L.T("Crm_CustContactPerson"), c => c.ContactPersonName),
+                    ExcelExport.Col<CUSTOMER>(L.T("Crm_CustDirector"), c => c.DirectorName));
+                return File(bytes, ExcelExport.ContentType, $"{L.T("Menu_Customers")}_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx");
             }
         }
 
@@ -134,7 +135,7 @@ namespace tahsinERP.Controllers
                 }
                 catch (Exception ex)
                 {
-                    ModelState.AddModelError("", "Xatolik: " + InnermostMessage(ex));
+                    ModelState.AddModelError("", L.T("Crm_ErrorPrefix", InnermostMessage(ex)));
                 }
 
                 ViewBag.Customer = ConfigurationManager.AppSettings["Customer"]?.Split(',').ToList() ?? new List<string>();

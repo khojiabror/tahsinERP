@@ -1,6 +1,6 @@
 @using System.Linq
 @{
-    ViewBag.Title = "Ombor kirimlari";
+    ViewBag.Title = L.T("Wh_IncListTitle");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -24,7 +24,7 @@
                                     <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                 </li>
                                 <li class="breadcrumb-item active">
-                                    Ombor kirimlari
+                                    @L.T("Wh_IncListTitle")
                                 </li>
                             </ol>
                         </div>
@@ -52,7 +52,7 @@
                 {
                     <div class="invoice-create-btn mb-1">
                         <a href="@Url.Action("Create", "Incomes")" class="btn btn-success bg-light invoice-create" role="button" aria-pressed="true">
-                            <i class="bx bx-plus"></i> Yangi kirim
+                            <i class="bx bx-plus"></i> @L.T("Wh_NewIncome")
                         </a>
                     </div>
                 }
@@ -62,28 +62,28 @@
                     {
                         <div class="row border rounded py-2 mb-2">
                             <div class="col-12 col-sm-6 col-lg-2">
-                                <label>Ombor</label>
-                                @Html.DropDownList("warehouseId", ViewBag.Warehouses as SelectList, "Barchasi", new { @class = "form-control" })
+                                <label>@L.T("Wh_Warehouse")</label>
+                                @Html.DropDownList("warehouseId", ViewBag.Warehouses as SelectList, L.T("All"), new { @class = "form-control" })
                             </div>
                             <div class="col-12 col-sm-6 col-lg-2">
-                                <label>Status</label>
+                                <label>@L.T("Status")</label>
                                 <select name="status" class="form-control">
-                                    <option value="">Barchasi</option>
-                                    <option value="1" @(ViewBag.Status != null && (int)ViewBag.Status == 1 ? "selected" : "")>Qabul qilingan</option>
-                                    <option value="0" @(ViewBag.Status != null && (int)ViewBag.Status == 0 ? "selected" : "")>Kutilmoqda</option>
+                                    <option value="">@L.T("All")</option>
+                                    <option value="1" @(ViewBag.Status != null && (int)ViewBag.Status == 1 ? "selected" : "")>@L.T("Wh_StReceived")</option>
+                                    <option value="0" @(ViewBag.Status != null && (int)ViewBag.Status == 0 ? "selected" : "")>@L.T("Wh_StPending")</option>
                                 </select>
                             </div>
                             <div class="col-12 col-sm-6 col-lg-2">
-                                <label>Sanadan</label>
+                                <label>@L.T("DateFrom")</label>
                                 <input type="date" name="fromDate" class="form-control" value="@(fromDate.HasValue ? fromDate.Value.ToString("yyyy-MM-dd") : "")" />
                             </div>
                             <div class="col-12 col-sm-6 col-lg-2">
-                                <label>Sanagacha</label>
+                                <label>@L.T("DateTo")</label>
                                 <input type="date" name="toDate" class="form-control" value="@(toDate.HasValue ? toDate.Value.ToString("yyyy-MM-dd") : "")" />
                             </div>
                             <div class="col-12 col-sm-6 col-lg-2 d-flex align-items-end">
                                 <button type="submit" class="btn btn-primary w-100">
-                                    <i class="bx bx-search"></i> Qidirish
+                                    <i class="bx bx-search"></i> @L.T("Search")
                                 </button>
                             </div>
                         </div>
@@ -98,15 +98,15 @@
                                     <table id="incomesTable" class="table table-striped table-bordered nowrap" style="width:100%">
                                         <thead>
                                             <tr>
-                                                <th>Hujjat raqami</th>
-                                                <th>Invoys raqami</th>
-                                                <th>Ombor</th>
-                                                <th>Jami summa</th>
-                                                <th>Status</th>
-                                                <th>Sana</th>
+                                                <th>@L.T("Wh_DocNo")</th>
+                                                <th>@L.T("Wh_InvoiceNo")</th>
+                                                <th>@L.T("Wh_Warehouse")</th>
+                                                <th>@L.T("Wh_TotalAmount")</th>
+                                                <th>@L.T("Status")</th>
+                                                <th>@L.T("Date")</th>
                                                 @if (changePermit)
                                                 {
-                                                    <th>Amallar</th>
+                                                    <th>@L.T("Actions")</th>
                                                 }
                                             </tr>
                                         </thead>
@@ -134,7 +134,7 @@
                 { data: 'invoiceNo', render: function (v, t, r) { return r.invoiceId ? '<a href="' + invoiceUrl + r.invoiceId + '">' + srmEsc(v) + '</a>' : '<span class="text-muted">-</span>'; } },
                 { data: 'warehouse', render: function (v) { return srmEsc(v || '-'); } },
                 { data: 'total' },
-                { data: 'received', render: function (v) { return v ? '<span class="badge badge-success">Qabul qilingan</span>' : '<span class="badge badge-warning">Kutilmoqda</span>'; } },
+                { data: 'received', render: function (v) { return v ? '<span class="badge badge-success">@L.Js("Wh_StReceived")</span>' : '<span class="badge badge-warning">@L.Js("Wh_StPending")</span>'; } },
                 { data: 'date' }
             ];
             @if (changePermit)
@@ -142,12 +142,12 @@
                 <text>
                 columns.push({
                     data: null, orderable: false, render: function (v, t, r) {
-                        var html = '<div class="d-flex"><a href="' + detailsUrl + r.id + '" class="btn btn-sm btn-icon btn-outline-primary mr-1" title="Ko&#39;rish"><i class="bx bx-show"></i></a>';
+                        var html = '<div class="d-flex"><a href="' + detailsUrl + r.id + '" class="btn btn-sm btn-icon btn-outline-primary mr-1" title="@L.Js("View")"><i class="bx bx-show"></i></a>';
                         if (r.canModify && !r.received) {
-                            html += '<a href="' + editUrl + r.id + '" class="btn btn-sm btn-icon btn-outline-warning mr-1" title="Tahrirlash"><i class="bx bx-edit-alt"></i></a>';
+                            html += '<a href="' + editUrl + r.id + '" class="btn btn-sm btn-icon btn-outline-warning mr-1" title="@L.Js("Edit")"><i class="bx bx-edit-alt"></i></a>';
                         }
                         if (r.canModify) {
-                            html += '<a href="' + deleteUrl + r.id + '" class="btn btn-sm btn-icon btn-outline-danger" title="O&#39;chirish"><i class="bx bx-trash"></i></a>';
+                            html += '<a href="' + deleteUrl + r.id + '" class="btn btn-sm btn-icon btn-outline-danger" title="@L.Js("Delete")"><i class="bx bx-trash"></i></a>';
                         }
                         return html + '</div>';
                     }

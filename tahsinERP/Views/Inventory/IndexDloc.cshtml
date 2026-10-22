@@ -1,6 +1,6 @@
 @model List<tahsinERP.Services.DlocFifo.InventoryDlocStockRow>
 @{
-    ViewBag.Title = "Joylar bo'yicha qoldiq (DLOC)";
+    ViewBag.Title = L.T("Wh_Dl_Title");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -17,10 +17,10 @@
                                     <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                 </li>
                                 <li class="breadcrumb-item">
-                                    <a href="@Url.Action("Index", "Inventory")">Ombor qoldiqlari</a>
+                                    <a href="@Url.Action("Index", "Inventory")">@L.T("Wh_StockTitle")</a>
                                 </li>
                                 <li class="breadcrumb-item active">
-                                    Joylar bo'yicha qoldiq
+                                    @L.T("Wh_StockByLocation")
                                 </li>
                             </ol>
                         </div>
@@ -33,19 +33,19 @@
                 <div class="row mb-2">
                     <div class="col-12 d-flex flex-wrap">
                         <a href="@Url.Action("Index", "Inventory")" class="btn btn-secondary mr-1 mb-1">
-                            <i class="bx bx-arrow-back"></i> Umumiy qoldiq
+                            <i class="bx bx-arrow-back"></i> @L.T("Wh_TotalStock")
                         </a>
                         <a href="@Url.Action("Create", "Incomes")" class="btn btn-success mr-1 mb-1">
-                            <i class="bx bx-log-in-circle"></i> Kirimga o'tish
+                            <i class="bx bx-log-in-circle"></i> @L.T("Wh_GoToIncome")
                         </a>
                         <a href="@Url.Action("Create", "Expenses")" class="btn btn-danger mr-1 mb-1">
-                            <i class="bx bx-log-out-circle"></i> Chiqimga o'tish
+                            <i class="bx bx-log-out-circle"></i> @L.T("Wh_GoToExpense")
                         </a>
                         <a href="@Url.Action("AssignDloc", "Inventory")" class="btn btn-warning mr-1 mb-1">
-                            <i class="bx bx-map-pin"></i> DLOC ga joylashtirish
+                            <i class="bx bx-map-pin"></i> @L.T("Wh_AssignToDloc")
                         </a>
                         <a href="@Url.Action("Index", "WarehouseLocations")" class="btn btn-outline-primary mb-1">
-                            <i class="bx bx-grid-alt"></i> DLOC sozlamalari
+                            <i class="bx bx-grid-alt"></i> @L.T("Wh_DlocSettings")
                         </a>
                     </div>
                 </div>
@@ -64,31 +64,31 @@
                     {
                         <div class="row border rounded py-2 mb-2">
                             <div class="col-12 col-sm-6 col-lg-3">
-                                <label>Ombor</label>
-                                @Html.DropDownList("warehouseId", ViewBag.Warehouses as SelectList, "Barchasi", new { @class = "form-control" })
+                                <label>@L.T("Wh_Warehouse")</label>
+                                @Html.DropDownList("warehouseId", ViewBag.Warehouses as SelectList, L.T("All"), new { @class = "form-control" })
                             </div>
                             <div class="col-12 col-sm-6 col-lg-3">
-                                <label>Kategoriya</label>
-                                @Html.DropDownList("categoryId", ViewBag.Categories as SelectList, "Barchasi", new { @class = "form-control" })
+                                <label>@L.T("Category")</label>
+                                @Html.DropDownList("categoryId", ViewBag.Categories as SelectList, L.T("All"), new { @class = "form-control" })
                             </div>
                             <div class="col-12 col-sm-6 col-lg-2">
-                                <label>Mahsulot turi</label>
+                                <label>@L.T("Wh_ProductType")</label>
                                 <select name="isFinishedGood" class="form-control">
-                                    <option value="">Barchasi</option>
-                                    <option value="true" @(ViewBag.IsFinishedGood == true ? "selected" : "")>Tayyor mahsulot</option>
-                                    <option value="false" @(ViewBag.IsFinishedGood == false ? "selected" : "")>Xom ashyo</option>
+                                    <option value="">@L.T("All")</option>
+                                    <option value="true" @(ViewBag.IsFinishedGood == true ? "selected" : "")>@L.T("Wh_FinishedGood")</option>
+                                    <option value="false" @(ViewBag.IsFinishedGood == false ? "selected" : "")>@L.T("Wh_RawMaterial")</option>
                                 </select>
                             </div>
                             <div class="col-12 col-sm-6 col-lg-2">
-                                <label>Xom ashyo</label>
+                                <label>@L.T("Wh_RawMaterial")</label>
                                 <select name="isRawMaterial" class="form-control">
-                                    <option value="">Barchasi</option>
-                                    <option value="true" @(ViewBag.IsRawMaterial == true ? "selected" : "")>Faqat xom ashyo</option>
+                                    <option value="">@L.T("All")</option>
+                                    <option value="true" @(ViewBag.IsRawMaterial == true ? "selected" : "")>@L.T("Wh_OnlyRawMaterial")</option>
                                 </select>
                             </div>
                             <div class="col-12 col-sm-6 col-lg-2 d-flex align-items-end">
                                 <button type="submit" class="btn btn-primary w-100">
-                                    <i class="bx bx-search"></i> Qidirish
+                                    <i class="bx bx-search"></i> @L.T("Search")
                                 </button>
                             </div>
                         </div>
@@ -105,17 +105,17 @@
                                         <table id="inventoryDlocTable" class="table table-striped table-bordered nowrap" style="width:100%">
                                             <thead>
                                                 <tr>
-                                                    <th>Ombor</th>
+                                                    <th>@L.T("Wh_Warehouse")</th>
                                                     <th>DLOC</th>
-                                                    <th>Mahsulot kodi</th>
-                                                    <th>Mahsulot nomi</th>
-                                                    <th>Qoldiq</th>
-                                                    <th>Birlik</th>
+                                                    <th>@L.T("Wh_ProductCode")</th>
+                                                    <th>@L.T("Wh_ProductName")</th>
+                                                    <th>@L.T("Wh_Balance")</th>
+                                                    <th>@L.T("Unit")</th>
                                                     <th>Min</th>
                                                     <th>Max</th>
-                                                    <th>Sig'im %</th>
-                                                    <th>Lotlar soni</th>
-                                                    <th>Eng erta kirim</th>
+                                                    <th>@L.T("Wh_Dl_CapacityPct")</th>
+                                                    <th>@L.T("Wh_Dl_LotCount")</th>
+                                                    <th>@L.T("Wh_Dl_EarliestIncome")</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -149,17 +149,16 @@
                                         </table>
                                     </div>
                                     <p class="text-muted small mt-1 mb-0">
-                                        <span class="badge badge-warning">Sariq</span> — MIN dan past;
-                                        <span class="badge badge-danger">Qizil</span> — MAX ga yaqin (90%+).
+                                        <span class="badge badge-warning">@L.T("Wh_Dl_Yellow")</span> — @L.T("Wh_Dl_BelowMin")
+                                        <span class="badge badge-danger">@L.T("Wh_Dl_Red")</span> — @L.T("Wh_Dl_NearMax")
                                     </p>
                                 }
                                 else
                                 {
                                     <div class="alert alert-info mb-0">
-                                        DLOC bo'yicha qoldiq topilmadi.
-                                        <a href="@Url.Action("Index", "WarehouseLocations")">Joylashuvlar (DLOC)</a> yarating,
-                                        keyin kirimda har mahsulot uchun DLOC tanlang va qabul qiling.
-                                        Umumiy qoldiqni <a href="@Url.Action("Index", "Inventory")">bu yerda</a> ko'ring.
+                                        @Html.Raw(L.T("Wh_Dl_EmptyHint",
+                                            "<a href=\"" + Url.Action("Index", "WarehouseLocations") + "\">" + HttpUtility.HtmlEncode(L.T("Wh_Dl_LocationsLink")) + "</a>",
+                                            "<a href=\"" + Url.Action("Index", "Inventory") + "\">" + HttpUtility.HtmlEncode(L.T("Wh_Dl_HereLink")) + "</a>"))
                                     </div>
                                 }
                             </div>
@@ -177,11 +176,11 @@
             if ($('#inventoryDlocTable').length) {
                 $('#inventoryDlocTable').DataTable({
                     "pageLength": 25,
-                    "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Barchasi"]],
+                    "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "@L.Js("All")"]],
                     "order": [[0, "asc"], [1, "asc"]],
                     "scrollX": true,
                     dom: 'lBfrtip',
-                    buttons: erpDataTable.buttons({ fileName: 'DLOC_qoldiq', pdfTitle: 'DLOC bo\'yicha qoldiq' })
+                    buttons: erpDataTable.buttons({ fileName: '@L.Js("Wh_Dl_FileName")', pdfTitle: '@L.Js("Wh_Dl_PdfTitle")' })
                 });
             }
         });

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using tahsinERP.Models;
 using tahsinERP.Services.DlocFifo;
+using tahsinERP.I18n;
 
 namespace tahsinERP.Services.Stock
 {
@@ -26,8 +27,7 @@ namespace tahsinERP.Services.Stock
     /// </summary>
     public static class InventoryAdjustmentService
     {
-        public const string AlreadyAdjustedMessage =
-            "Ushbu ombor uchun joriy oyda inventarizatsiya allaqachon kiritilgan. Oyiga faqat bir marta ruxsat etiladi.";
+        public static string AlreadyAdjustedMessage => L.T("Wh_Adj_AlreadyThisMonth");
 
         /// <summary>Joriy oyda inventarizatsiya qilingan omborlar (bitta so'rov).</summary>
         public static Task<List<int>> GetLockedWarehouseIdsAsync(DBTHSNEntities db, List<int> warehouseIds)
@@ -137,7 +137,7 @@ namespace tahsinERP.Services.Stock
                         locationId = putaway.Resolve(d.Item1.ProductID, d.Item2);
                         if (locationId <= 0)
                             throw new InvalidOperationException(
-                                $"Mahsulot {d.Item1.ProductPNo}: qo'shimcha miqdor uchun bo'sh DLOC joy topilmadi (sig'im yoki aralashtirish cheklovi).");
+                                L.T("Wh_Err_NoFreeDlocForSurplus", d.Item1.ProductPNo));
                     }
 
                     StockLedger.ReceiveLine(db, warehouseId, income.ID, incomeLines[i].ID, d.Item1.ProductID,

@@ -1,5 +1,5 @@
 @{
-    ViewBag.Title = "Xarid buyurtmalari";
+    ViewBag.Title = L.T("Menu_PurchaseOrders");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -19,7 +19,7 @@
                                         <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                     </li>
                                     <li class="breadcrumb-item active">
-                                        Xarid buyurtmalari
+                                        @L.T("Menu_PurchaseOrders")
                                     </li>
                                 </ol>
                             </div>
@@ -33,10 +33,10 @@
                     {
                         <div class="invoice-create-btn mb-1">
                             <a href="@Url.Action("Create", "POrders")" class="btn btn-success bg-light invoice-create" role="button" aria-pressed="true">
-                                <i class="bx bx-plus"></i> Yangi buyurtma (Direct)
+                                <i class="bx bx-plus"></i> @L.T("Srm_NewOrderDirect")
                             </a>
                             <a href="@Url.Action("Index", "PRequisitions")" class="btn btn-info bg-light invoice-create ml-1" role="button" aria-pressed="true">
-                                <i class="bx bx-plus"></i> Xarid arizasi (Indirect)
+                                <i class="bx bx-plus"></i> @L.T("Srm_RequisitionIndirect")
                             </a>
                         </div>
                     }
@@ -47,12 +47,12 @@
                             @using (Html.BeginForm("Index", "POrders", FormMethod.Get, new { id = "pOrdersFilter" }))
                             {
                                 <div class="form-group">
-                                    <label for="purchaseTypeFilter">Xarid turi</label>
+                                    <label for="purchaseTypeFilter">@L.T("Srm_PurchaseType")</label>
                                     @Html.DropDownList("purchaseTypeFilter", new SelectList(new[]
                                     {
-                                        new { Value = "", Text = "Barchasi" },
-                                        new { Value = "Direct", Text = "Direct Purchase" },
-                                        new { Value = "Indirect", Text = "Indirect Purchase" }
+                                        new { Value = "", Text = L.T("All") },
+                                        new { Value = "Direct", Text = L.T("Srm_DirectPurchase") },
+                                        new { Value = "Indirect", Text = L.T("Srm_IndirectPurchase") }
                                     }, "Value", "Text", (string)ViewBag.PurchaseTypeFilter), new { @class = "form-control select2" })
                                 </div>
                                 if (ViewBag.SupplierID != null)
@@ -75,14 +75,14 @@
                                         <table id="pOrdersTable" class="table dt-responsive nowrap" style="width:100%">
                                             <thead>
                                                 <tr>
-                                                    <th>Buyurtma raqami</th>
-                                                    <th>Turi</th>
-                                                    <th>Sana</th>
-                                                    <th>Summa (QQS bilan)</th>
-                                                    <th>Valyuta</th>
+                                                    <th>@L.T("Srm_OrderNo")</th>
+                                                    <th>@L.T("Type")</th>
+                                                    <th>@L.T("Date")</th>
+                                                    <th>@L.T("Srm_AmountWithVat")</th>
+                                                    <th>@L.T("Currency")</th>
                                                     @if (changePermit)
                                                     {
-                                                        <th>Amallar</th>
+                                                        <th>@L.T("Actions")</th>
                                                     }
                                                 </tr>
                                             </thead>
@@ -118,9 +118,9 @@
                 columns.push({
                     data: null, orderable: false, render: function (v, t, r) {
                         return '<div class="d-flex">' +
-                            '<a href="' + detailsUrl + r.id + '" class="btn btn-sm btn-icon btn-outline-primary mr-1" title="Ko&#39;rish"><i class="bx bx-show"></i></a>' +
-                            '<a href="' + editUrl + r.id + '" class="btn btn-sm btn-icon btn-outline-warning mr-1" title="Tahrirlash"><i class="bx bx-edit-alt"></i></a>' +
-                            '<a href="' + deleteUrl + r.id + '" class="btn btn-sm btn-icon btn-outline-danger" title="O&#39;chirish" onclick="return confirm(&quot;Ushbu buyurtmani o&#39;chirishni tasdiqlaysizmi?&quot;);"><i class="bx bx-trash"></i></a>' +
+                            '<a href="' + detailsUrl + r.id + '" class="btn btn-sm btn-icon btn-outline-primary mr-1" title="@L.Js("View")"><i class="bx bx-show"></i></a>' +
+                            '<a href="' + editUrl + r.id + '" class="btn btn-sm btn-icon btn-outline-warning mr-1" title="@L.Js("Edit")"><i class="bx bx-edit-alt"></i></a>' +
+                            '<a href="' + deleteUrl + r.id + '" class="btn btn-sm btn-icon btn-outline-danger" title="@L.Js("Delete")" onclick="return confirm(&quot;@L.Js("Srm_ConfirmDeleteOrder")&quot;);"><i class="bx bx-trash"></i></a>' +
                             '</div>';
                     }
                 });

@@ -1,5 +1,5 @@
 @{
-    ViewBag.Title = "Xarid buyurtmalari kuzatuv";
+    ViewBag.Title = L.T("Srm_OrderTracking");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -16,7 +16,7 @@
                                         <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                     </li>
                                     <li class="breadcrumb-item active">
-                                        Xarid buyurtmalari kuzatuv
+                                        @L.T("Srm_OrderTracking")
                                     </li>
                                 </ol>
                             </div>
@@ -32,13 +32,13 @@
                         <div class="row mb-2">
                             <div class="col-md-3">
                                 <div class="form-group">
-                                    <label for="purchaseTypeFilter">Xarid turi</label>
+                                    <label for="purchaseTypeFilter">@L.T("Srm_PurchaseType")</label>
                                     @Html.DropDownList("purchaseTypeFilter", ViewBag.PurchaseTypeList as SelectList, new { @class = "form-control select2" })
                                 </div>
                             </div>
                             <div class="col-md-3">
                                 <div class="form-group">
-                                    <label for="statusFilter">Status</label>
+                                    <label for="statusFilter">@L.T("Status")</label>
                                     @Html.DropDownList("statusFilter", ViewBag.StatusList as SelectList, new { @class = "form-control select2" })
                                 </div>
                             </div>
@@ -53,16 +53,16 @@
                                         <table id="trackingTable" class="table dt-responsive nowrap" style="width:100%">
                                             <thead>
                                                 <tr>
-                                                    <th>Buyurtma raqami</th>
-                                                    <th>Ta'minotchi</th>
-                                                    <th>Sana</th>
-                                                    <th>Turi</th>
-                                                    <th>Buyurtma</th>
-                                                    <th>Shartnoma</th>
-                                                    <th>Invoys</th>
-                                                    <th>Ombor</th>
-                                                    <th>Status</th>
-                                                    <th>Amallar</th>
+                                                    <th>@L.T("Srm_OrderNo")</th>
+                                                    <th>@L.T("Srm_Supplier")</th>
+                                                    <th>@L.T("Date")</th>
+                                                    <th>@L.T("Type")</th>
+                                                    <th>@L.T("Srm_Order")</th>
+                                                    <th>@L.T("Srm_Contract")</th>
+                                                    <th>@L.T("Srm_Invoice")</th>
+                                                    <th>@L.T("Menu_Warehouse")</th>
+                                                    <th>@L.T("Status")</th>
+                                                    <th>@L.T("Actions")</th>
                                                 </tr>
                                             </thead>
                                             <tbody></tbody>
@@ -82,6 +82,7 @@
     <script>
         $(document).ready(function () {
             var detailsUrl = '@Url.Action("Details", "PurchaseOrderTracking")/';
+            var statusText = { Created: '@L.Js("Srm_TrackStatus_Created")', ContractCreated: '@L.Js("Srm_TrackStatus_ContractCreated")', Invoiced: '@L.Js("Srm_TrackStatus_Invoiced")', Received: '@L.Js("Srm_TrackStatus_Received")' };
             var statusClasses = { Created: 'badge-info', ContractCreated: 'badge-warning', Invoiced: 'badge-primary', Received: 'badge-success' };
             function stage(title, missingTitle) {
                 return title
@@ -93,14 +94,14 @@
                 { data: 'supplier', render: function (v) { return v ? srmEsc(v) : '<span class="text-muted">-</span>'; } },
                 { data: 'date' },
                 { data: 'indirect', render: function (v) { return v ? '<span class="badge badge-info">Indirect</span>' : '<span class="badge badge-primary">Direct</span>'; } },
-                { data: 'date', orderable: false, className: 'text-center', render: function (v) { return stage('Yaratilgan: ' + v, ''); } },
-                { data: 'contract', orderable: false, className: 'text-center', render: function (v) { return stage(v, 'Shartnoma yaratilmagan'); } },
-                { data: 'invoice', orderable: false, className: 'text-center', render: function (v) { return stage(v, 'Invoys yaratilmagan'); } },
-                { data: 'receipt', orderable: false, className: 'text-center', render: function (v) { return stage(v, 'Omborga kelmagan'); } },
-                { data: 'status', render: function (v) { return '<span class="badge ' + (statusClasses[v] || 'badge-secondary') + '">' + srmEsc(v) + '</span>'; } },
+                { data: 'date', orderable: false, className: 'text-center', render: function (v) { return stage('@L.Js("Srm_CreatedOn")'.replace('{0}', v), ''); } },
+                { data: 'contract', orderable: false, className: 'text-center', render: function (v) { return stage(v, '@L.Js("Srm_ContractNotCreated")'); } },
+                { data: 'invoice', orderable: false, className: 'text-center', render: function (v) { return stage(v, '@L.Js("Srm_InvoiceNotCreated")'); } },
+                { data: 'receipt', orderable: false, className: 'text-center', render: function (v) { return stage(v, '@L.Js("Srm_NotReceived")'); } },
+                { data: 'status', render: function (v) { return '<span class="badge ' + (statusClasses[v] || 'badge-secondary') + '">' + srmEsc(statusText[v] || v) + '</span>'; } },
                 {
                     data: null, orderable: false, render: function (v, t, r) {
-                        return '<a href="' + detailsUrl + r.id + '" class="btn btn-sm btn-icon btn-outline-primary" title="Batafsil"><i class="bx bx-show"></i></a>';
+                        return '<a href="' + detailsUrl + r.id + '" class="btn btn-sm btn-icon btn-outline-primary" title="@L.Js("Details")"><i class="bx bx-show"></i></a>';
                     }
                 }
             ];

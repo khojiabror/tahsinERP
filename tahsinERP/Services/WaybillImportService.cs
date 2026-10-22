@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using ClosedXML.Excel;
 using tahsinERP.Helpers;
+using tahsinERP.I18n;
 using tahsinERP.Models;
 using tahsinERP.Services.Common;
 
@@ -89,7 +90,7 @@ namespace tahsinERP.Services
             {
                 sample["ContractNo"] = tariff.ContractNo;
                 sample["TransportType"] = tariff.TransportType;
-                sample["FreightBasis"] = LogisticsEnums.FreightBasisText(tariff.FreightBasis);
+                sample["FreightBasis"] = LogisticsEnums.FreightBasisImportText(tariff.FreightBasis);
                 sample["Rate"] = tariff.Rate;
                 sample["Currency"] = tariff.Currency;
             }
@@ -97,8 +98,8 @@ namespace tahsinERP.Services
             {
                 sample["ContractNo"] = db.F_CONTRACTS.Where(c => !c.IsDeleted).OrderByDescending(c => c.ID).Select(c => c.ContractNo).FirstOrDefault();
                 sample["TransportType"] = db.F_TRANSPORT_TYPES.Where(t => t.IsDeleted != true).OrderBy(t => t.ID).Select(t => t.TransportType).FirstOrDefault();
-                sample["ManualCorrectionReason"] = "Tarif yo'q — qo'lda";
-                sample["FreightBasis"] = LogisticsEnums.FreightBasisText(1);
+                sample["ManualCorrectionReason"] = L.T("Log_Imp_SampleReason");
+                sample["FreightBasis"] = LogisticsEnums.FreightBasisImportText(1);
                 sample["Rate"] = 150000;
                 sample["Currency"] = "UZS";
             }
@@ -139,14 +140,14 @@ namespace tahsinERP.Services
                 var worksheet = workbook.Worksheets.FirstOrDefault();
                 if (worksheet == null || worksheet.LastRowNumber() == 0)
                 {
-                    result.FatalError = "Excel fayl bo'sh.";
+                    result.FatalError = L.T("Log_Imp_EmptyFile");
                     return result;
                 }
 
                 var cells = new ExcelCellReader(worksheet);
                 if (!cells.Has("WaybillNo") || !cells.Has("IssueDate"))
                 {
-                    result.FatalError = "Excel faylda majburiy ustunlar yo'q (WaybillNo, IssueDate).";
+                    result.FatalError = L.T("Log_Imp_MissingColumns");
                     return result;
                 }
 
@@ -163,21 +164,21 @@ namespace tahsinERP.Services
 
                     if (fileWaybillNos.Contains(waybillNo))
                     {
-                        errors.Add($"Qator {row}: Bu waybill raqami Excel faylida takrorlangan ({waybillNo}).");
+                        errors.Add(L.T("Log_Imp_DupInFile", row, waybillNo));
                         continue;
                     }
                     fileWaybillNos.Add(waybillNo);
 
                     if (existingWaybillNos.Contains(waybillNo))
                     {
-                        errors.Add($"Qator {row}: Bu waybill raqami avval kiritilgan ({waybillNo}).");
+                        errors.Add(L.T("Log_Imp_DupInDb", row, waybillNo));
                         continue;
                     }
 
                     var issueDate = cells.Date(row, "IssueDate");
                     if (!issueDate.HasValue)
                     {
-                        errors.Add($"Qator {row}: sana noto'g'ri formatda.");
+                        errors.Add(L.T("Log_Imp_BadDate", row));
                         continue;
                     }
 
@@ -189,7 +190,7 @@ namespace tahsinERP.Services
 
                     if (contract == null)
                     {
-                        errors.Add($"Qator {row}: Shartnoma topilmadi (ContractID/ContractNo).");
+                        errors.Add(L.T("Log_Imp_ContractNotFound", row));
                         continue;
                     }
 
@@ -207,7 +208,7 @@ namespace tahsinERP.Services
 
                     if (transportType == null)
                     {
-                        errors.Add($"Qator {row}: Transport turi topilmadi (TransportTypeID/TransportType).");
+                        errors.Add(L.T("Log_Imp_TransportNotFound", row));
                         continue;
                     }
 
@@ -259,7 +260,7 @@ namespace tahsinERP.Services
                     var tariffError = ApplyTariff(waybill, tariffs[contract.ID]);
                     if (tariffError != null)
                     {
-                        errors.Add($"Qator {row}: {tariffError}");
+                        errors.Add(L.T("Log_Imp_RowError", row, tariffError));
                         continue;
                     }
 
@@ -275,7 +276,7 @@ namespace tahsinERP.Services
                     catch (Exception ex)
                     {
                         db.Entry(waybill).State = EntityState.Detached;
-                        errors.Add($"Qator {row}: saqlab bo'lmadi — {DescribeSaveError(ex)}");
+                        errors.Add(L.T("Log_Imp_SaveFailed", row, DescribeSaveError(ex)));
                     }
                 }
             }
@@ -295,22 +296,22 @@ namespace tahsinERP.Services
             if (tariff == null)
             {
                 if (!hasReason)
-                    return "shartnomada ushbu transport turi va yo'nalish uchun faol tarif topilmadi — FreightBasis, Rate va ManualCorrectionReason kiriting.";
+                    return L.T("Log_Imp_NoActiveTariff");
                 if (!waybill.Amount.HasValue && (!waybill.FreightBasis.HasValue || !waybill.Rate.HasValue))
-                    return "tarif yo'q: Amount yoki FreightBasis + Rate majburiy.";
+                    return L.T("Log_Imp_NoTariffAmountRequired");
             }
             else
             {
                 var mismatches = new List<string>();
                 if (waybill.FreightBasis.HasValue && waybill.FreightBasis.Value != tariff.FreightBasis)
-                    mismatches.Add($"asos ({LogisticsEnums.FreightBasisText(waybill.FreightBasis)} ≠ {LogisticsEnums.FreightBasisText(tariff.FreightBasis)})");
+                    mismatches.Add(L.T("Log_Imp_MismatchBasis", LogisticsEnums.FreightBasisText(waybill.FreightBasis), LogisticsEnums.FreightBasisText(tariff.FreightBasis)));
                 if (waybill.Rate.HasValue && Math.Abs(waybill.Rate.Value - tariff.Rate) > 0.005m)
-                    mismatches.Add($"stavka ({waybill.Rate.Value:0.##} ≠ {tariff.Rate:0.##})");
+                    mismatches.Add(L.T("Log_Imp_MismatchRate", waybill.Rate.Value.ToString("0.##"), tariff.Rate.ToString("0.##")));
                 if (waybill.CurrencyID.HasValue && tariff.CurrencyID.HasValue && waybill.CurrencyID != tariff.CurrencyID)
-                    mismatches.Add("valyuta");
+                    mismatches.Add(L.T("Log_Imp_MismatchCurrency"));
 
                 if (mismatches.Count > 0 && !hasReason)
-                    return $"tarif #{tariff.ID} dan farq qiladi: {string.Join(", ", mismatches)} — ManualCorrectionReason kiriting.";
+                    return L.T("Log_Imp_TariffDiffers", tariff.ID, string.Join(", ", mismatches));
 
                 waybill.TariffID = tariff.ID;
                 waybill.FreightBasis = waybill.FreightBasis ?? tariff.FreightBasis;
@@ -370,12 +371,12 @@ namespace tahsinERP.Services
             while (inner.InnerException != null) inner = inner.InnerException;
             var sql = inner as System.Data.SqlClient.SqlException;
             if (sql != null && sql.Number == 547)
-                return "bog'langan hujjat (invoys/buyurtma/TTNK ID) topilmadi.";
+                return L.T("Log_Imp_LinkedDocNotFound");
             if (sql != null && (sql.Number == 2601 || sql.Number == 2627))
-                return "raqam takrorlangan.";
+                return L.T("Log_Imp_NumberDuplicated");
             if (sql != null && sql.Number == 8152)
-                return "matn juda uzun.";
-            return "ma'lumot formati noto'g'ri.";
+                return L.T("Log_Imp_TextTooLong");
+            return L.T("Log_Imp_BadFormat");
         }
     }
 }

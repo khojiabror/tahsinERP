@@ -29,7 +29,7 @@
         var copyCount = getCopyCount();
 
         if (typeof html2pdf === 'undefined') {
-            alert('PDF kutubxonasi yuklanmadi. Iltimos, qayta urinib koring.');
+            alert((window.erpT ? erpT('Js_Crm_PdfLibNotLoaded') : 'PDF kutubxonasi yuklanmadi. Iltimos, qayta urinib ko\'ring.'));
             return;
         }
 

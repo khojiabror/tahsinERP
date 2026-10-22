@@ -1,7 +1,7 @@
 @model tahsinERP.Models.Warehouse
 
 @{
-    ViewBag.Title = "Omborni o'chirish";
+    ViewBag.Title = L.T("Wh_DeleteWarehouse");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -20,10 +20,10 @@
                                         <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                     </li>
                                     <li class="breadcrumb-item">
-                                        <a href="~/Warehouse/Index">Korxona omborlari</a>
+                                        <a href="~/Warehouse/Index">@L.T("Wh_CompanyWarehouses")</a>
                                     </li>
                                     <li class="breadcrumb-item active">
-                                        Omborni o'chirish
+                                        @L.T("Wh_DeleteWarehouse")
                                     </li>
                                 </ol>
                             </div>
@@ -37,35 +37,35 @@
                         <div class="card">
                             <div class="card-header bg-danger">
                                 <h4 class="card-title text-white">
-                                    <i class="bx bx-error-circle"></i> Omborni o'chirish
+                                    <i class="bx bx-error-circle"></i> @L.T("Wh_DeleteWarehouse")
                                 </h4>
                             </div>
                             <div class="card-content">
                                 <div class="card-body">
                                     <div class="alert alert-warning border-warning">
                                         <i class="bx bx-error-circle"></i>
-                                        <strong>Diqqat!</strong> Bu omborni o'chirishni tasdiqlaysizmi? Bu amalni qaytarib bo'lmaydi.
+                                        <strong>@L.T("Wh_Attention")</strong> @L.T("Wh_DeleteWarehouseWarning")
                                     </div>
 
                                     <div class="row">
                                         <div class="col-md-12">
                                             <dl class="row">
-                                                <dt class="col-sm-4">Ombor nomi:</dt>
+                                                <dt class="col-sm-4">@L.T("Wh_WarehouseNameColon")</dt>
                                                 <dd class="col-sm-8">
                                                     <strong>@Html.DisplayFor(model => model.WHName)</strong>
                                                 </dd>
 
-                                                <dt class="col-sm-4">Tavsif:</dt>
+                                                <dt class="col-sm-4">@L.T("Wh_DescriptionColon")</dt>
                                                 <dd class="col-sm-8">
                                                     @(string.IsNullOrEmpty(Model.Description) ? "-" : Model.Description)
                                                 </dd>
 
-                                                <dt class="col-sm-4">Sex:</dt>
+                                                <dt class="col-sm-4">@L.T("Wh_ShopColon")</dt>
                                                 <dd class="col-sm-8">
                                                     @(Model.SHOP?.ShopName ?? "-")
                                                 </dd>
 
-                                                <dt class="col-sm-4">MRP (Mas'ul shaxs):</dt>
+                                                <dt class="col-sm-4">@L.T("Wh_MrpResponsibleColon")</dt>
                                                 <dd class="col-sm-8">
                                                     @(Model.USER?.FullName ?? "-")
                                                 </dd>
@@ -82,10 +82,10 @@
 
                                         <div class="form-actions d-flex justify-content-between">
                                             <a href="@Url.Action("Index", "Warehouse")" class="btn btn-secondary">
-                                                <i class="bx bx-arrow-back"></i> Bekor qilish
+                                                <i class="bx bx-arrow-back"></i> @L.T("Cancel")
                                             </a>
-                                            <button type="submit" class="btn btn-danger" onclick="return confirm('Bu omborni o\'chirishni tasdiqlaysizmi?');">
-                                                <i class="bx bx-trash"></i> Ha, o'chirish
+                                            <button type="submit" class="btn btn-danger" onclick="return confirm('@L.Js("Wh_ConfirmDeleteWarehouse")');">
+                                                <i class="bx bx-trash"></i> @L.T("Wh_YesDelete")
                                             </button>
                                         </div>
                                     }

@@ -1,6 +1,6 @@
 ﻿@using tahsinERP.Services
 @{
-    ViewBag.Title = "Yo'l varaqasi Excel yuklash";
+    ViewBag.Title = L.T("Log_Imp_Title");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -19,7 +19,7 @@
                                 <li class="breadcrumb-item">
                                     <a href="~/Waybill/Index">@LogisticsTerms.Waybills</a>
                                 </li>
-                                <li class="breadcrumb-item active">Excel orqali yuklash</li>
+                                <li class="breadcrumb-item active">@L.T("Log_UploadViaExcel")</li>
                             </ol>
                         </div>
                     </div>
@@ -33,9 +33,9 @@
                     <div class="card">
                         <div class="card-content">
                             <div class="card-body">
-                                <h4 class="card-title">Excel fayl yuklash</h4>
+                                <h4 class="card-title">@L.T("Log_Imp_UploadFile")</h4>
                                 <p class="text-muted">
-                                    Birinchi satrda ustun nomlari bo'lishi kerak. Majburiy ustunlar: <b>@LogisticsTerms.Waybill raqami (WaybillNo)</b>, <b>Sana (IssueDate)</b>, <b>Shartnoma (ContractID/ContractNo)</b>, <b>Transport turi (TransportTypeID/TransportType)</b>.
+                                    @L.T("Log_Imp_HeaderHint") <b>@L.T("Log_WaybillNo") (WaybillNo)</b>, <b>@L.T("Date") (IssueDate)</b>, <b>@L.T("Log_Contract") (ContractID/ContractNo)</b>, <b>@L.T("Log_TransportType") (TransportTypeID/TransportType)</b>.
                                 </p>
 
                                 @if (ViewBag.Error != null)
@@ -45,7 +45,7 @@
                                 @if (ViewBag.SuccessCount != null)
                                 {
                                     <div class="alert alert-success">
-                                        Yuklandi: @ViewBag.SuccessCount, O'tkazib yuborildi: @ViewBag.SkipCount
+                                        @L.T("Log_Imp_ResultSummary", (object)ViewBag.SuccessCount, (object)ViewBag.SkipCount)
                                     </div>
                                 }
                                 @{
@@ -64,20 +64,20 @@
                                 }
 
                                 <a class="btn btn-outline-primary mb-1" href="@Url.Action("DownloadTemplate", "WaybillImport")">
-                                    <i class="bx bx-download"></i> Namuna faylni yuklab olish
+                                    <i class="bx bx-download"></i> @L.T("Log_Imp_DownloadTemplate")
                                 </a>
 
                                 @using (Html.BeginForm("UploadExcel", "WaybillImport", FormMethod.Post, new { enctype = "multipart/form-data" }))
                                 {
                                     @Html.AntiForgeryToken()
                                     <div class="form-group">
-                                        <label>Excel fayl (.xlsx)</label>
+                                        <label>@L.T("Log_Imp_ExcelFile")</label>
                                         <input type="file" name="file" class="form-control" accept=".xlsx" required />
                                     </div>
                                     <button type="submit" class="btn btn-primary">
-                                        <i class="bx bx-upload"></i> Yuklash
+                                        <i class="bx bx-upload"></i> @L.T("Upload")
                                     </button>
-                                    <a href="@Url.Action("Index", "Waybill")" class="btn btn-outline-secondary ml-1">Orqaga</a>
+                                    <a href="@Url.Action("Index", "Waybill")" class="btn btn-outline-secondary ml-1">@L.T("Back")</a>
                                 }
                             </div>
                         </div>
@@ -88,25 +88,25 @@
                     <div class="card">
                         <div class="card-content">
                             <div class="card-body">
-                                <h5>Excel ustunlari</h5>
-                                <p class="text-muted">Quyidagi ustun nomlarini birinchi qatorga yozing.</p>
+                                <h5>@L.T("Log_Imp_Columns")</h5>
+                                <p class="text-muted">@L.T("Log_Imp_ColumnsHint")</p>
                                 <ul class="mb-0">
-                                    <li>@LogisticsTerms.Waybill raqami (WaybillNo) *</li>
-                                    <li>Sana (IssueDate) *</li>
-                                    <li>Yo'nalish (Direction: 0/1/2 yoki Kiruvchi/Chiquvchi/Ichki)</li>
-                                    <li>@LogisticsTerms.Forwarder (ForwarderID yoki ForwarderName)</li>
-                                    <li>Shartnoma (ContractID yoki ContractNo)</li>
-                                    <li>Transport turi (TransportTypeID yoki TransportType)</li>
-                                    <li>Qayerdan, Qayerga, Masofa (FromLocation, ToLocation, DistanceKm)</li>
-                                    <li>Brut/Net vazn, CBM, Palletlar soni (GrWeight, NetWeight, CBM, PalletsCount)</li>
-                                    <li>Tarif asosi (FreightBasis: 0/1/2/3 yoki Mashina uchun / Ton uchun / KM uchun / Belgilangan narx)</li>
-                                    <li>Tarif stavkasi, summa va valyuta (Rate, Amount, CurrencyID yoki Currency) — bo'sh bo'lsa shartnoma tarifidan olinadi, summa tarif bo'yicha (eng kam to'lov bilan) hisoblanadi</li>
-                                    <li>To'lovchi turi va ID (PayerType, PayerID)</li>
-                                    <li>Bog'langan hujjatlar (InvoiceID, SalesInvoiceID, SalesOrderID, PurchaseOrderID, TTNKID)</li>
-                                    <li>Mashina/treyler (TruckNo, TrailerNo, TruckModel, TrailerModel)</li>
-                                    <li>Haydovchi (DriverName, DriverPINFL)</li>
-                                    <li>Yetkazish sanalari (PlannedDeliveryDate, ActualDeliveryDate)</li>
-                                    <li>Description, ManualCorrectionReason — stavka/asos/valyuta tarifdan farq qilsa yoki faol tarif bo'lmasa majburiy</li>
+                                    <li>@L.T("Log_WaybillNo") (WaybillNo) *</li>
+                                    <li>@L.T("Date") (IssueDate) *</li>
+                                    <li>@L.T("Log_Imp_ColDirection")</li>
+                                    <li>@L.T("Log_Imp_ColForwarder")</li>
+                                    <li>@L.T("Log_Imp_ColContract")</li>
+                                    <li>@L.T("Log_Imp_ColTransport")</li>
+                                    <li>@L.T("Log_Imp_ColRoute")</li>
+                                    <li>@L.T("Log_Imp_ColCargo")</li>
+                                    <li>@L.T("Log_Imp_ColBasis")</li>
+                                    <li>@L.T("Log_Imp_ColRate")</li>
+                                    <li>@L.T("Log_Imp_ColPayer")</li>
+                                    <li>@L.T("Log_Imp_ColDocs")</li>
+                                    <li>@L.T("Log_Imp_ColTruck")</li>
+                                    <li>@L.T("Log_Imp_ColDriver")</li>
+                                    <li>@L.T("Log_Imp_ColDelivery")</li>
+                                    <li>@L.T("Log_Imp_ColReason")</li>
                                 </ul>
                             </div>
                         </div>

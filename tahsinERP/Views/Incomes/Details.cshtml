@@ -1,7 +1,7 @@
 @model tahsinERP.Models.INCOME
 @using tahsinERP.Services.DlocFifo
 @{
-    ViewBag.Title = "Kirim hujjati tafsilotlari";
+    ViewBag.Title = L.T("Wh_Inc_DetailsTitle");
     Layout = "~/Views/Shared/_Layout.cshtml";
     var dlocEnabled = ViewBag.DlocEnabled == true;
     var hasDlocLocations = ViewBag.HasDlocLocations == true;
@@ -24,9 +24,9 @@
                                         <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                     </li>
                                     <li class="breadcrumb-item">
-                                        <a href="~/Incomes/Index">Ombor kirimlari</a>
+                                        <a href="~/Incomes/Index">@L.T("Wh_IncListTitle")</a>
                                     </li>
-                                    <li class="breadcrumb-item active">Tafsilotlar</li>
+                                    <li class="breadcrumb-item active">@L.T("Wh_DetailsCrumb")</li>
                                 </ol>
                             </div>
                         </div>
@@ -38,16 +38,16 @@
                     <div class="col-12">
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">Kirim hujjati ma'lumotlari</h4>
+                                <h4 class="card-title">@L.T("Wh_Inc_DocInfo")</h4>
                                 <div class="heading-elements">
                                     @if (ViewBag.CanEdit == true)
                                     {
                                         <a href="@Url.Action("Edit", "Incomes", new { id = Model.ID })" class="btn btn-sm btn-warning">
-                                            <i class="bx bx-edit-alt"></i> Tahrirlash
+                                            <i class="bx bx-edit-alt"></i> @L.T("Edit")
                                         </a>
                                     }
                                     <a href="@Url.Action("Index", "Incomes")" class="btn btn-sm btn-secondary">
-                                        <i class="bx bx-arrow-back"></i> Orqaga
+                                        <i class="bx bx-arrow-back"></i> @L.T("Back")
                                     </a>
                                 </div>
                             </div>
@@ -65,23 +65,23 @@
                                         <div class="col-md-6">
                                             <table class="table table-borderless">
                                                 <tr>
-                                                    <th width="40%">Hujjat raqami:</th>
+                                                    <th width="40%">@L.T("Wh_DocNoColon")</th>
                                                     <td>@Model.DocNo</td>
                                                 </tr>
                                                 <tr>
-                                                    <th>Sana:</th>
+                                                    <th>@L.T("Wh_DateColon")</th>
                                                     <td>@Model.IssueDateTime.ToString("dd.MM.yyyy HH:mm")</td>
                                                 </tr>
                                                 <tr>
-                                                    <th>Qabul qiluvchi ombor:</th>
+                                                    <th>@L.T("Wh_ReceiverWarehouseColon")</th>
                                                     <td>@(Model.Warehouse?.WHName ?? "-")</td>
                                                 </tr>
                                                 <tr>
-                                                    <th>Yuboruvchi ombor:</th>
+                                                    <th>@L.T("Wh_SenderWarehouseColon")</th>
                                                     <td>@(Model.Warehouse1?.WHName ?? "-")</td>
                                                 </tr>
                                                 <tr>
-                                                    <th>Invoys:</th>
+                                                    <th>@L.T("Wh_InvoiceColon")</th>
                                                     <td>
                                                         @if (Model.P_INVOICES != null)
                                                         {
@@ -89,14 +89,14 @@
                                                         }
                                                         else if (!string.IsNullOrEmpty(Model.Description) && Model.Description.Contains("Chiqimdan avtomatik bog'langan:"))
                                                         {
-                                                            <span class="badge badge-info">Avtomatik yaratilgan</span>
+                                                            <span class="badge badge-info">@L.T("Wh_AutoCreated")</span>
                                                             if (ViewBag.LinkedExpenseId != null)
                                                             {
                                                                 <a href="@Url.Action("Details", "Expenses", new { id = ViewBag.LinkedExpenseId })" class="ml-1">@(ViewBag.LinkedExpenseDocNo) <i class="bx bx-link-external"></i></a>
                                                             }
                                                             else
                                                             {
-                                                                <span class="text-muted ml-1">(Expense dan)</span>
+                                                                <span class="text-muted ml-1">@L.T("Wh_Inc_FromExpense")</span>
                                                             }
                                                         }
                                                         else
@@ -108,16 +108,16 @@
                                                 @if (!string.IsNullOrEmpty(Model.Description) && Model.Description.Contains("Chiqimdan avtomatik bog'langan:"))
                                                 {
                                                     <tr>
-                                                        <th>Manbasi:</th>
+                                                        <th>@L.T("Wh_SourceColon")</th>
                                                         <td>
-                                                            <span class="badge badge-info">Avtomatik yaratilgan</span>
+                                                            <span class="badge badge-info">@L.T("Wh_AutoCreated")</span>
                                                             @if (ViewBag.LinkedExpenseId != null)
                                                             {
-                                                                <a href="@Url.Action("Details", "Expenses", new { id = ViewBag.LinkedExpenseId })" class="ml-1">Chiqim hujjati: @(ViewBag.LinkedExpenseDocNo) <i class="bx bx-link-external"></i></a>
+                                                                <a href="@Url.Action("Details", "Expenses", new { id = ViewBag.LinkedExpenseId })" class="ml-1">@L.T("Wh_Inc_ExpenseDocColon") @(ViewBag.LinkedExpenseDocNo) <i class="bx bx-link-external"></i></a>
                                                             }
                                                             else
                                                             {
-                                                                <small class="text-muted ml-1">SRM modulidan Expense yaratilganda avtomatik yaratilgan</small>
+                                                                <small class="text-muted ml-1">@L.T("Wh_Inc_AutoCreatedFromSrm")</small>
                                                             }
                                                         </td>
                                                     </tr>
@@ -127,32 +127,32 @@
                                         <div class="col-md-6">
                                             <table class="table table-borderless">
                                                 <tr>
-                                                    <th width="40%">Valyuta:</th>
+                                                    <th width="40%">@L.T("Wh_CurrencyColon")</th>
                                                     <td>@(Model.CURRENCy1?.Shortname ?? "-")</td>
                                                 </tr>
                                                 <tr>
-                                                    <th>Jami miqdor:</th>
+                                                    <th>@L.T("Wh_TotalQtyColon")</th>
                                                     <td>@(Model.Amount?.ToString("N2") ?? "0.00")</td>
                                                 </tr>
                                                 <tr>
-                                                    <th>Jami summa:</th>
+                                                    <th>@L.T("Wh_TotalAmountColon")</th>
                                                     <td><strong>@(Model.TotalPrice?.ToString("N2") ?? "0.00")</strong></td>
                                                 </tr>
                                                 <tr>
-                                                    <th>Status:</th>
+                                                    <th>@L.T("Wh_StatusOnlyColon")</th>
                                                     <td>
                                                         @if (Model.RecieveStatus == true)
                                                         {
-                                                            <span class="badge badge-success">Qabul qilingan</span>
+                                                            <span class="badge badge-success">@L.T("Wh_StReceived")</span>
                                                         }
                                                         else
                                                         {
-                                                            <span class="badge badge-warning">Kutilmoqda</span>
+                                                            <span class="badge badge-warning">@L.T("Wh_StPending")</span>
                                                         }
                                                     </td>
                                                 </tr>
                                                 <tr>
-                                                    <th>Izoh:</th>
+                                                    <th>@L.T("Wh_CommentColon")</th>
                                                     <td>
                                                         @if (ViewBag.LinkedExpenseId != null && !string.IsNullOrEmpty(Model.Description) && Model.Description.Contains("Chiqimdan avtomatik bog'langan:"))
                                                         {
@@ -161,7 +161,7 @@
                                                             var rest = idx >= 0 ? Model.Description.Substring(idx + marker.Length) : Model.Description;
                                                             var dashIdx = rest.IndexOf(" - ");
                                                             var suffix = (dashIdx >= 0 && rest.Length > dashIdx + 3) ? rest.Substring(dashIdx + 3) : "";
-                                                            <span>Chiqimdan avtomatik bog'langan: </span>
+                                                            <span>@L.T("Wh_Inc_AutoLinkedFromExpense") </span>
                                                             <a href="@Url.Action("Details", "Expenses", new { id = ViewBag.LinkedExpenseId })">@(ViewBag.LinkedExpenseDocNo)</a>
                                                             @(string.IsNullOrEmpty(suffix) ? "" : " - " + suffix)
                                                         }
@@ -182,13 +182,13 @@
                                     </div>
 
                                     <hr />
-                                    <h5>Kirim mahsulotlari</h5>
+                                    <h5>@L.T("Wh_Inc_Products")</h5>
 
                                     @if (ViewBag.CanMrpReceive == true)
                                     {
                                         if (dlocEnabled && hasDlocLocations)
                                         {
-                                            <p class="text-muted small mb-2">Har bir qator uchun DLOC tanlang, keyin qabul qiling.</p>
+                                            <p class="text-muted small mb-2">@L.T("Wh_Inc_SelectDlocThenReceive")</p>
                                         }
                                         using (Html.BeginForm("Receive", "Incomes", FormMethod.Post))
                                         {
@@ -199,16 +199,16 @@
 
                                             <div class="mt-2">
                                                 <button type="submit" class="btn btn-sm btn-success">
-                                                    <i class="bx bx-check"></i> Qabul qilish
+                                                    <i class="bx bx-check"></i> @L.T("Wh_Receive")
                                                 </button>
                                             </div>
                                         }
-                                        using (Html.BeginForm("Reject", "Incomes", FormMethod.Post, new { @class = "d-inline ml-1", onsubmit = "return confirm('Rad qilish kirim va chiqim hujjatlarini o\\'chiradi. Davom etasizmi?');" }))
+                                        using (Html.BeginForm("Reject", "Incomes", FormMethod.Post, new { @class = "d-inline ml-1", onsubmit = "return confirm('" + L.Js("Wh_Inc_RejectConfirm") + "');" }))
                                         {
                                             @Html.AntiForgeryToken()
                                             @Html.Hidden("id", Model.ID)
                                             <button type="submit" class="btn btn-sm btn-danger">
-                                                <i class="bx bx-x"></i> Rad qilish
+                                                <i class="bx bx-x"></i> @L.T("Wh_Reject")
                                             </button>
                                         }
                                     }
@@ -220,13 +220,13 @@
                                     @if (hasIncomeDocs)
                                     {
                                         <hr />
-                                        <h5>Kirim hujjatlari</h5>
+                                        <h5>@L.T("Wh_Inc_Docs")</h5>
                                         <ul>
                                             @foreach (var docId in incomeDocIds)
                                             {
                                                 <li>
                                                     <a href="@Url.Action("DownloadDoc", "Incomes", new { id = docId })" target="_blank">
-                                                        <i class="bx bx-file"></i> Hujjat #@docId
+                                                        <i class="bx bx-file"></i> @L.T("Wh_DocNum", docId)
                                                     </a>
                                                 </li>
                                             }

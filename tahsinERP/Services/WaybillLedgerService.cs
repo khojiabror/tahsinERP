@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
+using tahsinERP.I18n;
 using tahsinERP.Models;
 
 namespace tahsinERP.Services
@@ -185,9 +186,9 @@ namespace tahsinERP.Services
         {
             switch (status)
             {
-                case WaybillPaymentStatus.Paid: return "To'langan";
-                case WaybillPaymentStatus.Partial: return "Qisman";
-                default: return "To'lanmagan";
+                case WaybillPaymentStatus.Paid: return L.T("Log_PayStatus_Paid");
+                case WaybillPaymentStatus.Partial: return L.T("Log_PayStatus_Partial");
+                default: return L.T("Log_PayStatus_Unpaid");
             }
         }
 

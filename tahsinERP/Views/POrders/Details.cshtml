@@ -3,7 +3,7 @@
 @using System.Collections.Generic
 @using System.Linq
 @{
-    ViewBag.Title = "Buyurtma tafsilotlari";
+    ViewBag.Title = L.T("Srm_OrderDetailsTitle");
     Layout = "~/Views/Shared/_Layout.cshtml";
     // Amount QQS bilan (net + QQS) saqlanadi. QQS stavkasini shartnomadan emas, balki
     // saqlangan ma'lumotdan ajratamiz: net = mahsulot satrlari yig'indisi (TotalPrice),
@@ -32,10 +32,10 @@
                                     <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                 </li>
                                 <li class="breadcrumb-item">
-                                    <a href="~/POrders/Index">Xarid buyurtmalari</a>
+                                    <a href="~/POrders/Index">@L.T("Menu_PurchaseOrders")</a>
                                 </li>
                                 <li class="breadcrumb-item active">
-                                    Tafsilotlar
+                                    @L.T("Srm_DetailsTitle")
                                 </li>
                             </ol>
                         </div>
@@ -48,16 +48,16 @@
                 <div class="col-12">
                     <div class="card">
                         <div class="card-header">
-                            <h4 class="card-title">Buyurtma ma'lumotlari</h4>
+                            <h4 class="card-title">@L.T("Srm_OrderInfo")</h4>
                             <div class="heading-elements">
                                 @if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, "POrders"))
                                 {
                                     <a href="@Url.Action("Edit", "POrders", new { id = Model.ID })" class="btn btn-sm btn-warning">
-                                        <i class="bx bx-edit-alt"></i> Tahrirlash
+                                        <i class="bx bx-edit-alt"></i> @L.T("Edit")
                                     </a>
                                 }
                                 <a href="@Url.Action("Index", "POrders")" class="btn btn-sm btn-secondary">
-                                    <i class="bx bx-arrow-back"></i> Orqaga
+                                    <i class="bx bx-arrow-back"></i> @L.T("Back")
                                 </a>
                             </div>
                         </div>
@@ -67,19 +67,19 @@
                                     <div class="col-md-6">
                                         <table class="table table-borderless">
                                             <tr>
-                                                <th width="40%">Buyurtma raqami:</th>
+                                                <th width="40%">@L.T("Srm_OrderNo"):</th>
                                                 <td>@Model.OrderNo</td>
                                             </tr>
                                             <tr>
-                                                <th>Sana:</th>
+                                                <th>@L.T("Date"):</th>
                                                 <td>@Model.IssuedDate.ToString("dd.MM.yyyy")</td>
                                             </tr>
                                             <tr>
-                                                <th>Korxona:</th>
+                                                <th>@L.T("Menu_Company"):</th>
                                                 <td>@(Model.COMPANy?.Name ?? "-")</td>
                                             </tr>
                                             <tr>
-                                                <th>Ta'minotchi:</th>
+                                                <th>@L.T("Srm_Supplier"):</th>
                                                 <td>
                                                     @if (Model.SUPPLIER != null)
                                                     {
@@ -87,12 +87,12 @@
                                                     }
                                                     else
                                                     {
-                                                        <span class="text-muted">- (Direct PO uchun normal)</span>
+                                                        <span class="text-muted">@L.T("Srm_DirectPoNormal")</span>
                                                     }
                                                 </td>
                                             </tr>
                                             <tr>
-                                                <th>Shartnoma:</th>
+                                                <th>@L.T("Srm_Contract"):</th>
                                                 <td>
                                                     @if (Model.P_CONTRACTS != null)
                                                     {
@@ -100,7 +100,7 @@
                                                     }
                                                     else
                                                     {
-                                                        <span class="text-muted">- (Direct PO uchun normal)</span>
+                                                        <span class="text-muted">@L.T("Srm_DirectPoNormal")</span>
                                                     }
                                                 </td>
                                             </tr>
@@ -109,27 +109,27 @@
                                     <div class="col-md-6">
                                         <table class="table table-borderless">
                                             <tr>
-                                                <th width="40%">Valyuta:</th>
+                                                <th width="40%">@L.T("Currency"):</th>
                                                 <td>@(Model.CURRENCy?.Shortname ?? "-")</td>
                                             </tr>
                                             <tr>
-                                                <th>Jami summa:</th>
+                                                <th>@L.T("Srm_TotalAmount"):</th>
                                                 <td><strong>@(Model.Amount?.ToString("N2") ?? "0.00")</strong></td>
                                             </tr>
                                             <tr>
-                                                <th>QQS (%):</th>
+                                                <th>@L.T("Srm_VatPercent"):</th>
                                                 <td>@vatRate.ToString("N2")</td>
                                             </tr>
                                             <tr>
-                                                <th>Jami QQS:</th>
+                                                <th>@L.T("Srm_TotalVat"):</th>
                                                 <td>@totalVat.ToString("N2")</td>
                                             </tr>
                                             <tr>
-                                                <th>Jami (QQS bilan):</th>
+                                                <th>@L.T("Srm_TotalWithVat"):</th>
                                                 <td><strong>@totalWithVat.ToString("N2")</strong></td>
                                             </tr>
                                             <tr>
-                                                <th>Izoh:</th>
+                                                <th>@L.T("Comment"):</th>
                                                 <td>@(Model.Description ?? "-")</td>
                                             </tr>
                                         </table>
@@ -138,22 +138,22 @@
 
                                 <hr />
 
-                                <h5>Buyurtma mahsulotlari</h5>
+                                <h5>@L.T("Srm_OrderProducts")</h5>
                                 <div class="table-responsive">
                                     <table class="table table-striped">
                                         <thead>
                                             <tr>
-                                                <th>Mahsulot kodi</th>
-                                                <th>Mahsulot nomi</th>
-                                                <th>Miqdor</th>
-                                                <th>Birlik</th>
-                                                <th>Narx</th>
-                                                <th>Narx (QQS bilan)</th>
-                                                <th>QQS summa</th>
-                                                <th>Jami</th>
-                                                <th>Jami (QQS bilan)</th>
+                                                <th>@L.T("Srm_ProductCode")</th>
+                                                <th>@L.T("Srm_ProductName")</th>
+                                                <th>@L.T("Quantity")</th>
+                                                <th>@L.T("Unit")</th>
+                                                <th>@L.T("Price")</th>
+                                                <th>@L.T("Srm_PriceWithVat")</th>
+                                                <th>@L.T("Srm_VatSum")</th>
+                                                <th>@L.T("Total")</th>
+                                                <th>@L.T("Srm_TotalWithVat")</th>
                                                 <th>MOQ</th>
-                                                <th>Hisob tushuntirishi</th>
+                                                <th>@L.T("Srm_CalcExplanation")</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -184,7 +184,7 @@
                                             else
                                             {
                                                 <tr>
-                                                    <td colspan="11" class="text-center">Mahsulotlar topilmadi</td>
+                                                    <td colspan="11" class="text-center">@L.T("Srm_ProductsNotFound")</td>
                                                 </tr>
                                             }
                                         </tbody>

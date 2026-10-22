@@ -1,6 +1,6 @@
 ﻿@model List<tahsinERP.ViewModels.ContractTariffIndexItemViewModel>
 @{
-    ViewBag.Title = "Tariflar";
+    ViewBag.Title = L.T("Log_Tariffs");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -19,9 +19,9 @@
                                     <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                 </li>
                                 <li class="breadcrumb-item">
-                                    <a href="~/FContract/Index">Shartnomalar</a>
+                                    <a href="~/FContract/Index">@L.T("Log_Contracts")</a>
                                 </li>
-                                <li class="breadcrumb-item active">Tariflar</li>
+                                <li class="breadcrumb-item active">@L.T("Log_Tariffs")</li>
                             </ol>
                         </div>
                     </div>
@@ -35,17 +35,17 @@
                     <form method="get" action="@Url.Action("Index", "FContractTariff")">
                         <div class="row">
                             <div class="col-md-4">
-                                <label>Shartnoma</label>
-                                @Html.DropDownList("contractId", ViewBag.Contracts as SelectList, "Barchasi", new { @class = "form-control" })
+                                <label>@L.T("Log_Contract")</label>
+                                @Html.DropDownList("contractId", ViewBag.Contracts as SelectList, L.T("All"), new { @class = "form-control" })
                             </div>
                             <div class="col-md-2 d-flex align-items-end">
-                                <button type="submit" class="btn btn-primary w-100">Qidirish</button>
+                                <button type="submit" class="btn btn-primary w-100">@L.T("Search")</button>
                             </div>
                             @if (changePermit)
                             {
                                 <div class="col-md-6 d-flex align-items-end justify-content-end">
                                     <a href="@Url.Action("Create", "FContractTariff")" class="btn btn-success">
-                                        <i class="bx bx-plus"></i> Yangi tarif
+                                        <i class="bx bx-plus"></i> @L.T("Log_NewTariff")
                                     </a>
                                 </div>
                             }
@@ -61,17 +61,17 @@
                             <table class="table table-striped">
                                 <thead>
                                     <tr>
-                                        <th>Shartnoma</th>
-                                        <th>Transport turi</th>
-                                        <th>Qayerdan</th>
-                                        <th>Qayerga</th>
-                                        <th>@tahsinERP.Services.LogisticsTerms.TariffBasis</th>
-                                        <th>@tahsinERP.Services.LogisticsTerms.TariffRate</th>
-                                        <th>Valyuta</th>
-                                        <th>Faol</th>
+                                        <th>@L.T("Log_Contract")</th>
+                                        <th>@L.T("Log_TransportType")</th>
+                                        <th>@L.T("Log_From")</th>
+                                        <th>@L.T("Log_To")</th>
+                                        <th>@L.T("Log_TariffBasis")</th>
+                                        <th>@L.T("Log_TariffRate")</th>
+                                        <th>@L.T("Currency")</th>
+                                        <th>@L.T("Active")</th>
                                         @if (changePermit)
                                         {
-                                            <th>Amallar</th>
+                                            <th>@L.T("Actions")</th>
                                         }
                                     </tr>
                                 </thead>
@@ -88,13 +88,13 @@
                                                 <td>@tahsinERP.Services.LogisticsEnums.FreightBasisText(item.FreightBasis)</td>
                                                 <td>@item.Rate.ToString("N2")</td>
                                                 <td>@item.Currency</td>
-                                                <td>@(item.IsActive ? "Ha" : "Yo'q")</td>
+                                                <td>@(item.IsActive ? L.T("Yes") : L.T("No"))</td>
                                                 @if (changePermit)
                                                 {
                                                     <td>
-                                                        <a href="@Url.Action("Details", "FContractTariff", new { id = item.ID })" class="btn btn-sm btn-outline-info" title="Ko'rish"><i class="bx bx-show"></i></a>
-                                                        <a href="@Url.Action("Edit", "FContractTariff", new { id = item.ID })" class="btn btn-sm btn-outline-success" title="Tahrirlash"><i class="bx bx-edit-alt"></i></a>
-                                                        <a href="@Url.Action("Delete", "FContractTariff", new { id = item.ID })" class="btn btn-sm btn-outline-danger" title="O'chirish"><i class="bx bx-trash"></i></a>
+                                                        <a href="@Url.Action("Details", "FContractTariff", new { id = item.ID })" class="btn btn-sm btn-outline-info" title="@L.T("View")"><i class="bx bx-show"></i></a>
+                                                        <a href="@Url.Action("Edit", "FContractTariff", new { id = item.ID })" class="btn btn-sm btn-outline-success" title="@L.T("Edit")"><i class="bx bx-edit-alt"></i></a>
+                                                        <a href="@Url.Action("Delete", "FContractTariff", new { id = item.ID })" class="btn btn-sm btn-outline-danger" title="@L.T("Delete")"><i class="bx bx-trash"></i></a>
                                                     </td>
                                                 }
                                             </tr>
@@ -103,7 +103,7 @@
                                     else
                                     {
                                         <tr>
-                                            <td colspan="@(changePermit ? 9 : 8)" class="text-center">Ma'lumot topilmadi</td>
+                                            <td colspan="@(changePermit ? 9 : 8)" class="text-center">@L.T("Log_NoDataFound")</td>
                                         </tr>
                                     }
                                 </tbody>

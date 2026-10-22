@@ -4,6 +4,7 @@ using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
+using tahsinERP.I18n;
 using tahsinERP.Models;
 using tahsinERP.Services.Common;
 using tahsinERP.Services.Procurement;
@@ -29,12 +30,12 @@ namespace tahsinERP.Controllers.SRM
             ViewBag.ChangePermit = CanChange(Module);
             ViewBag.StatusList = new SelectList(new[]
             {
-                new { Value = "", Text = "All" },
-                new { Value = "Draft", Text = "Draft" },
-                new { Value = "Submitted", Text = "Submitted" },
-                new { Value = "Approved", Text = "Approved" },
-                new { Value = "Rejected", Text = "Rejected" },
-                new { Value = "ConvertedToOrder", Text = "Converted to Order" }
+                new { Value = "", Text = L.T("All") },
+                new { Value = "Draft", Text = L.T("Srm_ReqStatus_Draft") },
+                new { Value = "Submitted", Text = L.T("Srm_ReqStatus_Submitted") },
+                new { Value = "Approved", Text = L.T("Srm_ReqStatus_Approved") },
+                new { Value = "Rejected", Text = L.T("Srm_ReqStatus_Rejected") },
+                new { Value = "ConvertedToOrder", Text = L.T("Srm_ReqStatus_ConvertedToOrder") }
             }, "Value", "Text", statusFilter);
             return View();
         }
@@ -148,16 +149,16 @@ namespace tahsinERP.Controllers.SRM
                 }
 
                 var rows = await OrderIndex(query, 1, true).ToListAsync();
-                var bytes = ExcelExport.Create("Xarid arizalari", rows,
-                    ExcelExport.Col<PRequisitionIndexRow>("Ariza raqami", r => r.RequisitionNo),
-                    ExcelExport.Col<PRequisitionIndexRow>("Sana", r => r.RequisitionDate, "dd.MM.yyyy"),
-                    ExcelExport.Col<PRequisitionIndexRow>("Bo'lim", r => r.DepartmentName),
-                    ExcelExport.Col<PRequisitionIndexRow>("So'rovchi", r => r.RequesterName),
-                    ExcelExport.Col<PRequisitionIndexRow>("Status", r => r.Status),
-                    ExcelExport.Col<PRequisitionIndexRow>("Mahsulotlar soni", r => r.LineCount),
-                    ExcelExport.Col<PRequisitionIndexRow>("Jami summa", r => r.Total ?? 0, "#,##0.00"));
+                var bytes = ExcelExport.Create(L.T("Menu_PurchaseRequests"), rows,
+                    ExcelExport.Col<PRequisitionIndexRow>(L.T("Srm_RequisitionNo"), r => r.RequisitionNo),
+                    ExcelExport.Col<PRequisitionIndexRow>(L.T("Date"), r => r.RequisitionDate, "dd.MM.yyyy"),
+                    ExcelExport.Col<PRequisitionIndexRow>(L.T("Srm_Department"), r => r.DepartmentName),
+                    ExcelExport.Col<PRequisitionIndexRow>(L.T("Srm_Requester"), r => r.RequesterName),
+                    ExcelExport.Col<PRequisitionIndexRow>(L.T("Status"), r => RequisitionText.Status(r.Status)),
+                    ExcelExport.Col<PRequisitionIndexRow>(L.T("Srm_ProductCount"), r => r.LineCount),
+                    ExcelExport.Col<PRequisitionIndexRow>(L.T("Srm_TotalAmount"), r => r.Total ?? 0, "#,##0.00"));
 
-                return File(bytes, ExcelExport.ContentType, $"Xarid_arizalari_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx");
+                return File(bytes, ExcelExport.ContentType, L.T("Srm_FilePurchaseRequisitions") + $"_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx");
             }
         }
 
@@ -325,7 +326,7 @@ namespace tahsinERP.Controllers.SRM
 
                 if (status != "Approved")
                 {
-                    TempData["ErrorMessage"] = "Faqat tasdiqlangan talabnomani xarid buyurtmasiga aylantirish mumkin.";
+                    TempData["ErrorMessage"] = L.T("Srm_OnlyApprovedToOrder");
                     return RedirectToAction("Details", new { id = id });
                 }
 
@@ -345,7 +346,7 @@ namespace tahsinERP.Controllers.SRM
         public Task<ActionResult> Submit(int id)
         {
             return ChangeStatusAsync(id, "Draft", "Submitted", null,
-                "Talabnoma tasdiqlashga yuborildi.", "Faqat qoralama (Draft) talabnomani yuborish mumkin.");
+                L.T("Srm_RequisitionSubmitted"), L.T("Srm_OnlyDraftSubmit"));
         }
 
         // POST so'rovi: PRequisitions/Approve/5
@@ -354,7 +355,7 @@ namespace tahsinERP.Controllers.SRM
         public Task<ActionResult> Approve(int id)
         {
             return ChangeStatusAsync(id, "Submitted", "Approved", null,
-                "Talabnoma tasdiqlandi.", "Faqat yuborilgan (Submitted) talabnomani tasdiqlash mumkin.");
+                L.T("Srm_RequisitionApproved"), L.T("Srm_OnlySubmittedApprove"));
         }
 
         // POST so'rovi: PRequisitions/Reject/5
@@ -363,7 +364,7 @@ namespace tahsinERP.Controllers.SRM
         public Task<ActionResult> Reject(int id, string reason)
         {
             return ChangeStatusAsync(id, "Submitted", "Rejected", reason,
-                "Talabnoma rad etildi.", "Faqat yuborilgan (Submitted) talabnomani rad etish mumkin.");
+                L.T("Srm_RequisitionRejected"), L.T("Srm_OnlySubmittedReject"));
         }
 
         private async Task<ActionResult> ChangeStatusAsync(int id, string expectedStatus, string newStatus, string reason,
@@ -377,7 +378,7 @@ namespace tahsinERP.Controllers.SRM
             reason = string.IsNullOrWhiteSpace(reason) ? null : reason.Trim();
             if (newStatus == "Rejected" && reason == null)
             {
-                TempData["ErrorMessage"] = "Rad etish sababini kiriting.";
+                TempData["ErrorMessage"] = L.T("Srm_EnterRejectReason");
                 return RedirectToAction("Details", new { id });
             }
 
@@ -466,9 +467,9 @@ namespace tahsinERP.Controllers.SRM
 
             ViewBag.PriorityList = new SelectList(new[]
             {
-                new { Value = "High", Text = "Yuqori" },
-                new { Value = "Medium", Text = "O'rta" },
-                new { Value = "Low", Text = "Past" }
+                new { Value = "High", Text = L.T("Srm_Priority_High") },
+                new { Value = "Medium", Text = L.T("Srm_Priority_Medium") },
+                new { Value = "Low", Text = L.T("Srm_Priority_Low") }
             }, "Value", "Text", "Medium");
         }
 
@@ -486,7 +487,7 @@ namespace tahsinERP.Controllers.SRM
 
             if (await db.P_REQUISITIONS.AnyAsync(r => r.RequisitionNo == number))
             {
-                ModelState.AddModelError("RequisitionNo", "Bu raqamli talabnoma allaqachon mavjud.");
+                ModelState.AddModelError("RequisitionNo", L.T("Srm_RequisitionNoExists"));
                 return null;
             }
 

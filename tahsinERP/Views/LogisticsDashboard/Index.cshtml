@@ -1,6 +1,6 @@
 ﻿@using tahsinERP.ViewModels
 @{
-    ViewBag.Title = "Logistika boshqaruv paneli";
+    ViewBag.Title = L.T("Log_DashboardTitle");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -17,7 +17,7 @@
                                     <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                 </li>
                                 <li class="breadcrumb-item active">
-                                    Logistika boshqaruv paneli
+                                    @L.T("Log_DashboardTitle")
                                 </li>
                             </ol>
                         </div>
@@ -33,23 +33,23 @@
                     <form method="get" action="@Url.Action("Index", "LogisticsDashboard")">
                         <div class="row">
                             <div class="col-md-3">
-                                <label>Boshlanish sanasi</label>
+                                <label>@L.T("Log_StartDate")</label>
                                 <input type="date" name="startDate" class="form-control" value="@ViewBag.StartDate" />
                             </div>
                             <div class="col-md-3">
-                                <label>Tugash sanasi</label>
+                                <label>@L.T("Log_EndDate")</label>
                                 <input type="date" name="endDate" class="form-control" value="@ViewBag.EndDate" />
                             </div>
                             <div class="col-md-3">
-                                <label>Yuk tashuvchi</label>
-                                @Html.DropDownList("forwarderId", ViewBag.Forwarders as SelectList, "Barchasi", new { @class = "form-control" })
+                                <label>@L.T("Log_Forwarder")</label>
+                                @Html.DropDownList("forwarderId", ViewBag.Forwarders as SelectList, L.T("All"), new { @class = "form-control" })
                             </div>
                             <div class="col-md-2">
-                                <label>Yo'nalish</label>
-                                @Html.DropDownList("direction", ViewBag.Directions as SelectList, "Barchasi", new { @class = "form-control" })
+                                <label>@L.T("Log_Direction")</label>
+                                @Html.DropDownList("direction", ViewBag.Directions as SelectList, L.T("All"), new { @class = "form-control" })
                             </div>
                             <div class="col-md-1 d-flex align-items-end">
-                                <button type="submit" class="btn btn-primary w-100">Qidirish</button>
+                                <button type="submit" class="btn btn-primary w-100">@L.T("Search")</button>
                             </div>
                         </div>
                     </form>
@@ -63,7 +63,7 @@
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
-                                    <h6 class="mb-0">Jami xarajat</h6>
+                                    <h6 class="mb-0">@L.T("Log_TotalCost")</h6>
                                     <h3 class="mb-0">@ViewBag.TotalCost.ToString("N2")</h3>
                                 </div>
                                 <div class="avatar bg-light-primary">
@@ -78,7 +78,7 @@
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
-                                    <h6 class="mb-0">Jami reyslar</h6>
+                                    <h6 class="mb-0">@L.T("Log_TotalTrips")</h6>
                                     <h3 class="mb-0">@ViewBag.TotalTrips</h3>
                                 </div>
                                 <div class="avatar bg-light-success">
@@ -93,7 +93,7 @@
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
-                                    <h6 class="mb-0">1 ton uchun</h6>
+                                    <h6 class="mb-0">@L.T("Log_Per1Ton")</h6>
                                     <h3 class="mb-0">@ViewBag.CostPerTon.ToString("N2")</h3>
                                 </div>
                                 <div class="avatar bg-light-warning">
@@ -108,7 +108,7 @@
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
-                                    <h6 class="mb-0">Qarz</h6>
+                                    <h6 class="mb-0">@L.T("Log_Debt")</h6>
                                     <h3 class="mb-0">@ViewBag.UnpaidAmount.ToString("N2")</h3>
                                 </div>
                                 <div class="avatar bg-light-danger">
@@ -125,21 +125,21 @@
                 <div class="col-xl-4 col-md-12">
                     <div class="card">
                         <div class="card-header">
-                            <h5>Yo'nalish bo'yicha xarajat</h5>
+                            <h5>@L.T("Log_CostByDirection")</h5>
                         </div>
                         <div class="card-body">
                             <div class="row text-center">
                                 <div class="col-4">
                                     <h4 class="text-info">@ViewBag.InboundCost.ToString("N2")</h4>
-                                    <p class="mb-0">Kiruvchi</p>
+                                    <p class="mb-0">@L.T("Log_Dir_Inbound")</p>
                                 </div>
                                 <div class="col-4">
                                     <h4 class="text-success">@ViewBag.OutboundCost.ToString("N2")</h4>
-                                    <p class="mb-0">Chiquvchi</p>
+                                    <p class="mb-0">@L.T("Log_Dir_Outbound")</p>
                                 </div>
                                 <div class="col-4">
                                     <h4 class="text-secondary">@ViewBag.InternalCost.ToString("N2")</h4>
-                                    <p class="mb-0">Ichki</p>
+                                    <p class="mb-0">@L.T("Log_Dir_Internal")</p>
                                 </div>
                             </div>
                         </div>
@@ -148,24 +148,24 @@
                 <div class="col-xl-4 col-md-12">
                     <div class="card">
                         <div class="card-header">
-                            <h5>O'rtacha ko'rsatkichlar</h5>
+                            <h5>@L.T("Log_AverageMetrics")</h5>
                         </div>
                         <div class="card-body">
                             <table class="table table-sm">
                                 <tr>
-                                    <td>1 km uchun:</td>
+                                    <td>@L.T("Log_Per1Km"):</td>
                                     <td><strong>@ViewBag.CostPerKm.ToString("N2")</strong></td>
                                 </tr>
                                 <tr>
-                                    <td>1 reys uchun:</td>
+                                    <td>@L.T("Log_Per1Trip"):</td>
                                     <td><strong>@ViewBag.CostPerTrip.ToString("N2")</strong></td>
                                 </tr>
                                 <tr>
-                                    <td>1 CBM uchun:</td>
+                                    <td>@L.T("Log_Per1Cbm"):</td>
                                     <td><strong>@ViewBag.CostPerCBM.ToString("N2")</strong></td>
                                 </tr>
                                 <tr>
-                                    <td>Sotuvdan %:</td>
+                                    <td>@L.T("Log_PercentOfSales"):</td>
                                     <td><strong>@ViewBag.LogisticsCostPercent.ToString("N2")%</strong></td>
                                 </tr>
                             </table>
@@ -175,21 +175,21 @@
                 <div class="col-xl-4 col-md-12">
                     <div class="card">
                         <div class="card-header">
-                            <h5>Yuk statistikasi</h5>
+                            <h5>@L.T("Log_CargoStats")</h5>
                         </div>
                         <div class="card-body">
                             <table class="table table-sm">
                                 <tr>
-                                    <td>Jami tonnaj:</td>
+                                    <td>@L.T("Log_TotalTonnage"):</td>
                                     <td><strong>@ViewBag.TotalTonnage.ToString("N2")</strong></td>
                                 </tr>
                                 <tr>
-                                    <td>Jami CBM:</td>
+                                    <td>@L.T("Log_TotalCbm"):</td>
                                     <td><strong>@ViewBag.TotalCBM.ToString("N2")</strong></td>
                                 </tr>
                                 <tr>
-                                    <td>Jami masofa:</td>
-                                    <td><strong>@ViewBag.TotalDistance.ToString("N2") km</strong></td>
+                                    <td>@L.T("Log_TotalDistance"):</td>
+                                    <td><strong>@ViewBag.TotalDistance.ToString("N2") @L.T("Log_UnitKm")</strong></td>
                                 </tr>
                             </table>
                         </div>
@@ -207,20 +207,20 @@
                     <div class="col-xl-12">
                         <div class="card">
                             <div class="card-header">
-                                <h5>Yuk tashuvchilar bo'yicha reyting</h5>
+                                <h5>@L.T("Log_ForwarderRating")</h5>
                             </div>
                             <div class="card-body">
                                 <div class="table-responsive">
                                     <table class="table table-striped">
                                         <thead>
                                             <tr>
-                                                <th>Yuk tashuvchi</th>
-                                                <th>Reyslar soni</th>
-                                                <th>Jami tonnaj</th>
-                                                <th>Jami xarajat</th>
-                                                <th>To'langan</th>
-                                                <th>Qoldiq</th>
-                                                <th>1 ton uchun</th>
+                                                <th>@L.T("Log_Forwarder")</th>
+                                                <th>@L.T("Log_TripCount")</th>
+                                                <th>@L.T("Log_TotalTonnage")</th>
+                                                <th>@L.T("Log_TotalCost")</th>
+                                                <th>@L.T("Log_Paid")</th>
+                                                <th>@L.T("Log_Outstanding")</th>
+                                                <th>@L.T("Log_Per1Ton")</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -255,7 +255,7 @@
                     <div class="col-xl-12">
                         <div class="card">
                             <div class="card-header d-flex justify-content-between align-items-center">
-                                <h5>Eng ko'p ishlatilgan marshrutlar</h5>
+                                <h5>@L.T("Log_TopLanes")</h5>
                                 <a href="@Url.Action("LanePerformance", "LogisticsDashboard")" class="btn btn-sm btn-outline-primary">
                                     Batafsil
                                 </a>
@@ -265,13 +265,13 @@
                                     <table class="table table-striped">
                                         <thead>
                                             <tr>
-                                                <th>Qayerdan</th>
-                                                <th>Qayerga</th>
-                                                <th>Reyslar</th>
-                                                <th>Tonnaj</th>
-                                                <th>Jami xarajat</th>
-                                                <th>1 ton uchun</th>
-                                                <th>1 km uchun</th>
+                                                <th>@L.T("Log_From")</th>
+                                                <th>@L.T("Log_To")</th>
+                                                <th>@L.T("Log_Trips")</th>
+                                                <th>@L.T("Log_Tonnage")</th>
+                                                <th>@L.T("Log_TotalCost")</th>
+                                                <th>@L.T("Log_Per1Ton")</th>
+                                                <th>@L.T("Log_Per1Km")</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -301,28 +301,28 @@
                 <div class="col-xl-12">
                     <div class="card">
                         <div class="card-header">
-                            <h5>Hisobotlar</h5>
+                            <h5>@L.T("Reports")</h5>
                         </div>
                         <div class="card-body">
                             <div class="row">
                                 <div class="col-md-4">
                                     <a href="@Url.Action("LanePerformance", "LogisticsDashboard")" class="btn btn-outline-primary btn-block">
-                                        <i class="bx bx-map"></i> Marshrutlar samaradorligi
+                                        <i class="bx bx-map"></i> @L.T("Log_LanePerformance")
                                     </a>
                                 </div>
                                 <div class="col-md-4">
                                     <a href="@Url.Action("Reconciliation", "LogisticsDashboard")" class="btn btn-outline-warning btn-block">
-                                        <i class="bx bx-check-circle"></i> Solishtirish hisoboti
+                                        <i class="bx bx-check-circle"></i> @L.T("Log_ReconReport")
                                     </a>
                                 </div>
                                 <div class="col-md-4">
                                     <a href="@Url.Action("ForwarderComparison", "LogisticsDashboard")" class="btn btn-outline-info btn-block">
-                                        <i class="bx bx-bar-chart"></i> Yuk tashuvchilarni taqqoslash
+                                        <i class="bx bx-bar-chart"></i> @L.T("Log_ForwarderComparison")
                                     </a>
                                 </div>
                                 <div class="col-md-4 mt-1">
                                     <a href="@Url.Action("MonthlyReport", "LogisticsDashboard")" class="btn btn-outline-secondary btn-block">
-                                        <i class="bx bx-calendar"></i> Oylik hisobot
+                                        <i class="bx bx-calendar"></i> @L.T("Log_MonthlyReport")
                                     </a>
                                 </div>
                             </div>

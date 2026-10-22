@@ -1,6 +1,6 @@
 @model tahsinERP.Models.SALES_INVOICES
 @{
-    ViewBag.Title = "Batafsil";
+    ViewBag.Title = L.T("Details");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -25,10 +25,10 @@
                                         <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                     </li>
                                     <li class="breadcrumb-item">
-                                        <a href="~/SalesInvoices">Invoyslar</a>
+                                        <a href="~/SalesInvoices">@L.T("Menu_Invoices")</a>
                                     </li>
                                     <li class="breadcrumb-item active">
-                                        Invoys ma'lumotlari
+                                        @L.T("Crm_InvInfo")
                                     </li>
                                 </ol>
                             </div>
@@ -46,14 +46,14 @@
                                         <div class="row invoice-info">
                                             <div class="col-lg-12 col-md-12 mt-25">
                                                 @Html.ValidationSummary(true, "", new { @class = "text-danger" })
-                                                <h4 class="text-primary">Invoys ma'lumotlari</h4>
+                                                <h4 class="text-primary">@L.T("Crm_InvInfo")</h4>
                                                 <hr />
                                                 <div class="row">
                                                     <div class="col-md-6">
-                                                        <span><b>Invoys raqami</b>: @Html.DisplayFor(model => model.InvoiceNo)</span><br />
-                                                        <span><b>Invoys sanasi</b>: @Model.InvoiceDate.ToString("dd.MM.yyyy")</span><br />
-                                                        <span><b>To'lov muddati</b>: @(Model.DueDate.HasValue ? Model.DueDate.Value.ToString("dd.MM.yyyy") : "-")</span><br />
-                                                        <span><b>Mijoz</b>: 
+                                                        <span><b>@L.T("Crm_InvInvoiceNo")</b>: @Html.DisplayFor(model => model.InvoiceNo)</span><br />
+                                                        <span><b>@L.T("Crm_InvInvoiceDate")</b>: @Model.InvoiceDate.ToString("dd.MM.yyyy")</span><br />
+                                                        <span><b>@L.T("Crm_PaymentDue")</b>: @(Model.DueDate.HasValue ? Model.DueDate.Value.ToString("dd.MM.yyyy") : "-")</span><br />
+                                                        <span><b>@L.T("Crm_Client")</b>: 
                                                             @if (customer != null)
                                                             {
                                                                 <a href="@Url.Action("Details", "Customer", new { id = Model.CustomerID })">@customer.Name</a>
@@ -61,32 +61,32 @@
                                                         </span><br />
                                                         @if (order != null)
                                                         {
-                                                            <span><b>Buyurtma</b>: 
+                                                            <span><b>@L.T("Crm_Order")</b>: 
                                                                 <a href="@Url.Action("Details", "SOrder", new { id = order.ID })">@order.OrderNo</a>
                                                             </span><br />
                                                         }
                                                         <div class="mt-2">
                                                             <a href="@Url.Action("Print", new { id = Model.ID })" target="_blank" class="btn btn-primary">
-                                                                <i class="bx bx-printer"></i> Chop etish
+                                                                <i class="bx bx-printer"></i> @L.T("Print")
                                                             </a>
                                                             @if (changePermit && Model.StatusCode != "PAID" && Model.StatusCode != "CANCELED")
                                                             {
                                                                 <a href="@Url.Action("Delete", "SalesInvoices", new { id = Model.ID })" class="btn btn-danger">
-                                                                    <i class="bx bx-trash"></i> Bekor qilish
+                                                                    <i class="bx bx-trash"></i> @L.T("Cancel")
                                                                 </a>
                                                             }
                                                         </div>
                                                         @if (contract != null)
                                                         {
-                                                            <span><b>Shartnoma</b>: 
+                                                            <span><b>@L.T("Crm_Contract")</b>: 
                                                                 <a href="@Url.Action("Details", "SContract", new { id = contract.ID })">@contract.ContractNo</a>
                                                             </span><br />
                                                         }
                                                     </div>
                                                     <div class="col-md-6">
-                                                        <span><b>Jami summa</b>: @Model.TotalAmount.ToString("N2") @tahsinERP.Services.Crm.SalesLookups.CurrencyCode(Model.CurrencyID)</span><br />
-                                                        <span><b>QQS</b>: @Model.TotalVAT.ToString("N2") @tahsinERP.Services.Crm.SalesLookups.CurrencyCode(Model.CurrencyID)</span><br />
-                                                        <span><b>Jami (QQS bilan)</b>: @(Model.TotalWithVAT?.ToString("N2") ?? "0.00") @tahsinERP.Services.Crm.SalesLookups.CurrencyCode(Model.CurrencyID)</span><br />
+                                                        <span><b>@L.T("Crm_TotalAmount")</b>: @Model.TotalAmount.ToString("N2") @tahsinERP.Services.Crm.SalesLookups.CurrencyCode(Model.CurrencyID)</span><br />
+                                                        <span><b>@L.T("Crm_Vat")</b>: @Model.TotalVAT.ToString("N2") @tahsinERP.Services.Crm.SalesLookups.CurrencyCode(Model.CurrencyID)</span><br />
+                                                        <span><b>@L.T("Crm_TotalWithVat")</b>: @(Model.TotalWithVAT?.ToString("N2") ?? "0.00") @tahsinERP.Services.Crm.SalesLookups.CurrencyCode(Model.CurrencyID)</span><br />
                                                     </div>
                                                 </div>
                                                 <hr />
@@ -94,18 +94,18 @@
                                                 <!-- Navigation Links -->
                                                 <div class="row mt-3">
                                                     <div class="col-12">
-                                                        <h5 class="text-primary mb-3">Bog'liq hujjatlar</h5>
+                                                        <h5 class="text-primary mb-3">@L.T("Crm_RelatedDocs")</h5>
                                                         <div class="btn-group" role="group">
                                                             @if (order != null)
                                                             {
                                                                 <a href="@Url.Action("Details", "SOrder", new { id = order.ID })" class="btn btn-outline-primary">
-                                                                    <i class="bx bx-list-ul"></i> Buyurtma
+                                                                    <i class="bx bx-list-ul"></i> @L.T("Crm_Order")
                                                                 </a>
                                                             }
                                                             @if (contract != null)
                                                             {
                                                                 <a href="@Url.Action("Details", "SContract", new { id = contract.ID })" class="btn btn-outline-primary">
-                                                                    <i class="bx bx-file"></i> Shartnoma
+                                                                    <i class="bx bx-file"></i> @L.T("Crm_Contract")
                                                                 </a>
                                                             }
                                                             <a href="@Url.Action("Index", "SalesSF", new { invoiceID = Model.ID })" class="btn btn-outline-primary">
@@ -117,14 +117,14 @@
                                                             @if (changePermit)
                                                             {
                                                                 <a href="@Url.Action("GenerateFromInvoice", "SalesSF", new { invoiceID = Model.ID })" class="btn btn-success">
-                                                                    <i class="bx bx-plus"></i> SF yaratish
+                                                                    <i class="bx bx-plus"></i> @L.T("Crm_CreateSf")
                                                                 </a>
                                                             }
                                                             @if (tahsinERP.Models.RoleHelper.IsPermittedForAction(User.Identity.Name, "SalesTTNK", "CreateFromInvoices", true))
                                                             {
                                                                 @* TTNK yaratishga yagona kirish nuqtasi (CRM-B17: avval havola yo'q edi) *@
                                                                 <a href="@Url.Action("CreateFromInvoices", "SalesTTNK", new { invoiceIDs = Model.ID })" class="btn btn-success">
-                                                                    <i class="bx bx-plus"></i> TTNK yaratish
+                                                                    <i class="bx bx-plus"></i> @L.T("Crm_CreateTtnk")
                                                                 </a>
                                                             }
                                                         </div>
@@ -140,7 +140,7 @@
                                                 <div class="col-12">
                                                     <div class="card">
                                                         <div class="card-header">
-                                                            <h4 class="card-title">Invoys qatorlari</h4>
+                                                            <h4 class="card-title">@L.T("Crm_InvLines")</h4>
                                                         </div>
                                                         <div class="card-content">
                                                             <div class="card-body card-dashboard">
@@ -149,14 +149,14 @@
                                                                         <thead>
                                                                             <tr>
                                                                                 <th>№</th>
-                                                                                <th>Mahsulot</th>
-                                                                                <th>Tavsif</th>
-                                                                                <th>Miqdor</th>
-                                                                                <th>Birlik narxi</th>
-                                                                                <th>Qator summa</th>
-                                                                                <th>QQS %</th>
-                                                                                <th>QQS summa</th>
-                                                                                <th>Jami</th>
+                                                                                <th>@L.T("Crm_Product")</th>
+                                                                                <th>@L.T("Description")</th>
+                                                                                <th>@L.T("Quantity")</th>
+                                                                                <th>@L.T("Crm_UnitPrice")</th>
+                                                                                <th>@L.T("Crm_LineAmount")</th>
+                                                                                <th>@L.T("Crm_VatPercent")</th>
+                                                                                <th>@L.T("Crm_VatAmount")</th>
+                                                                                <th>@L.T("Total")</th>
                                                                             </tr>
                                                                         </thead>
                                                                         <tbody>
@@ -187,7 +187,7 @@
                                                                         </tbody>
                                                                         <tfoot>
                                                                             <tr class="font-weight-bold">
-                                                                                <td colspan="5" class="text-right">Jami:</td>
+                                                                                <td colspan="5" class="text-right">@L.T("Total"):</td>
                                                                                 <td>@Model.TotalAmount.ToString("N2")</td>
                                                                                 <td colspan="2"></td>
                                                                                 <td>@(Model.TotalWithVAT?.ToString("N2") ?? "0.00")</td>

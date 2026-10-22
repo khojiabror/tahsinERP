@@ -1,6 +1,6 @@
 @model tahsinERP.Models.S_ORDERS
 @{
-    ViewBag.Title = "Batafsil";
+    ViewBag.Title = L.T("Details");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -21,10 +21,10 @@
                                         <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                     </li>
                                     <li class="breadcrumb-item">
-                                        <a href="~/SOrder">Buyurtmalar</a>
+                                        <a href="~/SOrder">@L.T("Menu_Orders")</a>
                                     </li>
                                     <li class="breadcrumb-item active">
-                                        Buyurtma ma'lumotlari
+                                        @L.T("Crm_OrdDetailsTitle")
                                     </li>
                                 </ol>
                             </div>
@@ -50,19 +50,19 @@
                                                 {
                                                     <div class="alert alert-danger" role="alert">@TempData["ErrorMessage"]</div>
                                                 }
-                                                <h4 class="text-primary">Buyurtma ma'lumotlari</h4>
+                                                <h4 class="text-primary">@L.T("Crm_OrdDetailsTitle")</h4>
                                                 <hr />
                                                 <div class="row">
                                                     <div class="col-md-6">
-                                                        <span><b>Buyurtma raqami</b>: @Html.DisplayFor(model => model.OrderNo)</span><br />
-                                                        <span><b>Tuzilgan sanasi</b>: @Model.IssuedDate.ToString("dd.MM.yyyy")</span><br />
-                                                        <span><b>Mijoz</b>: 
+                                                        <span><b>@L.T("Crm_OrderNo")</b>: @Html.DisplayFor(model => model.OrderNo)</span><br />
+                                                        <span><b>@L.T("Crm_OrdIssuedDate")</b>: @Model.IssuedDate.ToString("dd.MM.yyyy")</span><br />
+                                                        <span><b>@L.T("Crm_Client")</b>: 
                                                             @if (Model.CUSTOMER != null)
                                                             {
                                                                 <a href="@Url.Action("Details", "Customer", new { id = Model.CustomerID })">@Model.CUSTOMER.Name</a>
                                                             }
                                                         </span><br />
-                                                        <span><b>Shartnoma</b>: 
+                                                        <span><b>@L.T("Crm_Contract")</b>: 
                                                             @if (Model.S_CONTRACTS != null && Model.ContractID > 0)
                                                             {
                                                                 <a href="@Url.Action("Details", "SContract", new { id = Model.ContractID })">@Model.S_CONTRACTS.ContractNo</a>
@@ -74,9 +74,9 @@
                                                         </span><br />
                                                     </div>
                                                     <div class="col-md-6">
-                                                        <span><b>Summa</b>: @(Model.Amount?.ToString("N2") ?? "0.00") @(Model.CURRENCy1?.Shortname ?? "")</span><br />
-                                                        <span><b>Valyuta</b>: @(Model.CURRENCy1?.Shortname ?? "")</span><br />
-                                                        <span><b>Tavsif</b>: @Html.DisplayFor(model => model.Description)</span><br />
+                                                        <span><b>@L.T("Amount")</b>: @(Model.Amount?.ToString("N2") ?? "0.00") @(Model.CURRENCy1?.Shortname ?? "")</span><br />
+                                                        <span><b>@L.T("Currency")</b>: @(Model.CURRENCy1?.Shortname ?? "")</span><br />
+                                                        <span><b>@L.T("Description")</b>: @Html.DisplayFor(model => model.Description)</span><br />
                                                     </div>
                                                 </div>
                                                 <hr />
@@ -84,18 +84,18 @@
                                                 <!-- Navigation Links -->
                                                 <div class="row mt-3">
                                                     <div class="col-12">
-                                                        <h5 class="text-primary mb-3">Bog'liq hujjatlar</h5>
+                                                        <h5 class="text-primary mb-3">@L.T("Crm_RelatedDocs")</h5>
                                                         <div class="btn-group" role="group">
                                                             <a href="@Url.Action("DeliverySchedule", "SOrder", new { orderID = Model.ID })" class="btn btn-outline-primary">
-                                                                <i class="bx bx-calendar"></i> Yetkazib berish rejasi (@(ViewBag.DeliveryScheduleCount ?? 0))
+                                                                <i class="bx bx-calendar"></i> @L.T("Crm_OrdDeliverySchedule") (@(ViewBag.DeliveryScheduleCount ?? 0))
                                                             </a>
                                                             <a href="@Url.Action("Index", "SalesInvoices", new { orderID = Model.ID })" class="btn btn-outline-primary">
-                                                                <i class="bx bx-receipt"></i> Invoyslar (@ViewBag.InvoicesCount)
+                                                                <i class="bx bx-receipt"></i> @L.T("Menu_Invoices") (@ViewBag.InvoicesCount)
                                                             </a>
                                                             @if (Model.S_CONTRACTS != null && Model.ContractID > 0)
                                                             {
                                                                 <a href="@Url.Action("Details", "SContract", new { id = Model.ContractID })" class="btn btn-outline-primary">
-                                                                    <i class="bx bx-file"></i> Shartnoma
+                                                                    <i class="bx bx-file"></i> @L.T("Crm_Contract")
                                                                 </a>
                                                             }
                                                         </div>
@@ -111,7 +111,7 @@
                                                 <div class="col-12">
                                                     <div class="card">
                                                         <div class="card-header">
-                                                            <h4 class="card-title">Buyurtma mahsulotlari</h4>
+                                                            <h4 class="card-title">@L.T("Crm_OrdOrderProducts")</h4>
                                                         </div>
                                                         <div class="card-content">
                                                             <div class="card-body card-dashboard">
@@ -119,13 +119,13 @@
                                                                     <table class="table table-striped" style="width:100%">
                                                                         <thead>
                                                                             <tr>
-                                                                                <th>Mahsulot raqami</th>
-                                                                                <th>Narx (QQS bilan)</th>
-                                                                                <th>Miqdori</th>
-                                                                                <th>O'lchov birligi</th>
-                                                                                <th>Jami (QQS bilan)</th>
+                                                                                <th>@L.T("Crm_ProductNo")</th>
+                                                                                <th>@L.T("Crm_OrdPriceVat")</th>
+                                                                                <th>@L.T("Quantity")</th>
+                                                                                <th>@L.T("Crm_UnitOfMeasure")</th>
+                                                                                <th>@L.T("Crm_TotalWithVat")</th>
                                                                                 <th>MOQ</th>
-                                                                                <th>Yetkazib berish rejasi</th>
+                                                                                <th>@L.T("Crm_OrdDeliverySchedule")</th>
                                                                             </tr>
                                                                         </thead>
                                                                         <tbody>
@@ -156,19 +156,19 @@
                                                                                         @if (summary != null)
                                                                                         {
                                                                                             <span class="badge badge-info">
-                                                                                                Rejalashtirilgan: @summary.TotalPlanned.ToString("N2")<br />
-                                                                                                Yetkazilgan: @summary.TotalShipped.ToString("N2")
+                                                                                                @L.T("Crm_OrdPlanned"): @summary.TotalPlanned.ToString("N2")<br />
+                                                                                                @L.T("Crm_OrdShipped"): @summary.TotalShipped.ToString("N2")
                                                                                             </span>
                                                                                         }
                                                                                         else
                                                                                         {
                                                                                             if ((ViewBag.DeliveryScheduleCount ?? 0) > 0)
                                                                                             {
-                                                                                                <a href="@Url.Action("DeliverySchedule", "SOrder", new { orderID = Model.ID })">Reja</a>
+                                                                                                <a href="@Url.Action("DeliverySchedule", "SOrder", new { orderID = Model.ID })">@L.T("Crm_OrdPlan")</a>
                                                                                             }
                                                                                             else
                                                                                             {
-                                                                                                <span class="text-muted">Reja yo'q</span>
+                                                                                                <span class="text-muted">@L.T("Crm_OrdNoPlan")</span>
                                                                                             }
                                                                                         }
                                                                                     </td>

@@ -22,10 +22,10 @@
                                         <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                     </li>
                                     <li class="breadcrumb-item">
-                                        <a href="~/FTransportType/Index">Transport turlari</a>
+                                        <a href="~/FTransportType/Index">@L.T("Log_TransportTypes")</a>
                                     </li>
                                     <li class="breadcrumb-item active">
-                                        @(isEdit ? "Transport turini tahrirlash" : "Yangi transport qo'shish")
+                                        @(isEdit ? L.T("Log_TransportTypeEditTitle") : L.T("Log_NewTransport"))
                                     </li>
                                 </ol>
                             </div>
@@ -45,58 +45,58 @@
                                                 @Html.AntiForgeryToken()
                                                 @Html.ValidationSummary(true, "", new { @class = "text-danger" })
                                                 <hr>
-                                                <h4 class="text-primary">Transport turi</h4>
+                                                <h4 class="text-primary">@L.T("Log_TransportType")</h4>
                                                 <fieldset class="invoice-address form-group">
-                                                    @Html.TextBoxFor(model => model.TransportType, new { @class = "form-control round", @placeholder = "Transport turi" })
+                                                    @Html.TextBoxFor(model => model.TransportType, new { @class = "form-control round", @placeholder = L.T("Log_TransportType") })
                                                     @Html.ValidationMessageFor(model => model.TransportType, "", new { @class = "text-danger" })
                                                 </fieldset>                               
-                                                <h6 class="invoice-to">O'lchov birligi</h6>
+                                                <h6 class="invoice-to">@L.T("Log_UnitOfMeasure")</h6>
                                                 <fieldset class="invoice-address form-group">
                                                     @Html.DropDownListFor(model => model.UnitID, ViewBag.units as SelectList, "", new { @class = "form-control select2" })
                                                     @Html.ValidationMessageFor(model => model.UnitID, "", new { @class = "text-danger" })
                                                 </fieldset>
-                                                <h6 class="invoice-to">Ko'tarish imkoniyati</h6>
+                                                <h6 class="invoice-to">@L.T("Log_LiftCapacity")</h6>
                                                 <fieldset class="form-group">
-                                                    @Html.TextBoxFor(model => model.CapableOfLifting, new { @class = "form-control round", @placeholder = "Ko'tarish imkoniyati" })
+                                                    @Html.TextBoxFor(model => model.CapableOfLifting, new { @class = "form-control round", @placeholder = L.T("Log_LiftCapacity") })
                                                     @Html.ValidationMessageFor(model => model.CapableOfLifting, "", new { @class = "text-danger" })
                                                 </fieldset>
-                                                <h6 class="invoice-to">Og'irligi</h6>
+                                                <h6 class="invoice-to">@L.T("Log_Weight")</h6>
                                                 <fieldset class="invoice-address form-group">
-                                                    @Html.TextBoxFor(model => model.TransportWeight, new { @class = "form-control round", @placeholder = "Og'irligi" })
+                                                    @Html.TextBoxFor(model => model.TransportWeight, new { @class = "form-control round", @placeholder = L.T("Log_Weight") })
                                                     @Html.ValidationMessageFor(model => model.TransportWeight, "", new { @class = "text-danger" })
                                                 </fieldset>
                                                 <div class="row">
                                                     <div class="col-12 col-sm-6">
-                                                        <h6 class="invoice-to">Tashqi Uzunligi (mm)</h6>
+                                                        <h6 class="invoice-to">@L.T("Log_ExtLengthMm")</h6>
                                                         <fieldset class="invoice-address form-group">
-                                                            @Html.TextBoxFor(model => model.ExtLgth, new { @class = "form-control round", @placeholder = "Tashqi Uzunligi" })
+                                                            @Html.TextBoxFor(model => model.ExtLgth, new { @class = "form-control round", @placeholder = L.T("Log_ExtLength") })
                                                             @Html.ValidationMessageFor(model => model.ExtLgth, "", new { @class = "text-danger" })
                                                         </fieldset>
-                                                        <h6 class="invoice-to">Tashqi Kengligi (mm)</h6>
+                                                        <h6 class="invoice-to">@L.T("Log_ExtWidthMm")</h6>
                                                         <fieldset class="invoice-address form-group">
-                                                            @Html.TextBoxFor(model => model.ExtWdth, new { @class = "form-control round", @placeholder = "Tashqi Kengligi" })
+                                                            @Html.TextBoxFor(model => model.ExtWdth, new { @class = "form-control round", @placeholder = L.T("Log_ExtWidth") })
                                                             @Html.ValidationMessageFor(model => model.ExtWdth, "", new { @class = "text-danger" })
                                                         </fieldset>
-                                                        <h6 class="invoice-to">Tashqi Balandligi (mm)</h6>
+                                                        <h6 class="invoice-to">@L.T("Log_ExtHeightMm")</h6>
                                                         <fieldset class="invoice-address form-group">
-                                                            @Html.TextBoxFor(model => model.ExtHght, new { @class = "form-control round", @placeholder = "Tashqi Balandligi" })
+                                                            @Html.TextBoxFor(model => model.ExtHght, new { @class = "form-control round", @placeholder = L.T("Log_ExtHeight") })
                                                             @Html.ValidationMessageFor(model => model.ExtHght, "", new { @class = "text-danger" })
                                                         </fieldset>
                                                     </div>
                                                     <div class="col-12 col-sm-6">
-                                                        <h6 class="invoice-to">Ichki Uzunligi (mm)</h6>
+                                                        <h6 class="invoice-to">@L.T("Log_IntLengthMm")</h6>
                                                         <fieldset class="invoice-address form-group">
-                                                            @Html.TextBoxFor(model => model.IntLgth, new { @class = "form-control round", @placeholder = "Ichki Uzunligi" })
+                                                            @Html.TextBoxFor(model => model.IntLgth, new { @class = "form-control round", @placeholder = L.T("Log_IntLength") })
                                                             @Html.ValidationMessageFor(model => model.IntLgth, "", new { @class = "text-danger" })
                                                         </fieldset>
-                                                        <h6 class="invoice-to">Ichki Kengligi (mm)</h6>
+                                                        <h6 class="invoice-to">@L.T("Log_IntWidthMm")</h6>
                                                         <fieldset class="invoice-address form-group">
-                                                            @Html.TextBoxFor(model => model.IntWdth, new { @class = "form-control round", @placeholder = "Ichki Kengligi" })
+                                                            @Html.TextBoxFor(model => model.IntWdth, new { @class = "form-control round", @placeholder = L.T("Log_IntWidth") })
                                                             @Html.ValidationMessageFor(model => model.IntWdth, "", new { @class = "text-danger" })
                                                         </fieldset>
-                                                        <h6 class="invoice-to">Ichki Balandligi (mm)</h6>
+                                                        <h6 class="invoice-to">@L.T("Log_IntHeightMm")</h6>
                                                         <fieldset class="invoice-address form-group">
-                                                            @Html.TextBoxFor(model => model.IntHght, new { @class = "form-control round", @placeholder = "Ichki Balandligi" })
+                                                            @Html.TextBoxFor(model => model.IntHght, new { @class = "form-control round", @placeholder = L.T("Log_IntHeight") })
                                                             @Html.ValidationMessageFor(model => model.IntHght, "", new { @class = "text-danger" })
                                                         </fieldset>
                                                     </div>
@@ -106,7 +106,7 @@
                                                     <li class="list-group-item border-0 pb-0">
                                                         <button class="btn btn-primary btn-block subtotal-preview-btn" type="submit">
                                                             <i class='bx bx-save'></i>
-                                                            Saqlash
+                                                            @L.T("Save")
                                                         </button>
                                                     </li>
                                                 </ul>

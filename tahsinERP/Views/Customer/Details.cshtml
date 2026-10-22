@@ -1,6 +1,6 @@
 @model tahsinERP.Models.CUSTOMER
 @{
-    ViewBag.Title = "Batafsil";
+    ViewBag.Title = L.T("Details");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 @* Ruxsat serverda tekshiriladi ([Permission] / controller) — CRM-S01 *@
@@ -18,10 +18,10 @@
                                         <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                     </li>
                                     <li class="breadcrumb-item ">
-                                        <a href="~/Customer">Xaridorlar</a>
+                                        <a href="~/Customer">@L.T("Menu_Customers")</a>
                                     </li>
                                     <li class="breadcrumb-item active">
-                                        @Model.Name xaridor ma'lumotlari
+                                        @L.T("Crm_CustInfoOf", Model.Name)
                                     </li>
                                 </ol>
                             </div>
@@ -41,34 +41,34 @@
                                         <div class="row invoice-info">
                                             <div class="col-lg-12 col-md-12 mt-25">
                                                 @Html.ValidationSummary(true, "", new { @class = "text-danger" })
-                                                <h4 class="text-primary">Xaridor ma'lumotlari</h4>
+                                                <h4 class="text-primary">@L.T("Crm_CustomerInfo")</h4>
                                                 <hr />
-                                                <span><b>Nomi</b>: @Html.DisplayFor(model => model.Name, new { @class = "form-control" })</span>
+                                                <span><b>@L.T("Name")</b>: @Html.DisplayFor(model => model.Name, new { @class = "form-control" })</span>
                                                 <br />
                                                 <span><b>DUNS</b>: @Html.DisplayFor(model => model.DUNS, new { @class = "form-control" })</span>
                                                 <hr />
                                                 <section>
                                                     <div>
-                                                        <h6 class="text-primary">Geografik ma'lumotlari</h6>
-                                                        <span><b>Source</b>: @Html.DisplayFor(model => model.Type, new { @class = "form-control" })</span>
+                                                        <h6 class="text-primary">@L.T("Crm_CustGeoInfo")</h6>
+                                                        <span><b>@L.T("Type")</b>: @Html.DisplayFor(model => model.Type, new { @class = "form-control" })</span>
                                                         <br />
-                                                        <span><b>Mamlakati</b>: @Html.DisplayFor(model => model.Country, new { @class = "form-control" })</span>
+                                                        <span><b>@L.T("Crm_CustCountry")</b>: @Html.DisplayFor(model => model.Country, new { @class = "form-control" })</span>
                                                         <br />
-                                                        <span><b>Shaxri</b>: @Html.DisplayFor(model => model.City, new { @class = "form-control" })</span>
+                                                        <span><b>@L.T("Crm_CustCity")</b>: @Html.DisplayFor(model => model.City, new { @class = "form-control" })</span>
                                                         <br />
-                                                        <span><b>Manzili</b>: @Html.DisplayFor(model => model.Address, new { @class = "form-control" })</span>
+                                                        <span><b>@L.T("Address")</b>: @Html.DisplayFor(model => model.Address, new { @class = "form-control" })</span>
                                                         <br />
                                                         <hr />
                                                     </div>
                                                 </section>
-                                                <h6 class="text-primary">Murojaat uchun</h6>
-                                                <span><b>Rahbari</b>: @Html.DisplayFor(model => model.DirectorName, new { @class = "form-control" })</span>
+                                                <h6 class="text-primary">@L.T("Crm_CustContactInfo")</h6>
+                                                <span><b>@L.T("Crm_CustDirector")</b>: @Html.DisplayFor(model => model.DirectorName, new { @class = "form-control" })</span>
                                                 <br />
-                                                <span><b>Ma'sul xodimi</b>: @Html.DisplayFor(model => model.ContactPersonName, new { @class = "form-control" })</span>
+                                                <span><b>@L.T("Crm_CustContactPerson")</b>: @Html.DisplayFor(model => model.ContactPersonName, new { @class = "form-control" })</span>
                                                 <br />
                                                 <span><b>E-mail</b>: @Html.DisplayFor(model => model.Email, new { @class = "form-control" })</span>
                                                 <br />
-                                                <span><b>Telefon raqami:</b>: @Html.DisplayFor(model => model.Telephone, new { @class = "form-control" })</span>
+                                                <span><b>@L.T("Crm_CustPhoneNumber")</b>: @Html.DisplayFor(model => model.Telephone, new { @class = "form-control" })</span>
                                                 <br />
                                             </div>
                                         </div>
@@ -77,16 +77,16 @@
                                         <!-- Navigation Links -->
                                         <div class="row mt-3">
                                             <div class="col-12">
-                                                <h5 class="text-primary mb-3">Bog'liq hujjatlar</h5>
+                                                <h5 class="text-primary mb-3">@L.T("Crm_RelatedDocs")</h5>
                                                 <div class="btn-group" role="group">
                                                     <a href="@Url.Action("Index", "SOrder", new { customerID = Model.ID })" class="btn btn-outline-primary">
-                                                        <i class="bx bx-list-ul"></i> Buyurtmalar (@ViewBag.OrdersCount)
+                                                        <i class="bx bx-list-ul"></i> @L.T("Menu_Orders") (@ViewBag.OrdersCount)
                                                     </a>
                                                     <a href="@Url.Action("Index", "SContract", new { customerID = Model.ID })" class="btn btn-outline-primary">
-                                                        <i class="bx bx-file"></i> Shartnomalar (@ViewBag.ContractsCount)
+                                                        <i class="bx bx-file"></i> @L.T("Menu_Contracts") (@ViewBag.ContractsCount)
                                                     </a>
                                                     <a href="@Url.Action("Index", "SalesInvoices", new { customerID = Model.ID })" class="btn btn-outline-primary">
-                                                        <i class="bx bx-receipt"></i> Invoyslar (@ViewBag.InvoicesCount)
+                                                        <i class="bx bx-receipt"></i> @L.T("Menu_Invoices") (@ViewBag.InvoicesCount)
                                                     </a>
                                                 </div>
                                             </div>

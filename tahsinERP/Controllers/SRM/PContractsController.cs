@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
+using tahsinERP.I18n;
 using tahsinERP.Helpers;
 using tahsinERP.Models;
 using tahsinERP.Services;
@@ -104,15 +105,15 @@ namespace tahsinERP.Controllers
                 }
 
                 var rows = await PContractService.OrderIndex(query, 5, true).ToListAsync();
-                var bytes = ExcelExport.Create("Xarid shartnomalari", rows,
-                    ExcelExport.Col<PContractService.IndexRow>("Shartnoma raqami", r => r.ContractNo),
-                    ExcelExport.Col<PContractService.IndexRow>("Ta'minotchi", r => r.SupplierName),
-                    ExcelExport.Col<PContractService.IndexRow>("Turi", r => r.PurchaseType == ProcurementLookups.IndirectPurchase ? "Indirect" : "Direct"),
-                    ExcelExport.Col<PContractService.IndexRow>("Shartnoma summasi", r => r.Amount ?? 0, "#,##0.00"),
-                    ExcelExport.Col<PContractService.IndexRow>("To'lov shartlari", r => r.PaymentTerms),
-                    ExcelExport.Col<PContractService.IndexRow>("Sana", r => r.IssuedDate, "dd.MM.yyyy"));
+                var bytes = ExcelExport.Create(L.T("Menu_PurchaseContracts"), rows,
+                    ExcelExport.Col<PContractService.IndexRow>(L.T("Srm_ContractNo"), r => r.ContractNo),
+                    ExcelExport.Col<PContractService.IndexRow>(L.T("Srm_Supplier"), r => r.SupplierName),
+                    ExcelExport.Col<PContractService.IndexRow>(L.T("Type"), r => r.PurchaseType == ProcurementLookups.IndirectPurchase ? "Indirect" : "Direct"),
+                    ExcelExport.Col<PContractService.IndexRow>(L.T("Srm_ContractAmount"), r => r.Amount ?? 0, "#,##0.00"),
+                    ExcelExport.Col<PContractService.IndexRow>(L.T("Srm_PaymentTerms"), r => r.PaymentTerms),
+                    ExcelExport.Col<PContractService.IndexRow>(L.T("Date"), r => r.IssuedDate, "dd.MM.yyyy"));
 
-                return File(bytes, ExcelExport.ContentType, $"Xarid_shartnomalari_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx");
+                return File(bytes, ExcelExport.ContentType, L.T("Srm_FilePurchaseContracts") + $"_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx");
             }
         }
 
@@ -319,7 +320,7 @@ namespace tahsinERP.Controllers
                 {
                     ModelState.Remove(key);
                 }
-                ModelState.AddModelError("", "Kamida bitta mahsulot qo'shish kerak");
+                ModelState.AddModelError("", L.T("Srm_AtLeastOneProductAdd"));
             }
 
             if (model.ContractProducts != null)
@@ -329,15 +330,15 @@ namespace tahsinERP.Controllers
                     var product = model.ContractProducts[i];
                     if (product.ProductID <= 0)
                     {
-                        ModelState.AddModelError($"ContractProducts[{i}].ProductID", "Mahsulot tanlang");
+                        ModelState.AddModelError($"ContractProducts[{i}].ProductID", L.T("Srm_Val_SelectProduct"));
                     }
                     if (product.Quantity <= 0)
                     {
-                        ModelState.AddModelError($"ContractProducts[{i}].Quantity", "Miqdor 0 dan katta bo'lishi kerak");
+                        ModelState.AddModelError($"ContractProducts[{i}].Quantity", L.T("Srm_Val_QtyPositive"));
                     }
                     if (product.Price <= 0)
                     {
-                        ModelState.AddModelError($"ContractProducts[{i}].Price", "Narx 0 dan katta bo'lishi kerak");
+                        ModelState.AddModelError($"ContractProducts[{i}].Price", L.T("Srm_Val_PricePositive"));
                     }
                 }
             }

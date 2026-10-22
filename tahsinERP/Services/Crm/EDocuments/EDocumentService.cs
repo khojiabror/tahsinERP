@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Serialization;
 using tahsinERP.Controllers;
+using tahsinERP.I18n;
 using tahsinERP.Models;
 
 namespace tahsinERP.Services.Crm.EDocuments
@@ -151,26 +152,25 @@ namespace tahsinERP.Services.Crm.EDocuments
         public static List<string> Validate(EInvoiceDocument doc)
         {
             var errors = new List<string>();
-            if (string.IsNullOrWhiteSpace(doc.Number)) errors.Add("SF raqami yo'q.");
-            if (!IsTin(doc.Seller?.Tin)) errors.Add("Sotuvchi INN (9 raqam) ko'rsatilmagan — SF'dagi \"Ta'minotchi INN\" yoki EDoc:SellerTin.");
-            if (!IsTin(doc.Buyer?.Tin)) errors.Add("Xaridor INN (9 raqam) ko'rsatilmagan.");
-            if (!doc.Items.Any()) errors.Add("SF'da qator yo'q.");
+            if (string.IsNullOrWhiteSpace(doc.Number)) errors.Add(L.T("Crm_EdocSfNoNumber"));
+            if (!IsTin(doc.Seller?.Tin)) errors.Add(L.T("Crm_EdocSellerTinMissing"));
+            if (!IsTin(doc.Buyer?.Tin)) errors.Add(L.T("Crm_EdocBuyerTinMissing"));
+            if (!doc.Items.Any()) errors.Add(L.T("Crm_EdocSfNoLines"));
             var noCatalog = doc.Items.Where(i => string.IsNullOrWhiteSpace(i.CatalogCode)).Select(i => i.Name).ToList();
             if (noCatalog.Any())
-                errors.Add("MXIK (IKPU) kodi yo'q: " + string.Join(", ", noCatalog.Take(5)) + (noCatalog.Count > 5 ? " …" : "") +
-                           ". Mahsulotlarga MXIK kodi qo'shilgach yuborish mumkin bo'ladi.");
+                errors.Add(L.T("Crm_EdocNoCatalogCode", string.Join(", ", noCatalog.Take(5)) + (noCatalog.Count > 5 ? " …" : "")));
             return errors;
         }
 
         public static List<string> Validate(EWaybillDocument doc)
         {
             var errors = new List<string>();
-            if (string.IsNullOrWhiteSpace(doc.Number)) errors.Add("TTN raqami yo'q.");
-            if (!IsTin(doc.Shipper?.Tin)) errors.Add("Yuk jo'natuvchi INN (9 raqam) ko'rsatilmagan.");
-            if (!IsTin(doc.Consignee?.Tin)) errors.Add("Yuk oluvchi INN (9 raqam) ko'rsatilmagan.");
-            if (string.IsNullOrWhiteSpace(doc.TruckNo)) errors.Add("Avtomobil raqami ko'rsatilmagan.");
-            if (string.IsNullOrWhiteSpace(doc.DriverName)) errors.Add("Haydovchi ko'rsatilmagan.");
-            if (!doc.Items.Any()) errors.Add("TTN'da qator yo'q.");
+            if (string.IsNullOrWhiteSpace(doc.Number)) errors.Add(L.T("Crm_EdocTtnNoNumber"));
+            if (!IsTin(doc.Shipper?.Tin)) errors.Add(L.T("Crm_EdocShipperTinMissing"));
+            if (!IsTin(doc.Consignee?.Tin)) errors.Add(L.T("Crm_EdocConsigneeTinMissing"));
+            if (string.IsNullOrWhiteSpace(doc.TruckNo)) errors.Add(L.T("Crm_EdocTruckNoMissing"));
+            if (string.IsNullOrWhiteSpace(doc.DriverName)) errors.Add(L.T("Crm_EdocDriverMissing"));
+            if (!doc.Items.Any()) errors.Add(L.T("Crm_EdocTtnNoLines"));
             return errors;
         }
 
@@ -181,15 +181,15 @@ namespace tahsinERP.Services.Crm.EDocuments
         {
             var provider = EDocumentProviders.Active();
             if (!provider.IsExternal)
-                return EDocumentResult.Fail("Tashqi EDO provayderi ulanmagan — SF tizim ichida saqlangan.");
+                return EDocumentResult.Fail(L.T("Crm_EdocNoProviderSf"));
 
             EInvoiceDocument doc;
             using (var db = new DBTHSNEntities())
             {
                 var sf = db.SALES_SF_HEADERS.Find(sfId);
-                if (sf == null) return EDocumentResult.Fail("SF topilmadi.");
+                if (sf == null) return EDocumentResult.Fail(L.T("Crm_SfNotFound"));
                 if (EDocumentStatus.IsDelivered(sf.IntegrationStatusCode))
-                    return EDocumentResult.Fail("SF allaqachon " + EDocumentStatus.Title(sf.IntegrationStatusCode).ToLower() + " — holatini yangilang.");
+                    return EDocumentResult.Fail(L.T("Crm_EdocSfAlready", EDocumentStatus.Title(sf.IntegrationStatusCode).ToLower()));
 
                 doc = BuildInvoice(db, sfId);
                 var errors = Validate(doc);
@@ -219,15 +219,15 @@ namespace tahsinERP.Services.Crm.EDocuments
         {
             var provider = EDocumentProviders.Active();
             if (!provider.IsExternal)
-                return EDocumentResult.Fail("Tashqi EDO provayderi ulanmagan — TTN tizim ichida saqlangan.");
+                return EDocumentResult.Fail(L.T("Crm_EdocNoProviderTtn"));
 
             EWaybillDocument doc;
             using (var db = new DBTHSNEntities())
             {
                 var t = db.SALES_TTNK_HEADERS.Find(ttnkId);
-                if (t == null) return EDocumentResult.Fail("TTN topilmadi.");
+                if (t == null) return EDocumentResult.Fail(L.T("Crm_TtnNotFound"));
                 if (EDocumentStatus.IsDelivered(t.IntegrationStatusCode))
-                    return EDocumentResult.Fail("TTN allaqachon " + EDocumentStatus.Title(t.IntegrationStatusCode).ToLower() + " — holatini yangilang.");
+                    return EDocumentResult.Fail(L.T("Crm_EdocTtnAlready", EDocumentStatus.Title(t.IntegrationStatusCode).ToLower()));
 
                 doc = BuildWaybill(db, ttnkId);
                 var errors = Validate(doc);
@@ -263,20 +263,20 @@ namespace tahsinERP.Services.Crm.EDocuments
                 if (kind == EDocumentKind.Invoice)
                 {
                     var h = db.SALES_SF_HEADERS.AsNoTracking().Where(x => x.ID == id).Select(x => new { x.ExternalSystemCode, x.ExternalSFKey }).FirstOrDefault();
-                    if (h == null) return EDocumentResult.Fail("SF topilmadi.");
+                    if (h == null) return EDocumentResult.Fail(L.T("Crm_SfNotFound"));
                     providerCode = h.ExternalSystemCode; externalId = h.ExternalSFKey;
                 }
                 else
                 {
                     var h = db.SALES_TTNK_HEADERS.AsNoTracking().Where(x => x.ID == id).Select(x => new { x.ExternalSystemCode, x.ExternalDocKey }).FirstOrDefault();
-                    if (h == null) return EDocumentResult.Fail("TTN topilmadi.");
+                    if (h == null) return EDocumentResult.Fail(L.T("Crm_TtnNotFound"));
                     providerCode = h.ExternalSystemCode; externalId = h.ExternalDocKey;
                 }
             }
 
             var provider = EDocumentProviders.ByCode(providerCode);
             if (provider == null || !provider.IsExternal)
-                return EDocumentResult.Fail("Hujjat tashqi provayderga yuborilmagan.");
+                return EDocumentResult.Fail(L.T("Crm_EdocNotSentExternal"));
 
             var result = await provider.GetStatusAsync(kind, externalId).ConfigureAwait(false);
             if (!result.Success) return result;

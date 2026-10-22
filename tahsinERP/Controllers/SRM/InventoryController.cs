@@ -14,6 +14,7 @@ using tahsinERP.Services.DlocFifo;
 using tahsinERP.Services.Stock;
 using tahsinERP.ViewModels;
 using tahsinERP.Services.Common;
+using tahsinERP.I18n;
 
 namespace tahsinERP.Controllers
 {
@@ -141,7 +142,7 @@ namespace tahsinERP.Controllers
             {
                 if (!DlocFifoSchema.IsEnabled(db))
                 {
-                    TempData["Error"] = "DLOC moduli yoqilmagan. Avval migration scriptni ishga tushiring.";
+                    TempData["Error"] = L.T("Wh_DlocDisabledRunMigration");
                     return RedirectToAction("Index");
                 }
 
@@ -159,7 +160,7 @@ namespace tahsinERP.Controllers
                 catch (Exception ex)
                 {
                     dlocRows = new List<InventoryDlocStockRow>();
-                    TempData["Error"] = "DLOC qoldiq yuklanmadi: " + ex.Message;
+                    TempData["Error"] = L.T("Wh_DlocStockLoadFailed", ex.Message);
                 }
 
                 if (categoryId.HasValue)
@@ -228,7 +229,7 @@ namespace tahsinERP.Controllers
             {
                 if (!DlocFifoSchema.IsEnabled(db))
                 {
-                    TempData["Error"] = "DLOC moduli yoqilmagan. Avval migration scriptni ishga tushiring.";
+                    TempData["Error"] = L.T("Wh_DlocDisabledRunMigration");
                     return RedirectToAction("Index");
                 }
 
@@ -289,14 +290,14 @@ namespace tahsinERP.Controllers
             {
                 if (!DlocFifoSchema.IsEnabled(db))
                 {
-                    TempData["Error"] = "DLOC moduli yoqilmagan.";
+                    TempData["Error"] = L.T("Wh_DlocDisabled");
                     return RedirectToAction("Index");
                 }
 
                 var assignedWarehouseIds = await GetAssignedWarehouseIdsAsync(db);
                 if (assignedWarehouseIds.Any() && !assignedWarehouseIds.Contains(model.WarehouseId))
                 {
-                    TempData["Error"] = "Ushbu ombor uchun ruxsat yo'q.";
+                    TempData["Error"] = L.T("Wh_NoAccessToWarehouse");
                     return RedirectToAction("AssignDloc");
                 }
 
@@ -315,7 +316,7 @@ namespace tahsinERP.Controllers
                     var count = LegacyDlocAssignmentService.AssignToLocations(
                         db, model.WarehouseId, requests, User.Identity.Name);
 
-                    TempData["Success"] = $"{count} ta mahsulot DLOC ga joylashtirildi.";
+                    TempData["Success"] = L.T("Wh_Asg_Done", count);
                     return RedirectToAction("AssignDloc", new { warehouseId = model.WarehouseId });
                 }
                 catch (WarehouseDlocException wex)
@@ -344,7 +345,7 @@ namespace tahsinERP.Controllers
                 var assignedWarehouseIds = await GetAssignedWarehouseIdsAsync(db);
                 if (!assignedWarehouseIds.Any())
                 {
-                    ViewBag.NoWarehouseError = "Sizga biriktirilgan ombor mavjud emas";
+                    ViewBag.NoWarehouseError = L.T("Wh_NoAssignedWarehouse");
                     return View(new ViewModels.InventoryAdjustmentViewModel());
                 }
 
@@ -403,28 +404,28 @@ namespace tahsinERP.Controllers
                     var assignedWarehouseIds = await GetAssignedWarehouseIdsAsync(db);
                     if (!assignedWarehouseIds.Any())
                     {
-                        ModelState.AddModelError("", "Sizga biriktirilgan ombor mavjud emas");
+                        ModelState.AddModelError("", L.T("Wh_NoAssignedWarehouse"));
                     }
                     else if (!assignedWarehouseIds.Contains(model.WarehouseId))
                     {
-                        ModelState.AddModelError("", "Siz faqat o'zingizga biriktirilgan omborlar bo'yicha inventarizatsiya qilishingiz mumkin.");
+                        ModelState.AddModelError("", L.T("Wh_Adj_OnlyAssigned"));
                     }
 
                     if (!model.Confirmed)
                     {
-                        ModelState.AddModelError("", "Inventarizatsiya qoidalarini qabul qilishingiz shart.");
+                        ModelState.AddModelError("", L.T("Wh_Adj_MustAcceptRules"));
                     }
 
                     if (model.ExcelFile == null || model.ExcelFile.ContentLength == 0)
                     {
-                        ModelState.AddModelError("", "Excel fayl yuklanmadi.");
+                        ModelState.AddModelError("", L.T("Wh_Adj_NoFile"));
                     }
 
                     var currentUserId = tahsinERP.Controllers.UserHelper.GetUserId(User.Identity.Name);
                     var lockedWarehouseIds = await InventoryAdjustmentService.GetLockedWarehouseIdsAsync(db, assignedWarehouseIds);
                     if (lockedWarehouseIds.Contains(model.WarehouseId))
                     {
-                        ModelState.AddModelError("", "Ushbu ombor uchun joriy oyda inventarizatsiya allaqachon kiritilgan. Oyiga faqat bir marta ruxsat etiladi.");
+                        ModelState.AddModelError("", L.T("Wh_Adj_AlreadyThisMonth"));
                     }
 
                     if (!ModelState.IsValid)
@@ -439,7 +440,7 @@ namespace tahsinERP.Controllers
                         var worksheet = workbook.Worksheets.FirstOrDefault();
                         if (worksheet == null || worksheet.LastRowNumber() == 0)
                         {
-                            ModelState.AddModelError("", "Excel fayl bo'sh.");
+                            ModelState.AddModelError("", L.T("Wh_Adj_EmptyFile"));
                             await PopulateAdjustmentViewBags(db, assignedWarehouseIds, model.WarehouseId);
                             return View(model);
                         }
@@ -449,7 +450,7 @@ namespace tahsinERP.Controllers
                             .Alias("quantity", "quantity", "qty", "miqdor", "qoldiq");
                         if (!cells.Has("productpno") || !cells.Has("quantity"))
                         {
-                            ModelState.AddModelError("", "Excel format xato. Majburiy ustunlar: ProductPNo va Quantity.");
+                            ModelState.AddModelError("", L.T("Wh_Adj_BadFormat"));
                             await PopulateAdjustmentViewBags(db, assignedWarehouseIds, model.WarehouseId);
                             return View(model);
                         }
@@ -480,32 +481,32 @@ namespace tahsinERP.Controllers
                                 {
                                     continue;
                                 }
-                                errorDetails.Add($"{row}-qator: ProductPNo bo'sh.");
+                                errorDetails.Add(L.T("Wh_Adj_RowEmptyPno", row));
                                 continue;
                             }
 
                             var key = pno.Trim().ToUpperInvariant();
                             if (!productMap.TryGetValue(key, out var product))
                             {
-                                errorDetails.Add($"{row}-qator: Mahsulot topilmadi ({pno}).");
+                                errorDetails.Add(L.T("Wh_Adj_RowProductNotFound", row, pno));
                                 continue;
                             }
 
                             if (!TryParseQuantity(qtyValue, out var qty))
                             {
-                                errorDetails.Add($"{row}-qator: Quantity noto'g'ri ({qtyValue}).");
+                                errorDetails.Add(L.T("Wh_Adj_RowBadQty", row, qtyValue));
                                 continue;
                             }
 
                             if (qty < 0)
                             {
-                                errorDetails.Add($"{row}-qator: Quantity manfiy bo'lishi mumkin emas ({qtyValue}).");
+                                errorDetails.Add(L.T("Wh_Adj_RowNegativeQty", row, qtyValue));
                                 continue;
                             }
 
                             if (!seenProducts.Add(product.ID))
                             {
-                                errorDetails.Add($"{row}-qator: Bir xil ProductPNo bir martadan ko'p kiritilgan ({product.PNo}).");
+                                errorDetails.Add(L.T("Wh_Adj_RowDuplicate", row, product.PNo));
                                 continue;
                             }
 
@@ -520,7 +521,7 @@ namespace tahsinERP.Controllers
                         if (errorDetails.Any())
                         {
                             ViewBag.ErrorDetails = errorDetails;
-                            ModelState.AddModelError("", "Excel faylda xatolar bor. Tuzatib qayta yuklang.");
+                            ModelState.AddModelError("", L.T("Wh_Adj_FileHasErrors"));
                             await PopulateAdjustmentViewBags(db, assignedWarehouseIds, model.WarehouseId);
                             return View(model);
                         }
@@ -549,14 +550,14 @@ namespace tahsinERP.Controllers
                                 var unassigned = onHand - ledger;
                                 if (unassigned > StockLedger.Epsilon)
                                 {
-                                    unassignedErrors.Add($"{parsedRow.RowNumber}-qator: {product.PNo} — DLOC ga joylashtirilmagan qoldiq {unassigned:N3}. Avval «DLOC ga joylashtirish» sahifasida joylashtiring.");
+                                    unassignedErrors.Add(L.T("Wh_Adj_RowUnassigned", parsedRow.RowNumber, product.PNo, unassigned.ToString("N3")));
                                 }
                             }
 
                             if (unassignedErrors.Any())
                             {
                                 ViewBag.ErrorDetails = unassignedErrors;
-                                ModelState.AddModelError("", "Ombordagi ayrim qoldiqlar DLOC ga joylashtirilmagan. Inventarizatsiyadan oldin joylashtiring.");
+                                ModelState.AddModelError("", L.T("Wh_Adj_UnassignedStock"));
                                 await PopulateAdjustmentViewBags(db, assignedWarehouseIds, model.WarehouseId);
                                 return View(model);
                             }
@@ -591,13 +592,13 @@ namespace tahsinERP.Controllers
                                     null,
                                     HttpContext);
 
-                                TempData["Success"] = "Inventarizatsiya muvaffaqiyatli yakunlandi.";
+                                TempData["Success"] = L.T("Wh_Adj_Done");
                                 return RedirectToAction("Index");
                             }
                             catch (Exception ex)
                             {
                                 transaction.Rollback();
-                                ModelState.AddModelError("", $"Xatolik: {ex.Message}");
+                                ModelState.AddModelError("", L.T("Wh_ErrorWithMessage", ex.Message));
                                 await PopulateAdjustmentViewBags(db, assignedWarehouseIds, model.WarehouseId);
                                 return View(model);
                             }

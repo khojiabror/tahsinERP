@@ -19,7 +19,7 @@
     }
 
     function unitOptions(units, selectedId) {
-        var options = '<option value="">---Tanlang---</option>';
+        var options = '<option value="">' + (window.erpT ? erpT('Js_Srm_SelectDashes') : '---Tanlang---') + '</option>';
         (units || []).forEach(function (unit) {
             var selected = unit.Value == selectedId ? 'selected' : '';
             options += '<option value="' + escapeHtml(unit.Value) + '" ' + selected + '>' + escapeHtml(unit.Text) + '</option>';

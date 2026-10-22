@@ -1,6 +1,6 @@
 @model tahsinERP.ViewModels.WarehouseMonthlyReportViewModel
 @{
-    ViewBag.Title = "Ombor oylik hisoboti";
+    ViewBag.Title = L.T("Wh_Mr_Title");
     Layout = "~/Views/Shared/_Layout.cshtml";
     Func<object, string, decimal> getDecimal = (obj, propName) =>
     {
@@ -57,8 +57,8 @@
                 <div class="breadcrumb-wrapper col-12">
                     <ol class="breadcrumb rounded-pill breadcrumb-divider">
                         <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
-                        <li class="breadcrumb-item"><a href="~/InventoryReports/Dashboard">Ombor hisobotlari</a></li>
-                        <li class="breadcrumb-item active">Oylik hisobot</li>
+                        <li class="breadcrumb-item"><a href="~/InventoryReports/Dashboard">@L.T("Wh_Reports")</a></li>
+                        <li class="breadcrumb-item active">@L.T("Menu_MonthlyReport")</li>
                     </ol>
                 </div>
             </div>
@@ -67,36 +67,36 @@
         <div class="content-body">
             <div class="card no-print">
                 <div class="card-header">
-                    <h4 class="card-title mb-0">Ombor oylik hisoboti (MRP)</h4>
+                    <h4 class="card-title mb-0">@L.T("Wh_Mr_TitleMrp")</h4>
                 </div>
                 <div class="card-body">
                     @using (Html.BeginForm("MonthlyReport", "InventoryReports", FormMethod.Get, new { @class = "form" }))
                     {
                         <div class="row">
                             <div class="col-md-2">
-                                <label>Ko'rinishi</label>
+                                <label>@L.T("Wh_Mr_ViewMode")</label>
                                 <select name="viewMode" class="form-control">
-                                    <option value="quantity" @(Model.ViewMode == "quantity" ? "selected" : "")>Miqdor bo'yicha</option>
-                                    <option value="amount" @(Model.ViewMode == "amount" ? "selected" : "")>Summa bo'yicha</option>
+                                    <option value="quantity" @(Model.ViewMode == "quantity" ? "selected" : "")>@L.T("Wh_Mr_ByQty")</option>
+                                    <option value="amount" @(Model.ViewMode == "amount" ? "selected" : "")>@L.T("Wh_Mr_ByAmount")</option>
                                 </select>
                             </div>
                             <div class="col-md-2">
-                                <label>Ombor</label>
+                                <label>@L.T("Wh_Warehouse")</label>
                                 @Html.DropDownList("warehouseId", Model.Warehouses, new { @class = "form-control" })
                             </div>
                             <div class="col-md-2">
-                                <label>Oy</label>
-                                @Html.DropDownList("month", Enumerable.Range(1, 12).Select(i => new SelectListItem { Text = new DateTime(2024, i, 1).ToString("MMMM", new System.Globalization.CultureInfo("uz-Latn-UZ")), Value = i.ToString(), Selected = i == Model.Month }), new { @class = "form-control" })
+                                <label>@L.T("Wh_Month")</label>
+                                @Html.DropDownList("month", Enumerable.Range(1, 12).Select(i => new SelectListItem { Text = L.T("Month_" + i), Value = i.ToString(), Selected = i == Model.Month }), new { @class = "form-control" })
                             </div>
                             <div class="col-md-2">
-                                <label>Yil</label>
+                                <label>@L.T("Wh_Year")</label>
                                 <input type="number" name="year" class="form-control" value="@Model.Year" min="2020" max="2030" />
                             </div>
                             <div class="col-md-2 d-flex align-items-end">
-                                <button type="submit" class="btn btn-primary">Hisobotni ko'rsatish</button>
+                                <button type="submit" class="btn btn-primary">@L.T("Wh_Mr_ShowReport")</button>
                             </div>
                             <div class="col-md-2 d-flex align-items-end justify-content-end">
-                                <button type="button" class="btn btn-outline-secondary" onclick="window.print();"><i class="bx bx-printer"></i> Chop etish</button>
+                                <button type="button" class="btn btn-outline-secondary" onclick="window.print();"><i class="bx bx-printer"></i> @L.T("Print")</button>
                             </div>
                         </div>
                     }
@@ -110,10 +110,10 @@
                         {
                             <p class="report-meta mb-0">@Model.CompanyName</p>
                         }
-                        <h5 class="report-title mt-2">OMBOR OYLIK HISOBOTI</h5>
-                        <p class="report-meta mb-0">Oy: <strong>@Model.PeriodTitleUz</strong> (@Model.PeriodTitle)</p>
-                        <p class="report-meta mb-0">Ombor: <strong>@(Model.SelectedWarehouseName ?? "—")</strong></p>
-                        <p class="report-meta mb-0">Hujjat sanasi: <strong>@Model.ReportDate</strong></p>
+                        <h5 class="report-title mt-2">@L.T("Wh_Mr_TitleUpper")</h5>
+                        <p class="report-meta mb-0">@L.T("Wh_MonthColon") <strong>@Model.PeriodTitleUz</strong> (@Model.PeriodTitle)</p>
+                        <p class="report-meta mb-0">@L.T("Wh_WarehouseColon") <strong>@(Model.SelectedWarehouseName ?? "—")</strong></p>
+                        <p class="report-meta mb-0">@L.T("Wh_Mr_DocDateColon") <strong>@Model.ReportDate</strong></p>
                     </div>
 
                     <div class="table-responsive">
@@ -121,17 +121,17 @@
                             <thead>
                                 <tr class="table-primary">
                                     <th style="width:40px">№</th>
-                                    <th>Kod</th>
-                                    <th>Mahsulot</th>
+                                    <th>@L.T("Code")</th>
+                                    <th>@L.T("Wh_Product")</th>
                                     @if (Model.ViewMode != "amount")
                                     {
-                                        <th>Birlik</th>
+                                        <th>@L.T("Unit")</th>
                                     }
-                                    <th class="text-right">Oldingi qoldiq</th>
-                                    <th class="text-right">Inventarizatsiya orqali</th>
-                                    <th class="text-right">Kirim</th>
-                                    <th class="text-right">Chiqim</th>
-                                    <th class="text-right">Oy oxiridagi qoldiq</th>
+                                    <th class="text-right">@L.T("Wh_Mr_Opening")</th>
+                                    <th class="text-right">@L.T("Wh_Mr_ViaInventory")</th>
+                                    <th class="text-right">@L.T("Wh_Income")</th>
+                                    <th class="text-right">@L.T("Wh_Expense")</th>
+                                    <th class="text-right">@L.T("Wh_Mr_Closing")</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -170,7 +170,7 @@
                                     if (Model.Totals != null)
                                     {
                                         <tr class="total-row">
-                                            <td colspan="@(byAmount ? 3 : 4)" class="text-right"><strong>JAMI</strong></td>
+                                            <td colspan="@(byAmount ? 3 : 4)" class="text-right"><strong>@L.T("Wh_TotalUpper")</strong></td>
                                             @if (byAmount)
                                             {
                                                 <td class="text-right">@Model.Totals.TotalOpeningSum.ToString("N2")</td>
@@ -194,7 +194,7 @@
                                 {
                                     var emptyColspan = Model.ViewMode == "amount" ? 8 : 9;
                                     <tr>
-                                        <td colspan="@emptyColspan" class="text-center">Ushbu oy uchun kirim/chiqim ma'lumotlari topilmadi.</td>
+                                        <td colspan="@emptyColspan" class="text-center">@L.T("Wh_Mr_Empty")</td>
                                     </tr>
                                 }
                             </tbody>
@@ -202,15 +202,15 @@
                     </div>
                     @if (Model.ViewMode == "amount" && Model.Rows != null && Model.Rows.Count > 0)
                     {
-                        <p class="report-meta small mb-0">Summalar so'mda (kirim/chiqim hujjatlaridagi narxlar bo'yicha).</p>
+                        <p class="report-meta small mb-0">@L.T("Wh_Mr_AmountsNote")</p>
                     }
 
                     <div class="signature-line no-print">
-                        <p class="mb-0">Ombor muduri (MRP): _________________________  Qo'l: ____________</p>
-                        <p class="mb-0 text-muted small">Hisobotni chop etib, imzo va qo'l qo'yilgach rahbariyatga topshiriladi.</p>
+                        <p class="mb-0">@L.T("Wh_Mr_SignatureLine")</p>
+                        <p class="mb-0 text-muted small">@L.T("Wh_Mr_SignatureHint")</p>
                     </div>
                     <div class="signature-line print-only">
-                        <p class="mb-0">Ombor muduri (MRP): _________________________  Qo'l: ____________</p>
+                        <p class="mb-0">@L.T("Wh_Mr_SignatureLine")</p>
                     </div>
                 </div>
             </div>

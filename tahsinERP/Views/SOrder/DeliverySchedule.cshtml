@@ -1,6 +1,6 @@
 @model tahsinERP.ViewModels.DeliveryScheduleViewModel
 @{
-    ViewBag.Title = "Yetkazib berish rejasi";
+    ViewBag.Title = L.T("Crm_OrdDeliverySchedule");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -21,13 +21,13 @@
                                         <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                     </li>
                                     <li class="breadcrumb-item">
-                                        <a href="~/SOrder/Index">Buyurtmalar</a>
+                                        <a href="~/SOrder/Index">@L.T("Menu_Orders")</a>
                                     </li>
                                     <li class="breadcrumb-item">
-                                        <a href="~/SOrder/Details/@Model.OrderID">Buyurtma ma'lumotlari</a>
+                                        <a href="~/SOrder/Details/@Model.OrderID">@L.T("Crm_OrdDetailsTitle")</a>
                                     </li>
                                     <li class="breadcrumb-item active">
-                                        Yetkazib berish rejasi
+                                        @L.T("Crm_OrdDeliverySchedule")
                                     </li>
                                 </ol>
                             </div>
@@ -44,28 +44,28 @@
                                     <div class="card-body">
                                         <div class="row mb-2">
                                             <div class="col-md-6">
-                                                <h4>Buyurtma: @Model.OrderNo</h4>
+                                                <h4>@L.T("Crm_Order"): @Model.OrderNo</h4>
                                                 <p class="text-muted mb-0">
-                                                    <strong>Mijoz:</strong> @Model.CustomerName<br />
-                                                    <strong>Sana:</strong> @Model.IssuedDate.ToString("dd.MM.yyyy")
+                                                    <strong>@L.T("Crm_Client"):</strong> @Model.CustomerName<br />
+                                                    <strong>@L.T("Date"):</strong> @Model.IssuedDate.ToString("dd.MM.yyyy")
                                                 </p>
                                             </div>
                                         </div>
 
                                         <hr />
 
-                                        <h5 class="mb-2">Buyurtma maxsulotlari</h5>
+                                        <h5 class="mb-2">@L.T("Crm_OrdOrderProducts")</h5>
                                         <div class="table-responsive mb-3">
                                             <table class="table table-bordered table-striped">
                                                 <thead class="thead-light">
                                                     <tr>
-                                                        <th>Maxsulot kodi</th>
-                                                        <th>Maxsulot nomi</th>
-                                                        <th>O'lchov birligi</th>
-                                                        <th class="text-right">Buyurtma miqdori</th>
-                                                        <th class="text-right">Rejalashtirilgan</th>
-                                                        <th class="text-right">Yetkazilgan</th>
-                                                        <th class="text-right">Qolgan</th>
+                                                        <th>@L.T("Crm_ProductCode")</th>
+                                                        <th>@L.T("Crm_ProductName")</th>
+                                                        <th>@L.T("Crm_UnitOfMeasure")</th>
+                                                        <th class="text-right">@L.T("Crm_OrderQty")</th>
+                                                        <th class="text-right">@L.T("Crm_OrdPlanned")</th>
+                                                        <th class="text-right">@L.T("Crm_OrdShipped")</th>
+                                                        <th class="text-right">@L.T("Crm_OrdRemaining")</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
@@ -90,7 +90,7 @@
 
                                         <hr />
 
-                                        <h5 class="mb-2">Yetkazib berish rejasi</h5>
+                                        <h5 class="mb-2">@L.T("Crm_OrdDeliverySchedule")</h5>
                                         @if (TempData["ErrorMessage"] != null)
                                         {
                                             <div class="alert alert-danger" role="alert">
@@ -108,10 +108,10 @@
                                                         <thead class="thead-light">
                                                             <tr>
                                                                 <th width="5%">№</th>
-                                                                <th width="20%">Maxsulot</th>
-                                                                <th width="15%">Yetkazib berish sanasi</th>
-                                                                <th width="15%">Miqdor</th>
-                                                                <th width="10%">Amallar</th>
+                                                                <th width="20%">@L.T("Crm_Product")</th>
+                                                                <th width="15%">@L.T("Crm_OrdDeliveryDate")</th>
+                                                                <th width="15%">@L.T("Quantity")</th>
+                                                                <th width="10%">@L.T("Actions")</th>
                                                             </tr>
                                                         </thead>
                                                         <tbody id="scheduleTableBody">
@@ -172,7 +172,7 @@
                                                     <div class="row mt-2">
                                                         <div class="col-md-6">
                                                             <button type="button" class="btn btn-success" id="addScheduleRow">
-                                                                <i class="bx bx-plus"></i> Qator qo'shish
+                                                                <i class="bx bx-plus"></i> @L.T("Crm_AddRow")
                                                             </button>
                                                         </div>
                                                     </div>
@@ -180,10 +180,10 @@
                                                     <div class="row mt-3">
                                                         <div class="col-12">
                                                             <button type="submit" class="btn btn-primary btn-lg">
-                                                                <i class="bx bx-save"></i> Saqlash
+                                                                <i class="bx bx-save"></i> @L.T("Save")
                                                             </button>
                                                             <a href="@Url.Action("Details", new { id = Model.OrderID })" class="btn btn-secondary btn-lg">
-                                                                <i class="bx bx-x"></i> Bekor qilish
+                                                                <i class="bx bx-x"></i> @L.T("Cancel")
                                                             </a>
                                                         </div>
                                                     </div>
@@ -195,7 +195,7 @@
                                                     <div class="row mt-3">
                                                         <div class="col-12">
                                                             <a href="@Url.Action("Details", new { id = Model.OrderID })" class="btn btn-secondary btn-lg">
-                                                                <i class="bx bx-x"></i> Orqaga
+                                                                <i class="bx bx-x"></i> @L.T("Back")
                                                             </a>
                                                         </div>
                                                     </div>

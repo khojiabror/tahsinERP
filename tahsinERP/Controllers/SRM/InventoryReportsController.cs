@@ -9,6 +9,7 @@ using tahsinERP.Services;
 using tahsinERP.Services.Common;
 using tahsinERP.Services.DlocFifo;
 using tahsinERP.ViewModels;
+using tahsinERP.I18n;
 
 namespace tahsinERP.Controllers
 {
@@ -69,7 +70,7 @@ namespace tahsinERP.Controllers
 
                 if (!warehouseIds.Any())
                 {
-                    ViewBag.Error = "Ombor topilmadi";
+                    ViewBag.Error = L.T("Wh_WarehouseNotFound");
                     return View(model);
                 }
 
@@ -186,7 +187,7 @@ namespace tahsinERP.Controllers
 
                 if (fifoScopeValue == "selected" && !warehouseId.HasValue)
                 {
-                    ViewBag.FifoScopeWarning = "FIFO uchun ombor tanlanmagan. 'Tanlangan ombor' rejimida natija chiqmaydi.";
+                    ViewBag.FifoScopeWarning = L.T("Wh_Db_FifoNoWarehouse");
                 }
 
                 if (DlocFifoSchema.IsEnabled(db))

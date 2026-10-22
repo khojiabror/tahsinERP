@@ -29,7 +29,7 @@
 
     function productOptions(products, selectedId) {
         if (window.ProductSelect) return window.ProductSelect.optionsHtml(products, selectedId);
-        var html = '<option value="">---Tanlang---</option>';
+        var html = '<option value="">' + (window.erpT ? erpT('Js_Crm_SelectDashed') : '---Tanlang---') + '</option>';
         for (var i = 0; i < products.length; i++) {
             var selected = products[i].Value == selectedId ? ' selected' : '';
             html += '<option value="' + esc(products[i].Value) + '"' + selected + '>' + esc(products[i].Text) + '</option>';
@@ -98,7 +98,7 @@
                 '<td><input type="number" name="ProductList[' + i + '].Amount" class="form-control quantity-input" value="' + esc(quantity || 0) + '" step="0.01" min="0.01" required /></td>' +
                 '<td>' +
                     '<select name="ProductList[' + i + '].UnitID" class="form-control unit-select select2" required>' +
-                    unitOptions(units, unitId, '---Tanlang---') +
+                    unitOptions(units, unitId, (window.erpT ? erpT('Js_Crm_SelectDashed') : '---Tanlang---')) +
                     '</select>' +
                 '</td>' +
                 '<td><input type="number" name="ProductList[' + i + '].PiecePrice" class="form-control price-input" value="' + esc(price || 0) + '" step="0.01" min="0" required /></td>' +
@@ -162,7 +162,7 @@
             reindexRows();
             if ($tbody.find('tr').length === 0) {
                 e.preventDefault();
-                alert('Kamida bitta mahsulot qo\'shilishi kerak');
+                alert((window.erpT ? erpT('Js_Crm_AtLeastOneProduct') : 'Kamida bitta mahsulot qo\'shilishi kerak'));
                 return false;
             }
         });
@@ -205,7 +205,7 @@
                 '<td><input type="number" name="ProductList[' + i + '].Amount" class="form-control product-amount-edit" min="1" required /></td>' +
                 '<td>' +
                     '<select name="ProductList[' + i + '].UnitID" class="form-control select2" required>' +
-                    unitOptions(units, undefined, 'Tanlang...') +
+                    unitOptions(units, undefined, (window.erpT ? erpT('Js_Crm_SelectDots') : 'Tanlang...')) +
                     '</select>' +
                 '</td>' +
                 '<td><input type="number" name="ProductList[' + i + '].PiecePrice" class="form-control product-price-edit" step="0.01" min="0" required /></td>' +

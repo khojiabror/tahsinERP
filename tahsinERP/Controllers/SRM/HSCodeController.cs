@@ -7,6 +7,7 @@ using tahsinERP.Models;
 using tahsinERP.Filters;
 using tahsinERP.Services.Procurement;
 using tahsinERP.ViewModels;
+using tahsinERP.I18n;
 
 namespace tahsinERP.Controllers
 {
@@ -140,7 +141,7 @@ namespace tahsinERP.Controllers
                              || await db.SALES_TTNK_LINES.AnyAsync(l => l.HsCodeID == hscodeToDelete.ID);
                 if (inUse)
                 {
-                    ModelState.AddModelError(string.Empty, "Bu ТНВЭД kod mahsulot yoki hujjatlarda ishlatilgan, o'chirib bo'lmaydi.");
+                    ModelState.AddModelError(string.Empty, L.T("Prd_HsCodeInUse"));
                     return View(hscodeToDelete);
                 }
 
@@ -218,7 +219,6 @@ namespace tahsinERP.Controllers
             }
         }
 
-        private const string SaveFailedMessage =
-            "Oʻzgarishlarni saqlab boʻlmadi. Qayta urinib ko'ring va agar muammo davom etsa, tizim administratoriga murojaat qiling.";
+        private static string SaveFailedMessage => L.T("Prd_SaveFailed");
     }
 }

@@ -1,6 +1,6 @@
 @model tahsinERP.Models.SALES_INVOICES
 @{
-    ViewBag.Title = "Invoysni bekor qilish";
+    ViewBag.Title = L.T("Crm_InvCancelTitle");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -16,8 +16,8 @@
                             <div class="breadcrumb-wrapper col-12">
                                 <ol class="breadcrumb rounded-pill breadcrumb-divider">
                                     <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
-                                    <li class="breadcrumb-item"><a href="~/SalesInvoices/Index">Sotuv invoyslari</a></li>
-                                    <li class="breadcrumb-item active">Bekor qilish</li>
+                                    <li class="breadcrumb-item"><a href="~/SalesInvoices/Index">@L.T("Crm_InvSalesInvoices")</a></li>
+                                    <li class="breadcrumb-item active">@L.T("Cancel")</li>
                                 </ol>
                             </div>
                         </div>
@@ -30,32 +30,32 @@
                     <div class="col-12">
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title text-danger">Invoysni bekor qilish</h4>
+                                <h4 class="card-title text-danger">@L.T("Crm_InvCancelTitle")</h4>
                             </div>
                             <div class="card-body">
                                 <div class="alert alert-warning">
-                                    Ushbu invoys bekor qilinsa, unga bog'langan moliyaviy posting ham bekor qilinadi.
+                                    @L.T("Crm_InvCancelWarning")
                                 </div>
 
                                 <table class="table table-borderless">
                                     <tr>
-                                        <th style="width:220px;">Invoys raqami:</th>
+                                        <th style="width:220px;">@L.T("Crm_InvInvoiceNo"):</th>
                                         <td>@Model.InvoiceNo</td>
                                     </tr>
                                     <tr>
-                                        <th>Invoys sanasi:</th>
+                                        <th>@L.T("Crm_InvInvoiceDate"):</th>
                                         <td>@Model.InvoiceDate.ToString("dd.MM.yyyy")</td>
                                     </tr>
                                     <tr>
-                                        <th>Mijoz:</th>
+                                        <th>@L.T("Crm_Client"):</th>
                                         <td>@(Model.CUSTOMER?.Name ?? "-")</td>
                                     </tr>
                                     <tr>
-                                        <th>Jami summa:</th>
+                                        <th>@L.T("Crm_TotalAmount"):</th>
                                         <td>@Model.TotalAmount.ToString("N2") @tahsinERP.Services.Crm.SalesLookups.CurrencyCode(Model.CurrencyID)</td>
                                     </tr>
                                     <tr>
-                                        <th>Status:</th>
+                                        <th>@L.T("Status"):</th>
                                         <td>@(Model.StatusCode ?? "-")</td>
                                     </tr>
                                 </table>
@@ -64,8 +64,8 @@
                                 {
                                     @Html.AntiForgeryToken()
                                     @Html.HiddenFor(m => m.ID)
-                                    <button type="submit" class="btn btn-danger">Ha, bekor qilish</button>
-                                    <a href="@Url.Action("Details", "SalesInvoices", new { id = Model.ID })" class="btn btn-secondary">Ortga</a>
+                                    <button type="submit" class="btn btn-danger">@L.T("Crm_InvYesCancel")</button>
+                                    <a href="@Url.Action("Details", "SalesInvoices", new { id = Model.ID })" class="btn btn-secondary">@L.T("Back")</a>
                                 }
                             </div>
                         </div>

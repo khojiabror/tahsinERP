@@ -1,7 +1,7 @@
 @model tahsinERP.Models.UNIT
 
 @{
-    ViewBag.Title = "Batafsil";
+    ViewBag.Title = L.T("Details");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -20,10 +20,10 @@
                                         <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                     </li>
                                     <li class="breadcrumb-item">
-                                        <a href="~/UNIT/Index">O'lchov birliklari</a>
+                                        <a href="~/UNIT/Index">@L.T("Menu_Units")</a>
                                     </li>
                                     <li class="breadcrumb-item active">
-                                        Batafsil sahifasi
+                                        @L.T("Prd_DetailsPage")
                                     </li>
                                 </ol>
                             </div>
@@ -41,18 +41,18 @@
                                         <div class="col-lg-12 col-md-12 mt-25">
                                             @Html.ValidationSummary(true, "", new { @class = "text-danger" })
 
-                                            <h4 class="text-primary">Birlik ma'lumotlari</h4>
+                                            <h4 class="text-primary">@L.T("Prd_UnitInfo")</h4>
                                             <hr>
 
                                             <div class="row my-2 py-50">
                                                 <div class="col-sm-12 col-12 order-2 order-sm-1">
                                                     @Html.AntiForgeryToken()
                                                     <hr />
-                                                    <span><b>Nomi</b>: @Html.DisplayFor(model => model.UnitName, new { @class = "form-control" })</span>
+                                                    <span><b>@L.T("Name")</b>: @Html.DisplayFor(model => model.UnitName, new { @class = "form-control" })</span>
                                                     <br />
-                                                    <span><b>Qisqa Nomi</b>: @Html.DisplayFor(model => model.ShortName, new { @class = "form-control" })</span>
+                                                    <span><b>@L.T("Prd_ShortName")</b>: @Html.DisplayFor(model => model.ShortName, new { @class = "form-control" })</span>
                                                     <br />
-                                                    <span><b>Kodi<i class='bx bx-info-circle' data-toggle="tooltip" data-placement="right" title="Bojxona tizimidagi o'lchov birliklari kodi"></i></b>: @Html.DisplayFor(model => model.Code, new { @class = "form-control" })</span>
+                                                    <span><b>@L.T("Prd_CodeOf")<i class='bx bx-info-circle' data-toggle="tooltip" data-placement="right" title="@L.T("Prd_UnitCustomsCodeHint")"></i></b>: @Html.DisplayFor(model => model.Code, new { @class = "form-control" })</span>
                                                     <hr />
                                                 </div>
                                             </div>

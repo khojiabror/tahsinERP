@@ -3,6 +3,7 @@ using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
+using tahsinERP.I18n;
 using tahsinERP.Models;
 
 namespace tahsinERP.Controllers
@@ -115,7 +116,7 @@ namespace tahsinERP.Controllers
                     }
                     catch (Exception ex)
                     {
-                        ModelState.AddModelError("", $"Xatolik: {ex.Message}");
+                        ModelState.AddModelError("", L.T("Srm_ErrorWithMessage", ex.Message));
                     }
                 }
             }
@@ -190,7 +191,7 @@ namespace tahsinERP.Controllers
                     }
                     catch (Exception ex)
                     {
-                        ModelState.AddModelError("", $"Xatolik: {ex.Message}");
+                        ModelState.AddModelError("", L.T("Srm_ErrorWithMessage", ex.Message));
                     }
                 }
             }
@@ -237,7 +238,7 @@ namespace tahsinERP.Controllers
             {
                 if (await SoftDeleteAsync(id) == null)
                 {
-                    return Json(new { success = false, message = "Yozuv topilmadi" });
+                    return Json(new { success = false, message = L.T("Srm_RecordNotFound") });
                 }
 
                 return RedirectToAction("Index");
@@ -255,17 +256,17 @@ namespace tahsinERP.Controllers
         {
             if (!CanChange("SupplierBase"))
             {
-                return Json(new { success = false, message = "Ruxsat yo'q" });
+                return Json(new { success = false, message = L.T("Error_NotAuthorized") });
             }
 
             try
             {
                 if (await SoftDeleteAsync(id) == null)
                 {
-                    return Json(new { success = false, message = "Yozuv topilmadi" });
+                    return Json(new { success = false, message = L.T("Srm_RecordNotFound") });
                 }
 
-                return Json(new { success = true, message = "Muvaffaqiyatli o'chirildi" });
+                return Json(new { success = true, message = L.T("Srm_DeletedSuccess") });
             }
             catch (Exception ex)
             {

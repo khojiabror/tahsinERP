@@ -1,6 +1,6 @@
 @model tahsinERP.Models.DAMAGED_PRODUCTS
 @{
-    ViewBag.Title = "Tahrirlash";
+    ViewBag.Title = L.T("Edit");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 @if (tahsinERP.Models.RoleHelper.IsChangePermitted(User.Identity.Name, ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))
@@ -21,10 +21,10 @@
                                             <a href="~/Home/Index"><i class="bx bx-home-alt"></i></a>
                                         </li>
                                         <li class="breadcrumb-item">
-                                            <a href="~/DamagedProduct/">Brak mahsulotlar</a>
+                                            <a href="~/DamagedProduct/">@L.T("Wh_Dmg_Products")</a>
                                         </li>
                                         <li class="breadcrumb-item active">
-                                            Brak ehtiyot qismni tahrirlash
+                                            @L.T("Wh_Dmg_EditPart")
                                         </li>
                                     </ol>
                                 </div>
@@ -46,26 +46,26 @@
                                                 <div class="col-lg-12 col-md-6 mt-25">
                                                     @Html.ValidationSummary(true, "", new { @class = "text-danger" })
                                                     <hr>
-                                                    <h6 class="invoice-to">Ehtiyot qismni tanlang</h6>
+                                                    <h6 class="invoice-to">@L.T("Wh_Dmg_SelectPart")</h6>
                                                     <fieldset class="invoice-address form-group">
-                                                        @Html.DropDownList("ProductID", (SelectList)ViewBag.Product, "Ehtiyot qismlar", new { @class = "form-control select2" })
+                                                        @Html.DropDownList("ProductID", (SelectList)ViewBag.Product, L.T("Wh_Dmg_Parts"), new { @class = "form-control select2" })
                                                         @Html.ValidationMessageFor(model => model.ProductID, "", new { @class = "text-danger" })
                                                     </fieldset>
-                                                    <h6 class="invoice-to">Defect turini tanlang</h6>
+                                                    <h6 class="invoice-to">@L.T("Wh_Dmg_SelectDefectType")</h6>
                                                     <fieldset class="invoice-address form-group">
-                                                        @Html.DropDownList("DefectTypeID", (SelectList)ViewBag.DefectType, "Defect turlari", new { @class = "form-control select2" })
+                                                        @Html.DropDownList("DefectTypeID", (SelectList)ViewBag.DefectType, L.T("Wh_Dmg_DefectTypes"), new { @class = "form-control select2" })
                                                         @Html.ValidationMessageFor(model => model.DefectTypeID, "", new { @class = "text-danger" })
                                                     </fieldset>
-                                                    <h6 class="invoice-to">Miqdori </h6>
+                                                    <h6 class="invoice-to">@L.T("Wh_QuantityLabel")</h6>
                                                     <fieldset class="invoice-address form-group">
-                                                        @Html.TextBoxFor(model => model.Quantity, "{0:0.######}", new { @class = "form-control", @placeholder = "Miqdorini kiriting" })
+                                                        @Html.TextBoxFor(model => model.Quantity, "{0:0.######}", new { @class = "form-control", @placeholder = L.T("Wh_EnterQuantity") })
                                                         @Html.ValidationMessageFor(model => model.Quantity, "", new { @class = "text-danger" })
                                                     </fieldset>
                                                     <ul class="list-group list-group-flush">
                                                         <li class="list-group-item border-0 pb-0">
                                                             <button class="btn btn-primary btn-block subtotal-preview-btn" name="create" type="submit" value="Create">
                                                                 <i class='bx bx-save'></i>
-                                                                Saqlash
+                                                                @L.T("Save")
                                                             </button>
                                                         </li>
                                                     </ul>

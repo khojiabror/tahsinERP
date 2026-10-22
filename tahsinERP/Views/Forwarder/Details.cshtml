@@ -1,6 +1,6 @@
 ﻿@model tahsinERP.ViewModels.ForwarderStatisticsViewModel
 @{
-    ViewBag.Title = "Yuk tashuvchi tafsilotlari";
+    ViewBag.Title = L.T("Log_ForwarderDetailsTitle");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -19,10 +19,10 @@
                                     <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                 </li>
                                 <li class="breadcrumb-item">
-                                    <a href="~/Forwarder/Index">Yuk tashuvchilar</a>
+                                    <a href="~/Forwarder/Index">@L.T("Log_Forwarders")</a>
                                 </li>
                                 <li class="breadcrumb-item active">
-                                    Yuk tashuvchi tafsilotlari
+                                    @L.T("Log_ForwarderDetailsTitle")
                                 </li>
                             </ol>
                         </div>
@@ -39,23 +39,23 @@
                         <div class="card-content">
                             <div class="card-body">
                                 <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <h4 class="text-primary">Yuk tashuvchi ma'lumotlari</h4>
+                                    <h4 class="text-primary">@L.T("Log_ForwarderInfo")</h4>
                                     @if (changePermit)
                                     {
                                         <a href="@Url.Action("Edit", "Forwarder", new { id = Model.Forwarder.ID })" class="btn btn-sm btn-outline-primary">
-                                            <i class="bx bx-edit"></i> Tahrirlash
+                                            <i class="bx bx-edit"></i> @L.T("Edit")
                                         </a>
                                     }
                                 </div>
                                 <hr>
                                 <div class="row">
                                     <div class="col-md-6">
-                                        <p><strong>Yuk tashuvchi nomi:</strong> @Model.Forwarder.ForwarderName</p>
-                                        <p><strong>Direktor:</strong> @(Model.Forwarder.Director ?? "")</p>
-                                        <p><strong>Bog'lanish uchun shaxs:</strong> @(Model.Forwarder.ContactPerson ?? "")</p>
+                                        <p><strong>@L.T("Log_ForwarderName"):</strong> @Model.Forwarder.ForwarderName</p>
+                                        <p><strong>@L.T("Log_Director"):</strong> @(Model.Forwarder.Director ?? "")</p>
+                                        <p><strong>@L.T("Log_ContactPerson"):</strong> @(Model.Forwarder.ContactPerson ?? "")</p>
                                     </div>
                                     <div class="col-md-6">
-                                        <p><strong>Qisqacha bayoni:</strong></p>
+                                        <p><strong>@L.T("Log_ShortDescription"):</strong></p>
                                         <p>@(Model.Forwarder.Description ?? "")</p>
                                     </div>
                                 </div>
@@ -72,7 +72,7 @@
                                 <div class="card-body">
                                     <div class="d-flex justify-content-between align-items-center">
                                         <div>
-                                            <h6 class="mb-0">Jami reyslar</h6>
+                                            <h6 class="mb-0">@L.T("Log_TotalTrips")</h6>
                                             <h3 class="mb-0">@Model.TotalTrips</h3>
                                         </div>
                                         <div class="avatar bg-light-primary">
@@ -87,7 +87,7 @@
                                 <div class="card-body">
                                     <div class="d-flex justify-content-between align-items-center">
                                         <div>
-                                            <h6 class="mb-0">Jami tonnaj</h6>
+                                            <h6 class="mb-0">@L.T("Log_TotalTonnage")</h6>
                                             <h3 class="mb-0">@Model.TotalTonnage.ToString("N2")</h3>
                                         </div>
                                         <div class="avatar bg-light-success">
@@ -102,7 +102,7 @@
                                 <div class="card-body">
                                     <div class="d-flex justify-content-between align-items-center">
                                         <div>
-                                            <h6 class="mb-0">Jami xarajat</h6>
+                                            <h6 class="mb-0">@L.T("Log_TotalCost")</h6>
                                             <h3 class="mb-0">@Model.TotalCost.ToString("N2")</h3>
                                         </div>
                                         <div class="avatar bg-light-warning">
@@ -117,7 +117,7 @@
                                 <div class="card-body">
                                     <div class="d-flex justify-content-between align-items-center">
                                         <div>
-                                            <h6 class="mb-0">Qarz</h6>
+                                            <h6 class="mb-0">@L.T("Log_Debt")</h6>
                                             <h3 class="mb-0">@Model.UnpaidAmount.ToString("N2")</h3>
                                         </div>
                                         <div class="avatar bg-light-danger">
@@ -134,21 +134,21 @@
                 <div class="col-xl-6 col-md-12 col-12 mt-2">
                     <div class="card">
                         <div class="card-header">
-                            <h5>Reyslar bo'yicha</h5>
+                            <h5>@L.T("Log_ByTrips")</h5>
                         </div>
                         <div class="card-body">
                             <div class="row text-center">
                                 <div class="col-4">
                                     <h4 class="text-info">@Model.InboundTrips</h4>
-                                    <p class="mb-0">Kiruvchi</p>
+                                    <p class="mb-0">@L.T("Log_Dir_Inbound")</p>
                                 </div>
                                 <div class="col-4">
                                     <h4 class="text-success">@Model.OutboundTrips</h4>
-                                    <p class="mb-0">Chiquvchi</p>
+                                    <p class="mb-0">@L.T("Log_Dir_Outbound")</p>
                                 </div>
                                 <div class="col-4">
                                     <h4 class="text-secondary">@Model.InternalTrips</h4>
-                                    <p class="mb-0">Ichki</p>
+                                    <p class="mb-0">@L.T("Log_Dir_Internal")</p>
                                 </div>
                             </div>
                         </div>
@@ -159,24 +159,24 @@
                 <div class="col-xl-6 col-md-12 col-12 mt-2">
                     <div class="card">
                         <div class="card-header">
-                            <h5>O'rtacha ko'rsatkichlar</h5>
+                            <h5>@L.T("Log_AverageMetrics")</h5>
                         </div>
                         <div class="card-body">
                             <table class="table table-sm">
                                 <tr>
-                                    <td>1 km uchun:</td>
+                                    <td>@L.T("Log_Per1Km"):</td>
                                     <td><strong>@Model.AverageCostPerKm.ToString("N2")</strong></td>
                                 </tr>
                                 <tr>
-                                    <td>1 ton uchun:</td>
+                                    <td>@L.T("Log_Per1Ton"):</td>
                                     <td><strong>@Model.AverageCostPerTon.ToString("N2")</strong></td>
                                 </tr>
                                 <tr>
-                                    <td>1 reys uchun:</td>
+                                    <td>@L.T("Log_Per1Trip"):</td>
                                     <td><strong>@Model.AverageCostPerTrip.ToString("N2")</strong></td>
                                 </tr>
                                 <tr>
-                                    <td>1 CBM uchun:</td>
+                                    <td>@L.T("Log_Per1Cbm"):</td>
                                     <td><strong>@Model.AverageCostPerCBM.ToString("N2")</strong></td>
                                 </tr>
                             </table>
@@ -190,21 +190,21 @@
                     <div class="col-xl-12 col-md-12 col-12 mt-2">
                         <div class="card">
                             <div class="card-header">
-                                <h5>OTIF (On Time In Full) ko'rsatkichi</h5>
+                                <h5>@L.T("Log_OtifIndicator")</h5>
                             </div>
                             <div class="card-body">
                                 <div class="row text-center">
                                     <div class="col-4">
                                         <h4 class="text-success">@Model.OnTimeDeliveries</h4>
-                                        <p class="mb-0">Vaqtida yetkazilgan</p>
+                                        <p class="mb-0">@L.T("Log_OnTime")</p>
                                     </div>
                                     <div class="col-4">
                                         <h4 class="text-danger">@Model.LateDeliveries</h4>
-                                        <p class="mb-0">Kechikkan</p>
+                                        <p class="mb-0">@L.T("Log_Late")</p>
                                     </div>
                                     <div class="col-4">
                                         <h4 class="text-primary">@Model.OTIFPercentage.ToString("N1")%</h4>
-                                        <p class="mb-0">OTIF foizi</p>
+                                        <p class="mb-0">@L.T("Log_OtifPercent")</p>
                                     </div>
                                 </div>
                             </div>
@@ -218,20 +218,20 @@
                     <div class="col-xl-12 col-md-12 col-12 mt-2">
                         <div class="card">
                             <div class="card-header">
-                                <h5>Eng ko'p ishlatilgan marshrutlar</h5>
+                                <h5>@L.T("Log_TopLanes")</h5>
                             </div>
                             <div class="card-body">
                                 <div class="table-responsive">
                                     <table class="table table-sm">
                                         <thead>
                                             <tr>
-                                                <th>Qayerdan</th>
-                                                <th>Qayerga</th>
-                                                <th>Reyslar soni</th>
-                                                <th>Jami tonnaj</th>
-                                                <th>Jami xarajat</th>
-                                                <th>1 ton uchun</th>
-                                                <th>1 km uchun</th>
+                                                <th>@L.T("Log_From")</th>
+                                                <th>@L.T("Log_To")</th>
+                                                <th>@L.T("Log_TripCount")</th>
+                                                <th>@L.T("Log_TotalTonnage")</th>
+                                                <th>@L.T("Log_TotalCost")</th>
+                                                <th>@L.T("Log_Per1Ton")</th>
+                                                <th>@L.T("Log_Per1Km")</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -259,11 +259,11 @@
                 <div class="col-xl-12 col-md-12 col-12 mt-2">
                     <div class="card">
                         <div class="card-header">
-                            <h5 class="text-primary">Bog'liq hujjatlar</h5>
+                            <h5 class="text-primary">@L.T("Log_RelatedDocs")</h5>
                         </div>
                         <div class="card-body">
                             <a href="@Url.Action("Index", "FContract", new { forwarderID = Model.Forwarder.ID })" class="btn btn-outline-primary">
-                                <i class="bx bx-file"></i> Shartnomalar (akt-sverki shartnoma bo'yicha)
+                                <i class="bx bx-file"></i> @L.T("Log_ContractsWithRecon")
                             </a>
                         </div>
                     </div>
@@ -275,7 +275,7 @@
                     <div class="col-xl-6 col-md-12 col-12 mt-2">
                         <div class="card">
                             <div class="card-header">
-                                <h5>Faol shartnomalar</h5>
+                                <h5>@L.T("Log_ActiveContracts")</h5>
                             </div>
                             <div class="card-body">
                                 <ul class="list-group">
@@ -300,7 +300,7 @@
                     <div class="col-xl-6 col-md-12 col-12 mt-2">
                         <div class="card">
                             <div class="card-header">
-                                <h5>Oxirgi yo'l varaqalari</h5>
+                                <h5>@L.T("Log_RecentWaybills")</h5>
                             </div>
                             <div class="card-body">
                                 <ul class="list-group">
