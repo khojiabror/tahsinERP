@@ -775,6 +775,7 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
+    <Compile Include="Helpers\AssetVersion.cs" />
     <Compile Include="Helpers\BalanceCategoryDisplayHelper.cs" />
     <Compile Include="Helpers\DocFileAccess.cs" />
     <Compile Include="Helpers\LayoutBadges.cs" />
@@ -2828,12 +2829,16 @@
     <Content Include="assets\css\reset.min.css" />
     <Content Include="assets\css\style-rtl.css" />
     <Content Include="assets\css\style.css" />
+    <Content Include="assets\css\theme.css" />
+    <Content Include="assets\css\theme-accent.css" />
+    <Content Include="assets\css\theme-dark.css" />
     <Content Include="assets\js\app.js" />
     <Content Include="assets\js\jquery.min.js" />
     <Content Include="assets\js\jquery.repeater.min.js" />
     <Content Include="assets\js\lazy-pdfmake.js" />
     <Content Include="assets\js\dt-defaults.js" />
     <Content Include="assets\js\scripts.js" />
+    <Content Include="assets\js\theme.js" />
     <Content Include="Content\fin-dashboard.css" />
     <Content Include="Content\404.css" />
     <Content Include="Content\bootstrap-grid.css" />
@@ -3136,6 +3141,7 @@
     <Content Include="Views\SContract\Delete.cshtml" />
     <Content Include="Views\Forwarder\Index.cshtml" />
     <Content Include="Views\Shared\_Layout.cshtml" />
+    <Content Include="Views\Shared\_ThemeSwitch.cshtml" />
     <Content Include="Views\Shared\_LicenseBanner.cshtml" />
     <Content Include="Views\Shared\_SafeHtml.cshtml" />
     <Content Include="Views\Forwarder\Create.cshtml" />
@@ -3217,6 +3223,7 @@
     <Content Include="Views\Currency\Delete.cshtml" />
     <Content Include="Views\Currency\Edit.cshtml" />
     <Content Include="Views\Company\Index.cshtml" />
+    <Content Include="Views\Company\_BrandColorPicker.cshtml" />
     <Content Include="Views\Norm\Edit.cshtml" />
     <Content Include="Views\Norm\_NormForm.cshtml" />
     <Content Include="Views\Norm\_NormFormScripts.cshtml" />

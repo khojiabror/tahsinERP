@@ -21,7 +21,7 @@
     .dash-kpi .sub { font-size: .85rem; color: #828d99; }
     .dash-bars { display: flex; align-items: flex-end; gap: 4px; height: 140px; }
     .dash-bars .bar { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; align-items: stretch; position: relative; height: 100%; }
-    .dash-bars .bar .net { background: #5a8dee; border-radius: 3px 3px 0 0; min-height: 1px; }
+    .dash-bars .bar .net { background: var(--accent); border-radius: 3px 3px 0 0; min-height: 1px; }
     .dash-bars .bar .profit { background: #39da8a; position: absolute; bottom: 0; left: 30%; right: 30%; border-radius: 2px 2px 0 0; }
     .dash-bars .bar.today .net { background: #304ffe; }
     .dash-days { display: flex; gap: 4px; font-size: .7rem; color: #828d99; }
@@ -111,7 +111,7 @@
                     <div class="card">
                         <div class="card-header d-flex justify-content-between align-items-center pb-0">
                             <h5 class="card-title mb-0">@DstLocalization.T("Dash_Trend")</h5>
-                            <span class="small"><span class="badge" style="background:#5a8dee">&nbsp;</span> @DstLocalization.T("Report_Revenue")
+                            <span class="small"><span class="badge" style="background:var(--accent)">&nbsp;</span> @DstLocalization.T("Report_Revenue")
                                 @if (cost) { <span class="badge ml-50" style="background:#39da8a">&nbsp;</span> @DstLocalization.T("Report_GrossProfit") }</span>
                         </div>
                         <div class="card-body">

@@ -229,6 +229,7 @@
     <Compile Include="Security\LoginThrottleTests.cs" />
     <Compile Include="Security\PasswordHasherTests.cs" />
     <Compile Include="Licensing\LicenseHelperTests.cs" />
+    <Compile Include="Helpers\BrandingServiceTests.cs" />
     <Compile Include="Helpers\ExcelHelperTests.cs" />
     <Compile Include="Licensing\LicenseCompatTests.cs" />
     <Compile Include="Tenancy\TenantTests.cs" />

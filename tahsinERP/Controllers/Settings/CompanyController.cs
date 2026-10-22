@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
@@ -75,9 +75,9 @@ namespace tahsinERP.Controllers.Settings
             {
                 if (!BrandingService.IsValidColor(color))
                     return "Brend rangi #RRGGBB ko'rinishida bo'lishi kerak.";
-                // Standart rang tanlansa NULL saqlanadi (keyinchalik standart o'zgarsa ham shunga ergashadi)
+                // Standart (neytral) rang tanlansa NULL saqlanadi (keyinchalik standart o'zgarsa ham shunga ergashadi)
                 db.Database.ExecuteSqlCommand("UPDATE dbo.COMPANIES SET BrandColor = @p0 WHERE ID = @p1",
-                    string.Equals(color, BrandingService.DefaultColor, StringComparison.OrdinalIgnoreCase) ? (object)DBNull.Value : color.ToUpperInvariant(), companyId);
+                    (object)BrandingService.ToStoredValue(color) ?? DBNull.Value, companyId);
             }
 
             if (Request.Form["RemoveLogo"] == "true")

@@ -100,16 +100,10 @@
                                                             </div>
                                                         </div>
                                                         @{ var brandInfo = tahsinERP.Services.Common.BrandingService.Current(); }
-                                                        <div class="col-md-4">
-                                                            <div class="form-group">
-                                                                <div class="controls">
-                                                                    <label>Brend rangi</label>
-                                                                    <input type="color" name="BrandColor" class="form-control" value="@brandInfo.Primary" />
-                                                                    <small class="text-muted">Menyu va tugmalar rangi</small>
-                                                                </div>
-                                                            </div>
+                                                        <div class="col-12">
+                                                            @Html.Partial("_BrandColorPicker", brandInfo)
                                                         </div>
-                                                        <div class="col-md-8">
+                                                        <div class="col-12">
                                                             <div class="form-group">
                                                                 <div class="controls">
                                                                     <label>Logo (PNG/JPG, 32×32 tavsiya, 200 KB gacha)</label>

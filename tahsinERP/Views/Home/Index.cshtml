@@ -183,7 +183,7 @@
                     { name: 'Amaldagi miqdor', type: 'line', data: trend.map(function (x) { return x.producedQty; }) }
                 ],
                 stroke: { width: [3, 3], curve: 'smooth' },
-                colors: ['#FDAC41', '#198754'],
+                colors: ['#FDAC41', accentColor()],
                 xaxis: { categories: periods },
                 yaxis: [{ title: { text: 'Miqdor' }, labels: { formatter: function (v) { return formatSpaceNumber(v, 0); } } }],
                 tooltip: {
@@ -240,7 +240,7 @@
                 chart: { type: 'radialBar', height: 340 },
                 series: [k.orderFulfillmentRate || 0, k.productionExecutionRate || 0, k.taskCompletionRate || 0],
                 labels: ['Buyurtma bajarilishi', 'Ishlab chiqarish bajarilishi', 'Vazifa bajarilishi'],
-                colors: ['#1f8ef1', '#198754', '#FDAC41'],
+                colors: ['#1f8ef1', accentColor(), '#FDAC41'],
                 plotOptions: {
                     radialBar: {
                         offsetY: 0,

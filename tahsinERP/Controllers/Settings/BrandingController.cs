@@ -4,6 +4,7 @@ using System.Web.Mvc;
 using System.Web.UI;
 using tahsinERP.Models;
 using tahsinERP.Services;
+using tahsinERP.Services.Common;
 
 namespace tahsinERP.Controllers.Settings
 {
@@ -17,6 +18,19 @@ namespace tahsinERP.Controllers.Settings
         {
             public byte[] LogoImage { get; set; }
             public string LogoContentType { get; set; }
+        }
+
+        /// <summary>
+        /// Rang tanlagichning jonli ko'rinishi uchun :root o'zgaruvchilari (saqlamaydi).
+        /// Hosilalar faqat serverda hisoblanadi — _Layout bilan aynan bir xil natija.
+        /// </summary>
+        [HttpGet]
+        [OutputCache(Duration = 3600, VaryByParam = "color", Location = OutputCacheLocation.Client)]
+        public ActionResult Vars(string color)
+        {
+            if (!BrandingService.IsValidColor(color))
+                return new HttpStatusCodeResult(400);
+            return Content(BrandingService.RenderCssVariables(BrandingService.BuildTokens(color.ToLowerInvariant())), "text/css");
         }
 
         [AllowAnonymous] // logo maxfiy emas; litsenziya/parol sahifalarida ham ko'rinsin

@@ -142,7 +142,12 @@ else
                 if (!text) return '';
                 return '<span class="badge ' + cls + '"' + (style ? ' style="' + srmEsc(style) + '"' : '') + '>' + srmEsc(text) + '</span>';
             }
-            function colorStyle(c) { return c ? 'background-color: ' + c + ' !important; border-color: ' + c + ' !important;' : ''; }
+            // Och rang ustida oq matn o'qilmaydi — matn rangi fonga qarab (TaskBadges.ColorStyle bilan bir xil maqsad)
+            function colorStyle(c) {
+                if (!c) return '';
+                var n = parseInt(c.slice(1), 16), light = (0.299 * (n >> 16 & 255) + 0.587 * (n >> 8 & 255) + 0.114 * (n & 255)) > 170;
+                return 'background-color: ' + c + ' !important; border-color: ' + c + ' !important; color: ' + (light ? '#1b2333' : '#fff') + ' !important;';
+            }
 
             var table = srmServerTable('#tasksDataTable', {
                 dataUrl: '@Url.Action("IndexData", "Tasks")',

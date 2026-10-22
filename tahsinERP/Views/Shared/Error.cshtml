@@ -36,6 +36,8 @@
     <!-- BEGIN: Custom CSS-->
     <link rel="stylesheet" type="text/css" href="~/assets/css/style.css">
     <link rel="stylesheet" type="text/css" href="~/Content/error-pages.css">
+    <style id="brand-vars">@Html.Raw(tahsinERP.Services.Common.BrandingService.RenderCssVariables(tahsinERP.Services.Common.BrandingService.Current().Tokens))</style>
+    <script src="@tahsinERP.Helpers.AssetVersion.Url("~/assets/js/theme.js")"></script>
     <!-- END: Custom CSS-->
 </head>
 <body class="vertical-layout vertical-menu-modern boxicon-layout no-card-shadow 1-column navbar-sticky footer-static bg-full-screen-image blank-page error-page" data-open="click" data-menu="vertical-menu-modern" data-col="1-column">

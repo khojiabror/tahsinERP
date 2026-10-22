@@ -11,6 +11,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0">
     <meta name="author" content="Khojiabror Makhmudov">
     <title>Login Page - tahsinERP</title>
+    <script src="@tahsinERP.Helpers.AssetVersion.Url("~/assets/js/theme.js")"></script>
     <link rel="apple-touch-icon" href="~/app-assets/images/ico/apple-touch-icon.png">
     <link rel="shortcut icon" type="image/x-icon" href="~/app-assets/images/ico/favicon.ico">
     <link href="https://fonts.googleapis.com/css?family=Rubik:300,400,500,600%7CIBM+Plex+Sans:300,400,500,600,700" rel="stylesheet">
@@ -33,6 +34,8 @@
     <!-- BEGIN: Custom CSS-->
     <link rel="stylesheet" type="text/css" href="~/assets/css/style.css">
     <!-- END: Custom CSS-->
+    <style id="brand-vars">@Html.Raw(tahsinERP.Services.Common.BrandingService.RenderCssVariables(tahsinERP.Services.Common.BrandingService.Current().Tokens))</style>
+    <link rel="stylesheet" type="text/css" href="@tahsinERP.Helpers.AssetVersion.Url("~/assets/css/theme-accent.css")" />
     <style>
         /* Custom Login Page Styles */
         body.blank-page {
@@ -110,8 +113,8 @@
         }
 
         .login-form-section .form-control:focus {
-            border-color: #4D80F0;
-            box-shadow: 0 0 0 3px rgba(77, 128, 240, 0.1);
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-ring);
             outline: none;
         }
 
@@ -141,7 +144,7 @@
             width: 18px;
             height: 18px;
             cursor: pointer;
-            accent-color: #4D80F0;
+            accent-color: var(--accent);
         }
 
         .login-form-section hr {
@@ -151,7 +154,7 @@
         }
 
         .login-form-section .btn-primary {
-            background-color: #4D80F0;
+            background-color: var(--accent);
             border: none;
             border-radius: 6px;
             padding: 0.875rem 1.5rem;
@@ -159,12 +162,12 @@
             font-weight: 500;
             color: #FFFFFF;
             transition: all 0.3s ease;
-            box-shadow: 0 2px 8px rgba(77, 128, 240, 0.3);
+            box-shadow: 0 2px 8px var(--accent-ring);
         }
 
         .login-form-section .btn-primary:hover {
-            background-color: #3D70E0;
-            box-shadow: 0 4px 12px rgba(77, 128, 240, 0.4);
+            background-color: var(--accent-hover);
+            box-shadow: 0 4px 12px var(--accent-ring);
             transform: translateY(-1px);
         }
 
@@ -283,6 +286,19 @@
                 font-size: 1.5rem;
             }
         }
+
+        /* Tungi rejim (assets/js/theme.js -> html[data-theme]) */
+        html[data-theme="dark"] body.blank-page { background-color: #1a233a; }
+        html[data-theme="dark"] .bg-authentication,
+        html[data-theme="dark"] .bg-authentication .card,
+        html[data-theme="dark"] .login-form-section { background-color: #272e48 !important; box-shadow: 0 4px 24px rgba(0, 0, 0, .45); }
+        html[data-theme="dark"] .login-form-section h4,
+        html[data-theme="dark"] .login-form-section label { color: #dce4f2 !important; }
+        html[data-theme="dark"] .login-form-section h6,
+        html[data-theme="dark"] .login-form-section small { color: #a9b6cf !important; }
+        html[data-theme="dark"] .login-form-section .form-control { background-color: #1a233a !important; border-color: #3a4466 !important; color: #dce4f2 !important; }
+        html[data-theme="dark"] .login-form-section .form-control::placeholder { color: #8592ab !important; }
+        html[data-theme="dark"] .login-form-section hr { border-top-color: #3a4466; }
     </style>
 </head>
 <body class="vertical-layout vertical-menu-modern boxicon-layout no-card-shadow 1-column navbar-sticky footer-static blank-page blank-page">
