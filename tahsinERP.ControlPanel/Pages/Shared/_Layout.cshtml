@@ -7,6 +7,7 @@
     string Nav(string prefix) => (prefix == "/" ? path == "/" : path.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)) ? "active" : "";
     var flashPage = Model as PanelPageModel;
     int openRequests = signedIn ? await LayoutDb.PortalRequests.CountAsync(r => r.Status == PortalRequestStatus.Pending) : 0;
+    int newLeads = signedIn ? await LayoutDb.DemoRequests.CountAsync(r => r.Status == DemoRequestStatus.New) : 0;
     string userName = User.Identity?.Name ?? "";
     string initials = string.Concat(userName.Split(' ', '.', '@').Where(s => s.Length > 0).Take(2).Select(s => char.ToUpperInvariant(s[0])));
     string role = User.IsInRole(nameof(StaffRole.Owner)) ? "Owner" : User.IsInRole(nameof(StaffRole.Sales)) ? L.T("Pnl_RoleSales") : L.T("Pnl_RoleSupport");
@@ -29,8 +30,10 @@ else
     <title>@ViewData["Title"] · tahsinERP Admin</title>
     <link rel="icon" href="/favicon.ico" sizes="any" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <meta name="theme-color" content="#0a0f1d" />
     <script src="~/js/theme.js" asp-append-version="true"></script>
+    <link rel="stylesheet" href="~/fonts/fonts.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     @if (ViewData["AutoRefresh"] is int refreshSeconds) { <meta http-equiv="refresh" content="@refreshSeconds" /> }
 </head>
@@ -38,7 +41,7 @@ else
 <partial name="_Icons" />
 <aside class="sidebar" id="sidebar">
     <a class="sb-brand" href="/">
-        <span class="logo-mark"><svg class="i"><use href="#i-shield" /></svg></span>
+        <img class="logo-img" src="/img/logo.png" alt="" width="36" height="36" />
         <span class="sb-brand-t">tahsin<b>ERP</b><small>@L.T("Pnl_Brand")</small></span>
     </a>
     <nav class="sb-nav">
@@ -46,6 +49,7 @@ else
         <a class="@Nav("/")" href="/"><svg class="i"><use href="#i-home" /></svg>@L.T("Home")</a>
         <a class="@Nav("/Tenants")" href="/Tenants"><svg class="i"><use href="#i-building" /></svg>@L.T("Pnl_NavTenants")</a>
         <a class="@Nav("/Requests")" href="/Requests"><svg class="i"><use href="#i-inbox" /></svg><span>@L.T("Pnl_NavRequests")</span>@if (openRequests > 0) { <span class="sb-count">@openRequests</span> }</a>
+        <a class="@Nav("/Leads")" href="/Leads"><svg class="i"><use href="#i-send" /></svg><span>@L.T("Pnl_Auth2_NavLeads")</span>@if (newLeads > 0) { <span class="sb-count">@newLeads</span> }</a>
         <div class="sb-group">@L.T("Pnl_NavFinance")</div>
         <a class="@Nav("/Invoices")" href="/Invoices"><svg class="i"><use href="#i-file" /></svg>@L.T("Pnl_NavInvoices")</a>
         @if (owner || User.IsInRole(nameof(StaffRole.Sales)))

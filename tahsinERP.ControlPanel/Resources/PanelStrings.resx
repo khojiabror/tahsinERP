@@ -3603,4 +3603,49 @@ Siz so'ramagan bo'lsangiz — bu xatga e'tibor bermang, parolingiz o'zgarmaydi.<
   <data name="Pnl_Upd_Err_GitHubList" xml:space="preserve">
     <value>GitHub {0}: relizlar o'qilmadi (token/repo huquqini tekshiring).</value>
   </data>
+  <data name="Pnl_Auth2_Eyebrow" xml:space="preserve">
+    <value>tahsinERP jamoasi uchun</value>
+  </data>
+  <data name="Ptl_Auth2_Eyebrow" xml:space="preserve">
+    <value>Mijozlar uchun</value>
+  </data>
+  <data name="Pnl_Auth2_Headline" xml:space="preserve">
+    <value>Firmalar, obunalar va kalitlar —</value>
+  </data>
+  <data name="Ptl_Auth2_Headline" xml:space="preserve">
+    <value>Hisob, to'lov va litsenziya —</value>
+  </data>
+  <data name="Pnl_Auth2_InOnePlace" xml:space="preserve">
+    <value>bitta joyda</value>
+  </data>
+  <data name="Pnl_Auth2_Intro" xml:space="preserve">
+    <value>Tashkilotlar, sinov muddatlari, hisob-fakturalar, demo so'rovlari, serverlar va yangilanishlarni bir paneldan boshqaring.</value>
+  </data>
+  <data name="Ptl_Auth2_Intro" xml:space="preserve">
+    <value>Hisob-fakturalarni ko'ring, to'lov holatini kuzating, tarifni oshiring yoki uzaytiring va litsenziya kalitini oling.</value>
+  </data>
+  <data name="Pnl_Auth2_Footer" xml:space="preserve">
+    <value>Ruxsatsiz kirish taqiqlanadi — barcha urinishlar qayd etiladi.</value>
+  </data>
+  <data name="Pnl_Auth2_SecureLogin" xml:space="preserve">
+    <value>Xavfsiz kirish</value>
+  </data>
+  <data name="Pnl_Auth2_SessionEncrypted" xml:space="preserve">
+    <value>Seans shifrlangan</value>
+  </data>
+  <data name="Pnl_Auth2_AuditOn" xml:space="preserve">
+    <value>Audit yoqilgan</value>
+  </data>
+  <data name="Pnl_Auth2_NavLeads" xml:space="preserve">
+    <value>Demo so'rovlar</value>
+  </data>
+  <data name="Pnl_Auth2_SrvBackupHint" xml:space="preserve">
+    <value>Zaxira: har kecha barcha bazalar va sozlamalar (Docs/Deploy/04_BACKUP.md, {0}); natijani agent yuboradi, 26 soatdan eski bo'lsa ogohlantiriladi.</value>
+  </data>
+  <data name="Pnl_Auth2_LastBackup" xml:space="preserve">
+    <value>Oxirgi zaxira</value>
+  </data>
+  <data name="Pnl_Auth2_AppUnchanged" xml:space="preserve">
+    <value>{0} — bu ilova o'zgarmagan</value>
+  </data>
 </root>

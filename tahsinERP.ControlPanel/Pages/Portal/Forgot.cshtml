@@ -2,7 +2,7 @@
 @model ForgotModel
 @{ ViewData["Title"] = L.T("Ptl_ResetTitle"); }
 <div class="card login">
-    <div class="hud-head"><span>// @L.T("Ptl_HudReset")</span><span>AUTH-R</span></div>
+    <div class="hud-head"><span>@L.T("Ptl_HudReset")</span><span>AUTH-R</span></div>
     <h1>@L.T("Ptl_ResetTitle")</h1>
     @if (Model.Sent)
     {

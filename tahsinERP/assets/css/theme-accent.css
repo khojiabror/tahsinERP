@@ -761,3 +761,6 @@ body.vertical-layout.vertical-menu-modern.menu-collapsed .main-menu:not(.expande
 body.vertical-layout.vertical-menu-modern.menu-collapsed .main-menu:not(.expanded) .navigation li.menu-collapsed-open {
   background: var(--accent-soft);
 }
+
+/* Standart tahsinERP logosi (doira) — firma o'z logosini yuklamagan bo'lsa */
+.brand-logo .logo.logo-tahsin { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; }

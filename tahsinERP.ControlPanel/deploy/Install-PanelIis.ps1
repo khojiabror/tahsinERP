@@ -15,11 +15,17 @@
 .EXAMPLE
   .\Install-PanelIis.ps1 -HostName admin.example.uz -PortalHostName my.example.uz -CertThumbprint 0123ABCD...
   (-PortalHostName - mijoz portali, o'sha ilova va sayt; ikkinchi https binding. Sertifikat ikkala nomni qamrasin, masalan wildcard.)
+
+.EXAMPLE
+  .\Install-PanelIis.ps1 -HostName admin.tahsinerp.uz -PortalHostName my.tahsinerp.uz -PublicHostNames tahsinerp.uz,www.tahsinerp.uz -CertThumbprint ...
+  (-PublicHostNames - ommaviy mahsulot sahifasi va demo so'rovi; https + http bindinglar, http -> https ilova o'zi yo'naltiradi.
+   Sertifikat asosiy domenni ham qamrasin: "tahsinerp.uz,*.tahsinerp.uz".)
 #>
 [CmdletBinding()]
 param(
     [Parameter(Mandatory)] [string] $HostName,
     [string] $PortalHostName,   # mijoz portali host'i (my.<domen>); bo'sh - portal ochilmaydi
+    [string[]] $PublicHostNames,   # ommaviy sayt (<domen>, www.<domen>); bo'sh - qo'shilmaydi
     [string] $SiteName = 'tahsinERP.ControlPanel',
     [string] $PhysicalPath = 'C:\inetpub\tahsinERP.ControlPanel',
     [string] $DataDir = "$env:ProgramData\tahsinERP\ControlPanel",
@@ -75,8 +81,16 @@ Set-ItemProperty "IIS:\Sites\$SiteName" -Name applicationDefaults.preloadEnabled
 if ($PortalHostName -and -not (Get-WebBinding -Name $SiteName -Protocol https -HostHeader $PortalHostName)) {
     New-WebBinding -Name $SiteName -Protocol https -Port 443 -HostHeader $PortalHostName -SslFlags 1 | Out-Null   # SNI
 }
+foreach ($h in @($PublicHostNames) | Where-Object { $_ }) {
+    if (-not (Get-WebBinding -Name $SiteName -Protocol https -HostHeader $h)) {
+        New-WebBinding -Name $SiteName -Protocol https -Port 443 -HostHeader $h -SslFlags 1 | Out-Null   # SNI
+    }
+    if (-not (Get-WebBinding -Name $SiteName -Protocol http -HostHeader $h)) {
+        New-WebBinding -Name $SiteName -Protocol http -Port 80 -HostHeader $h | Out-Null   # http -> https (ilova)
+    }
+}
 if ($CertThumbprint) {
-    foreach ($h in @($HostName, $PortalHostName) | Where-Object { $_ }) {
+    foreach ($h in @($HostName, $PortalHostName) + @($PublicHostNames) | Where-Object { $_ }) {
         $binding = Get-WebBinding -Name $SiteName -Protocol https -HostHeader $h
         $binding.AddSslCertificate($CertThumbprint, $CertStore)
     }
@@ -91,6 +105,7 @@ Set-PoolEnv 'ControlPanel__DataProtection__KeysDir' (Join-Path $DataDir 'keys')
 Set-PoolEnv 'ControlPanel__Hosts__AdminHost' $HostName
 if ($PortalHostName) { Set-PoolEnv 'ControlPanel__Hosts__PortalHost' $PortalHostName; Set-PoolEnv 'ControlPanel__Hosts__PortalPublicUrl' "https://$PortalHostName" }
 Set-PoolEnv 'ControlPanel__Hosts__OtherHosts' 'None'
+if ($PublicHostNames) { Set-PoolEnv 'ControlPanel__Hosts__PublicHosts' ($PublicHostNames -join ',') }
 # Firma ERP manzili https://<slug>.<domen> (provisioning, bot/sayt ulash): admin.<domen> -> <domen>
 $baseDomain = $HostName.Substring($HostName.IndexOf('.') + 1)
 Set-PoolEnv 'ControlPanel__Hosts__Domain' $baseDomain

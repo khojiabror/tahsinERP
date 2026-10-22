@@ -164,6 +164,13 @@ public sealed class UpdatesIntegrationTests(PanelFactory f) : IClassFixture<Pane
         Assert.Contains(sys.Calls, c => c.StartsWith("ensure-site erp-" + slug));
         Assert.False(File.Exists(Path.Combine(agentOpts.Paths.StateDir, "update-pending.json")));
 
+        // Job tugashi bilan panel inventari darhol yangilanadi (agentning keyingi inventarini kutmasdan)
+        await WithAsync(panel, async sp =>
+        {
+            var (inv, _) = await sp.GetRequiredService<UpdatesService>().InventoryAsync(serverId);
+            Assert.Equal("2026.10.22.1", Assert.Single(inv!.Instances, i => i.Slug == slug).Version);
+        });
+
         // Keyingi aylanish — inventarda yangi instance
         Assert.False(await runner.RunOnceAsync(client, default));
         await WithAsync(panel, async sp =>

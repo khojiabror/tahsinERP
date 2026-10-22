@@ -2,7 +2,7 @@
 @model tahsinERP.ControlPanel.Pages.Account.EnrollTotpModel
 @{ ViewData["Title"] = L.T("Pnl_Acc_Enroll2fa"); }
 <div class="card login">
-    <div class="hud-head"><span>// @L.T("Pnl_Acc_Enroll2faHud")</span><span>AUTH-02</span></div>
+    <div class="hud-head"><span>@L.T("Pnl_Acc_Enroll2faHud")</span><span>AUTH-02</span></div>
     <h1>@L.T("Pnl_Acc_TwoStep")</h1>
     <p class="hud-sub">@L.T("Pnl_Acc_EnrollIntro")</p>
     <ol class="steps"><li class="done">@L.T("Password")</li><li class="on">@L.T("Pnl_Acc_Enroll2fa")</li><li>@L.T("Login")</li></ol>

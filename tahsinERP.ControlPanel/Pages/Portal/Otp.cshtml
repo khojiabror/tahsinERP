@@ -2,7 +2,7 @@
 @model OtpModel
 @{ ViewData["Title"] = L.T("Ptl_OtpTitle"); }
 <div class="card login">
-    <div class="hud-head"><span>// @L.T("Ptl_HudSecondFactor")</span><span>AUTH-02</span></div>
+    <div class="hud-head"><span>@L.T("Ptl_HudSecondFactor")</span><span>AUTH-02</span></div>
     <h1>@L.T("Ptl_OtpTitle")</h1>
     <p class="hud-sub">@L.T("Ptl_CodeSentTo") <strong>@Model.Destination</strong></p>
     <ol class="steps"><li class="done">@L.T("Password")</li><li class="on">@L.T("Code")</li><li>@L.T("Ptl_Crumb")</li></ol>

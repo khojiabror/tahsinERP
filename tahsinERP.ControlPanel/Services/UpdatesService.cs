@@ -275,8 +275,45 @@ public sealed class UpdatesService(ControlDbContext db, IReleaseSource source, R
         job.FinishedAtUtc = clock.UtcNow;
         job.LeaseToken = null;
         audit.Add("update.complete", "UpdateJob", job.Id, null, new { job.Action, job.App, job.Slug, job.Version, job.Status, job.Error });
+        if (job.Status == UpdateJobStatus.Succeeded) await ApplyToInventoryAsync(server, job, ct);
         await db.SaveChangesAsync(ct);
         return ProvisioningService.CompleteStatus.Ok;
+    }
+
+    /// <summary>
+    /// Muvaffaqiyatli job natijasini saqlangan inventarga darhol yozadi — agentning keyingi inventari (5 daqiqagacha) kelguncha
+    /// sahifa eski versiyani ko'rsatib, o'rnatilgan relizni yana taklif qilmasin. Haqiqiy holat baribir agent inventarida.
+    /// </summary>
+    private async Task ApplyToInventoryAsync(Server server, UpdateJob job, CancellationToken ct)
+    {
+        if (job.Action == UpdateAction.MigrateTenant) return;
+        var row = await db.ServerInventories.FirstOrDefaultAsync(x => x.ServerId == server.Id, ct);
+        if (row is null) return;
+        UpdateInventory? inv;
+        try { inv = JsonSerializer.Deserialize<UpdateInventory>(row.Json, AgentProtocol.Json); }
+        catch (JsonException) { return; }
+        if (inv is null) return;
+        bool rollback = job.Action is UpdateAction.RollbackApp or UpdateAction.RollbackTenant;
+        var now = clock.UtcNow;
+        if (job.App == ReleaseApps.Erp)
+        {
+            var i = inv.Instances.FirstOrDefault(x => x.Slug == job.Slug);
+            if (i is null) inv.Instances.Add(i = new ErpInstanceInfo { Slug = job.Slug ?? "", DbName = job.DbName });
+            i.PreviousVersion = i.Version;
+            i.Version = job.InstalledVersion;
+            i.InstalledAtUtc = now;
+            if (!rollback && job.Action != UpdateAction.CreateInstance) { i.CanRollback = true; i.HasDatabaseBackup = true; }
+        }
+        else
+        {
+            var a = inv.Apps.FirstOrDefault(x => x.App == job.App);
+            if (a is null) inv.Apps.Add(a = new InstalledApp { App = job.App });
+            a.PreviousVersion = a.Version;
+            a.Version = job.InstalledVersion;
+            a.InstalledAtUtc = now;
+            if (!rollback) a.CanRollback = true;
+        }
+        row.Json = JsonSerializer.Serialize(inv, AgentProtocol.Json);
     }
 
     private async Task<ProvisioningService.CompleteStatus> NotFoundOrLostAsync(Server server, long id, CancellationToken ct) =>

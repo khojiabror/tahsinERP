@@ -1,411 +1,131 @@
 @model tahsinERP.ViewModels.UserViewModel
 @{
     Layout = null;
+    // Firma nomi (Kompaniya → Brending); standart "tahsinERP" bo'lsa ko'rsatilmaydi.
+    var brand = tahsinERP.Services.Common.BrandingService.Current();
+    string company = brand.CompanyName == "tahsinERP" ? null : brand.CompanyName;
+    // Firma logosi (Sozlamalar → Kompaniya → Logo) — yuklangan bo'lsa kirish sahifasida ham ko'rinadi.
+    string firmLogo = brand.HasLogo ? Url.Action("Logo", "Branding", new { area = "", v = brand.LogoVersion }) : null;
 }
-
 <!DOCTYPE html>
-<html class="loading" lang="@tahsinERP.Localization.Languages.HtmlLang(L.Lang)" data-textdirection="ltr">
+<html lang="@tahsinERP.Localization.Languages.HtmlLang(L.Lang)">
 <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0">
-    <meta name="author" content="Khojiabror Makhmudov">
-    <title>@L.T("Core_LoginPageTitle") - tahsinERP</title>
-    <script src="@tahsinERP.Helpers.AssetVersion.Url("~/assets/js/theme.js")"></script>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex">
+    <title>@L.T("Login") · tahsinERP</title>
+    <link rel="icon" href="~/app-assets/images/ico/favicon.ico" sizes="any">
     <link rel="apple-touch-icon" href="~/app-assets/images/ico/apple-touch-icon.png">
-    <link rel="shortcut icon" type="image/x-icon" href="~/app-assets/images/ico/favicon.ico">
-    <link href="https://fonts.googleapis.com/css?family=Rubik:300,400,500,600%7CIBM+Plex+Sans:300,400,500,600,700" rel="stylesheet">
-
-    <!-- BEGIN: Vendor CSS-->
-    <link rel="stylesheet" type="text/css" href="~/app-assets/vendors/css/vendors.min.css">
-    <!-- END: Vendor CSS-->
-    <!-- BEGIN: Theme CSS-->
-    <link rel="stylesheet" type="text/css" href="~/app-assets/css/bootstrap.css">
-    <link rel="stylesheet" type="text/css" href="~/app-assets/css/bootstrap-extended.css">
-    <link rel="stylesheet" type="text/css" href="~/app-assets/css/colors.css">
-    <link rel="stylesheet" type="text/css" href="~/app-assets/css/components.css">
-    <link rel="stylesheet" type="text/css" href="~/app-assets/css/themes/dark-layout.css">
-    <link rel="stylesheet" type="text/css" href="~/app-assets/css/themes/semi-dark-layout.css">
-    <!-- END: Theme CSS-->
-    <!-- BEGIN: Page CSS-->
-    <link rel="stylesheet" type="text/css" href="~/app-assets/css/core/menu/menu-types/vertical-menu.css">
-    <link rel="stylesheet" type="text/css" href="~/app-assets/css/pages/authentication.css">
-    <!-- END: Page CSS-->
-    <!-- BEGIN: Custom CSS-->
-    <link rel="stylesheet" type="text/css" href="~/assets/css/style.css">
-    <!-- END: Custom CSS-->
-    <style id="brand-vars">@Html.Raw(tahsinERP.Services.Common.BrandingService.RenderCssVariables(tahsinERP.Services.Common.BrandingService.Current().Tokens))</style>
-    <link rel="stylesheet" type="text/css" href="@tahsinERP.Helpers.AssetVersion.Url("~/assets/css/theme-accent.css")" />
+    <meta name="theme-color" content="#060c1d">
+    <link rel="stylesheet" href="@tahsinERP.Helpers.AssetVersion.Url("~/assets/fonts/fonts.css")">
+    <link rel="stylesheet" href="@tahsinERP.Helpers.AssetVersion.Url("~/assets/css/login.css")">
     <style>
-        /* Custom Login Page Styles */
-        body.blank-page {
-            background-color: #F5F5F5;
-            font-family: 'Rubik', 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-        }
-
-        #auth-login {
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 2rem 0;
-        }
-
-        .bg-authentication {
-            background-color: #FFFFFF;
-            border-radius: 8px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-            overflow: hidden;
-        }
-
-        .bg-authentication .card {
-            border: none;
-            box-shadow: none;
-        }
-
-        /* Left Section - Login Form */
-        .login-form-section {
-            padding: 3rem 2.5rem;
-            background-color: #FFFFFF;
-        }
-
-        .login-form-section .card-header {
-            border: none;
-            padding: 0 0 2rem 0;
-            margin-bottom: 0;
-        }
-
-        .login-form-section h4 {
-            color: #333333;
-            font-size: 1.75rem;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-            letter-spacing: -0.02em;
-        }
-
-        .login-form-section h6 {
-            color: #666666;
-            font-size: 1rem;
-            font-weight: 400;
-            margin-bottom: 0;
-        }
-
-        .login-form-section .form-group {
-            margin-bottom: 1.5rem;
-        }
-
-        .login-form-section label {
-            color: #333333;
-            font-weight: 600;
-            font-size: 0.875rem;
-            margin-bottom: 0.5rem;
-            display: block;
-        }
-
-        .login-form-section .form-control {
-            border: 1px solid #E0E0E0;
-            border-radius: 6px;
-            padding: 0.75rem 1rem;
-            font-size: 0.9375rem;
-            color: #333333;
-            transition: all 0.3s ease;
-            background-color: #FFFFFF;
-        }
-
-        .login-form-section .form-control:focus {
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px var(--accent-ring);
-            outline: none;
-        }
-
-        .login-form-section .form-control::placeholder {
-            color: #999999;
-        }
-
-        .login-form-section .checkbox {
-            margin-top: 1rem;
-            margin-bottom: 0;
-            display: flex;
-            align-items: center;
-        }
-
-        .login-form-section .checkbox label {
-            color: #666666;
-            font-weight: 400;
-            font-size: 0.875rem;
-            margin-left: 0.5rem;
-            margin-bottom: 0;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-        }
-
-        .login-form-section .checkbox input[type="checkbox"] {
-            width: 18px;
-            height: 18px;
-            cursor: pointer;
-            accent-color: var(--accent);
-        }
-
-        .login-form-section hr {
-            margin: 1.5rem 0;
-            border: none;
-            border-top: 1px solid #E0E0E0;
-        }
-
-        .login-form-section .btn-primary {
-            background-color: var(--accent);
-            border: none;
-            border-radius: 6px;
-            padding: 0.875rem 1.5rem;
-            font-size: 1rem;
-            font-weight: 500;
-            color: #FFFFFF;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 8px var(--accent-ring);
-        }
-
-        .login-form-section .btn-primary:hover {
-            background-color: var(--accent-hover);
-            box-shadow: 0 4px 12px var(--accent-ring);
-            transform: translateY(-1px);
-        }
-
-        .login-form-section .btn-primary:active {
-            transform: translateY(0);
-        }
-
-        .login-form-section #icon-arrow {
-            position: absolute;
-            right: 1.5rem;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 1.25rem;
-        }
-
-        .text-danger {
-            color: #E74C3C;
-            font-size: 0.8125rem;
-            margin-top: 0.25rem;
-        }
-
-        .login-lang-switch {
-            position: absolute;
-            top: 1rem;
-            right: 1rem;
-            z-index: 5;
-            margin: 0;
-            padding: 0;
-            list-style: none;
-        }
-
-        .login-lang-switch .nav-link {
-            color: #666666;
-            padding: 0.25rem 0.5rem;
-        }
-
-        /* Right Section - Branding */
-        .branding-section {
-            background: #E8E8E8;
-            position: relative;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0;
-            min-height: 100%;
-            overflow: hidden;
-        }
-
-        .branding-section::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800"><defs><pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(0,0,0,0.05)" stroke-width="1"/></pattern></defs><rect width="100%" height="100%" fill="url(%23grid)"/></svg>');
-            opacity: 0.3;
-        }
-
-        .branding-content {
-            position: relative;
-            z-index: 1;
-            text-align: center;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 1.5rem;
-        }
-
-        .branding-content img {
-            width: 100%;
-            max-width: 100%;
-            height: auto;
-            max-height: calc(100% - 3rem);
-            object-fit: contain;
-            object-position: center;
-            filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.3));
-            margin-bottom: 1rem;
-        }
-
-        .branding-content .brand-text {
-            color: #FFFFFF;
-            font-size: 2rem;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-            letter-spacing: -0.02em;
-        }
-
-        .branding-content .brand-subtext {
-            color: rgba(255, 255, 255, 0.8);
-            font-size: 0.875rem;
-            margin-top: auto;
-            padding-top: 1rem;
-        }
-
-        .branding-content .website-link {
-            color: rgba(255, 255, 255, 0.7);
-            font-size: 0.8125rem;
-            margin-top: 1.5rem;
-            text-decoration: none;
-        }
-
-        .branding-content .website-link:hover {
-            color: #FFFFFF;
-        }
-
-        /* Responsive Design */
-        @@media (max-width: 991.98px) {
-            .branding-section {
-                display: none;
-            }
-
-            .login-form-section {
-                padding: 2.5rem 2rem;
-            }
-
-            .bg-authentication {
-                border-radius: 8px;
-            }
-        }
-
-        @@media (max-width: 575.98px) {
-            .login-form-section {
-                padding: 2rem 1.5rem;
-            }
-
-            .login-form-section h4 {
-                font-size: 1.5rem;
-            }
-        }
-
-        /* Tungi rejim (assets/js/theme.js -> html[data-theme]) */
-        html[data-theme="dark"] body.blank-page { background-color: #1a233a; }
-        html[data-theme="dark"] .bg-authentication,
-        html[data-theme="dark"] .bg-authentication .card,
-        html[data-theme="dark"] .login-form-section { background-color: #272e48 !important; box-shadow: 0 4px 24px rgba(0, 0, 0, .45); }
-        html[data-theme="dark"] .login-form-section h4,
-        html[data-theme="dark"] .login-form-section label { color: #dce4f2 !important; }
-        html[data-theme="dark"] .login-form-section h6,
-        html[data-theme="dark"] .login-form-section small { color: #a9b6cf !important; }
-        html[data-theme="dark"] .login-form-section .form-control { background-color: #1a233a !important; border-color: #3a4466 !important; color: #dce4f2 !important; }
-        html[data-theme="dark"] .login-form-section .form-control::placeholder { color: #8592ab !important; }
-        html[data-theme="dark"] .login-form-section hr { border-top-color: #3a4466; }
+        .lg-lang { list-style: none; margin: 0 0 0 auto; padding: 0; position: relative; }
+        .lg-lang .nav-link { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; font-size: 13px; font-weight: 600; color: #93c5fd; background: rgba(96, 165, 250, .1); border: 1px solid rgba(96, 165, 250, .25); text-decoration: none; }
+        .lg-lang .lg-lang-menu { display: none; position: absolute; right: 0; top: calc(100% + 6px); min-width: 150px; padding: 6px; border-radius: 12px; background: #0b1530; border: 1px solid rgba(96, 165, 250, .25); z-index: 10; }
+        .lg-lang .lg-lang-menu.show { display: block; }
+        .lg-lang .dropdown-item { display: block; padding: 7px 10px; border-radius: 8px; color: #dbeafe; font-size: 14px; text-decoration: none; }
+        .lg-lang .dropdown-item:hover, .lg-lang .dropdown-item.active { background: rgba(96, 165, 250, .15); color: #fff; }
     </style>
 </head>
-<body class="vertical-layout vertical-menu-modern boxicon-layout no-card-shadow 1-column navbar-sticky footer-static blank-page blank-page">
-    <div class="app-content content">
-        <div class="content-overlay"></div>
-        <div class="content-wrapper">
-            <div class="content-header row">
-            </div>
-            <div class="content-body">
-                <!-- login page start -->
-                <section id="auth-login" class="row flexbox-container">
-                    <div class="col-xl-8 col-11">
-                        <div class="card bg-authentication mb-0">
-                            <div class="row m-0">
-                                <!-- left section-login -->
-                                <div class="col-md-6 col-12 px-0">
-                                    <div class="card disable-rounded-right mb-0 h-100 login-form-section position-relative">
-                                        <ul class="nav login-lang-switch">
-                                            @Html.Partial("_LanguageSwitch", new ViewDataDictionary { { "MenuClass", "dropdown-menu dropdown-menu-right" } })
-                                        </ul>
-                                        <div class="card-header">
-                                            <div>
-                                                <h4>@L.T("Core_LoginSystemTitle")</h4>
-                                                <h6>@L.T("Core_LoginWelcome")</h6>
-                                            </div>
-                                        </div>
-                                        <div class="card-content">
-                                            <div class="card-body">
-                                                @using (Html.BeginForm())
-                                                {
-                                                    @Html.AntiForgeryToken()
-                                                    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+<body class="lg">
+    <svg xmlns="http://www.w3.org/2000/svg" class="lg-sprite" aria-hidden="true">
+        <symbol id="i-user" viewBox="0 0 24 24"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></symbol>
+        <symbol id="i-lock" viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2" /><path d="M8 11V7a4 4 0 0 1 8 0v4" /></symbol>
+        <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></symbol>
+        <symbol id="i-tick" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5" /></symbol>
+        <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2.06 12.35a1 1 0 0 1 0-.7 10.75 10.75 0 0 1 19.88 0 1 1 0 0 1 0 .7 10.75 10.75 0 0 1-19.88 0" /><circle cx="12" cy="12" r="3" /></symbol>
+    </svg>
+    <div class="lg-bg" aria-hidden="true"><span class="orb o1"></span><span class="orb o2"></span><span class="orb o3"></span><span class="lg-grid"></span></div>
 
-                                                    <div class="form-group">
-                                                        <label class="text-bold-600" for="username">@L.T("Core_UserNameUpper")</label>
-                                                        @Html.TextBoxFor(u => u.UName, new { @class = "form-control", @id = "username", @placeholder = L.T("Core_UserName"), @autocomplete = "username" })
-                                                        @Html.ValidationMessageFor(m => m.UName, "", new { @class = "text-danger" })
-                                                    </div>
+    <header class="lg-top">
+        <a class="lg-brand" href="https://tahsinerp.uz" target="_blank" rel="noopener">
+            <img src="~/app-assets/images/logo/tahsinerp-logo.png" alt="" width="36" height="36">
+            <span>tahsin<b>ERP</b></span>
+        </a>
+        @if (company != null || firmLogo != null)
+        {
+            <span class="lg-chip">@if (firmLogo != null) { <img src="@firmLogo" alt=""> }@(company ?? "")</span>
+        }
+        <ul class="lg-lang">
+            @Html.Partial("_LanguageSwitch", new ViewDataDictionary { { "MenuClass", "lg-lang-menu" } })
+        </ul>
+    </header>
 
-                                                    <div class="form-group" style="margin-bottom: 1.5rem;">
-                                                        <label class="text-bold-600" for="password">@L.T("Core_PasswordUpper")</label>
-                                                        @Html.PasswordFor(u => u.Password, new { @class = "form-control", @id = "password", @placeholder = L.T("Core_PasswordPlaceholder"), @autocomplete = "current-password" })
-                                                        @Html.ValidationMessageFor(m => m.Password, "", new { @class = "text-danger" })
-                                                    </div>
+    <div class="lg-wrap">
+        <section class="lg-intro">
+            <div class="lg-logo" aria-hidden="true"><span class="ring r1"></span><span class="ring r2"></span><img src="~/app-assets/images/logo/tahsinerp-logo.png" alt="" width="132" height="132"></div>
+            <span class="lg-eyebrow">@L.T("Core_Login2_Eyebrow")</span>
+            <h2>@Html.Raw(L.T("Core_Login2_Headline", "<span class=\"grad\">" + Html.Encode(L.T("Core_Login2_HeadlineAccent")) + "</span>"))</h2>
+            <p>@L.T("Core_Login2_Intro")</p>
+            <ul class="lg-feats">
+                <li><svg class="i"><use href="#i-tick" /></svg>@L.T("Core_Login2_FeatDb")</li>
+                <li><svg class="i"><use href="#i-tick" /></svg>@L.T("Core_Login2_FeatRoles")</li>
+                <li><svg class="i"><use href="#i-tick" /></svg>@L.T("Core_Login2_FeatHttps")</li>
+            </ul>
+        </section>
 
-                                                    <div class="form-group">
-                                                        <div class="checkbox checkbox-sm">
-                                                            @Html.CheckBoxFor(u => u.KeepMeSigned, new { @id = "keepMeSigned" })
-                                                            <label for="keepMeSigned">
-                                                                <small style="margin-top: 0,5rem; margin-left: 1rem;">@L.T("Core_KeepMeSigned")</small>
-                                                            </label>
-                                                        </div>
-                                                    </div>
+        <main class="lg-card">
+            @if (firmLogo != null)
+            {
+                <div class="lg-firm"><img src="@firmLogo" alt="@(company ?? "")"><div><b>@(company ?? L.T("Core_Login2_Workspace"))</b><small>@L.T("Core_Login2_SecureLogin")</small></div></div>
+            }
+            else
+            {
+                <span class="lg-pill">@L.T("Core_Login2_SecureLogin")</span>
+            }
+            <h1>@L.T("Core_Login2_Title")</h1>
+            <p class="lg-sub">@(company != null && firmLogo == null ? L.T("Core_Login2_CompanyWorkspace", company) + " " : "")@L.T("Core_Login2_EnterCredentials")</p>
+            @using (Html.BeginForm())
+            {
+                @Html.AntiForgeryToken()
+                @Html.ValidationSummary(true, "", new { @class = "lg-err" })
 
-                                                    <hr />
-                                                    <button type="submit" class="btn btn-primary glow w-100 position-relative">
-                                                        @L.T("Login") <i id="icon-arrow" class="bx bx-right-arrow-alt"></i>
-                                                    </button>
-                                                }
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <!-- right section image -->
-                                <div class="col-md-6 d-md-block d-none px-0 branding-section">
-                                    <div class="branding-content">
-                                        <img class="img-fluid" src="~/app-assets/images/logo/tahsin_logo_.png" alt="tahsinERP branding">
-                                        @*<div class="brand-subtext">www.schain.uz</div>*@
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                <div class="lg-fld">
+                    <label for="username">@L.T("Core_UserName")</label>
+                    <div class="lg-ic">
+                        <svg class="i"><use href="#i-user" /></svg>
+                        @Html.TextBoxFor(u => u.UName, new { @id = "username", @placeholder = L.T("Core_Login2_LoginPlaceholder"), @autocomplete = "username", @autofocus = "autofocus", @autocapitalize = "none", @spellcheck = "false" })
                     </div>
-                </section>
-                <!-- login page ends -->
-            </div>
-        </div>
+                    @Html.ValidationMessageFor(m => m.UName, "", new { @class = "lg-fe" })
+                </div>
+
+                <div class="lg-fld">
+                    <label for="password">@L.T("Core_PasswordPlaceholder")</label>
+                    <div class="lg-ic">
+                        <svg class="i"><use href="#i-lock" /></svg>
+                        @Html.PasswordFor(u => u.Password, new { @id = "password", @placeholder = "••••••••", @autocomplete = "current-password" })
+                        <button type="button" class="lg-eye" data-toggle-pw aria-label="@L.T("Core_Login2_ShowPassword")"><svg class="i"><use href="#i-eye" /></svg></button>
+                    </div>
+                    @Html.ValidationMessageFor(m => m.Password, "", new { @class = "lg-fe" })
+                </div>
+
+                <label class="lg-check">
+                    @Html.CheckBoxFor(u => u.KeepMeSigned, new { @id = "keepMeSigned" })
+                    <span>@L.T("Core_KeepMeSigned")</span>
+                </label>
+
+                <button type="submit" class="lg-btn">@L.T("Login") <svg class="i"><use href="#i-arrow" /></svg></button>
+            }
+            <div class="lg-meta"><span><svg class="i"><use href="#i-lock" /></svg>@L.T("Core_Login2_SessionEncrypted")</span><span>@L.T("Core_Login2_ForgotHint")</span></div>
+        </main>
     </div>
-    <!-- END: Content-->
-    <!-- BEGIN: Vendor JS-->
-    <script src="~/app-assets/vendors/js/vendors.min.js"></script>
-    <script src="~/app-assets/fonts/LivIconsEvo/js/LivIconsEvo.tools.js"></script>
-    <script src="~/app-assets/fonts/LivIconsEvo/js/LivIconsEvo.defaults.js"></script>
-    <script src="~/app-assets/fonts/LivIconsEvo/js/LivIconsEvo.min.js"></script>
-    <!-- BEGIN Vendor JS-->
-    <!-- BEGIN: Page Vendor JS-->
-    <!-- END: Page Vendor JS-->
-    <!-- BEGIN: Theme JS-->
-    <script src="~/app-assets/js/core/app-menu.js"></script>
-    <script src="~/app-assets/js/core/app.js"></script>
-    <script src="~/app-assets/js/scripts/components.js"></script>
-    <script src="~/app-assets/js/scripts/footer.js"></script>
-    <!-- END: Theme JS-->
+
+    <footer class="lg-foot">
+        <span>© @DateTime.Now.Year tahsinERP · SCHAIN</span>
+        <a href="https://tahsinerp.uz" target="_blank" rel="noopener">tahsinerp.uz</a>
+    </footer>
+    <script>
+        (function () {
+            var b = document.querySelector('[data-toggle-pw]'), p = document.getElementById('password');
+            if (b && p) b.addEventListener('click', function () { p.type = p.type === 'password' ? 'text' : 'password'; p.focus(); });
+            // Til tanlagichi (Bootstrap JS'siz): tugma menyuni ochadi/yopadi, tashqariga bosilsa yopiladi.
+            var lt = document.querySelector('.lg-lang [data-toggle="dropdown"]'), lm = document.querySelector('.lg-lang .lg-lang-menu');
+            if (lt && lm) {
+                lt.addEventListener('click', function (e) { e.preventDefault(); e.stopPropagation(); var o = lm.classList.toggle('show'); lt.setAttribute('aria-expanded', o ? 'true' : 'false'); });
+                document.addEventListener('click', function () { lm.classList.remove('show'); lt.setAttribute('aria-expanded', 'false'); });
+            }
+        })();
+    </script>
 </body>
 </html>

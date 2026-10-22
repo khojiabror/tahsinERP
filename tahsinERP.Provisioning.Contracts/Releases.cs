@@ -211,6 +211,23 @@ public sealed class UpdateInventory
     public DateTime CollectedAtUtc { get; set; }
     public List<InstalledApp> Apps { get; set; } = [];
     public List<ErpInstanceInfo> Instances { get; set; } = [];
+    /// <summary>Kunlik zaxiraning oxirgi natijasi (Backup-Databases.ps1 → Updates\Status\backup.json); sozlanmagan bo'lsa null.</summary>
+    public BackupReport? Backup { get; set; }
+}
+
+/// <summary>Kunlik zaxira natijasi (Docs/Deploy/04_BACKUP.md). Sirsiz: faqat holat, fayl nomlari va xato matnlari.</summary>
+public sealed class BackupReport
+{
+    public bool Ok { get; set; }
+    public DateTime? StartedAtUtc { get; set; }
+    public DateTime? FinishedAtUtc { get; set; }
+    /// <summary>Bucket'dagi yoki serverdagi papka.</summary>
+    public string? Folder { get; set; }
+    /// <summary>Bucket nomi; bo'sh — faqat lokal zaxira.</summary>
+    public string? Bucket { get; set; }
+    public List<string> Files { get; set; } = [];
+    public long? TotalBytes { get; set; }
+    public List<string> Errors { get; set; } = [];
 }
 
 public sealed class InstalledApp

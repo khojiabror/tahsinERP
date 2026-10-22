@@ -14184,4 +14184,55 @@
   <data name="Theme_SampleFocus" xml:space="preserve">
     <value>Поле в фокусе</value>
   </data>
+  <data name="Core_Login2_Eyebrow" xml:space="preserve">
+    <value>Система управления предприятием</value>
+  </data>
+  <data name="Core_Login2_Headline" xml:space="preserve">
+    <value>Управляйте предприятием {0}</value>
+  </data>
+  <data name="Core_Login2_HeadlineAccent" xml:space="preserve">
+    <value>в единой системе</value>
+  </data>
+  <data name="Core_Login2_Intro" xml:space="preserve">
+    <value>Закупки, склад, производство, продажи, дистрибуция, финансы и кадры — в реальном времени, в одном месте.</value>
+  </data>
+  <data name="Core_Login2_FeatDb" xml:space="preserve">
+    <value>Отдельная защищённая база для каждой компании</value>
+  </data>
+  <data name="Core_Login2_FeatRoles" xml:space="preserve">
+    <value>Права по ролям и журнал действий</value>
+  </data>
+  <data name="Core_Login2_FeatHttps" xml:space="preserve">
+    <value>Зашифрованное соединение (HTTPS)</value>
+  </data>
+  <data name="Core_Login2_Workspace" xml:space="preserve">
+    <value>Рабочее пространство</value>
+  </data>
+  <data name="Core_Login2_SecureLogin" xml:space="preserve">
+    <value>Безопасный вход</value>
+  </data>
+  <data name="Core_Login2_Title" xml:space="preserve">
+    <value>Вход в систему</value>
+  </data>
+  <data name="Core_Login2_CompanyWorkspace" xml:space="preserve">
+    <value>Рабочее пространство {0}.</value>
+  </data>
+  <data name="Core_Login2_EnterCredentials" xml:space="preserve">
+    <value>Введите имя пользователя и пароль.</value>
+  </data>
+  <data name="Core_Login2_LoginPlaceholder" xml:space="preserve">
+    <value>логин</value>
+  </data>
+  <data name="Core_Login2_ShowPassword" xml:space="preserve">
+    <value>Показать пароль</value>
+  </data>
+  <data name="Core_Login2_SessionEncrypted" xml:space="preserve">
+    <value>Сеанс зашифрован</value>
+  </data>
+  <data name="Core_Login2_ForgotHint" xml:space="preserve">
+    <value>Забыли пароль? Обратитесь к администратору.</value>
+  </data>
+  <data name="Core_Login2_CompanyLogoLabel" xml:space="preserve">
+    <value>Логотип компании (PNG/JPG, квадратный — например 256×256, до 200 КБ). Отображается в левом меню и на странице входа; если не загружен — логотип tahsinERP.</value>
+  </data>
 </root>

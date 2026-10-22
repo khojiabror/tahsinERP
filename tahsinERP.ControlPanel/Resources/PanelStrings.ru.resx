@@ -3603,4 +3603,49 @@ tahsinERP портал: код входа {1}. Действует {2} мин.
   <data name="Pnl_Upd_Err_GitHubList" xml:space="preserve">
     <value>GitHub {0}: не удалось получить релизы (проверьте права токена/репозитория).</value>
   </data>
+  <data name="Pnl_Auth2_Eyebrow" xml:space="preserve">
+    <value>Для команды tahsinERP</value>
+  </data>
+  <data name="Ptl_Auth2_Eyebrow" xml:space="preserve">
+    <value>Для клиентов</value>
+  </data>
+  <data name="Pnl_Auth2_Headline" xml:space="preserve">
+    <value>Организации, подписки и ключи —</value>
+  </data>
+  <data name="Ptl_Auth2_Headline" xml:space="preserve">
+    <value>Счета, оплата и лицензия —</value>
+  </data>
+  <data name="Pnl_Auth2_InOnePlace" xml:space="preserve">
+    <value>в одном месте</value>
+  </data>
+  <data name="Pnl_Auth2_Intro" xml:space="preserve">
+    <value>Управляйте организациями, пробными периодами, счетами-фактурами, заявками на демо, серверами и обновлениями из одной панели.</value>
+  </data>
+  <data name="Ptl_Auth2_Intro" xml:space="preserve">
+    <value>Просматривайте счета-фактуры, отслеживайте статус оплаты, повышайте или продлевайте тариф и получайте лицензионный ключ.</value>
+  </data>
+  <data name="Pnl_Auth2_Footer" xml:space="preserve">
+    <value>Несанкционированный доступ запрещён — все попытки регистрируются.</value>
+  </data>
+  <data name="Pnl_Auth2_SecureLogin" xml:space="preserve">
+    <value>Безопасный вход</value>
+  </data>
+  <data name="Pnl_Auth2_SessionEncrypted" xml:space="preserve">
+    <value>Сеанс зашифрован</value>
+  </data>
+  <data name="Pnl_Auth2_AuditOn" xml:space="preserve">
+    <value>Аудит включён</value>
+  </data>
+  <data name="Pnl_Auth2_NavLeads" xml:space="preserve">
+    <value>Заявки на демо</value>
+  </data>
+  <data name="Pnl_Auth2_SrvBackupHint" xml:space="preserve">
+    <value>Резервное копирование: каждую ночь все базы и настройки (Docs/Deploy/04_BACKUP.md, {0}); результат отправляет агент, если копия старше 26 часов — выдаётся предупреждение.</value>
+  </data>
+  <data name="Pnl_Auth2_LastBackup" xml:space="preserve">
+    <value>Последняя резервная копия</value>
+  </data>
+  <data name="Pnl_Auth2_AppUnchanged" xml:space="preserve">
+    <value>{0} — это приложение не изменилось</value>
+  </data>
 </root>

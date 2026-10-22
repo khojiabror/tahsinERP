@@ -2,7 +2,7 @@
 @model LoginModel
 @{ ViewData["Title"] = L.T("Login"); }
 <div class="card login">
-    <div class="hud-head"><span>// @L.T("Ptl_HudClientId")</span><span>AUTH-01</span></div>
+    <div class="hud-head"><span>@L.T("Pnl_Auth2_SecureLogin")</span><span>AUTH-01</span></div>
     <h1>@L.T("Ptl_LoginHeading")</h1>
     <p class="hud-sub">@L.T("Ptl_LoginSub")</p>
     <ol class="steps"><li class="on">@L.T("Password")</li><li>@L.T("Code")</li><li>@L.T("Ptl_Crumb")</li></ol>
@@ -20,5 +20,5 @@
         <button type="submit">@L.T("Ptl_Continue") <svg class="i"><use href="#i-arrow" /></svg></button>
         <p class="hint">@L.T("Ptl_LoginHint")</p>
     </form>
-    <div class="auth-meta"><span>@L.T("Ptl_SessionEncrypted")</span><span><a href="/Forgot">@L.T("Ptl_ForgotLink")</a></span></div>
+    <div class="auth-meta"><span>@L.T("Pnl_Auth2_SessionEncrypted")</span><span><a href="/Forgot">@L.T("Ptl_ForgotLink")</a></span></div>
 </div>

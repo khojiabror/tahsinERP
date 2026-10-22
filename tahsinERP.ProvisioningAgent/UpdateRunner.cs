@@ -233,7 +233,19 @@ public sealed class UpdateRunner(AgentOptions options, SqlOps sql, TimeProvider 
         foreach (var db in state.Instances.Values.Select(i => i.DbName).OfType<string>().Distinct(StringComparer.OrdinalIgnoreCase))
             schema[db] = await sql.SchemaVersionAsync(db, ct);
         var inv = UpdaterFiles.ToInventory(state, state.UpdaterVersion, db => schema.GetValueOrDefault(db));
+        inv.Backup = ReadBackupReport(options.Updates.BackupStatusFile);
         return inv;
+    }
+
+    /// <summary>Zaxira natijasi fayli (PowerShell yozadi). Yo'q yoki o'qilmasa — null.</summary>
+    public static BackupReport? ReadBackupReport(string path)
+    {
+        try
+        {
+            if (!File.Exists(path)) return null;
+            return JsonSerializer.Deserialize<BackupReport>(File.ReadAllText(path).TrimStart('﻿'), AgentProtocol.Json);
+        }
+        catch (Exception ex) when (ex is IOException or JsonException or UnauthorizedAccessException) { return null; }
     }
 
     private static JobStatus? ReadStatus(string path)

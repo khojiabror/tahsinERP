@@ -4,8 +4,11 @@ using tahsinERP.ControlPanel.Services;
 
 namespace tahsinERP.ControlPanel.Pages;
 
-public class IndexModel(DashboardService dashboard, ControlDbContext db, UsageService usage) : PanelPageModel
+public class IndexModel(DashboardService dashboard, ControlDbContext db, UsageService usage, BackupMonitor backups) : PanelPageModel
 {
+    /// <summary>Zaxirasi xato bergan yoki 26 soatdan beri yangilanmagan serverlar.</summary>
+    public List<BackupMonitor.Row> BackupProblems { get; private set; } = [];
+
     /// <summary>Baza yaratilgan, lekin InactiveTrialDays (3) kundan beri kirilmagan sinov tenantlari.</summary>
     public List<UsageService.InactiveTrial> InactiveTrials { get; private set; } = [];
 
@@ -21,5 +24,6 @@ public class IndexModel(DashboardService dashboard, ControlDbContext db, UsageSe
         UnboundCount = await db.Tenants.CountAsync(t => t.InstallationId == null && t.Status != TenantStatus.Archived);
         FailedNotifications = await db.Notifications.CountAsync(n => n.Status == NotificationStatus.Failed);
         InactiveTrials = await usage.InactiveTrialsAsync();
+        BackupProblems = await backups.ProblemsAsync();
     }
 }

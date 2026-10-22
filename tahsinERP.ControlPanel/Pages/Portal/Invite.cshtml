@@ -2,7 +2,7 @@
 @model InviteModel
 @{ ViewData["Title"] = L.T("Ptl_SetPasswordTitle"); }
 <div class="card login">
-    <div class="hud-head"><span>// @L.T("Ptl_HudInvite")</span><span>AUTH-I</span></div>
+    <div class="hud-head"><span>@L.T("Ptl_HudInvite")</span><span>AUTH-I</span></div>
     @if (Model.Done)
     {
         <h1>@L.T("Ptl_PasswordSet")</h1>

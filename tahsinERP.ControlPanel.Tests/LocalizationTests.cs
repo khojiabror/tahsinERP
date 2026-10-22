@@ -29,10 +29,10 @@ public class LocalizationTests(PanelFactory f) : IClassFixture<PanelFactory>
     {
         using var c = f.Https();
         string uz = await (await c.GetAsync("/Account/Login")).Content.ReadAsStringAsync();
-        Assert.Contains("Himoyalangan hudud", uz);
+        Assert.Contains("Boshqaruv paneli", uz);   // kirish sahifasidagi zona yozuvi (Pnl_Brand)
         Assert.Contains("lang=\"uz\"", uz);
 
-        foreach (var (code, text, htmlLang) in new[] { ("ru", "Защищённая зона", "ru"), ("oz", "Ҳимояланган ҳудуд", "uz-Cyrl") })
+        foreach (var (code, text, htmlLang) in new[] { ("ru", "Панель управления", "ru"), ("oz", "Бошқарув панели", "uz-Cyrl") })
         {
             using var req = new HttpRequestMessage(HttpMethod.Get, "/Account/Login");
             req.Headers.Add("Cookie", "tahsin_lang=" + code);

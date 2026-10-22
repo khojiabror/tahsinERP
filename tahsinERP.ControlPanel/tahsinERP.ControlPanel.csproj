@@ -24,6 +24,12 @@
     <InternalsVisibleTo Include="tahsinERP.ControlPanel.Tests" />
   </ItemGroup>
 
+  <!-- tahsinerp.uz sahifasi matnlari (uz/ru/en) — DLL ichida, publish papkasiga alohida chiqmaydi. -->
+  <ItemGroup>
+    <Content Remove="Pages\Public\Content\*.json" />
+    <EmbeddedResource Include="Pages\Public\Content\*.json" />
+  </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.13">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

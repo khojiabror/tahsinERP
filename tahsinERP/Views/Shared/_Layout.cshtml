@@ -127,7 +127,7 @@
                 <ul class="nav navbar-nav flex-row">
                     <li class="nav-item mr-auto">
                         <a class="navbar-brand" href="/Home">
-                            <div class="brand-logo"><img class="logo" src="@(brand.HasLogo ? Url.Action("Logo", "Branding", new { area = "", v = brand.LogoVersion }) : Url.Content("~/app-assets/images/logo/logo-32x32.png"))" alt="" /></div>
+                            <div class="brand-logo"><img class="logo@(brand.HasLogo ? "" : " logo-tahsin")" src="@(brand.HasLogo ? Url.Action("Logo", "Branding", new { area = "", v = brand.LogoVersion }) : Url.Content("~/app-assets/images/logo/logo-32x32.png"))" alt="" /></div>
                             <h2 class="brand-text mb-0">tahsinERP</h2>
                         </a>
                     </li>

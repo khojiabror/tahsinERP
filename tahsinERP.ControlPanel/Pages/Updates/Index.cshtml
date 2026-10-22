@@ -55,7 +55,7 @@
             <td class="mono">@UpdateLabels.Version(a.Installed?.Version)<br /><span class="hint">@a.Installed?.InstalledAtUtc?.ToString("dd.MM.yyyy HH:mm")</span></td>
             <td>
                 @if (a.Offer is not null) { <span class="badge info">@a.Offer.Version</span> }
-                else if (a.Newer.Count > 0) { <span class="hint">@L.T("Pnl_Upd_NoChanges", a.Newer[0].Version)</span> }
+                else if (a.Newer.Count > 0) { <span class="badge ok">@L.T("Pnl_Upd_Latest")</span> <span class="hint">@L.T("Pnl_Auth2_AppUnchanged", a.Newer[0].Version)</span> }
                 else { <span class="badge ok">@L.T("Pnl_Upd_Latest")</span> }
             </td>
             <td>
@@ -71,9 +71,10 @@
                 }
                 else
                 {
-                    @if (a.Newer.Count > 0)
+                    @* Kodi o'zgarmagan relizga tugma yo'q — o'rnatishdan foyda yo'q (versiya raqamigina o'zgaradi) *@
+                    @if (a.Offer is not null)
                     {
-                        var target = a.Offer ?? a.Newer[0];
+                        var target = a.Offer;
                         <form method="post" asp-page-handler="Install" class="inline"
                               data-confirm="@L.T("Pnl_Upd_ConfirmInstallApp", ReleaseApps.Title(a.App), target.Version)">
                             <input type="hidden" name="ServerId" value="@Model.ServerId" />

@@ -394,17 +394,9 @@ Firmaning o'z domeni (`firma1.uz`) — keyingi bosqich (Caddy on-demand TLS yoki
 
 ## 9. Zaxira va kuzatuv
 
-1. **Zaxira** — Task Scheduler, har kuni 02:00 (demo tiklanishidan oldin), barcha bazalar siqilgan `.bak`, 14 kun:
-
-```powershell
-$d = Get-Date -f yyyyMMdd; $dir = "C:\ProgramData\tahsinERP\Backups\daily\$d"; New-Item -ItemType Directory -Force $dir | Out-Null
-$dbs = Invoke-Sqlcmd -ServerInstance .\SQLEXPRESS -Query "SELECT name FROM sys.databases WHERE database_id > 4" | % name
-foreach ($db in $dbs) { Invoke-Sqlcmd -ServerInstance .\SQLEXPRESS -QueryTimeout 0 -Query "BACKUP DATABASE [$db] TO DISK='$dir\$db.bak' WITH COMPRESSION, INIT, CHECKSUM" }
-Get-ChildItem C:\ProgramData\tahsinERP\Backups\daily -Directory | ? CreationTime -lt (Get-Date).AddDays(-14) | Remove-Item -Recurse -Force
-```
-
-   (Express'da `COMPRESSION` qo'llanmasa — olib tashlang.) **Serverdan tashqariga nusxa** (provayder object storage yoki boshqa server) va provayder snapshot'i.
-   Eng muhimi `tahsin_control` — to'lov tarixi shu yerda.
+1. **Zaxira** — **`04_BACKUP.md`**: `Install-Backup.ps1` har kecha 01:30 da barcha bazalar (`.bak.gz`) va sozlamalarni
+   (`config.zip`) Lightsail bucket'iga yuboradi; 14 kun + oylik nusxa 180 kun, tiklash `Backup-Databases.ps1 -Download`.
+   Lightsail Windows instance'da avtomatik snapshot yo'q — shu zaxira yagona himoya. Eng muhimi `tahsin_control` (to'lov tarixi).
 2. **Kuzatuv**: UptimeRobot (bepul) — `https://admin.tahsinerp.uz/health`, `https://bot.tahsinerp.uz/health`, `https://demo.sayt.tahsinerp.uz/health`, `https://demo.tahsinerp.uz/Account/Login`.
 3. **Relizlar** — panel → **Yangilanishlar** (`03_AUTO_UPDATE.md`): ish vaqtidan tashqarida, avval `demo`, keyin boshqa firmalar.
    Updater o'zi zaxira oladi (fayllar + firma bazasi `.bak`), migratsiya + seed qiladi, `/health` tekshiradi va xatoda qaytaradi.

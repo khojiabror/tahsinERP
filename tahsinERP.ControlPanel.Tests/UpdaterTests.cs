@@ -118,6 +118,7 @@ public sealed class FakeSystemOps : ISystemOps
     public Task RestoreDbAsync(string db, string file, CancellationToken ct) { Calls.Add("restore-db " + db); return Task.CompletedTask; }
     public string? SchemaVersion(string db) => "027_x";
     public Task GrantDbAccessAsync(string pool, string db, CancellationToken ct) { Calls.Add($"grant {pool} {db}"); return Task.CompletedTask; }
+    public Task EnsureErpPoolAsync(ErpSiteSpec spec, CancellationToken ct) { Calls.Add($"ensure-pool {spec.Name}"); return Task.CompletedTask; }
     public Task EnsureErpSiteAsync(ErpSiteSpec spec, CancellationToken ct) { Calls.Add($"ensure-site {spec.Name} {spec.HostName}"); return Task.CompletedTask; }
     public Task RemoveErpSiteAsync(string name, CancellationToken ct) { Calls.Add("remove-site " + name); return Task.CompletedTask; }
 
@@ -284,6 +285,8 @@ public sealed class UpdaterTests : IDisposable
         Assert.DoesNotContain("REPO", cfg);
         Assert.True(_sys.IndexOf("run powershell.exe") < _sys.IndexOf("ensure-site erp-ipack ipack.test.local"));
         Assert.Contains(_sys.Calls, c => c == "grant erp-ipack DB_ipack");
+        // IIS APPPOOL\erp-ipack hisobi faqat pool yaratilgach mavjud — pool SQL huquqidan OLDIN (prod'dagi xato)
+        Assert.True(_sys.IndexOf("ensure-pool erp-ipack") < _sys.IndexOf("grant erp-ipack"), string.Join(" | ", _sys.Calls));
         var inst = _store.Load().Instances["ipack"];
         Assert.Equal("2026.10.22.1", inst.Version);
         Assert.Equal("DB_ipack", inst.DbName);
@@ -298,6 +301,7 @@ public sealed class UpdaterTests : IDisposable
             Job("2026.10.22.1", new() { ["erp"] = TestReleaseKit.ErpFiles("a") }));
         Assert.Equal(UpdateOutcome.RolledBack, r.Outcome);
         Assert.Contains(_sys.Calls, c => c == "remove-site erp-firma2");
+        Assert.True(_sys.IndexOf("ensure-pool erp-firma2") < _sys.IndexOf("grant erp-firma2"));
         Assert.Contains(_sys.Calls, c => c == "restore-db DB_firma2");
         Assert.False(Directory.Exists(Path.Combine(_o.Erp.InstancesRoot, "firma2")));
         Assert.False(_store.Load().Instances.ContainsKey("firma2"));
@@ -426,6 +430,23 @@ public sealed class ReleaseTests
         Assert.Null(UpdatesService.Offer(valid, "bot", null));
         Assert.Equal("- panel fix", IndexModel.NotesFor(valid[0], "panel"));
         Assert.Equal("- erp", IndexModel.NotesFor(valid[0], "erp"));
+    }
+
+    /// <summary>
+    /// ERP Web.config'dagi umumiy &lt;deny users="?"/&gt; /health'ni login'ga (302) yo'naltirib, Updater yangilashni
+    /// "health o'tmadi" deb qaytarardi (prod, 2026-10-22). /health anonim ochiq bo'lishi shart.
+    /// </summary>
+    [Fact]
+    public void ErpWebConfig_AllowsAnonymousHealth()
+    {
+        var dir = new DirectoryInfo(AppContext.BaseDirectory);
+        while (dir != null && !File.Exists(Path.Combine(dir.FullName, "tahsinERP", "Web.config"))) dir = dir.Parent;
+        Assert.NotNull(dir);
+        var doc = System.Xml.Linq.XDocument.Load(Path.Combine(dir!.FullName, "tahsinERP", "Web.config"));
+        var loc = doc.Root!.Elements("location").FirstOrDefault(l => string.Equals((string?)l.Attribute("path"), "health", StringComparison.OrdinalIgnoreCase));
+        Assert.NotNull(loc);
+        Assert.Equal("*", (string?)loc!.Element("system.web")?.Element("authorization")?.Element("allow")?.Attribute("users"));
+        Assert.True(File.Exists(Path.Combine(dir.FullName, "tahsinERP", "Controllers", "HealthController.cs")));
     }
 
     [Fact]

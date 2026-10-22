@@ -2344,6 +2344,17 @@
     <Content Include="app-assets\images\logo\favicon.ico" />
     <Content Include="app-assets\images\logo\frest-logo.png" />
     <Content Include="app-assets\images\logo\logo-32x32.png" />
+    <Content Include="app-assets\images\logo\tahsinerp-logo.png" />
+    <Content Include="app-assets\images\ico\apple-touch-icon.png" />
+    <Content Include="app-assets\images\ico\apple-icon-120.png" />
+    <Content Include="assets\css\login.css" />
+    <Content Include="assets\fonts\fonts.css" />
+    <Content Include="assets\fonts\inter-latin.woff2" />
+    <Content Include="assets\fonts\inter-latin-ext.woff2" />
+    <Content Include="assets\fonts\inter-cyrillic.woff2" />
+    <Content Include="assets\fonts\manrope-latin.woff2" />
+    <Content Include="assets\fonts\manrope-latin-ext.woff2" />
+    <Content Include="assets\fonts\manrope-cyrillic.woff2" />
     <Content Include="app-assets\images\logo\logo-light.png" />
     <Content Include="app-assets\images\logo\logo.png" />
     <Content Include="app-assets\images\logo\tahsin_logo.png" />

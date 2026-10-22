@@ -16,6 +16,11 @@ else
 {
     <form method="post" class="stack card">
         <div asp-validation-summary="All"></div>
+        @if (Model.Demo is int demoId)
+        {
+            <input type="hidden" name="Demo" value="@demoId" />
+            <div class="hint">Demo so'rovi <a href="/Leads?all=true">#@demoId</a> dan to'ldirildi — slug va nomni tekshiring.</div>
+        }
         <div class="row">
             <div><label asp-for="Input.Slug">@L.T("Pnl_Ten_SlugLabel")</label><input asp-for="Input.Slug" type="text" placeholder="firma1" /><div class="hint">a-z, 0-9, '-'. @L.T("Pnl_Url"): &lt;slug&gt;.&lt;domen&gt;.</div></div>
             <div><label asp-for="Input.LegalName">@L.T("Pnl_LegalName")</label><input asp-for="Input.LegalName" type="text" /></div>

@@ -734,3 +734,39 @@ public class ServerInventory
     public string? UpdaterVersion { get; set; }
     public DateTime ReportedAtUtc { get; set; }
 }
+
+// ── Ommaviy sayt (tahsinerp.uz) demo so'rovlari ───────────────────────────────────────────────────────────────────
+
+public enum DemoRequestStatus { New = 1, Contacted = 2, TrialOpened = 3, Rejected = 4 }
+
+/// <summary>
+/// tahsinerp.uz sahifasidagi "Demo so'rash" formasi. Xodim bog'lanadi va panelda bir tugma bilan 14 kunlik sinov
+/// ochadi (Tenants/Trial?demo=ID — forma oldindan to'ldiriladi, sinov ochilgach so'rov tenantga bog'lanadi).
+/// </summary>
+public class DemoRequest
+{
+    public int Id { get; set; }
+    public string FullName { get; set; } = "";
+    public string Company { get; set; } = "";
+    public string Phone { get; set; } = "";
+    public string? Email { get; set; }
+    /// <summary>Faoliyat turi kodi (production / distribution / trade / services / other).</summary>
+    public string? Industry { get; set; }
+    /// <summary>Xodimlar soni oralig'i ("1-20", "21-100", ...).</summary>
+    public string? CompanySize { get; set; }
+    /// <summary>Qiziqtirgan modullar, vergul bilan (srm,crm,mes...).</summary>
+    public string? Modules { get; set; }
+    /// <summary>Sahifadagi paket kartasidan kelgan bo'lsa — paket kodi (START / DIST / BIZNES / KORP).</summary>
+    public string? Plan { get; set; }
+    public string? Message { get; set; }
+    /// <summary>Sahifa tili (uz / ru / en) — mijozga shu tilda javob beriladi.</summary>
+    public string Lang { get; set; } = "uz";
+    public string? Ip { get; set; }
+    public string? UserAgent { get; set; }
+    public DemoRequestStatus Status { get; set; } = DemoRequestStatus.New;
+    public string? StaffNote { get; set; }
+    public int? HandledByStaffId { get; set; }
+    public DateTime? HandledAtUtc { get; set; }
+    public int? TenantId { get; set; }
+    public DateTime CreatedAtUtc { get; set; }
+}
