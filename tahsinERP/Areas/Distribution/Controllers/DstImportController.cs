@@ -11,7 +11,10 @@ namespace tahsinERP.Areas.Distribution.Controllers
     /// Excel import: boshlang'ich ma'lumot pilot tartibida (hududlar → narx turlari → mijozlar → marshrutlar → tovarlar →
     /// birliklar → narxlar → kirish qarzlari). Oqim: fayl → ko'rib chiqish (hammasi yoziladi va rollback) → "Import qilish"
     /// (o'sha fayl qayta tekshirilib yoziladi). Shablonlar shu yerdan.
+    /// Ko'rib chiqilgan fayl sessiyaga yoziladi — standart ReadOnly sessiya (TahsinControllerFactory) uni saqlamasdi va
+    /// "Import qilish" doim "fayl topilmadi" berardi; shuning uchun Required.
     /// </summary>
+    [SessionState(System.Web.SessionState.SessionStateBehavior.Required)]
     public class DstImportController : DstControllerBase
     {
         public const string Territories = "territories";
