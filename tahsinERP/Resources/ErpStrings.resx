@@ -14253,4 +14253,37 @@
   <data name="Core_DevPanelUnavailable" xml:space="preserve">
     <value>Boshqaruv paneliga ulanib bo'lmadi — dasturchi kirishi tekshirilmadi. Keyinroq urinib ko'ring.</value>
   </data>
+  <data name="Menu_MasterData" xml:space="preserve">
+    <value>Asosiy ma'lumotlar</value>
+  </data>
+  <data name="Menu_ItemCatalog" xml:space="preserve">
+    <value>Nomenklatura</value>
+  </data>
+  <data name="Menu_AllItems" xml:space="preserve">
+    <value>Barcha mahsulotlar</value>
+  </data>
+  <data name="Menu_ItemCategories" xml:space="preserve">
+    <value>Kategoriyalar</value>
+  </data>
+  <data name="Menu_UnitsShort" xml:space="preserve">
+    <value>O'lchov birliklari</value>
+  </data>
+  <data name="Menu_DstSales" xml:space="preserve">
+    <value>Savdo</value>
+  </data>
+  <data name="Menu_DstStock" xml:space="preserve">
+    <value>Ombor</value>
+  </data>
+  <data name="Menu_DstMoney" xml:space="preserve">
+    <value>To'lovlar va qarzlar</value>
+  </data>
+  <data name="Menu_DstField" xml:space="preserve">
+    <value>Dala va yetkazish</value>
+  </data>
+  <data name="Menu_DstDirectories" xml:space="preserve">
+    <value>Ma'lumotnomalar</value>
+  </data>
+  <data name="Menu_DstSystem" xml:space="preserve">
+    <value>Sozlash</value>
+  </data>
 </root>

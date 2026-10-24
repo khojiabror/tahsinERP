@@ -209,6 +209,38 @@
                     </li>
 
                     <!-- ═══════════════════════════════════════════════════════════════ -->
+                    <!-- Asosiy ma'lumotlar (Master Data): nomenklatura — har qanday paketda (MES'siz ham) -->
+                    <!-- ═══════════════════════════════════════════════════════════════ -->
+                    @if (RoleHelper.IsViewPermitted(User.Identity.Name, "Product") || RoleHelper.IsViewPermitted(User.Identity.Name, "ProductCategory"))
+                    {
+                        bool mesInEdition = tahsinERP.Services.Editions.EditionGate.IsControllerAllowed("ProductProduction");
+                        <li class="navigation-header"><span>@L.T("Menu_MasterData")</span></li>
+                        <li class="nav-item">
+                            <a href="#"><i class="bx bx-package"></i><span class="menu-title">@L.T("Menu_ItemCatalog")</span></a>
+                            <ul class="menu-content">
+                                @if (RoleHelper.IsViewPermitted(User.Identity.Name, "Product"))
+                                {
+                                    <li><a href="@Url.Action("Index", "Product", new { area = "" })"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">@L.T("Menu_AllItems")</span></a></li>
+                                    <li><a href="@Url.Action("Index", "Product", new { area = "", typeFilter = "MAXSULOT" })"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">@L.T("Menu_FinishedGoods")</span></a></li>
+                                    if (mesInEdition)
+                                    {
+                                        <li><a href="@Url.Action("Index", "Product", new { area = "", typeFilter = "YARIM_TAYYOR" })"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">@L.T("Menu_SemiFinished")</span></a></li>
+                                    }
+                                    <li><a href="@Url.Action("Index", "Product", new { area = "", typeFilter = "XOMASHYO" })"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">@L.T("Menu_RawMaterials")</span></a></li>
+                                }
+                                @if (RoleHelper.IsViewPermitted(User.Identity.Name, "ProductCategory"))
+                                {
+                                    <li><a href="@Url.Action("Index", "ProductCategory", new { area = "" })"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">@L.T("Menu_ItemCategories")</span></a></li>
+                                }
+                                @if (RoleHelper.IsViewPermitted(User.Identity.Name, "Unit"))
+                                {
+                                    <li><a href="~/Unit"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">@L.T("Menu_UnitsShort")</span></a></li>
+                                }
+                            </ul>
+                        </li>
+                    }
+
+                    <!-- ═══════════════════════════════════════════════════════════════ -->
                     <!-- SRM - Ta'minot zanjiri boshqaruvi (Moliya uslubida ixcham) -->
                     <!-- ═══════════════════════════════════════════════════════════════ -->
 
@@ -300,31 +332,57 @@
                     <!-- ═══════════════════════════════════════════════════════════════ -->
                     @if (RoleHelper.IsViewPermitted(User.Identity.Name, "DstHome", "Index"))
                     {
-                        var dstMenu = new[]
+                        // Guruhlar (DMS amaliyoti): savdo, ombor, pul, dala/yetkazish, ma'lumotnomalar, tizim
+                        var dstGroups = new[]
                         {
-                            new { C = "DstDashboard", K = "Dashboard" }, new { C = "DstReports", K = "Reports" },
-                            new { C = "DstOrders", K = "Orders" }, new { C = "DstStock", K = "Stock" }, new { C = "DstInventory", K = "Inventory" },
-                            new { C = "DstTransfers", K = "Transfers" }, new { C = "DstWriteOffs", K = "WriteOffs" }, new { C = "DstRegrades", K = "Regrades" },
-                            new { C = "DstLandedCosts", K = "LandedCosts" }, new { C = "DstReorder", K = "Reorder" }, new { C = "DstPromotions", K = "Promotions" },
-                            new { C = "DstPayments", K = "Payments" }, new { C = "DstDebts", K = "Debts" }, new { C = "DstReturns", K = "Returns" },
-                            new { C = "DstField", K = "Field" }, new { C = "DstRoutes", K = "Routes" }, new { C = "DstIssues", K = "Issues" },
-                            new { C = "DstTrips", K = "Trips" }, new { C = "DstVehicles", K = "Vehicles" }, new { C = "DstKpi", K = "Kpi" },
-                            new { C = "DstCustomers", K = "Customers" }, new { C = "DstProducts", K = "Products" },
-                            new { C = "DstPrices", K = "Prices" }, new { C = "DstTerritories", K = "Territories" },
-                            new { C = "DstTeams", K = "Teams" }, new { C = "DstDictionaries", K = "Dictionaries" },
-                            new { C = "DstSettings", K = "Settings" }, new { C = "DstImport", K = "Import" }, new { C = "DstAudit", K = "Audit" }
+                            new { G = "Menu_DstSales", I = "bx-cart", Items = new[] {
+                                new { C = "DstOrders", K = "Orders" }, new { C = "DstReturns", K = "Returns" },
+                                new { C = "DstPromotions", K = "Promotions" }, new { C = "DstPrices", K = "Prices" } } },
+                            new { G = "Menu_DstStock", I = "bx-box", Items = new[] {
+                                new { C = "DstStock", K = "Stock" }, new { C = "DstInventory", K = "Inventory" },
+                                new { C = "DstTransfers", K = "Transfers" }, new { C = "DstWriteOffs", K = "WriteOffs" },
+                                new { C = "DstRegrades", K = "Regrades" }, new { C = "DstLandedCosts", K = "LandedCosts" },
+                                new { C = "DstReorder", K = "Reorder" } } },
+                            new { G = "Menu_DstMoney", I = "bx-wallet", Items = new[] {
+                                new { C = "DstPayments", K = "Payments" }, new { C = "DstDebts", K = "Debts" } } },
+                            new { G = "Menu_DstField", I = "bx-map", Items = new[] {
+                                new { C = "DstField", K = "Field" }, new { C = "DstRoutes", K = "Routes" },
+                                new { C = "DstTrips", K = "Trips" }, new { C = "DstVehicles", K = "Vehicles" },
+                                new { C = "DstIssues", K = "Issues" } } },
+                            new { G = "Menu_DstDirectories", I = "bx-book", Items = new[] {
+                                new { C = "DstCustomers", K = "Customers" }, new { C = "DstProducts", K = "Products" },
+                                new { C = "DstTerritories", K = "Territories" }, new { C = "DstTeams", K = "Teams" },
+                                new { C = "DstDictionaries", K = "Dictionaries" } } },
+                            new { G = "Menu_DstSystem", I = "bx-cog", Items = new[] {
+                                new { C = "DstSettings", K = "Settings" }, new { C = "DstImport", K = "Import" },
+                                new { C = "DstAudit", K = "Audit" } } },
                         };
+                        var dstTop = new[] { new { C = "DstDashboard", K = "Dashboard" }, new { C = "DstReports", K = "Reports" }, new { C = "DstKpi", K = "Kpi" } };
                         <li class="navigation-header"><span>@tahsinERP.Areas.Distribution.Services.DstLocalization.T("Module_Title")</span></li>
                         <li class="nav-item">
                             <a href="#"><i class="bx bx-cart-alt"></i><span class="menu-title">@tahsinERP.Areas.Distribution.Services.DstLocalization.T("Module_Title")</span></a>
                             <ul class="menu-content">
                                 <li><a href="~/Distribution/DstHome"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">@tahsinERP.Areas.Distribution.Services.DstLocalization.T("Home")</span></a></li>
-                                @foreach (var m in dstMenu)
+                                @foreach (var m in dstTop)
                                 {
                                     if (RoleHelper.IsViewPermitted(User.Identity.Name, m.C, "Index"))
                                     {
                                         <li><a href="~/Distribution/@m.C"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">@tahsinERP.Areas.Distribution.Services.DstLocalization.T(m.K)</span></a></li>
                                     }
+                                }
+                                @foreach (var g in dstGroups)
+                                {
+                                    var visible = g.Items.Where(m => RoleHelper.IsViewPermitted(User.Identity.Name, m.C, "Index")).ToList();
+                                    if (visible.Count == 0) { continue; }
+                                    <li>
+                                        <a href="#"><i class="bx @g.I"></i><span class="menu-item">@L.T(g.G)</span></a>
+                                        <ul class="menu-content">
+                                            @foreach (var m in visible)
+                                            {
+                                                <li><a href="~/Distribution/@m.C"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">@tahsinERP.Areas.Distribution.Services.DstLocalization.T(m.K)</span></a></li>
+                                            }
+                                        </ul>
+                                    </li>
                                 }
                             </ul>
                         </li>
@@ -549,8 +607,6 @@
                     <!-- ═══════════════════════════════════════════════════════════════ -->
                     @if (RoleHelper.IsViewPermitted(User.Identity.Name, "BOM") ||
                          RoleHelper.IsViewPermitted(User.Identity.Name, "Norm") ||
-                         RoleHelper.IsViewPermitted(User.Identity.Name, "Product") ||
-                         RoleHelper.IsViewPermitted(User.Identity.Name, "ProductCategory") ||
                          RoleHelper.IsViewPermitted(User.Identity.Name, "Tannarx"))
                     {
                         <li class="navigation-header"><span>@L.T("Menu_Engineering")</span></li>
@@ -570,22 +626,6 @@
                                             @if (RoleHelper.IsViewPermitted(User.Identity.Name, "Norm"))
                                             {
                                                 <li><a href="~/Norm"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">@L.T("Menu_Norms")</span></a></li>
-                                            }
-                                        </ul>
-                                    </li>
-                                }
-                                @if (RoleHelper.IsViewPermitted(User.Identity.Name, "Product") || RoleHelper.IsViewPermitted(User.Identity.Name, "ProductCategory"))
-                                {
-                                    <li>
-                                        <a href="#"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">@L.T("Menu_Products")</span></a>
-                                        <ul class="menu-content">
-                                            <li><a href="@Url.Action("Index", "Product", new { area = "" })"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">@L.T("Menu_AllProducts")</span></a></li>
-                                            <li><a href="@Url.Action("Index", "Product", new { area = "", typeFilter = "MAXSULOT" })"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">@L.T("Menu_FinishedGoods")</span></a></li>
-                                            <li><a href="@Url.Action("Index", "Product", new { area = "", typeFilter = "YARIM_TAYYOR" })"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">@L.T("Menu_SemiFinished")</span></a></li>
-                                            <li><a href="@Url.Action("Index", "Product", new { area = "", typeFilter = "XOMASHYO" })"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">@L.T("Menu_RawMaterials")</span></a></li>
-                                            @if (RoleHelper.IsViewPermitted(User.Identity.Name, "ProductCategory"))
-                                            {
-                                                <li><a href="@Url.Action("Index", "ProductCategory", new { area = "" })"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">@L.T("Menu_ProductTypes")</span></a></li>
                                             }
                                         </ul>
                                     </li>

@@ -1154,3 +1154,11 @@ html[data-theme="dark"] body .apexcharts-tooltip.apexcharts-theme-light { backgr
 html[data-theme="dark"] body .apexcharts-tooltip.apexcharts-theme-light .apexcharts-tooltip-title { background: var(--dk-raised); border-color: var(--dk-line); }
 html[data-theme="dark"] body .apexcharts-xaxistooltip,
 html[data-theme="dark"] body .apexcharts-yaxistooltip { background: var(--dk-surface); border-color: var(--dk-line); color: var(--dk-text-hi); }
+
+/* Yuqori panel o'ng tomoni (til, to'liq ekran, mavzu, foydalanuvchi) — bitta chiziqda, vertikal markazda.
+   Til/mavzu dropdown havolalari padding'i kichik bo'lgani uchun ikonalar yuqoriroq turardi. */
+.header-navbar .navbar-container ul.nav.navbar-nav.float-right { display: flex; align-items: center; }
+.header-navbar .navbar-container ul.nav.navbar-nav.float-right > li.nav-item > a.nav-link {
+    display: flex; align-items: center; padding-top: .75rem; padding-bottom: .75rem;
+}
+.header-navbar .navbar-container ul.nav.navbar-nav.float-right > li.nav-item > a.nav-link > i { line-height: 1; }

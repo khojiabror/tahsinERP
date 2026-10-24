@@ -14253,4 +14253,37 @@
   <data name="Core_DevPanelUnavailable" xml:space="preserve">
     <value>Не удалось связаться с панелью управления — вход разработчика не проверен. Повторите позже.</value>
   </data>
+  <data name="Menu_MasterData" xml:space="preserve">
+    <value>Основные данные</value>
+  </data>
+  <data name="Menu_ItemCatalog" xml:space="preserve">
+    <value>Номенклатура</value>
+  </data>
+  <data name="Menu_AllItems" xml:space="preserve">
+    <value>Все позиции</value>
+  </data>
+  <data name="Menu_ItemCategories" xml:space="preserve">
+    <value>Категории</value>
+  </data>
+  <data name="Menu_UnitsShort" xml:space="preserve">
+    <value>Единицы измерения</value>
+  </data>
+  <data name="Menu_DstSales" xml:space="preserve">
+    <value>Продажи</value>
+  </data>
+  <data name="Menu_DstStock" xml:space="preserve">
+    <value>Склад</value>
+  </data>
+  <data name="Menu_DstMoney" xml:space="preserve">
+    <value>Оплаты и долги</value>
+  </data>
+  <data name="Menu_DstField" xml:space="preserve">
+    <value>Поле и доставка</value>
+  </data>
+  <data name="Menu_DstDirectories" xml:space="preserve">
+    <value>Справочники</value>
+  </data>
+  <data name="Menu_DstSystem" xml:space="preserve">
+    <value>Настройка</value>
+  </data>
 </root>
