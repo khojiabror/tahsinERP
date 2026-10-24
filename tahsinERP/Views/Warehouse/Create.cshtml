@@ -58,11 +58,6 @@
                                                 @Html.ValidationMessageFor(model => model.Description, "", new { @class = "text-danger" })
                                             </div>
                                             
-                                            <div class="form-group">
-                                                <label for="ShopID">@L.T("Wh_Shop") <span class="text-danger">*</span></label>
-                                                @Html.DropDownListFor(model => model.ShopID, ViewBag.ShopList as SelectList, L.T("Wh_SelectDashed"), new { @class = "form-control select2"})
-                                                @Html.ValidationMessageFor(model => model.ShopID, "", new { @class = "text-danger" })
-                                            </div>
                                             
                                             <div class="form-group">
                                                 <label for="WarehouseType">@L.T("Wh_WarehouseType")</label>
@@ -70,6 +65,15 @@
                                                 @Html.ValidationMessageFor(model => model.WarehouseType, "", new { @class = "text-danger" })
                                                 <small class="text-muted">@L.T("Wh_WarehouseTypeHint")</small>
                                             </div>
+                                            @if (ViewBag.ShowShop == true)
+                                            {
+                                                <div class="form-group" id="shopGroup">
+                                                    <label for="ShopID">@L.T("Wh_ProductionShop")</label>
+                                                    @Html.DropDownListFor(model => model.ShopID, ViewBag.ShopList as SelectList, L.T("Wh_SelectDashed"), new { @class = "form-control select2" })
+                                                    @Html.ValidationMessageFor(model => model.ShopID, "", new { @class = "text-danger" })
+                                                    <small class="text-muted">@L.T("Wh_ProductionShopHint")</small>
+                                                </div>
+                                            }
                                             <div class="form-group">
                                                 <label for="MRP">@L.T("Wh_MrpResponsible")</label>
                                                 @Html.DropDownListFor(model => model.MRP, ViewBag.MRPUsers as SelectList, L.T("Wh_SelectDashed"), new { @class = "form-control select2" })
@@ -96,12 +100,24 @@
         </div>
     }
     
+}
+
+@* jQuery layout oxirida yuklanadi — skript shu section orqali undan keyin *@
+@section scripts {
     <script>
         $(document).ready(function () {
             $('.select2').select2({
                 placeholder: "@L.Js("Select")",
                 allowClear: true
             });
+            // Sex faqat ishlab chiqarish omboriga tegishli
+            function toggleShop() {
+                var isProd = $('#WarehouseType').val() === 'PRODUCTION';
+                $('#shopGroup').toggle(isProd);
+                if (!isProd) $('#ShopID').val('').trigger('change');
+            }
+            $('#WarehouseType').on('change', toggleShop);
+            toggleShop();
         });
     </script>
 }

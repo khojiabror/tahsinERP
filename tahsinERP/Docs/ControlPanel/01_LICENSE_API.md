@@ -80,6 +80,34 @@ Javoblar:
   panel kalitni ≤ `offline_grace_days` kunga chiqaradi va pull'da yangilaydi; ERP ularni `LICENSE_STATE` ga yozadi va uzoq aloqa
   bo'lmasa (`required` — 3 kun, `optional` — grace kun) admin'ga banner ko'rsatadi. 304 javobida yo'q — oxirgi qiymat qoladi. 08_STAGE4.md 4.
 
+## 2a. ERP dasturchisi kirishi (dev-login)
+
+Panelda (Admin → **ERP dasturchilar**, faqat Owner) ochilgan super-foydalanuvchi o'z login/paroli bilan panelga ulangan
+har qanday firma va demo ERP'ga kiradi. ERP o'z bazasida bunday foydalanuvchini topmasa (yoki u `USERS.IsPanelDeveloper = 1`
+nusxa bo'lsa) parolni panelga yuboradi:
+
+```
+POST /api/license/{installation_id}/dev-login
+X-Tahsin-Timestamp / X-Tahsin-Nonce / X-Tahsin-Signature     // 2-bo'limdagidek
+Content-Type: application/json
+{ "login": "dev.ali", "password": "..." }
+```
+
+```
+string_to_sign = "POST" + "\n" + "/api/license/{INSTALLATION_ID}/dev-login" + "\n" + timestamp + "\n" + nonce + "\n" + lowercase(hex(SHA256(body)))
+```
+
+| Kod | Tana | ERP nima qiladi |
+|---|---|---|
+| 200 | `{ "login": "dev.ali", "full_name": "Ali Valiyev" }` | `USERS` da nusxa (IsPanelDeveloper = 1, DEVELOPER roli) yaratadi/yangilaydi va kiritadi |
+| 401 | `{ "error": "invalid_credentials" }` | "Noto'g'ri parol" / "foydalanuvchi yo'q" |
+| 401 | `"bad_signature"` / `"clock_skew"` / `"replay"` | "Panelga ulanib bo'lmadi" |
+| 423 | `{ "error": "locked" }` | 5 xato urinishdan keyin 15 daqiqa blok |
+
+- Firmaning o'z foydalanuvchisi (IsPanelDeveloper = 0) hech qachon panelga so'ralmaydi — bir xil nom bo'lsa firma ustun.
+- Parol ERP bazasida saqlanmaydi; panelda dasturchi o'chirilsa — keyingi kirish rad etiladi. Kutish 10 s.
+- Panel: `ErpDevelopers` jadvali, audit `erpdev.*`. ERP: `Services/LicenseSync/PanelDeveloperLogin.cs`, migratsiya 031.
+
 ## 3. ERP tomoni
 
 | Narsa | Qayerda |

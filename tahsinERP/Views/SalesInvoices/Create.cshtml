@@ -118,6 +118,13 @@
                                                         @Html.ValidationMessageFor(m => m.CurrencyID, "", new { @class = "text-danger" })
                                                     </div>
                                                 </div>
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label for="WarehouseID">@L.T("Crm_InvWarehouse") *</label>
+                                                        @Html.DropDownListFor(m => m.WarehouseID, ViewBag.SalesWarehouses as List<SelectListItem>, new { @class = "form-control", id = "WarehouseID", required = "required" })
+                                                        <small class="text-muted">@L.T("Crm_InvWarehouseHint")</small>
+                                                    </div>
+                                                </div>
                                             </div>
 
                                             <hr />
@@ -220,13 +227,15 @@
     var formConfig = new
     {
         formId = "invoiceCreateForm",
+        invoiceId = 0,
         urls = new
         {
             contracts = Url.Action("GetContractsByCustomer", "SalesInvoices"),
             orders = Url.Action("GetOrdersByContract", "SalesInvoices"),
             price = Url.Action("GetContractPriceForProduct", "SalesInvoices"),
             currency = Url.Action("GetContractCurrency", "SalesInvoices"),
-            orderProducts = Url.Action("GetOrderProductsForInvoice", "SalesInvoices")
+            orderProducts = Url.Action("GetOrderProductsForInvoice", "SalesInvoices"),
+            warehouseProducts = Url.Action("GetWarehouseProducts", "SalesInvoices")
         },
         resetCurrency = true,
         stockHints = true,

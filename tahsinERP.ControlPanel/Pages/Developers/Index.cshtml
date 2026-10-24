@@ -1,0 +1,19 @@
+@page
+@model tahsinERP.ControlPanel.Pages.Developers.IndexModel
+@{ ViewData["Title"] = L.T("Pnl_NavDevelopers"); }
+<h1>@L.T("Pnl_NavDevelopers")</h1>
+<div class="actions"><a class="btn" href="/Developers/Create">+ @L.T("Pnl_Dev_Add")</a></div>
+<p class="hint">@L.T("Pnl_Dev_Hint")</p>
+<table>
+    <tr><th>@L.T("Pnl_Dev_Login")</th><th>@L.T("Pnl_FullName")</th><th>@L.T("Status")</th><th>@L.T("Pnl_LastLoginUtc")</th><th>@L.T("Pnl_Dev_LastTenant")</th><th></th></tr>
+    @foreach (var d in Model.Rows)
+    {
+        <tr>
+            <td><code>@d.Login</code></td><td>@d.FullName</td>
+            <td>@(d.IsActive ? (d.LockedUntilUtc > DateTime.UtcNow ? L.T("Pnl_Locked") : L.T("Pnl_ActiveLower")) : L.T("Pnl_DisabledLower"))</td>
+            <td>@d.LastLoginUtc?.ToString("dd.MM.yyyy HH:mm")</td>
+            <td>@d.LastTenant</td>
+            <td><a href="/Developers/Edit/@d.Id">@L.T("Pnl_Manage")</a></td>
+        </tr>
+    }
+</table>

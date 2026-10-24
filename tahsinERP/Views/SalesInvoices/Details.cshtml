@@ -82,6 +82,10 @@
                                                                 <a href="@Url.Action("Details", "SContract", new { id = contract.ID })">@contract.ContractNo</a>
                                                             </span><br />
                                                         }
+                                                        @if (ViewBag.WarehouseName != null)
+                                                        {
+                                                            <span><b>@L.T("Crm_InvWarehouse")</b>: @ViewBag.WarehouseName</span><br />
+                                                        }
                                                     </div>
                                                     <div class="col-md-6">
                                                         <span><b>@L.T("Crm_TotalAmount")</b>: @Model.TotalAmount.ToString("N2") @tahsinERP.Services.Crm.SalesLookups.CurrencyCode(Model.CurrencyID)</span><br />

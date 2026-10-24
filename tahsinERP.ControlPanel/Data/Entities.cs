@@ -26,6 +26,26 @@ public class StaffUser
     public string SecurityStamp { get; set; } = Guid.NewGuid().ToString("N");
 }
 
+/// <summary>
+/// ERP super-foydalanuvchi (dasturchi): o'z login/paroli bilan panelga ulangan HAR QANDAY firma va demo ERP'ga
+/// Developer roli bilan kiradi. ERP paroli tekshirishni panelga yuboradi (License API, dev-login); panelga kira olmaydi.
+/// </summary>
+public class ErpDeveloper
+{
+    public int Id { get; set; }
+    /// <summary>ERP'dagi foydalanuvchi nomi (USERS.Uname, 30 belgigacha). Firma o'z foydalanuvchisida shu nom bo'lsa — o'sha ustun.</summary>
+    public string Login { get; set; } = "";
+    public string FullName { get; set; } = "";
+    public string PasswordHash { get; set; } = "";
+    public bool IsActive { get; set; } = true;
+    public int FailedLogins { get; set; }
+    public DateTime? LockedUntilUtc { get; set; }
+    public DateTime? LastLoginUtc { get; set; }
+    /// <summary>Oxirgi kirilgan firma (slug).</summary>
+    public string? LastTenant { get; set; }
+    public DateTime CreatedAtUtc { get; set; }
+}
+
 public static class PlanCodes
 {
     public const string Start = "START";

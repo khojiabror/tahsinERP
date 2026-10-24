@@ -3765,4 +3765,49 @@ Siz so'ramagan bo'lsangiz — bu xatga e'tibor bermang, parolingiz o'zgarmaydi.<
   <data name="Pnl_Bak_LastAt" xml:space="preserve">
     <value>oxirgisi {0} UTC</value>
   </data>
+  <data name="Pnl_Val_FieldRequired" xml:space="preserve">
+    <value>Maydon majburiy</value>
+  </data>
+  <data name="Pnl_Val_DevLoginFormat" xml:space="preserve">
+    <value>Login 3–30 belgi: lotin harflari, raqam, nuqta, chiziqcha</value>
+  </data>
+  <data name="Pnl_Dev_Add" xml:space="preserve">
+    <value>Dasturchi qo'shish</value>
+  </data>
+  <data name="Pnl_Dev_New" xml:space="preserve">
+    <value>Yangi ERP dasturchi</value>
+  </data>
+  <data name="Pnl_Dev_Title" xml:space="preserve">
+    <value>ERP dasturchi: {0}</value>
+  </data>
+  <data name="Pnl_Dev_Login" xml:space="preserve">
+    <value>Login</value>
+  </data>
+  <data name="Pnl_Dev_LoginHint" xml:space="preserve">
+    <value>ERP kirish oynasida shu login yoziladi. Firmadagi foydalanuvchi nomlari bilan to'qnashmasin (masalan dev.ali).</value>
+  </data>
+  <data name="Pnl_Dev_Password" xml:space="preserve">
+    <value>Parol</value>
+  </data>
+  <data name="Pnl_Dev_NewPassword" xml:space="preserve">
+    <value>Yangi parol</value>
+  </data>
+  <data name="Pnl_Dev_LastTenant" xml:space="preserve">
+    <value>Oxirgi firma</value>
+  </data>
+  <data name="Pnl_Dev_LoginTaken" xml:space="preserve">
+    <value>Bu login band</value>
+  </data>
+  <data name="Pnl_Dev_Added" xml:space="preserve">
+    <value>Dasturchi qo'shildi: {0}. Endi u istalgan firma va demo ERP'ga shu login/parol bilan kira oladi.</value>
+  </data>
+  <data name="Pnl_Dev_Hint" xml:space="preserve">
+    <value>ERP super-foydalanuvchilari: panelga ulangan har qanday firma va demo ERP'ga o'z login/paroli bilan Developer roli (to'liq huquq) bilan kiradi. Parol panelda tekshiriladi; firmada shu nomli foydalanuvchi bo'lsa — o'sha ustun. Panelga kira olmaydi.</value>
+  </data>
+  <data name="Pnl_Dev_EditHint" xml:space="preserve">
+    <value>O'chirilgan (faol emas) dasturchi hech qaysi ERP'ga kira olmaydi — tekshiruv har kirishda panelda.</value>
+  </data>
+  <data name="Pnl_NavDevelopers" xml:space="preserve">
+    <value>ERP dasturchilar</value>
+  </data>
 </root>

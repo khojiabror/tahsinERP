@@ -273,18 +273,17 @@ namespace tahsinERP.Controllers.SRM
                     .AsQueryable();
 
                 var productionWH = WarehouseFlowService.GetProductionWarehouse(db);
-                var salesWH = WarehouseFlowService.GetSalesWarehouse(db);
 
+                // Savdo omborlari bir nechta bo'lishi mumkin — qabul qiluvchi turi bo'yicha
                 var isProductionToSales = productionWH != null
-                    && salesWH != null
                     && warehouseId == productionWH.ID
                     && receiverWarehouseId.HasValue
-                    && receiverWarehouseId.Value == salesWH.ID;
+                    && WarehouseRoles.GetType(db, receiverWarehouseId.Value) == WarehouseRoles.Sales;
 
                 Dictionary<int, decimal> approvedRemaining = null;
                 if (isProductionToSales)
                 {
-                    approvedRemaining = await GetApprovedRemainingForTransferAsync(db, productionWH.ID, salesWH.ID, null);
+                    approvedRemaining = await GetApprovedRemainingForTransferAsync(db, productionWH.ID, null);
                 }
 
                 var products = await productsQuery
@@ -366,13 +365,11 @@ namespace tahsinERP.Controllers.SRM
                             }
 
                             var productionWH = WarehouseFlowService.GetProductionWarehouse(db);
-                            var salesWH = WarehouseFlowService.GetSalesWarehouse(db);
 
                             var isProductionToSales = productionWH != null
-                                && salesWH != null
                                 && model.SenderWHID == productionWH.ID
                                 && model.ReceiverWhID.HasValue
-                                && model.ReceiverWhID.Value == salesWH.ID;
+                                && WarehouseRoles.GetType(db, model.ReceiverWhID.Value) == WarehouseRoles.Sales;
 
                             if (isProductionToSales)
                             {
@@ -383,7 +380,7 @@ namespace tahsinERP.Controllers.SRM
                                     .Select(g => new { ProductID = g.Key, Qty = g.Sum(x => x.Amount), PNo = g.First().ProductPNo })
                                     .ToList();
                                 var remainingByProduct = await GetApprovedRemainingForTransferAsync(
-                                    db, productionWH.ID, salesWH.ID, requested.Select(r => r.ProductID).ToList());
+                                    db, productionWH.ID, requested.Select(r => r.ProductID).ToList());
 
                                 foreach (var r in requested)
                                 {
@@ -497,11 +494,13 @@ namespace tahsinERP.Controllers.SRM
         /// bo'lsa — barcha mahsulotlar. (Avval GetAvailableProducts va Create'da bir xil kodning ikki nusxasi edi.)
         /// </summary>
         private static async Task<Dictionary<int, decimal>> GetApprovedRemainingForTransferAsync(
-            DBTHSNEntities db, int productionWhId, int salesWhId, List<int> productIds)
+            DBTHSNEntities db, int productionWhId, List<int> productIds)
         {
+            // Sifat nazorati umumiy — o'tkazilgan miqdor barcha savdo omborlari bo'yicha
+            var salesWhIds = WarehouseRoles.GetWarehouseIds(db, WarehouseRoles.Sales);
             var approvedQuery = db.QUALITY_INSPECTION.Where(q => q.StatusCode == "APPROVED" && q.IsDeleted == false);
             var transferredQuery = db.EXPENSE_PRODUCTS.Where(ep => ep.EXPENS.SenderWHID == productionWhId
-                && ep.EXPENS.ReceiverWhID == salesWhId
+                && ep.EXPENS.ReceiverWhID.HasValue && salesWhIds.Contains(ep.EXPENS.ReceiverWhID.Value)
                 && ep.EXPENS.IsDeleted == false);
             if (productIds != null)
             {

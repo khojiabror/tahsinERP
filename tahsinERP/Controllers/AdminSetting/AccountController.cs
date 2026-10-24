@@ -68,38 +68,60 @@ namespace tahsinERP.Controllers
                 var loginName = user.UName.Trim();
                 var getUser = db.USERS.FirstOrDefault(u => u.Uname == loginName && u.IsDeleted != true);
 
-                if (getUser == null)
+                if (Services.LicenseSync.PanelDeveloperLogin.ShouldAskPanel(getUser))
                 {
-                    LoginThrottle.Default.RegisterFailure(user.UName, clientIp);
-                    ModelState.AddModelError("", L.T("Core_UserNotExists"));
-                    return View();
+                    // Firmada bunday foydalanuvchi yo'q (yoki u panel dasturchisining nusxasi) — boshqaruv panelidagi
+                    // ERP dasturchisimi? Parol panelda tekshiriladi, muvaffaqiyatli bo'lsa DEVELOPER roli bilan nusxa.
+                    var dev = Services.LicenseSync.PanelDeveloperLogin.Verify(loginName, user.Password);
+                    if (dev.Status == Services.LicenseSync.LicensePanelClient.DevLoginStatus.Ok)
+                    {
+                        getUser = Services.LicenseSync.PanelDeveloperLogin.EnsureLocalUser(db, getUser, loginName, dev.FullName);
+                    }
+                    else
+                    {
+                        bool nowLocked = LoginThrottle.Default.RegisterFailure(user.UName, clientIp);
+                        if (dev.Status == Services.LicenseSync.LicensePanelClient.DevLoginStatus.Locked)
+                            ModelState.AddModelError("", L.T("Core_TooManyAttempts", 15));
+                        else if (getUser == null)
+                            ModelState.AddModelError("", L.T("Core_UserNotExists"));
+                        else if (dev.Status == Services.LicenseSync.LicensePanelClient.DevLoginStatus.Unavailable)
+                            ModelState.AddModelError("", L.T("Core_DevPanelUnavailable"));
+                        else
+                            ModelState.AddModelError("", nowLocked
+                                ? L.T("Core_WrongPasswordLocked", LoginThrottle.Default.MaxFailures, LoginThrottle.Default.LockoutDuration.TotalMinutes.ToString("0"))
+                                : L.T("Core_WrongPassword"));
+                        return View();
+                    }
+                    LoginThrottle.Default.Reset(user.UName, clientIp);
                 }
-
-                if (!getUser.IsActive)
+                else
                 {
-                    ModelState.AddModelError("", L.T("Core_UserInactive"));
-                    return View();
-                }
+                    if (!getUser.IsActive)
+                    {
+                        ModelState.AddModelError("", L.T("Core_UserInactive"));
+                        return View();
+                    }
 
-                // Tekshirish password
-                bool needsRehash;
-                if (!PasswordHasher.Verify(user.Password, getUser.Password, getUser.HashCode, out needsRehash))
-                {
-                    bool nowLocked = LoginThrottle.Default.RegisterFailure(user.UName, clientIp);
-                    ModelState.AddModelError("", nowLocked
-                        ? L.T("Core_WrongPasswordLocked", LoginThrottle.Default.MaxFailures, LoginThrottle.Default.LockoutDuration.TotalMinutes.ToString("0"))
-                        : L.T("Core_WrongPassword"));
-                    return View();
-                }
-                LoginThrottle.Default.Reset(user.UName, clientIp);
+                    // Tekshirish password
+                    bool needsRehash;
+                    if (!PasswordHasher.Verify(user.Password, getUser.Password, getUser.HashCode, out needsRehash))
+                    {
+                        bool nowLocked = LoginThrottle.Default.RegisterFailure(user.UName, clientIp);
+                        ModelState.AddModelError("", nowLocked
+                            ? L.T("Core_WrongPasswordLocked", LoginThrottle.Default.MaxFailures, LoginThrottle.Default.LockoutDuration.TotalMinutes.ToString("0"))
+                            : L.T("Core_WrongPassword"));
+                        return View();
+                    }
+                    LoginThrottle.Default.Reset(user.UName, clientIp);
 
-                // Eski (SHA1+MD5) hash — yangi PBKDF2 formatiga o'tkazamiz
-                if (needsRehash)
-                {
-                    string newSalt;
-                    getUser.Password = PasswordHasher.Hash(user.Password, out newSalt);
-                    getUser.HashCode = newSalt;
-                    db.SaveChanges();
+                    // Eski (SHA1+MD5) hash — yangi PBKDF2 formatiga o'tkazamiz
+                    if (needsRehash)
+                    {
+                        string newSalt;
+                        getUser.Password = PasswordHasher.Hash(user.Password, out newSalt);
+                        getUser.HashCode = newSalt;
+                        db.SaveChanges();
+                    }
                 }
 
                 // ==== Litsenziya tekshiruvi ====

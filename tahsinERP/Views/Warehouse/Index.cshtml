@@ -75,7 +75,6 @@
                                                     <th>@L.T("Wh_WarehouseName")</th>
                                                     <th>@L.T("Description")</th>
                                                     <th>@L.T("Type")</th>
-                                                    <th>@L.T("Wh_Shop")</th>
                                                     <th>@L.T("Wh_MrpResponsible")</th>
                                                     @if (dlocEnabled)
                                                     {
@@ -98,7 +97,6 @@
                                                         </td>
                                                         <td>@(string.IsNullOrEmpty(item.Description) ? "-" : item.Description)</td>
                                                         <td>@tahsinERP.Services.Stock.WarehouseRoles.DisplayName(item.WarehouseType)</td>
-                                                        <td>@(item.SHOP?.ShopName ?? "-")</td>
                                                         <td>@(item.USER?.FullName ?? "-")</td>
                                                         @if (dlocEnabled)
                                                         {

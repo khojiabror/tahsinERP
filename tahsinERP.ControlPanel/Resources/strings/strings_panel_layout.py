@@ -21,6 +21,7 @@ STRINGS = {
     "Pnl_NavNotifications": ("Eslatmalar", "Напоминания"),
     "Pnl_NavAdmin": ("Boshqaruv", "Администрирование"),
     "Pnl_NavStaff": ("Xodimlar", "Сотрудники"),
+    "Pnl_NavDevelopers": ("ERP dasturchilar", "ERP-разработчики"),
     "Pnl_NavAudit": ("Audit", "Аудит"),
     "Pnl_RoleSales": ("Sotuv", "Продажи"),
     "Pnl_RoleSupport": ("Qo'llab-quvvatlash", "Поддержка"),

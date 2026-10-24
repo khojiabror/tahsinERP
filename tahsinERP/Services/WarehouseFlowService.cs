@@ -344,7 +344,7 @@ namespace tahsinERP.Services
         public static EXPENS TransferProductionToSales(DBTHSNEntities db,
             System.Collections.Generic.IList<ProductionTransferLine> lines, string userEmail,
             string transferDocNo = null, byte[] transferDocument = null, string description = null,
-            DateTime? transferDate = null)
+            DateTime? transferDate = null, int? salesWarehouseId = null)
         {
             if (lines == null || !lines.Any(l => l.Quantity > 0))
                 throw new ArgumentException(L.T("Wh_Err_TransferLinesEmpty"), nameof(lines));
@@ -355,7 +355,10 @@ namespace tahsinERP.Services
                 StockLedger.InTransaction(db, () =>
                 {
                     var productionWH = GetProductionWarehouse(db);
-                    var salesWH = GetSalesWarehouse(db);
+                    // Savdo omborlari bir nechta bo'lishi mumkin — tanlangani (turi SALES bo'lsa), aks holda standarti
+                    var salesWH = salesWarehouseId.HasValue && WarehouseRoles.GetType(db, salesWarehouseId.Value) == WarehouseRoles.Sales
+                        ? db.WAREHOUSES.Find(salesWarehouseId.Value)
+                        : GetSalesWarehouse(db);
                     if (productionWH == null)
                         throw new Exception(L.T("Wh_Err_ProductionWhNotFound"));
                     if (salesWH == null)
@@ -479,11 +482,12 @@ namespace tahsinERP.Services
         }
 
         /// <summary>
-        /// Decrease stock in Sales Warehouse when sales invoice is confirmed
+        /// Decrease stock in Sales Warehouse when sales invoice is confirmed (<paramref name="warehouseId"/> — invoys ombori)
         /// Prevents negative stock
         /// </summary>
         public static void DecreaseSalesStock(int productID, decimal quantity,
-            DBTHSNEntities db, string userEmail, long invoiceID, string invoiceNo, DateTime? invoiceDate = null, int? contractID = null)
+            DBTHSNEntities db, string userEmail, long invoiceID, string invoiceNo, DateTime? invoiceDate = null, int? contractID = null,
+            int? warehouseId = null)
         {
             try
             {
@@ -493,7 +497,8 @@ namespace tahsinERP.Services
                     if (product == null)
                         throw new Exception(L.T("Wh_Err_ProductNotFoundId", productID));
 
-                    var salesWH = GetSalesWarehouse(db);
+                    // Invoysda tanlangan savdo ombori (bir nechta bo'lishi mumkin); berilmasa — standart savdo ombori
+                    var salesWH = warehouseId.HasValue ? db.WAREHOUSES.Find(warehouseId.Value) : GetSalesWarehouse(db);
                     if (salesWH == null)
                         throw new Exception(L.T("Wh_Err_SalesWhNotFound"));
 

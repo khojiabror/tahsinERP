@@ -268,6 +268,31 @@
             }
         });
 
+        // Ombor almashsa — mahsulot ro'yxati (va "Mavjud") shu ombor qoldig'idan qayta yuklanadi; tanlovlar saqlanadi
+        var whEl = document.getElementById('WarehouseID');
+        if (whEl && urls.warehouseProducts) {
+            whEl.addEventListener('change', function () {
+                if (!this.value) return;
+                var url = urls.warehouseProducts + '?warehouseId=' + encodeURIComponent(this.value) +
+                    (cfg.invoiceId ? '&invoiceId=' + cfg.invoiceId : '');
+                fetch(url)
+                    .then(function (r) { return r.json(); })
+                    .then(function (items) {
+                        var placeholder = window.erpT ? erpT('Js_Select') : 'Tanlang';
+                        document.querySelectorAll('select.product-select').forEach(function (sel) {
+                            var current = sel.value;
+                            sel.innerHTML = '';
+                            sel.appendChild(new Option(placeholder, ''));
+                            (items || []).forEach(function (it) { sel.appendChild(new Option(it.Text, it.Value)); });
+                            sel.value = current;
+                            if (sel.value !== current) sel.value = '';   // bu omborda yo'q mahsulot — tanlov tozalanadi
+                        });
+                        buildStockMap();
+                        document.querySelectorAll('#invoiceLinesTable tbody tr').forEach(function (r) { updateStockHint(r); });
+                    });
+            });
+        }
+
         addListeners();
         calculateTotals();
         buildStockMap();

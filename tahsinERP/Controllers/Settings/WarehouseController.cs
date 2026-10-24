@@ -46,44 +46,51 @@ namespace tahsinERP.Controllers.Settings
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                ViewBag.ShopList = new SelectList(
-                    await db.SHOPS.Where(s => s.IsDeleted == false).ToListAsync(), 
-                    "ID", "ShopName");
-
-                ViewBag.MRPUsers = new SelectList(
-                    await db.USERS
-                        .Where(u => u.IsDeleted != true && u.IsActive == true)
-                        .ToListAsync(),
-                    "ID", "FullName");
-                ViewBag.WarehouseTypes = WarehouseRoles.SelectList(null);
+                await FillFormListsAsync(db, null);
 
                 return View();
             }
         }
 
-        /// <summary>SRM-B12: tur faqat ruxsat etilgan qiymatlardan; PRODUCTION/SALES bittadan ortiq bo'lsa ogohlantiradi.</summary>
-        private static void ValidateWarehouseType(DBTHSNEntities db, Warehouse warehouse, ModelStateDictionary modelState)
+        /// <summary>
+        /// SRM-B12: tur faqat ruxsat etilgan qiymatlardan. Savdo omborlari soni cheklanmaydi (katta biznes — ko'p ombor).
+        /// Sex faqat ishlab chiqarish omboriga tegishli (MES omborni sex bo'yicha topadi) — boshqa turda tozalanadi.
+        /// </summary>
+        private static void ValidateWarehouseType(Warehouse warehouse, ModelStateDictionary modelState)
         {
             if (string.IsNullOrWhiteSpace(warehouse.WarehouseType))
             {
                 warehouse.WarehouseType = null;
-                return;
+            }
+            else
+            {
+                warehouse.WarehouseType = warehouse.WarehouseType.Trim().ToUpperInvariant();
+                if (warehouse.WarehouseType != WarehouseRoles.Supply
+                    && warehouse.WarehouseType != WarehouseRoles.Production
+                    && warehouse.WarehouseType != WarehouseRoles.Sales)
+                {
+                    modelState.AddModelError("WarehouseType", L.T("Wh_InvalidWarehouseType"));
+                }
             }
 
-            warehouse.WarehouseType = warehouse.WarehouseType.Trim().ToUpperInvariant();
-            if (warehouse.WarehouseType != WarehouseRoles.Supply
-                && warehouse.WarehouseType != WarehouseRoles.Production
-                && warehouse.WarehouseType != WarehouseRoles.Sales)
-            {
-                modelState.AddModelError("WarehouseType", L.T("Wh_InvalidWarehouseType"));
-                return;
-            }
+            if (warehouse.WarehouseType != WarehouseRoles.Production)
+                warehouse.ShopID = null;
+        }
 
-            if (warehouse.WarehouseType == WarehouseRoles.Sales
-                && db.WAREHOUSES.Any(w => w.ID != warehouse.ID && w.IsDeleted != true && w.WarehouseType == WarehouseRoles.Sales))
-            {
-                modelState.AddModelError("WarehouseType", L.T("Wh_SalesWarehouseExists"));
-            }
+        /// <summary>Formadagi ro'yxatlar. Sex maydoni faqat MES paketda bo'lsa ko'rsatiladi.</summary>
+        private async Task FillFormListsAsync(DBTHSNEntities db, Warehouse warehouse)
+        {
+            ViewBag.ShopList = new SelectList(
+                await db.SHOPS.Where(s => s.IsDeleted == false).ToListAsync(),
+                "ID", "ShopName", warehouse?.ShopID);
+
+            ViewBag.MRPUsers = new SelectList(
+                await db.USERS
+                    .Where(u => u.IsDeleted != true && u.IsActive == true)
+                    .ToListAsync(),
+                "ID", "FullName", warehouse?.MRP);
+            ViewBag.WarehouseTypes = WarehouseRoles.SelectList(warehouse?.WarehouseType);
+            ViewBag.ShowShop = tahsinERP.Services.Editions.EditionGate.IsControllerAllowed("ProductProduction");
         }
 
         // POST so'rovi: Warehouse/yaratish
@@ -95,7 +102,7 @@ namespace tahsinERP.Controllers.Settings
             {
                 try
                 {
-                    ValidateWarehouseType(db, warehouse, ModelState);
+                    ValidateWarehouseType(warehouse, ModelState);
                     if (ModelState.IsValid)
                     {
                         warehouse.IsDeleted = false;
@@ -115,17 +122,7 @@ namespace tahsinERP.Controllers.Settings
                     ModelState.AddModelError("", L.T("Wh_ErrorWithMessage", ex.Message));
                 }
 
-                // Reload ViewBag on xatolik
-                ViewBag.ShopList = new SelectList(
-                    await db.SHOPS.Where(s => s.IsDeleted == false).ToListAsync(), 
-                    "ID", "ShopName", warehouse.ShopID);
-                
-                ViewBag.MRPUsers = new SelectList(
-                    await db.USERS
-                        .Where(u => u.IsDeleted != true && u.IsActive == true)
-                        .ToListAsync(), 
-                    "ID", "FullName", warehouse.MRP);
-                ViewBag.WarehouseTypes = WarehouseRoles.SelectList(warehouse.WarehouseType);
+                await FillFormListsAsync(db, warehouse);
 
                 return View(warehouse);
             }
@@ -175,16 +172,7 @@ namespace tahsinERP.Controllers.Settings
                     return HttpNotFound();
                 }
 
-                ViewBag.ShopList = new SelectList(
-                    await db.SHOPS.Where(s => s.IsDeleted == false).ToListAsync(), 
-                    "ID", "ShopName", warehouse.ShopID);
-
-                ViewBag.MRPUsers = new SelectList(
-                    await db.USERS
-                        .Where(u => u.IsDeleted != true && u.IsActive == true)
-                        .ToListAsync(),
-                    "ID", "FullName", warehouse.MRP);
-                ViewBag.WarehouseTypes = WarehouseRoles.SelectList(warehouse.WarehouseType);
+                await FillFormListsAsync(db, warehouse);
 
                 return View(warehouse);
             }
@@ -197,7 +185,7 @@ namespace tahsinERP.Controllers.Settings
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
-                ValidateWarehouseType(db, warehouse, ModelState);
+                ValidateWarehouseType(warehouse, ModelState);
                 if (ModelState.IsValid)
                 {
                     try
@@ -219,17 +207,7 @@ namespace tahsinERP.Controllers.Settings
                     }
                 }
 
-                // Reload ViewBag on xatolik
-                ViewBag.ShopList = new SelectList(
-                    await db.SHOPS.Where(s => s.IsDeleted == false).ToListAsync(), 
-                    "ID", "ShopName", warehouse.ShopID);
-
-                ViewBag.MRPUsers = new SelectList(
-                    await db.USERS
-                        .Where(u => u.IsDeleted != true && u.IsActive == true)
-                        .ToListAsync(),
-                    "ID", "FullName", warehouse.MRP);
-                ViewBag.WarehouseTypes = WarehouseRoles.SelectList(warehouse.WarehouseType);
+                await FillFormListsAsync(db, warehouse);
 
                 return View(warehouse);
             }

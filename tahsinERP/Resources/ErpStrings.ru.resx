@@ -14235,4 +14235,22 @@
   <data name="Core_Login2_CompanyLogoLabel" xml:space="preserve">
     <value>Логотип компании (PNG/JPG, квадратный — например 256×256, до 200 КБ). Отображается в левом меню и на странице входа; если не загружен — логотип tahsinERP.</value>
   </data>
+  <data name="Wh_ProductionShop" xml:space="preserve">
+    <value>Производственный цех</value>
+  </data>
+  <data name="Wh_ProductionShopHint" xml:space="preserve">
+    <value>Только для производственного склада: MES проводит выпуск на склад этого цеха. Необязательно.</value>
+  </data>
+  <data name="Crm_InvWarehouse" xml:space="preserve">
+    <value>Склад</value>
+  </data>
+  <data name="Crm_InvWarehouseHint" xml:space="preserve">
+    <value>Товар списывается с этого склада продаж</value>
+  </data>
+  <data name="Crm_InvWarehouseNotSales" xml:space="preserve">
+    <value>Выбранный склад не является складом продаж</value>
+  </data>
+  <data name="Core_DevPanelUnavailable" xml:space="preserve">
+    <value>Не удалось связаться с панелью управления — вход разработчика не проверен. Повторите позже.</value>
+  </data>
 </root>

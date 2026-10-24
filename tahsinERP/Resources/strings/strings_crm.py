@@ -281,6 +281,9 @@ STRINGS = {
     "Crm_InvProductNotInContract": ("Mahsulot {0} tanlangan shartnomada mavjud emas.", "Продукт {0} отсутствует в выбранном договоре."),
     "Crm_InvProductNotInOrder": ("Mahsulot {0} tanlangan buyurtmada mavjud emas.", "Продукт {0} отсутствует в выбранном заказе."),
     "Crm_InvSalesWarehouseNotFound": ("Sotuv ombori topilmadi", "Склад продаж не найден"),
+    "Crm_InvWarehouse": ("Ombor", "Склад"),
+    "Crm_InvWarehouseHint": ("Mahsulot shu savdo omboridan chiqim qilinadi", "Товар списывается с этого склада продаж"),
+    "Crm_InvWarehouseNotSales": ("Tanlangan ombor savdo ombori emas", "Выбранный склад не является складом продаж"),
     "Crm_InvInsufficientStock": ("Mahsulot {0} uchun sotuv omborida yetarli qoldiq yo'q. Mavjud: {1}, Talab: {2}", "Недостаточно остатка на складе продаж для продукта {0}. В наличии: {1}, требуется: {2}"),
     "Crm_InvNoTaken": ("Invoys raqami band (boshqa foydalanuvchi bir vaqtda saqladi). Qayta urinib ko'ring.", "Номер инвойса занят (другой пользователь сохранил одновременно). Повторите попытку."),
 

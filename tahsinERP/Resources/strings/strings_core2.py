@@ -25,6 +25,7 @@ STRINGS = {
     "Core_EnterPassword": ("Kalit so'zni kiriting", "Введите пароль"),
     "Core_TooManyAttempts": ("Juda ko'p noto'g'ri urinish. {0} daqiqadan keyin qayta urinib ko'ring.", "Слишком много неудачных попыток. Повторите через {0} мин."),
     "Core_UserNotExists": ("Bunday foydalanuvchi mavjud emas!", "Такой пользователь не существует!"),
+    "Core_DevPanelUnavailable": ("Boshqaruv paneliga ulanib bo'lmadi — dasturchi kirishi tekshirilmadi. Keyinroq urinib ko'ring.", "Не удалось связаться с панелью управления — вход разработчика не проверен. Повторите позже."),
     "Core_UserInactive": ("Foydalanuvchi faol emas. Administrator bilan bog'laning.", "Пользователь неактивен. Обратитесь к администратору."),
     "Core_WrongPasswordLocked": ("Kalit so'zi noto'g'ri! {0} marta xato — {1} daqiqaga bloklandi.", "Неверный пароль! Ошибок: {0} — вход заблокирован на {1} мин."),
     "Core_WrongPassword": ("Kalit so'zi noto'g'ri!", "Неверный пароль!"),

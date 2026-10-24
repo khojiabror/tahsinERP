@@ -210,6 +210,7 @@ services.AddRazorPages(o =>
     o.Conventions.AuthorizeFolder(ZonePageRouteConvention.PortalFolder, Policies.Portal);
     o.Conventions.AllowAnonymousToFolder(ZonePageRouteConvention.PublicFolder); // tahsinerp.uz — mahsulot sahifasi
     o.Conventions.AuthorizeFolder("/Staff", Policies.Owner);
+    o.Conventions.AuthorizeFolder("/Developers", Policies.Owner);
     o.Conventions.AuthorizeFolder("/Servers", Policies.Owner);
     o.Conventions.AuthorizeFolder("/Updates", Policies.Owner);
     o.Conventions.AuthorizeFolder("/Audit", Policies.Owner);

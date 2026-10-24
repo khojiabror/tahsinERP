@@ -196,11 +196,13 @@ namespace tahsinERP.Services.Crm
             lines = NormalizeLines(lines);
 
             DateTime? dueDate;
+            int warehouseId;
             using (var db = new DBTHSNEntities())
             {
                 ValidateLines(db, posted.ContractID, posted.OrderID, lines);
                 ApplyContractPrices(db, posted.ContractID, lines);
-                EnsureStockAvailable(db, lines, null);
+                warehouseId = ResolveWarehouseId(db, posted.WarehouseID);
+                EnsureStockAvailable(db, warehouseId, lines, null);
                 dueDate = posted.DueDate ?? DefaultDueDate(db, posted.ContractID, posted.InvoiceDate);
             }
 
@@ -214,6 +216,7 @@ namespace tahsinERP.Services.Crm
                 // CRM-M02: CurrencyID hech qachon yozilmasdi — posting "CurrencyID ?? 1" bilan yiqilardi (bazada 1-valyuta yo'q).
                 // Kesh tranzaksiyadan OLDIN o'qiladi (scope ichida yangi ulanish DTC'ga olib keladi).
                 CurrencyID = posted.CurrencyID ?? CurrencyRateService.BaseCurrencyId(),
+                WarehouseID = warehouseId,
                 DueDate = dueDate,
                 // Biznes qoidasi: invoys yaratilganda darhol APPROVED
                 StatusCode = SalesInvoiceStatus.Approved,
@@ -236,7 +239,7 @@ namespace tahsinERP.Services.Crm
                 db.SALES_INVOICES.Add(invoice);
                 SaveChanges(db);
 
-                IssueStock(db, invoice, lines, userName);
+                IssueStock(db, invoice, warehouseId, lines, userName);
                 FinancePostingService.PostSalesInvoice((int)invoice.ID, db, userId);
                 SalesOrderService.RecalculateShipped(db, invoice.OrderID);
 
@@ -256,6 +259,7 @@ namespace tahsinERP.Services.Crm
         {
             lines = NormalizeLines(lines);
             bool linesChanged, stockChanged;
+            int warehouseId;
             var currencyId = posted.CurrencyID ?? CurrencyRateService.BaseCurrencyId();
 
             using (var db = new DBTHSNEntities())
@@ -274,8 +278,12 @@ namespace tahsinERP.Services.Crm
                     posted.DueDate = DefaultDueDate(db, posted.ContractID, posted.InvoiceDate);
 
                 var oldLines = current.SALES_INVOICE_LINES.OrderBy(l => l.LineNo).ToList();
-                stockChanged = !SameQuantities(oldLines, lines);
-                linesChanged = stockChanged || !SameLines(oldLines, lines);
+                // Ombor almashsa — eski ombor chiqimi qaytariladi, yangisidan chiqim qilinadi
+                warehouseId = ResolveWarehouseId(db, posted.WarehouseID);
+                bool warehouseChanged = warehouseId != ResolveWarehouseId(db, current.WarehouseID, strict: false);
+                bool qtyChanged = !SameQuantities(oldLines, lines);
+                stockChanged = warehouseChanged || qtyChanged;
+                linesChanged = qtyChanged || !SameLines(oldLines, lines);
 
                 if (linesChanged)
                 {
@@ -287,9 +295,11 @@ namespace tahsinERP.Services.Crm
 
                 if (stockChanged)
                 {
-                    // O'z chiqimi qaytariladi — shu miqdor mavjud qoldiqqa qo'shib tekshiriladi
-                    var credit = oldLines.GroupBy(l => l.ProductID).ToDictionary(g => g.Key, g => g.Sum(x => x.Qty));
-                    EnsureStockAvailable(db, lines, credit);
+                    // O'z chiqimi qaytariladi — shu miqdor mavjud qoldiqqa qo'shib tekshiriladi (faqat o'sha omborda)
+                    var credit = warehouseChanged
+                        ? null
+                        : oldLines.GroupBy(l => l.ProductID).ToDictionary(g => g.Key, g => g.Sum(x => x.Qty));
+                    EnsureStockAvailable(db, warehouseId, lines, credit);
                 }
             }
 
@@ -314,6 +324,7 @@ namespace tahsinERP.Services.Crm
                 var previousOrderId = invoice.OrderID;
                 invoice.OrderID = posted.OrderID;
                 invoice.CurrencyID = currencyId;
+                invoice.WarehouseID = warehouseId;
                 // Bo'sh qoldirilsa shartnoma muddatidan, u ham bo'lmasa saqlangani qoladi
                 invoice.DueDate = posted.DueDate ?? invoice.DueDate;
                 invoice.UpdatedDT = DateTime.Now;
@@ -331,7 +342,7 @@ namespace tahsinERP.Services.Crm
                 SaveChanges(db);
 
                 if (stockChanged)
-                    IssueStock(db, invoice, lines, userName);
+                    IssueStock(db, invoice, warehouseId, lines, userName);
 
                 // Finance posting upsert
                 FinancePostingService.PostSalesInvoice((int)invoice.ID, db, userId);
@@ -394,9 +405,9 @@ namespace tahsinERP.Services.Crm
         /// <paramref name="ownQty"/> — tahrirlanayotgan invoysning o'z qatorlari: ular qoldiq 0 bo'lsa ham
         /// ro'yxatda qoladi va mavjud miqdorga qo'shib ko'rsatiladi (CRM-B03).
         /// </summary>
-        public static List<SelectListItem> SalesWarehouseProductItems(DBTHSNEntities db, IDictionary<int, decimal> ownQty = null)
+        public static List<SelectListItem> SalesWarehouseProductItems(DBTHSNEntities db, int? warehouseId, IDictionary<int, decimal> ownQty = null)
         {
-            var stock = GetSalesStockMap(db);
+            var stock = GetSalesStockMap(db, warehouseId);
             if (stock == null)
                 return new List<SelectListItem>();
 
@@ -432,16 +443,55 @@ namespace tahsinERP.Services.Crm
                 .ToList();
         }
 
-        /// <summary>Sotuv ombori qoldig'i (ProductID → miqdor); ombor topilmasa null.</summary>
-        public static Dictionary<int, decimal> GetSalesStockMap(DBTHSNEntities db)
+        /// <summary>Savdo ombori qoldig'i (ProductID → miqdor); ombor topilmasa null. warehouseId bo'sh — standart savdo ombori.</summary>
+        public static Dictionary<int, decimal> GetSalesStockMap(DBTHSNEntities db, int? warehouseId)
         {
-            var salesWH = WarehouseFlowService.GetSalesWarehouse(db);
-            if (salesWH == null)
+            var whId = ResolveWarehouseId(db, warehouseId, strict: false);
+            if (whId == 0)
                 return null;
 
-            return InventoryValuationService.GetPositiveStocks(db, salesWH.ID)
+            return InventoryValuationService.GetPositiveStocks(db, whId)
                 .GroupBy(r => r.ProductID)
                 .ToDictionary(g => g.Key, g => g.Sum(r => r.Qty));
+        }
+
+        /// <summary>Faol savdo omborlari (invoys formasidagi ro'yxat; birinchisi — standart).</summary>
+        public static List<SelectListItem> SalesWarehouseItems(DBTHSNEntities db, int? selectedId)
+        {
+            var ids = Stock.WarehouseRoles.GetWarehouseIds(db, Stock.WarehouseRoles.Sales);
+            var selected = ResolveWarehouseId(db, selectedId, strict: false);
+            var names = db.WAREHOUSES.AsNoTracking()
+                .Where(w => ids.Contains(w.ID))
+                .Select(w => new { w.ID, w.WHName })
+                .ToList()
+                .ToDictionary(w => w.ID, w => w.WHName);
+            return ids.Select(id => new SelectListItem
+            {
+                Value = id.ToString(),
+                Text = names.ContainsKey(id) ? names[id] : id.ToString(),
+                Selected = id == selected
+            }).ToList();
+        }
+
+        /// <summary>
+        /// Invoys ombori: berilgan ID faol savdo ombori bo'lsa — o'zi, bo'sh bo'lsa — standart (eng kichik ID) savdo ombori.
+        /// strict: savdo ombori bo'lmagan ID yoki umuman savdo ombori yo'qligi — xato; aks holda standart yoki 0.
+        /// </summary>
+        public static int ResolveWarehouseId(DBTHSNEntities db, int? requested, bool strict = true)
+        {
+            var ids = Stock.WarehouseRoles.GetWarehouseIds(db, Stock.WarehouseRoles.Sales);
+            if (requested.HasValue && requested.Value > 0)
+            {
+                if (ids.Contains(requested.Value))
+                    return requested.Value;
+                if (strict)
+                    throw new SalesInvoiceException(L.T("Crm_InvWarehouseNotSales"));
+            }
+            if (ids.Count > 0)
+                return ids[0];
+            if (strict)
+                throw new SalesInvoiceException(L.T("Crm_InvSalesWarehouseNotFound"));
+            return 0;
         }
 
         // ───────────────────────────── Ichki yordamchilar ─────────────────────────────
@@ -533,9 +583,9 @@ namespace tahsinERP.Services.Crm
             }
         }
 
-        private static void EnsureStockAvailable(DBTHSNEntities db, IList<SalesInvoiceLineViewModel> lines, IDictionary<int, decimal> credit)
+        private static void EnsureStockAvailable(DBTHSNEntities db, int warehouseId, IList<SalesInvoiceLineViewModel> lines, IDictionary<int, decimal> credit)
         {
-            var stock = GetSalesStockMap(db);
+            var stock = GetSalesStockMap(db, warehouseId);
             if (stock == null)
                 throw new SalesInvoiceException(L.T("Crm_InvSalesWarehouseNotFound"));
 
@@ -569,8 +619,8 @@ namespace tahsinERP.Services.Crm
             return id => map.ContainsKey(id) && !string.IsNullOrEmpty(map[id]) ? map[id] : id.ToString();
         }
 
-        /// <summary>Har qator uchun sotuv omboridan chiqim. Xato yutilmaydi — butun tranzaksiya bekor bo'ladi.</summary>
-        private static void IssueStock(DBTHSNEntities db, SALES_INVOICES invoice, IEnumerable<SalesInvoiceLineViewModel> lines, string userName)
+        /// <summary>Har qator uchun invoys omboridan chiqim. Xato yutilmaydi — butun tranzaksiya bekor bo'ladi.</summary>
+        private static void IssueStock(DBTHSNEntities db, SALES_INVOICES invoice, int warehouseId, IEnumerable<SalesInvoiceLineViewModel> lines, string userName)
         {
             foreach (var line in lines)
             {
@@ -582,7 +632,8 @@ namespace tahsinERP.Services.Crm
                     invoice.ID,
                     invoice.InvoiceNo ?? invoice.ID.ToString(),
                     invoice.InvoiceDate,
-                    invoice.ContractID);
+                    invoice.ContractID,
+                    warehouseId);
             }
         }
 

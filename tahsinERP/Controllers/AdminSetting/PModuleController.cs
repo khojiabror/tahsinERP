@@ -64,13 +64,6 @@ namespace tahsinERP.Controllers
             };
         }
 
-        /// <summary>Yangi modul faqat Admin/Developer'ga ochiq — rol kodi bo'yicha (ROLES.SystemCode), nomi emas.</summary>
-        private static bool IsAdminRole(string systemCode)
-        {
-            return systemCode == tahsinERP.Services.Common.SystemCodes.Role.Admin
-                || systemCode == tahsinERP.Services.Common.SystemCodes.Role.Developer;
-        }
-
         // Olish so'rovi: PModule
         public async Task<ActionResult> Index()
         {
@@ -209,7 +202,7 @@ namespace tahsinERP.Controllers
                     var permissionsToAdd = new List<PERMISSION>();
                     foreach (var module in newModules)
                     {
-                        permissionsToAdd.AddRange(roles.Select(role => RoleHelper.NewPermission(module.ID, role.ID, IsAdminRole(role.SystemCode))));
+                        permissionsToAdd.AddRange(roles.Select(role => RoleHelper.NewModulePermission(module.ID, role.ID, role.SystemCode)));
                     }
 
                     if (permissionsToAdd.Any())
@@ -312,7 +305,7 @@ namespace tahsinERP.Controllers
                                 .Select(r => new { r.ID, r.SystemCode })
                                 .ToListAsync();
 
-                            var permissionsToAdd = roles.Select(role => RoleHelper.NewPermission(permissions.ID, role.ID, IsAdminRole(role.SystemCode))).ToList();
+                            var permissionsToAdd = roles.Select(role => RoleHelper.NewModulePermission(permissions.ID, role.ID, role.SystemCode)).ToList();
 
                             if (permissionsToAdd.Any())
                             {

@@ -41,6 +41,7 @@ public static class LicenseApi
             .AllowAnonymous(); // xodim cookie'si emas — register: reg_token, pull: HMAC imzo
         group.MapPost("/register", RegisterAsync);
         group.MapGet("/{installationId}", PullAsync);
+        group.MapPost("/{installationId}/dev-login", DevLoginAsync);
     }
 
     private static IResult Error(int status, string error, string? message = null) =>
@@ -139,45 +140,11 @@ public static class LicenseApi
     internal static async Task<IResult> PullAsync(string installationId, HttpRequest http, ControlDbContext db, ISecretProtector protector,
         LicenseIssuer issuer, Clock clock, IOptions<PanelOptions> options, ILoggerFactory loggers, CancellationToken ct)
     {
-        string? inst = ErpLicense.NormalizeInstallationId(installationId);
-        if (inst is null)
-            return Error(404, "unknown_installation");
-
-        string? ts = http.Headers[HeaderTimestamp].FirstOrDefault();
-        string? nonce = http.Headers[HeaderNonce].FirstOrDefault();
-        string? signature = http.Headers[HeaderSignature].FirstOrDefault();
         string? etag = ParseIfNoneMatch(http.Headers.IfNoneMatch.FirstOrDefault());
-
-        if (!long.TryParse(ts, NumberStyles.None, CultureInfo.InvariantCulture, out long tsValue)
-            || Math.Abs(clock.Now.ToUnixTimeSeconds() - tsValue) > MaxClockSkewSeconds)
-            return Error(401, "clock_skew");
-        if (nonce is null || nonce.Length != 32 || !nonce.All(Uri.IsHexDigit) || string.IsNullOrEmpty(signature))
-            return Error(401, "bad_signature");
-
-        var tenant = await db.Tenants.FirstOrDefaultAsync(t => t.InstallationId == inst, ct);
-        if (tenant is null || tenant.Status == TenantStatus.Archived || tenant.ApiSecretProtected is null)
-            return Error(404, "unknown_installation");
-
-        byte[] secret = Convert.FromBase64String(protector.Unprotect(tenant.ApiSecretProtected, SecretPurposes.TenantApiSecret));
-        // Imzo yo'l AYNAN so'rovdagidek (ERP katta harfli GUID yuboradi).
-        string path = http.PathBase.Add(http.Path).Value ?? "";
-        string stringToSign = "GET\n" + path + "\n" + ts + "\n" + nonce + "\n" + (etag ?? "");
-        byte[] expected = HMACSHA256.HashData(secret, Encoding.UTF8.GetBytes(stringToSign));
-        byte[] given;
-        try { given = Convert.FromBase64String(signature); }
-        catch (FormatException) { return Error(401, "bad_signature"); }
-        if (!CryptographicOperations.FixedTimeEquals(expected, given))
-            return Error(401, "bad_signature");
-
-        // Nonce faqat imzo to'g'ri bo'lganda band qilinadi (begona odam nonce'larni "yeb" qo'ya olmaydi).
-        // Noyob indeks (InstallationId, Nonce) — bir nechta panel instansida ham bitta nonce bir marta.
+        var (tenant, inst, failure) = await VerifySignedAsync(installationId, http, "GET", etag ?? "", db, protector, clock, ct);
+        if (failure is not null)
+            return failure;
         DateTime now = clock.UtcNow;
-        db.ApiNonces.Add(new ApiNonce { InstallationId = inst, Nonce = nonce.ToLowerInvariant(), ExpiresUtc = now.Add(NonceWindow) });
-        try { await db.SaveChangesAsync(ct); }
-        catch (DbUpdateException ex) when (ex.InnerException is Microsoft.Data.SqlClient.SqlException { Number: 2601 or 2627 })
-        {
-            return Error(401, "replay");
-        }
 
         if (tenant.LastSeenUtc is null || now - tenant.LastSeenUtc > TimeSpan.FromMinutes(5))
         {
@@ -215,6 +182,125 @@ public static class LicenseApi
             ["poll_hours"] = PollHours(options.Value),
             ["online_check"] = OnlineCheck(tenant),
             ["offline_grace_days"] = LicenseIssuer.OfflineGraceDays(tenant, options.Value),
+        });
+    }
+
+    /// <summary>
+    /// Imzoli so'rov (kontrakt 2-bo'lim): soat, nonce, HMAC-SHA256(tenant_secret, "METHOD\nPATH\nTS\nNONCE\nEXTRA").
+    /// EXTRA — GET pull'da If-None-Match ETag'i, POST'da tananing SHA-256 hex'i (kichik harf).
+    /// Nonce faqat imzo to'g'ri bo'lganda band qilinadi (begona odam nonce'larni "yeb" qo'ya olmaydi);
+    /// noyob indeks (InstallationId, Nonce) — bir nechta panel instansida ham bitta nonce bir marta.
+    /// </summary>
+    private static async Task<(Tenant Tenant, string Installation, IResult? Error)> VerifySignedAsync(string installationId,
+        HttpRequest http, string method, string extra, ControlDbContext db, ISecretProtector protector, Clock clock, CancellationToken ct)
+    {
+        string? inst = ErpLicense.NormalizeInstallationId(installationId);
+        if (inst is null)
+            return (null!, "", Error(404, "unknown_installation"));
+
+        string? ts = http.Headers[HeaderTimestamp].FirstOrDefault();
+        string? nonce = http.Headers[HeaderNonce].FirstOrDefault();
+        string? signature = http.Headers[HeaderSignature].FirstOrDefault();
+
+        if (!long.TryParse(ts, NumberStyles.None, CultureInfo.InvariantCulture, out long tsValue)
+            || Math.Abs(clock.Now.ToUnixTimeSeconds() - tsValue) > MaxClockSkewSeconds)
+            return (null!, inst, Error(401, "clock_skew"));
+        if (nonce is null || nonce.Length != 32 || !nonce.All(Uri.IsHexDigit) || string.IsNullOrEmpty(signature))
+            return (null!, inst, Error(401, "bad_signature"));
+
+        var tenant = await db.Tenants.FirstOrDefaultAsync(t => t.InstallationId == inst, ct);
+        if (tenant is null || tenant.Status == TenantStatus.Archived || tenant.ApiSecretProtected is null)
+            return (null!, inst, Error(404, "unknown_installation"));
+
+        byte[] secret = Convert.FromBase64String(protector.Unprotect(tenant.ApiSecretProtected, SecretPurposes.TenantApiSecret));
+        // Imzo yo'l AYNAN so'rovdagidek (ERP katta harfli GUID yuboradi).
+        string path = http.PathBase.Add(http.Path).Value ?? "";
+        string stringToSign = method + "\n" + path + "\n" + ts + "\n" + nonce + "\n" + extra;
+        byte[] expected = HMACSHA256.HashData(secret, Encoding.UTF8.GetBytes(stringToSign));
+        byte[] given;
+        try { given = Convert.FromBase64String(signature); }
+        catch (FormatException) { return (null!, inst, Error(401, "bad_signature")); }
+        if (!CryptographicOperations.FixedTimeEquals(expected, given))
+            return (null!, inst, Error(401, "bad_signature"));
+
+        db.ApiNonces.Add(new ApiNonce { InstallationId = inst, Nonce = nonce.ToLowerInvariant(), ExpiresUtc = clock.UtcNow.Add(NonceWindow) });
+        try { await db.SaveChangesAsync(ct); }
+        catch (DbUpdateException ex) when (ex.InnerException is Microsoft.Data.SqlClient.SqlException { Number: 2601 or 2627 })
+        {
+            return (null!, inst, Error(401, "replay"));
+        }
+        return (tenant, inst, null);
+    }
+
+    public sealed class DevLoginRequest
+    {
+        [JsonPropertyName("login")] public string? Login { get; set; }
+        [JsonPropertyName("password")] public string? Password { get; set; }
+    }
+
+    public const int DevMaxFailedAttempts = 5;
+    public static readonly TimeSpan DevLockoutTime = TimeSpan.FromMinutes(15);
+
+    /// <summary>
+    /// ERP super-foydalanuvchi (dasturchi) loginini tekshirish — firma ERP'si o'z bazasida topmagan foydalanuvchini
+    /// shu yerga so'raydi. Javob: 200 {login, full_name}; 401 invalid_credentials; 423 locked.
+    /// </summary>
+    internal static async Task<IResult> DevLoginAsync(string installationId, HttpRequest http, ControlDbContext db, ISecretProtector protector,
+        AuditLogger audit, Clock clock, CancellationToken ct)
+    {
+        // Tana imzoga kiradi — avval baytlar o'qiladi (8 KB dan katta login so'rovi bo'lmaydi)
+        byte[] raw;
+        using (var ms = new MemoryStream())
+        {
+            await http.Body.CopyToAsync(ms, ct);
+            if (ms.Length > 8192) return Error(400, "bad_request");
+            raw = ms.ToArray();
+        }
+        string bodyHash = Convert.ToHexString(SHA256.HashData(raw)).ToLowerInvariant();
+        var (tenant, _, failure) = await VerifySignedAsync(installationId, http, "POST", bodyHash, db, protector, clock, ct);
+        if (failure is not null)
+            return failure;
+
+        DevLoginRequest? body;
+        try { body = JsonSerializer.Deserialize<DevLoginRequest>(raw); }
+        catch (JsonException) { return Error(400, "bad_request"); }
+        string login = (body?.Login ?? "").Trim();
+        if (login.Length == 0 || string.IsNullOrEmpty(body?.Password))
+            return Error(400, "bad_request");
+
+        DateTime now = clock.UtcNow;
+        var dev = await db.ErpDevelopers.FirstOrDefaultAsync(d => d.Login == login, ct);
+        if (dev is null || !dev.IsActive)
+            return Error(401, "invalid_credentials");
+        if (dev.LockedUntilUtc > now)
+            return Error(423, "locked");
+
+        if (!PasswordHasher.Verify(body!.Password!, dev.PasswordHash))
+        {
+            dev.FailedLogins++;
+            if (dev.FailedLogins >= DevMaxFailedAttempts)
+            {
+                dev.LockedUntilUtc = now.Add(DevLockoutTime);
+                dev.FailedLogins = 0;
+                audit.Add("erpdev.lockout", "ErpDeveloper", dev.Id, after: new { tenant.Slug, dev.LockedUntilUtc });
+            }
+            await db.SaveChangesAsync(ct);
+            return Error(401, "invalid_credentials");
+        }
+
+        if (PasswordHasher.NeedsRehash(dev.PasswordHash))
+            dev.PasswordHash = PasswordHasher.Hash(body.Password!);
+        dev.FailedLogins = 0;
+        dev.LockedUntilUtc = null;
+        dev.LastLoginUtc = now;
+        dev.LastTenant = tenant.Slug;
+        audit.Add("erpdev.login", "ErpDeveloper", dev.Id, after: new { tenant.Slug });
+        await db.SaveChangesAsync(ct);
+
+        return Results.Json(new Dictionary<string, object?>
+        {
+            ["login"] = dev.Login,
+            ["full_name"] = dev.FullName,
         });
     }
 

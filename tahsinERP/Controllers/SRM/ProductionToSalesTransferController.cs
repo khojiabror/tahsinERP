@@ -86,7 +86,7 @@ namespace tahsinERP.Controllers.SRM
                 }
 
                 ViewBag.ProductionWH = productionWH;
-                ViewBag.SalesWH = salesWH;
+                ViewBag.SalesWarehouses = SalesWarehouseSelectList(db, salesWH.ID);
                 ViewBag.Products = BuildProductionWarehouseProductSelectList(db);
 
                 var viewModel = new ProductionToSalesTransferViewModel
@@ -190,7 +190,8 @@ namespace tahsinERP.Controllers.SRM
                             string.IsNullOrWhiteSpace(viewModel.TransferDocNo) ? null : viewModel.TransferDocNo.Trim(),
                             documentBytes,
                             viewModel.Description,
-                            viewModel.TransferDate);
+                            viewModel.TransferDate,
+                            viewModel.SalesWHID);
                         var transferDocNo = expense.DocNo;
 
                         LogHelper.LogToDatabase(User.Identity.Name, "ProductionToSalesTransfer", "Create",
@@ -218,8 +219,20 @@ namespace tahsinERP.Controllers.SRM
         private void ReloadViewBag(DBTHSNEntities db, ProductionToSalesTransferViewModel viewModel)
         {
             ViewBag.ProductionWH = WarehouseFlowService.GetProductionWarehouse(db);
-            ViewBag.SalesWH = WarehouseFlowService.GetSalesWarehouse(db);
+            ViewBag.SalesWarehouses = SalesWarehouseSelectList(db, viewModel.SalesWHID);
             ViewBag.Products = BuildProductionWarehouseProductSelectList(db);
+        }
+
+        /// <summary>Qabul qiluvchi savdo omborlari (bir nechta bo'lishi mumkin).</summary>
+        private static SelectList SalesWarehouseSelectList(DBTHSNEntities db, int? selectedId)
+        {
+            var ids = WarehouseRoles.GetWarehouseIds(db, WarehouseRoles.Sales);
+            var items = db.WAREHOUSES.AsNoTracking()
+                .Where(w => ids.Contains(w.ID))
+                .OrderBy(w => w.ID)
+                .Select(w => new { w.ID, w.WHName })
+                .ToList();
+            return new SelectList(items, "ID", "WHName", selectedId);
         }
 
         /// <summary>

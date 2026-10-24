@@ -13,7 +13,7 @@ WHERE NOT EXISTS (SELECT 1 FROM dbo.COMPANIES WHERE ID = 1);
 SET IDENTITY_INSERT dbo.COMPANIES OFF;
 GO
 
--- Ishlab chiqarish sexi va uchta asosiy ombor. Kod omborni WarehouseType bo'yicha topadi (WarehouseRoles):
+-- Ishlab chiqarish sexi va uchta asosiy ombor (sex faqat ishlab chiqarish omboriga bog'lanadi — 029). Kod omborni WarehouseType bo'yicha topadi (WarehouseRoles):
 -- SUPPLY — xarid kirimi, PRODUCTION — ishlab chiqarish, SALES — sotuv invoysi chiqimi, balans ombor bahosi.
 SET IDENTITY_INSERT dbo.SHOPS ON;
 INSERT INTO dbo.SHOPS (ID, CompanyID, ShopName, Description, IsDeleted)
@@ -27,7 +27,7 @@ SELECT v.ID, v.WHName, v.Description, 0, NULL, v.ShopID, NULL
 FROM (VALUES
     (3, N'Xomashyo ombori',         N'Xarid qilingan xomashyo va materiallar birinchi shu omborga kiradi', CAST(NULL AS int)),
     (6, N'Ishlab chiqarish ombori', N'Ishlab chiqarish sexiga tegishli ombor',                               1),
-    (7, N'Savdo ombori',            N'Tayyor mahsulot; sotuv invoysi shu ombordan chiqim qiladi',            1)
+    (7, N'Savdo ombori',            N'Tayyor mahsulot; sotuv invoysi shu ombordan chiqim qiladi',            NULL)
 ) v (ID, WHName, Description, ShopID)
 WHERE NOT EXISTS (SELECT 1 FROM dbo.WAREHOUSES w WHERE w.ID = v.ID);
 SET IDENTITY_INSERT dbo.WAREHOUSES OFF;

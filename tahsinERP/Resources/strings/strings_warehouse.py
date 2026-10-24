@@ -63,6 +63,8 @@ STRINGS.update({
     "Wh_WhDescPlaceholder": ("Ombor haqida qisqacha ma'lumot", "Краткое описание склада"),
     "Wh_SelectDashed": ("---Tanlang---", "---Выберите---"),
     "Wh_Shop": ("Sex", "Цех"),
+    "Wh_ProductionShop": ("Ishlab chiqarish sexi", "Производственный цех"),
+    "Wh_ProductionShopHint": ("Faqat ishlab chiqarish ombori uchun: MES ishlab chiqarishni shu sexning omboriga yozadi. Ixtiyoriy.", "Только для производственного склада: MES проводит выпуск на склад этого цеха. Необязательно."),
     "Wh_ShopColon": ("Sex:", "Цех:"),
     "Wh_WarehouseType": ("Ombor turi", "Тип склада"),
     "Wh_RegularWarehouseOpt": ("--- Oddiy ombor ---", "--- Обычный склад ---"),

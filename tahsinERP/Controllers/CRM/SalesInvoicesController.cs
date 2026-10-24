@@ -173,6 +173,11 @@ namespace tahsinERP.Controllers
 
                 ViewBag.SFCount = db.SALES_SF_HEADERS.Count(sf => sf.InvoiceID == id);
                 ViewBag.TTNKCount = db.SALES_TTNK_INVOICES.Count(t => t.InvoiceID == id);
+                // Eski invoysda ombor yozilmagan — standart savdo ombori
+                var whId = SalesInvoiceService.ResolveWarehouseId(db, invoice.WarehouseID, strict: false);
+                ViewBag.WarehouseName = invoice.WarehouseID.HasValue || whId > 0
+                    ? db.WAREHOUSES.Where(w => w.ID == (invoice.WarehouseID ?? whId)).Select(w => w.WHName).FirstOrDefault()
+                    : null;
 
                 return View(invoice);
             }
@@ -361,6 +366,29 @@ namespace tahsinERP.Controllers
             }
         }
 
+        // AJAX: Tanlangan savdo omboridagi mahsulotlar ("... Mavjud: N"). Tahrirlashda invoysning o'z miqdori
+        // faqat o'sha omborda bo'lsa qo'shiladi (boshqa omborga o'tkazilsa — qaytarilgan chiqim u yerga tushmaydi)
+        [HttpGet]
+        public ActionResult GetWarehouseProducts(int warehouseId, long? invoiceId)
+        {
+            using (var db = new DBTHSNEntities())
+            {
+                IDictionary<int, decimal> ownQty = null;
+                if (invoiceId.HasValue)
+                {
+                    var inv = db.SALES_INVOICES.AsNoTracking()
+                        .Where(i => i.ID == invoiceId.Value)
+                        .Select(i => new { i.WarehouseID })
+                        .FirstOrDefault();
+                    if (inv != null && SalesInvoiceService.ResolveWarehouseId(db, inv.WarehouseID, strict: false) == warehouseId)
+                        ownQty = OwnQuantities(db.SALES_INVOICE_LINES.AsNoTracking().Where(l => l.InvoiceID == invoiceId.Value).ToList());
+                }
+                var items = SalesInvoiceService.SalesWarehouseProductItems(db, warehouseId, ownQty)
+                    .Select(i => new { i.Value, i.Text });
+                return Json(items, JsonRequestBehavior.AllowGet);
+            }
+        }
+
         // AJAX: Shartnoma valyutasi
         [HttpGet]
         public ActionResult GetContractCurrency(int contractId)
@@ -538,7 +566,8 @@ namespace tahsinERP.Controllers
             ViewBag.Contracts = SalesLookups.ContractsFor(db, invoice.CustomerID, invoice.ContractID);
             ViewBag.Orders = SalesLookups.OrdersFor(db, invoice.ContractID, invoice.OrderID);
             ViewBag.Currencies = SalesLookups.Currencies(invoice.CurrencyID ?? CurrencyRateService.BaseCurrencyId());
-            ViewBag.ProductItems = SalesInvoiceService.SalesWarehouseProductItems(db, ownQty);
+            ViewBag.SalesWarehouses = SalesInvoiceService.SalesWarehouseItems(db, invoice.WarehouseID);
+            ViewBag.ProductItems = SalesInvoiceService.SalesWarehouseProductItems(db, invoice.WarehouseID, ownQty);
             ViewBag.SuggestedInvoiceNo = SalesInvoiceService.SuggestNextInvoiceNo(db);
         }
 

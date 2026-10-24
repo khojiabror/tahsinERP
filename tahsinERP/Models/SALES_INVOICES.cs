@@ -41,6 +41,7 @@ namespace tahsinERP.Models
         public System.DateTime CreatedDT { get; set; }
         public Nullable<System.DateTime> UpdatedDT { get; set; }
         public Nullable<int> CurrencyID { get; set; }
+        public Nullable<int> WarehouseID { get; set; }
     
         public virtual CURRENCy CURRENCy { get; set; }
         public virtual CUSTOMER CUSTOMER { get; set; }

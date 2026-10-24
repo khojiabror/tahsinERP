@@ -56,6 +56,8 @@ public static class PnlVal
     public static string SqlInstanceRequired => L.T("Pnl_Val_SqlInstanceRequired");
     public static string EmailMandatory => L.T("Pnl_Val_EmailMandatory");
     public static string FullNameRequired => L.T("Pnl_Val_FullNameRequired");
+    public static string FieldRequired => L.T("Pnl_Val_FieldRequired");
+    public static string DevLoginFormat => L.T("Pnl_Val_DevLoginFormat");
     public static string TempPassword => L.T("Pnl_Val_TempPassword");
     public static string SlugRequired => L.T("Pnl_Val_SlugRequired");
     public static string LegalNameRequired => L.T("Pnl_Val_LegalNameRequired");

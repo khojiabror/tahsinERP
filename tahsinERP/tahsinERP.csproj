@@ -829,6 +829,7 @@
     <Compile Include="Services\LicenseService.cs" />
     <Compile Include="Services\LicenseSync\LicensePanelClient.cs" />
     <Compile Include="Services\LicenseSync\LicenseSyncService.cs" />
+    <Compile Include="Services\LicenseSync\PanelDeveloperLogin.cs" />
     <Compile Include="Filters\LicenseCheckAttribute.cs" />
     <Compile Include="Filters\MustChangePasswordAttribute.cs" />
     <Compile Include="Filters\EditionCheckAttribute.cs" />
@@ -2858,6 +2859,7 @@
     <Content Include="assets\js\jquery.repeater.min.js" />
     <Content Include="assets\js\lazy-pdfmake.js" />
     <Content Include="assets\js\dt-defaults.js" />
+    <Content Include="assets\js\fullscreen-shell.js" />
     <Content Include="assets\js\scripts.js" />
     <Content Include="assets\js\theme.js" />
     <Content Include="Content\fin-dashboard.css" />

@@ -71,6 +71,30 @@ namespace tahsinERP.Services.LicenseSync
             }
         }
 
+        /// <summary>
+        /// Panel ERP dasturchisining login/parolini panelda tekshirish (<see cref="PanelDeveloperLogin"/>).
+        /// Baza joriy (so'rov) potokida o'qiladi — tenant HttpContext'dan; HTTP chaqiruv kontekstsiz potokda (deadlock bo'lmasin).
+        /// Panel ulanmagan (URL yoki tenant_secret yo'q) bo'lsa — Unavailable.
+        /// </summary>
+        public static LicensePanelClient.DevLoginResult VerifyDeveloper(string login, string password, TimeSpan timeout)
+        {
+            if (!IsEnabled)
+                return new LicensePanelClient.DevLoginResult { Status = LicensePanelClient.DevLoginStatus.Unavailable, Error = "panel_disabled" };
+
+            string installationId, secret;
+            using (var db = new DBTHSNEntities())
+            {
+                installationId = LicenseService.GetOrCreateInstallationId(db);
+                secret = LicenseService.ReadSyncState(db, LicenseService.STATE_PANEL_SECRET);
+            }
+            if (!LicensePanelClient.IsValidSecret(secret))
+                return new LicensePanelClient.DevLoginResult { Status = LicensePanelClient.DevLoginStatus.Unavailable, Error = "not_registered" };
+
+            var client = Client;
+            using (var cts = new CancellationTokenSource(timeout))
+                return Task.Run(() => client.DevLoginAsync(installationId, secret, login, password, cts.Token)).GetAwaiter().GetResult();
+        }
+
         public class SyncResult
         {
             public bool Ok { get; set; }

@@ -1561,6 +1561,7 @@
           <Property Name="CreatedDT" Type="datetime2" Precision="0" Nullable="false" />
           <Property Name="UpdatedDT" Type="datetime2" Precision="0" />
           <Property Name="CurrencyID" Type="int" />
+          <Property Name="WarehouseID" Type="int" />
         </EntityType>
         <EntityType Name="SALES_SF_HEADERS">
           <Key>
@@ -1935,6 +1936,7 @@
           <Property Name="HashCode" Type="varchar" MaxLength="30" />
           <Property Name="CompanyID" Type="int" />
           <Property Name="MustChangePassword" Type="bit" Nullable="false" />
+          <Property Name="IsPanelDeveloper" Type="bit" Nullable="false" />
         </EntityType>
         <EntityType Name="WAREHOUSE_LOCATIONS">
           <Key>
@@ -8271,6 +8273,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_FACT_MONTHLY' does not h
           <Property Name="CreatedDT" Type="DateTime" Nullable="false" Precision="0" />
           <Property Name="UpdatedDT" Type="DateTime" Precision="0" />
           <Property Name="CurrencyID" Type="Int32" />
+          <Property Name="WarehouseID" Type="Int32" />
           <NavigationProperty Name="CURRENCy" Relationship="Self.FK_SALES_INVOICES_Currency" FromRole="SALES_INVOICES" ToRole="CURRENCIES" />
           <NavigationProperty Name="CUSTOMER" Relationship="Self.FK_SALES_INVOICES_Customer" FromRole="SALES_INVOICES" ToRole="CUSTOMERS" />
           <NavigationProperty Name="F_WAYBILLS" Relationship="Self.FK_F_WAYBILLS_SALES_INVOICES" FromRole="SALES_INVOICES" ToRole="F_WAYBILLS" />
@@ -8715,6 +8718,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_FACT_MONTHLY' does not h
           <Property Name="HashCode" Type="String" MaxLength="30" FixedLength="false" Unicode="false" />
           <Property Name="CompanyID" Type="Int32" />
           <Property Name="MustChangePassword" Type="Boolean" Nullable="false" />
+          <Property Name="IsPanelDeveloper" Type="Boolean" Nullable="false" />
           <NavigationProperty Name="COMPANy" Relationship="Self.FK_USERS_COMPANIES" FromRole="USERS" ToRole="COMPANIES" />
           <NavigationProperty Name="COOKIES_CONFIRMATION" Relationship="Self.FK_COOKIES_CONFIRMATION_USERS" FromRole="USERS" ToRole="COOKIES_CONFIRMATION" />
           <NavigationProperty Name="FIN_ACCOUNTS" Relationship="Self.FK_FIN_ACCOUNTS_CREATEDBY" FromRole="USERS" ToRole="FIN_ACCOUNTS" />
@@ -14839,6 +14843,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_FACT_MONTHLY' does not h
                 <ScalarProperty Name="CreatedDT" ColumnName="CreatedDT" />
                 <ScalarProperty Name="UpdatedDT" ColumnName="UpdatedDT" />
                 <ScalarProperty Name="CurrencyID" ColumnName="CurrencyID" />
+                <ScalarProperty Name="WarehouseID" ColumnName="WarehouseID" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
@@ -15227,6 +15232,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_FACT_MONTHLY' does not h
                 <ScalarProperty Name="HashCode" ColumnName="HashCode" />
                 <ScalarProperty Name="CompanyID" ColumnName="CompanyID" />
                 <ScalarProperty Name="MustChangePassword" ColumnName="MustChangePassword" />
+                <ScalarProperty Name="IsPanelDeveloper" ColumnName="IsPanelDeveloper" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>

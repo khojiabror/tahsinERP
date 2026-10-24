@@ -1,0 +1,16 @@
+@page "{id:int}"
+@model tahsinERP.ControlPanel.Pages.Developers.EditModel
+@{ ViewData["Title"] = L.T("Pnl_Dev_Title", Model.Dev.Login); }
+<h1>@L.T("Pnl_Dev_Title", Model.Dev.Login)</h1>
+<div asp-validation-summary="All"></div>
+<form method="post" action="@Url.Page(null)" asp-antiforgery="true" class="stack card">
+    <div><label asp-for="FullName">@L.T("Pnl_FullName")</label><input asp-for="FullName" type="text" maxlength="50" /></div>
+    <label class="check"><input asp-for="IsActive" /> @L.T("Active")</label>
+    <div><button type="submit">@L.T("Save")</button></div>
+</form>
+<form method="post" asp-page-handler="Password" class="stack card">
+    <div><label asp-for="NewPassword">@L.T("Pnl_Dev_NewPassword")</label><input asp-for="NewPassword" autocomplete="new-password" /></div>
+    <div><button type="submit" class="secondary">@L.T("Pnl_Staff_ResetPasswordUnlock")</button></div>
+</form>
+<p class="hint">@L.T("Pnl_Dev_EditHint")</p>
+<p><a href="/Developers">← @L.T("Pnl_NavDevelopers")</a></p>

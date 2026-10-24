@@ -197,6 +197,80 @@ namespace tahsinERP.Services.LicenseSync
             }
         }
 
+        public enum DevLoginStatus { Ok, Invalid, Locked, Unavailable }
+
+        public class DevLoginResult
+        {
+            public DevLoginStatus Status { get; set; }
+            public string Login { get; set; }
+            public string FullName { get; set; }
+            public string Error { get; set; }
+        }
+
+        /// <summary>
+        /// Panel ERP dasturchisi (super-foydalanuvchi) login/parolini tekshiradi:
+        /// POST /api/license/{id}/dev-login, imzoning ETAG o'rnida — tananing SHA-256 hex'i.
+        /// </summary>
+        public async Task<DevLoginResult> DevLoginAsync(string installationId, string tenantSecret, string login, string password,
+            CancellationToken ct = default(CancellationToken))
+        {
+            string path = "/api/license/" + installationId + "/dev-login";
+            byte[] body = Encoding.UTF8.GetBytes(new JObject { ["login"] = login, ["password"] = password }.ToString(Formatting.None));
+            string bodyHash;
+            using (var sha = SHA256.Create())
+                bodyHash = ToHex(sha.ComputeHash(body));
+            string ts = ((long)(_utcNow() - new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)).TotalSeconds)
+                .ToString(CultureInfo.InvariantCulture);
+            string nonce = NewNonce();
+
+            var content = new ByteArrayContent(body);
+            content.Headers.ContentType = new MediaTypeHeaderValue("application/json") { CharSet = "utf-8" };
+            var request = new HttpRequestMessage(HttpMethod.Post, new Uri(_baseUri, path.TrimStart('/'))) { Content = content };
+            request.Headers.Add(HeaderTimestamp, ts);
+            request.Headers.Add(HeaderNonce, nonce);
+            request.Headers.Add(HeaderSignature, ComputeSignature(tenantSecret, "POST", path, ts, nonce, bodyHash));
+
+            try
+            {
+                using (var response = await _http.SendAsync(request, ct).ConfigureAwait(false))
+                {
+                    var json = await ReadJsonAsync(response).ConfigureAwait(false);
+                    switch ((int)response.StatusCode)
+                    {
+                        case 200:
+                            return new DevLoginResult
+                            {
+                                Status = DevLoginStatus.Ok,
+                                Login = (string)json?["login"],
+                                FullName = (string)json?["full_name"]
+                            };
+                        case 401:
+                            string error = (string)json?["error"];
+                            // Imzo/soat xatosi — foydalanuvchi aybi emas
+                            return error == "invalid_credentials"
+                                ? new DevLoginResult { Status = DevLoginStatus.Invalid }
+                                : new DevLoginResult { Status = DevLoginStatus.Unavailable, Error = error };
+                        case 423:
+                            return new DevLoginResult { Status = DevLoginStatus.Locked };
+                        default:
+                            return new DevLoginResult { Status = DevLoginStatus.Unavailable, Error = (string)json?["error"] ?? ("HTTP " + (int)response.StatusCode) };
+                    }
+                }
+            }
+            catch (Exception ex) when (ex is HttpRequestException || ex is TaskCanceledException)
+            {
+                return new DevLoginResult { Status = DevLoginStatus.Unavailable, Error = "Panelga ulanib bo'lmadi: " + ex.Message };
+            }
+        }
+
+        private static string ToHex(byte[] bytes)
+        {
+            var sb = new StringBuilder(bytes.Length * 2);
+            foreach (byte b in bytes)
+                sb.Append(b.ToString("x2", CultureInfo.InvariantCulture));
+            return sb.ToString();
+        }
+
         #region Imzo (kontrakt 2-bo'lim)
 
         /// <summary>

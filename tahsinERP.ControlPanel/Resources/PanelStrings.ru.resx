@@ -3765,4 +3765,49 @@ tahsinERP портал: код входа {1}. Действует {2} мин.
   <data name="Pnl_Bak_LastAt" xml:space="preserve">
     <value>последняя — {0} UTC</value>
   </data>
+  <data name="Pnl_Val_FieldRequired" xml:space="preserve">
+    <value>Обязательное поле</value>
+  </data>
+  <data name="Pnl_Val_DevLoginFormat" xml:space="preserve">
+    <value>Логин 3–30 символов: латиница, цифры, точка, дефис</value>
+  </data>
+  <data name="Pnl_Dev_Add" xml:space="preserve">
+    <value>Добавить разработчика</value>
+  </data>
+  <data name="Pnl_Dev_New" xml:space="preserve">
+    <value>Новый ERP-разработчик</value>
+  </data>
+  <data name="Pnl_Dev_Title" xml:space="preserve">
+    <value>ERP-разработчик: {0}</value>
+  </data>
+  <data name="Pnl_Dev_Login" xml:space="preserve">
+    <value>Логин</value>
+  </data>
+  <data name="Pnl_Dev_LoginHint" xml:space="preserve">
+    <value>Этот логин вводится на странице входа ERP. Не должен совпадать с пользователями фирм (например dev.ali).</value>
+  </data>
+  <data name="Pnl_Dev_Password" xml:space="preserve">
+    <value>Пароль</value>
+  </data>
+  <data name="Pnl_Dev_NewPassword" xml:space="preserve">
+    <value>Новый пароль</value>
+  </data>
+  <data name="Pnl_Dev_LastTenant" xml:space="preserve">
+    <value>Последняя фирма</value>
+  </data>
+  <data name="Pnl_Dev_LoginTaken" xml:space="preserve">
+    <value>Этот логин занят</value>
+  </data>
+  <data name="Pnl_Dev_Added" xml:space="preserve">
+    <value>Разработчик добавлен: {0}. Теперь он может входить в ERP любой фирмы и демо с этим логином/паролем.</value>
+  </data>
+  <data name="Pnl_Dev_Hint" xml:space="preserve">
+    <value>Суперпользователи ERP: входят в ERP любой подключённой фирмы и демо со своим логином/паролем с ролью Developer (полные права). Пароль проверяется в панели; если у фирмы есть пользователь с таким именем — приоритет у него. В панель войти не могут.</value>
+  </data>
+  <data name="Pnl_Dev_EditHint" xml:space="preserve">
+    <value>Отключённый разработчик не войдёт ни в одну ERP — проверка при каждом входе в панели.</value>
+  </data>
+  <data name="Pnl_NavDevelopers" xml:space="preserve">
+    <value>ERP-разработчики</value>
+  </data>
 </root>

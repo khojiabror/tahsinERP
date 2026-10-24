@@ -154,7 +154,8 @@ namespace tahsinERP.Services.Common
             public const string Developer = "DEVELOPER";
 
             public static bool IsDeveloper(ROLE r) => r != null && string.Equals(r.SystemCode, Developer, StringComparison.Ordinal);
-            public static bool IsAdminOrDeveloper(ROLE r) => r != null && (r.SystemCode == Admin || r.SystemCode == Developer);
+            public static bool IsAdminOrDeveloper(ROLE r) => r != null && IsAdminOrDeveloperCode(r.SystemCode);
+            public static bool IsAdminOrDeveloperCode(string code) => code == Admin || code == Developer;
         }
 
         /// <summary>UNITS.SystemCode</summary>

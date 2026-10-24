@@ -1,0 +1,15 @@
+@page
+@model tahsinERP.ControlPanel.Pages.Developers.CreateModel
+@{ ViewData["Title"] = L.T("Pnl_Dev_New"); }
+<h1>@L.T("Pnl_Dev_New")</h1>
+<form method="post" class="stack card">
+    <div asp-validation-summary="All"></div>
+    <div class="row">
+        <div><label asp-for="Login">@L.T("Pnl_Dev_Login")</label><input asp-for="Login" type="text" autocomplete="off" /><div class="hint">@L.T("Pnl_Dev_LoginHint")</div></div>
+        <div><label asp-for="FullName">@L.T("Pnl_FullName")</label><input asp-for="FullName" type="text" maxlength="50" /></div>
+    </div>
+    <div class="row">
+        <div><label asp-for="Password">@L.T("Pnl_Dev_Password")</label><input asp-for="Password" autocomplete="new-password" /><div class="hint">@L.T("Pnl_Acc_PasswordPolicyHint")</div></div>
+    </div>
+    <div class="actions"><button type="submit">@L.T("Add")</button><a class="btn secondary" href="/Developers">@L.T("Pnl_CancelShort")</a></div>
+</form>

@@ -71,6 +71,12 @@ namespace tahsinERP.Services.Stock
             return matches[0].ID;
         }
 
+        /// <summary>Berilgan turdagi barcha faol omborlar ID'si (ID tartibida; birinchisi — standart).</summary>
+        public static List<int> GetWarehouseIds(DBTHSNEntities db, string warehouseType)
+        {
+            return Active(db).Where(r => r.WarehouseType == warehouseType).Select(r => r.ID).ToList();
+        }
+
         /// <summary>Faol omborning turi; ombor topilmasa yoki turi berilmagan bo'lsa null.</summary>
         public static string GetType(DBTHSNEntities db, int warehouseId)
         {

@@ -14235,4 +14235,22 @@
   <data name="Core_Login2_CompanyLogoLabel" xml:space="preserve">
     <value>Firma logosi (PNG/JPG, kvadrat — masalan 256×256, 200 KB gacha). Chap menyuda va kirish sahifasida chiqadi; yuklanmasa — tahsinERP logosi.</value>
   </data>
+  <data name="Wh_ProductionShop" xml:space="preserve">
+    <value>Ishlab chiqarish sexi</value>
+  </data>
+  <data name="Wh_ProductionShopHint" xml:space="preserve">
+    <value>Faqat ishlab chiqarish ombori uchun: MES ishlab chiqarishni shu sexning omboriga yozadi. Ixtiyoriy.</value>
+  </data>
+  <data name="Crm_InvWarehouse" xml:space="preserve">
+    <value>Ombor</value>
+  </data>
+  <data name="Crm_InvWarehouseHint" xml:space="preserve">
+    <value>Mahsulot shu savdo omboridan chiqim qilinadi</value>
+  </data>
+  <data name="Crm_InvWarehouseNotSales" xml:space="preserve">
+    <value>Tanlangan ombor savdo ombori emas</value>
+  </data>
+  <data name="Core_DevPanelUnavailable" xml:space="preserve">
+    <value>Boshqaruv paneliga ulanib bo'lmadi — dasturchi kirishi tekshirilmadi. Keyinroq urinib ko'ring.</value>
+  </data>
 </root>

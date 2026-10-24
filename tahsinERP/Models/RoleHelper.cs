@@ -36,6 +36,17 @@ namespace tahsinERP.Models
             };
         }
 
+        /// <summary>Yangi modul uchun rol huquqi: Admin/Developer — to'liq, qolganlar — hech narsa (admin o'zi beradi).</summary>
+        public static PERMISSION NewModulePermission(int moduleId, int roleId, string roleSystemCode)
+        {
+            var p = NewPermission(moduleId, roleId, false);
+            if (tahsinERP.Services.Common.SystemCodes.Role.IsAdminOrDeveloperCode(roleSystemCode))
+            {
+                p.ViewPermit = p.ChangePermit = p.DeletePermit = true;
+            }
+            return p;
+        }
+
         // Snapshot sliding muddati — faol foydalanuvchi uchun kesh yashab turadi
         private static readonly TimeSpan SnapshotSliding = TimeSpan.FromMinutes(20);
         // Ism/lavozim keshi (absolute)
@@ -251,6 +262,7 @@ namespace tahsinERP.Models
         {
             var snap = GetSnapshot(username);
             if (snap == null || !snap.IsActive) return false;
+            if (snap.IsSuper) return true;
 
             PermissionEntry entry;
             if (!snap.Entries.TryGetValue(ActionKey(controller, action, null), out entry) &&
@@ -291,6 +303,7 @@ namespace tahsinERP.Models
         {
             var snap = GetSnapshot(username);
             if (snap == null || !snap.IsActive || key == null) return PermissionEntry.None;
+            if (snap.IsSuper) return PermissionEntry.Full;
 
             PermissionEntry entry;
             return snap.Entries.TryGetValue(key, out entry) ? entry : PermissionEntry.None;
@@ -356,6 +369,9 @@ namespace tahsinERP.Models
                         IsActive = user.IsActive,
                         Roles = user.Roles.Select(r => r.RName).ToArray(),
                         RoleCodes = user.Roles.Where(r => r.SystemCode != null).Select(r => r.SystemCode).ToArray(),
+                        // Admin/Developer — hamma modulga to'liq huquq (PERMISSIONS qatori bo'lmasa ham: yangi modul,
+                        // yangi baza, demo). Paket (Edition) cheklovi baribir IsViewPermitted'da ishlaydi.
+                        IsSuper = user.Roles.Any(r => tahsinERP.Services.Common.SystemCodes.Role.IsAdminOrDeveloperCode(r.SystemCode)),
                         Version = version,
                         Entries = new Dictionary<string, PermissionEntry>(StringComparer.OrdinalIgnoreCase)
                     };
@@ -449,6 +465,7 @@ namespace tahsinERP.Models
         private struct PermissionEntry
         {
             public static readonly PermissionEntry None = new PermissionEntry(false, false);
+            public static readonly PermissionEntry Full = new PermissionEntry(true, true);
 
             public PermissionEntry(bool view, bool change)
             {
@@ -467,6 +484,8 @@ namespace tahsinERP.Models
             public string[] Roles { get; set; }
             /// <summary>ROLES.SystemCode (ADMIN, DEVELOPER) — huquq tekshiruvi faqat shu bo'yicha.</summary>
             public string[] RoleCodes { get; set; }
+            /// <summary>Admin yoki Developer — har qanday ruxsat tekshiruvi o'tadi.</summary>
+            public bool IsSuper { get; set; }
             public long Version { get; set; }
             public Dictionary<string, PermissionEntry> Entries { get; set; }
         }

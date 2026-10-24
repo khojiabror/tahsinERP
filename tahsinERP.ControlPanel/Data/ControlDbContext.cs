@@ -34,6 +34,7 @@ public class ControlDbContext(DbContextOptions<ControlDbContext> options) : DbCo
     public DbSet<UpdateJob> UpdateJobs => Set<UpdateJob>();
     public DbSet<ServerInventory> ServerInventories => Set<ServerInventory>();
     public DbSet<DemoRequest> DemoRequests => Set<DemoRequest>();
+    public DbSet<ErpDeveloper> ErpDevelopers => Set<ErpDeveloper>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -45,6 +46,15 @@ public class ControlDbContext(DbContextOptions<ControlDbContext> options) : DbCo
             e.Property(x => x.PasswordHash).HasMaxLength(200);
             e.Property(x => x.TotpSecretProtected).HasMaxLength(500);
             e.Property(x => x.SecurityStamp).HasMaxLength(64);
+        });
+
+        b.Entity<ErpDeveloper>(e =>
+        {
+            e.HasIndex(x => x.Login).IsUnique();
+            e.Property(x => x.Login).HasMaxLength(30);
+            e.Property(x => x.FullName).HasMaxLength(50);
+            e.Property(x => x.PasswordHash).HasMaxLength(200);
+            e.Property(x => x.LastTenant).HasMaxLength(100);
         });
 
         b.Entity<Plan>(e =>

@@ -204,4 +204,53 @@ public class LicenseApiTests(PanelFactory f) : IClassFixture<PanelFactory>
         Assert.Equal(LicensePanelClient.PullStatus.Revoked, gone.Status);
         Assert.Equal("revoked", gone.Error);
     }
+
+    [Fact]
+    public async Task DevLogin_Signed_Credentials_Lockout_And_Inactive()
+    {
+        var t = await f.CreateTenantAsync("dev-login");
+        string inst = NewInst();
+        var reg = await f.ErpClient().RegisterAsync(await f.RegTokenAsync(t.Id), inst, 1, "1.0", null);
+        Assert.True(reg.Ok, reg.Error);
+        string login = "dev." + Guid.NewGuid().ToString("N")[..8];
+        await f.WithScopeAsync(async sp =>
+        {
+            var db = sp.GetRequiredService<ControlDbContext>();
+            db.ErpDevelopers.Add(new ErpDeveloper
+            {
+                Login = login, FullName = "Ali Dasturchi",
+                PasswordHash = Security.PasswordHasher.Hash("Dev-Parol-2026!"), CreatedAtUtc = PanelFactory.Start.UtcDateTime,
+            });
+            await db.SaveChangesAsync();
+        });
+        var client = f.ErpClient();
+
+        var ok = await client.DevLoginAsync(inst, reg.TenantSecret, login, "Dev-Parol-2026!");
+        Assert.Equal(LicensePanelClient.DevLoginStatus.Ok, ok.Status);
+        Assert.Equal("Ali Dasturchi", ok.FullName);
+
+        // Noto'g'ri imzo (boshqa sir) — foydalanuvchi aybi emas: Unavailable
+        var badSig = await client.DevLoginAsync(inst, Convert.ToBase64String(RandomNumberGenerator.GetBytes(32)), login, "Dev-Parol-2026!");
+        Assert.Equal(LicensePanelClient.DevLoginStatus.Unavailable, badSig.Status);
+        Assert.Equal("bad_signature", badSig.Error);
+
+        Assert.Equal(LicensePanelClient.DevLoginStatus.Invalid, (await client.DevLoginAsync(inst, reg.TenantSecret, "yoq-login", "x")).Status);
+
+        // 5 ta noto'g'ri parol — blok (to'g'ri parol ham o'tmaydi)
+        for (int i = 0; i < 5; i++)
+            Assert.Equal(LicensePanelClient.DevLoginStatus.Invalid, (await client.DevLoginAsync(inst, reg.TenantSecret, login, "xato")).Status);
+        Assert.Equal(LicensePanelClient.DevLoginStatus.Locked, (await client.DevLoginAsync(inst, reg.TenantSecret, login, "Dev-Parol-2026!")).Status);
+
+        await f.WithScopeAsync(async sp =>
+        {
+            var db = sp.GetRequiredService<ControlDbContext>();
+            var dev = await db.ErpDevelopers.SingleAsync(d => d.Login == login);
+            Assert.Equal("dev-login", dev.LastTenant);
+            dev.LockedUntilUtc = null;
+            dev.IsActive = false;
+            await db.SaveChangesAsync();
+        });
+        // O'chirilgan dasturchi — hech qayerga kira olmaydi
+        Assert.Equal(LicensePanelClient.DevLoginStatus.Invalid, (await client.DevLoginAsync(inst, reg.TenantSecret, login, "Dev-Parol-2026!")).Status);
+    }
 }
