@@ -370,7 +370,8 @@ dotnet tahsinERP.Site.dll tenant add firma1 https://firma1.tahsinerp.uz/ --erp-t
 dotnet tahsinERP.Site.dll snapshot sync firma1
 ```
 
-Firmaning o'z domeni (`firma1.uz`) — keyingi bosqich (Caddy on-demand TLS yoki har domen uchun win-acme).
+Firmaning o'z domeni (`shop.firma1.uz`, `firma1.uz`) — panel → firma → «O'z domeni»: DNS tekshiruvi, agent win-acme HTTP-01 bilan
+sertifikat va IIS binding qiladi. Bir martalik sozlash (80-port, `ControlPanel__Apps__SiteServerIp`) — `Docs/ControlPanel/09_SITE_CUSTOM_DOMAIN.md`.
 
 ---
 

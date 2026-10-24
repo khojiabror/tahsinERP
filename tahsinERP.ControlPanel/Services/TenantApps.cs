@@ -19,12 +19,18 @@ public class AppsOptions
     /// <summary>Sayt ilovasiga istalgan *.sayt host orqali: masalan https://api.sayt.tahsinerp.uz</summary>
     public string? SiteUrl { get; set; }
     public string? AdminKey { get; set; }
+    /// <summary>
+    /// Sayt serverining ochiq IP manzil(lar)i (vergul bilan), masalan 63.183.64.107 — firmaning o'z domeni A yozuvi shunga qarashi kerak.
+    /// Bo'sh — standart sayt hosti ({slug}.sayt.&lt;domen&gt;) manzillari DNS'dan olinadi.
+    /// </summary>
+    public string? SiteServerIp { get; set; }
 }
 
 public sealed record BotAppStatus(string Slug, bool Exists, bool Active, string? BotUsername, string? ErpBaseUrl, string? ErpTenant,
     string? WebhookUrl, int? PendingUpdates, string? LastError);
 
-public sealed record SiteAppStatus(string Slug, bool Exists, bool Active, string? ErpBaseUrl, string? ErpTenant, DateTime? SnapshotAt, int? Products);
+public sealed record SiteAppStatus(string Slug, bool Exists, bool Active, string? ErpBaseUrl, string? ErpTenant, DateTime? SnapshotAt, int? Products,
+    string? Domain = null, bool RedirectToDomain = false);
 
 public interface IAppsClient
 {
@@ -36,6 +42,8 @@ public interface IAppsClient
     Task<SiteAppStatus> GetSiteAsync(string slug, CancellationToken ct = default);
     Task<SiteAppStatus> EnableSiteAsync(string slug, string erpBaseUrl, string erpTenant, CancellationToken ct = default);
     Task<SiteAppStatus> DisableSiteAsync(string slug, CancellationToken ct = default);
+    /// <summary>Firmaning o'z domeni (host null — olib tashlash); redirect — standart subdomendan 301.</summary>
+    Task<SiteAppStatus> SetSiteDomainAsync(string slug, string? host, bool redirect, CancellationToken ct = default);
 }
 
 public sealed class AppsHttpClient(HttpClient http, IOptions<AppsOptions> options) : IAppsClient
@@ -63,6 +71,9 @@ public sealed class AppsHttpClient(HttpClient http, IOptions<AppsOptions> option
 
     public Task<SiteAppStatus> DisableSiteAsync(string slug, CancellationToken ct = default) =>
         SendAsync<SiteAppStatus>(HttpMethod.Post, O.SiteUrl, slug, "/disable", null, ct);
+
+    public Task<SiteAppStatus> SetSiteDomainAsync(string slug, string? host, bool redirect, CancellationToken ct = default) =>
+        SendAsync<SiteAppStatus>(HttpMethod.Put, O.SiteUrl, slug, "/domain", new { host, redirect }, ct);
 
     private async Task<T> SendAsync<T>(HttpMethod method, string? baseUrl, string slug, string suffix, object? body, CancellationToken ct)
     {

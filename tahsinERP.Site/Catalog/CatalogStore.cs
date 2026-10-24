@@ -8,7 +8,7 @@ namespace tahsinERP.Site.Catalog;
 
 /// <summary>
 /// Tenantlar va ularning joriy katalog indeksi (xotirada). Domen → tenant xaritasi ham shu yerda:
-/// standart subdomen {slug}.{BaseDomain} va nusxadagi tasdiqlangan domenlar.
+/// standart subdomen {slug}.{BaseDomain}, panel ulagan o'z domeni (SiteTenant.CustomDomain, ustun) va nusxadagi ERP domenlari.
 /// </summary>
 public sealed class CatalogStore(IServiceScopeFactory scopes, IOptions<SiteOptions> options, ILogger<CatalogStore> log)
 {
@@ -38,6 +38,8 @@ public sealed class CatalogStore(IServiceScopeFactory scopes, IOptions<SiteOptio
     /// <summary>Tenant uchun asosiy ochiq manzil (kanonik URL'lar, sitemap uchun).</summary>
     public string? PrimaryHost(string tenant)
     {
+        var own = _tenants.FirstOrDefault(t => string.Equals(t.Slug, tenant, StringComparison.OrdinalIgnoreCase));
+        if (own is { CustomDomain: not null, RedirectToDomain: true }) return own.CustomDomain;
         var idx = Get(tenant);
         var primary = idx?.Snapshot.Domains?.FirstOrDefault(d => d.IsPrimary)?.Host ?? idx?.Snapshot.Domains?.FirstOrDefault()?.Host;
         if (primary != null) return primary;
@@ -89,6 +91,9 @@ public sealed class CatalogStore(IServiceScopeFactory scopes, IOptions<SiteOptio
         foreach (var idx in _indexes.Values)
             foreach (var d in idx.Snapshot.Domains ?? [])
                 map[d.Host] = idx.Tenant;
+        // panel ulagan domen noyob (panel va SiteTenants indeksi tekshiradi) — ERP sozlamasidagi bir xil hostdan ustun
+        foreach (var t in _tenants)
+            if (!string.IsNullOrEmpty(t.CustomDomain)) map[t.CustomDomain] = t.Slug;
         _hosts = map;
     }
 }

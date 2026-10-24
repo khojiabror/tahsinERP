@@ -18,4 +18,7 @@ public sealed class SiteOptions
 
     /// <summary>Development: localhost'da ?tenant=slug bilan istalgan tenantni ochish.</summary>
     public bool AllowTenantQuery { get; set; }
+
+    /// <summary>O'z domeniga http orqali kelgan so'rov https'ga yo'naltirilsin (lokal sinovda false).</summary>
+    public bool RedirectHttpToHttps { get; set; } = true;
 }

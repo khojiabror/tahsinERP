@@ -12,6 +12,10 @@ public sealed class SiteTenant
     public string? ErpTenant { get; set; }
     public bool IsActive { get; set; } = true;
     public DateTime CreatedAt { get; set; }
+    /// <summary>Firmaning o'z domeni (boshqaruv paneli ulaydi), masalan shop.firma.uz. Null — faqat {slug}.{BaseDomain}.</summary>
+    public string? CustomDomain { get; set; }
+    /// <summary>Standart subdomen (va boshqa hostlar) o'z domeniga 301 bilan yo'naltirilsin — panel sertifikat tayyor bo'lgach yoqadi.</summary>
+    public bool RedirectToDomain { get; set; }
 }
 
 /// <summary>Oxirgi olingan katalog nusxasi (servis qayta ishga tushsa — ERP'siz ham sayt ishlaydi).</summary>
@@ -53,6 +57,7 @@ public sealed class SiteDbContext(DbContextOptions<SiteDbContext> options) : DbC
             e.Property(x => x.Slug).HasMaxLength(50);
             e.Property(x => x.ErpBaseUrl).HasMaxLength(300);
             e.Property(x => x.ErpTenant).HasMaxLength(50);
+            e.Property(x => x.CustomDomain).HasMaxLength(253);
         });
         b.Entity<SiteSnapshotRow>(e =>
         {

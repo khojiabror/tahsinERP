@@ -10,7 +10,8 @@ namespace tahsinERP.ProvisioningAgent;
 /// (baza bor → tekshiriladi; tenants.json o'zgarmagan bo'lsa yozilmaydi; arxiv bor → qayta zaxira qilinmaydi).
 /// Xato turlari: <see cref="TransientJobException"/> → Retry, <see cref="InvalidJobException"/> → Failed.
 /// </summary>
-public sealed class JobExecutor(AgentOptions options, SqlOps sql, ScriptRunner scripts, IBackupStore backups, ILogger<JobExecutor> logger)
+public sealed class JobExecutor(AgentOptions options, SqlOps sql, ScriptRunner scripts, IBackupStore backups, ILogger<JobExecutor> logger,
+    SiteDomainOps? siteDomains = null)
 {
     /// <summary>Database/Demo/200_Demo_Master.sql yaratadigan foydalanuvchi (demo / demo2026).</summary>
     public const string SampleUserLogin = "demo";
@@ -55,6 +56,7 @@ public sealed class JobExecutor(AgentOptions options, SqlOps sql, ScriptRunner s
                 case JobKind.Archive: await ArchiveAsync(p, c, log, ct); break;
                 case JobKind.Delete: await DeleteAsync(p, c, log, ct); break;
                 case JobKind.EndTrial: await EndTrialAsync(p, c, log, ct); break;
+                case JobKind.SiteDomain: await SiteDomainAsync(p, log, ct); break;
                 default: throw new InvalidJobException($"Noma'lum job turi: {lease.Type}");
             }
             c.Outcome = JobOutcome.Succeeded;
@@ -268,6 +270,25 @@ public sealed class JobExecutor(AgentOptions options, SqlOps sql, ScriptRunner s
             log.Info("baza allaqachon yo'q" + (c.ArchiveLocation != null ? $", arxiv bor (oldingi urinish): {c.ArchiveLocation}" : " va arxiv topilmadi"));
         }
         else log.Info("baza allaqachon yo'q");
+    }
+
+    // ---------------- SiteDomain ----------------
+    /// <summary>Sayt-katalog o'z domeni: avval eski domen tozalanadi, keyin yangisi ulanadi (binding + sertifikat).</summary>
+    private async Task SiteDomainAsync(JobPayload p, JobLog log, CancellationToken ct)
+    {
+        if (siteDomains is null || !options.SiteDomains.Enabled) throw new InvalidJobException("SiteDomains o'chirilgan (agent sozlamasi).");
+        var remove = (p.SiteDomainRemove ?? []).Where(h => h != p.SiteDomain).Distinct().ToList();
+        if (p.SiteDomain is null && remove.Count == 0) throw new InvalidJobException("Domen berilmagan.");
+        foreach (var old in remove)
+        {
+            log.Info($"o'z domeni olib tashlanmoqda: {old}");
+            await siteDomains.UnbindAsync(old, log.Info, ct);
+        }
+        if (p.SiteDomain != null)
+        {
+            log.Info($"o'z domeni ulanmoqda: {p.SiteDomain} → {options.SiteDomains.IisSite}");
+            await siteDomains.BindAsync(p.SiteDomain, log.Info, ct);
+        }
     }
 
     // ---------------- Delete ----------------

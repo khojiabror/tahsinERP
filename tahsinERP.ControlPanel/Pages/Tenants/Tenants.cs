@@ -159,8 +159,16 @@ public class EditModel(ControlDbContext db, TenantService tenants, LicenseIssuer
 }
 
 public class DetailsModel(ControlDbContext db, TenantService tenants, LicenseIssuer issuer, ProvisioningService provisioning, UsageService usage,
-    PortalAuthService portalAuth, PortalNotifier notifier, IOptions<PanelHostOptions> hosts, TenantAppsService apps) : PanelPageModel
+    PortalAuthService portalAuth, PortalNotifier notifier, IOptions<PanelHostOptions> hosts, TenantAppsService apps, SiteDomainService siteDomains) : PanelPageModel
 {
+    // ── Sayt-katalog: firmaning o'z domeni ──
+    public TenantSiteDomain? SiteDomain { get; private set; }
+    /// <summary>Domen A yozuvi qarashi kerak bo'lgan manzillar (DNS ko'rsatmasi uchun).</summary>
+    public List<string> SiteExpectedIps { get; private set; } = [];
+    public string? SiteDefaultHost => siteDomains.DefaultSiteHost(Tenant);
+    [BindProperty] public string? SiteDomainInput { get; set; }
+    [BindProperty] public bool SiteDomainRedirect { get; set; }
+
     // ── Telegram bot va sayt-katalog ──
     public bool AppsLoaded { get; private set; }
     public bool BotConfigured => apps.BotConfigured;
@@ -258,7 +266,31 @@ public class DetailsModel(ControlDbContext db, TenantService tenants, LicenseIss
         if (Tenant.Deployment != DeploymentKind.SaaS || (!apps.BotConfigured && !apps.SiteConfigured)) return;
         (Bot, BotError, Site, SiteError) = await apps.StatusAsync(Tenant, HttpContext.RequestAborted);
         AppsLoaded = true;
+        SiteDomain = await siteDomains.GetAsync(Tenant.Id, HttpContext.RequestAborted);
+        if (SiteDomain != null || Site is { Exists: true, Active: true })
+            SiteExpectedIps = [.. (await siteDomains.ExpectedAddressesAsync(Tenant, HttpContext.RequestAborted)).Select(a => a.ToString())];
+        if (!Request.HasFormContentType)
+        {
+            SiteDomainInput = SiteDomain?.Host;
+            SiteDomainRedirect = SiteDomain?.RedirectToDomain ?? true;
+        }
     }
+
+    public Task<IActionResult> OnPostSiteDomainSaveAsync(int id) => AppsActionAsync(id,
+        async () => { var d = await siteDomains.SetAsync(Tenant, SiteDomainInput, SiteDomainRedirect); FlashOk = SiteDomainFlash(d); }, null);
+
+    public Task<IActionResult> OnPostSiteDomainCheckAsync(int id) => AppsActionAsync(id,
+        async () => { var r = await siteDomains.CheckAsync(Tenant); if (r.Ok) FlashOk = r.Message; else FlashError = r.Message; }, null);
+
+    public Task<IActionResult> OnPostSiteDomainRemoveAsync(int id) => AppsActionAsync(id,
+        async () => { var job = await siteDomains.RemoveAsync(Tenant); FlashOk = job is null ? L.T("Pnl_SDom_Removed") : L.T("Pnl_SDom_RemoveQueued", job.Id); }, null);
+
+    private static string SiteDomainFlash(TenantSiteDomain d) => d.Status switch
+    {
+        SiteDomainStatus.Binding => L.T("Pnl_SDom_JobQueued", d.Host, d.LastJobId),
+        SiteDomainStatus.Active => L.T("Pnl_SDom_Saved", d.Host),
+        _ => L.T("Pnl_SDom_SavedWaitDns", d.Host),
+    };
 
     public async Task<IActionResult> OnPostBotConnectAsync(int id)
     {
@@ -281,13 +313,14 @@ public class DetailsModel(ControlDbContext db, TenantService tenants, LicenseIss
 
     public Task<IActionResult> OnPostSiteDisableAsync(int id) => AppsActionAsync(id, () => apps.DisableSiteAsync(Tenant), L.T("Pnl_Ten_SiteDisabled"));
 
-    private async Task<IActionResult> AppsActionAsync(int id, Func<Task> action, string ok)
+    /// <param name="ok">Muvaffaqiyat xabari; null — amalning o'zi Flash qo'yadi.</param>
+    private async Task<IActionResult> AppsActionAsync(int id, Func<Task> action, string? ok)
     {
         if (!await LoadAsync(id)) return NotFound();
         if (!CanSell) return Forbidden();
         if (await TryAsync(action))
         {
-            FlashOk = ok;
+            if (ok != null) FlashOk = ok;
             return RedirectToPage(new { id });
         }
         await LoadAppsAsync();

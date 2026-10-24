@@ -41,3 +41,13 @@ IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'UX_LeadOutbox_Request')
 
 IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_LeadOutbox_Pending')
     CREATE INDEX IX_LeadOutbox_Pending ON dbo.LeadOutbox (NextAt) WHERE SentAt IS NULL AND FailedAt IS NULL;
+
+-- O'z domeni (boshqaruv paneli ulaydi): firma.uz -> shu tenant; RedirectToDomain — standart subdomendan 301 (sertifikat tayyor bo'lgach)
+IF COL_LENGTH('dbo.SiteTenants', 'CustomDomain') IS NULL
+    ALTER TABLE dbo.SiteTenants ADD CustomDomain nvarchar(253) NULL;
+
+IF COL_LENGTH('dbo.SiteTenants', 'RedirectToDomain') IS NULL
+    ALTER TABLE dbo.SiteTenants ADD RedirectToDomain bit NOT NULL CONSTRAINT DF_SiteTenants_RedirectToDomain DEFAULT 0;
+
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'UX_SiteTenants_CustomDomain')
+    EXEC('CREATE UNIQUE INDEX UX_SiteTenants_CustomDomain ON dbo.SiteTenants (CustomDomain) WHERE CustomDomain IS NOT NULL');

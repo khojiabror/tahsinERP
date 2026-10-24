@@ -3810,4 +3810,121 @@ tahsinERP портал: код входа {1}. Действует {2} мин.
   <data name="Pnl_NavDevelopers" xml:space="preserve">
     <value>ERP-разработчики</value>
   </data>
+  <data name="Pnl_JobType_SiteDomain" xml:space="preserve">
+    <value>Домен сайта</value>
+  </data>
+  <data name="Pnl_SDom_Title" xml:space="preserve">
+    <value>Собственный домен</value>
+  </data>
+  <data name="Pnl_SDom_Domain" xml:space="preserve">
+    <value>Домен</value>
+  </data>
+  <data name="Pnl_SDom_Connect" xml:space="preserve">
+    <value>Подключить домен</value>
+  </data>
+  <data name="Pnl_SDom_Check" xml:space="preserve">
+    <value>Проверить DNS и подключить</value>
+  </data>
+  <data name="Pnl_SDom_Remove" xml:space="preserve">
+    <value>Отключить</value>
+  </data>
+  <data name="Pnl_SDom_RemoveRetry" xml:space="preserve">
+    <value>Повторить отключение</value>
+  </data>
+  <data name="Pnl_SDom_Redirect" xml:space="preserve">
+    <value>После подключения перенаправлять {0} на этот домен (301)</value>
+  </data>
+  <data name="Pnl_SDom_RedirectShort" xml:space="preserve">
+    <value>Перенаправление</value>
+  </data>
+  <data name="Pnl_SDom_Job" xml:space="preserve">
+    <value>Задание сервера</value>
+  </data>
+  <data name="Pnl_SDom_St_PendingDns" xml:space="preserve">
+    <value>Ожидается DNS</value>
+  </data>
+  <data name="Pnl_SDom_St_Binding" xml:space="preserve">
+    <value>Выпуск сертификата</value>
+  </data>
+  <data name="Pnl_SDom_St_Active" xml:space="preserve">
+    <value>Активен</value>
+  </data>
+  <data name="Pnl_SDom_St_Failed" xml:space="preserve">
+    <value>Ошибка</value>
+  </data>
+  <data name="Pnl_SDom_St_Removing" xml:space="preserve">
+    <value>Отключается</value>
+  </data>
+  <data name="Pnl_SDom_DnsNotChecked" xml:space="preserve">
+    <value>ещё не проверялся</value>
+  </data>
+  <data name="Pnl_SDom_DnsOkShort" xml:space="preserve">
+    <value>верно</value>
+  </data>
+  <data name="Pnl_SDom_DnsBadShort" xml:space="preserve">
+    <value>не указывает на сервер</value>
+  </data>
+  <data name="Pnl_SDom_OutOfSync" xml:space="preserve">
+    <value>В приложении сайта другое значение: {0}. «Сохранить» отправит заново.</value>
+  </data>
+  <data name="Pnl_SDom_DnsHelpA" xml:space="preserve">
+    <value>DNS (у регистратора домена): запись A — домен или поддомен → {0}.</value>
+  </data>
+  <data name="Pnl_SDom_DnsHelpCname" xml:space="preserve">
+    <value>Для поддомена можно CNAME → {0}.</value>
+  </data>
+  <data name="Pnl_SDom_DnsHelpTail" xml:space="preserve">
+    <value>Удалите другие записи A/AAAA, в Cloudflare отключите прокси (DNS only). Когда DNS обновится, нажмите «Проверить» — сертификат (Let's Encrypt) выпустится автоматически.</value>
+  </data>
+  <data name="Pnl_SDom_ServerIp" xml:space="preserve">
+    <value>IP-адрес сервера сайта</value>
+  </data>
+  <data name="Pnl_SDom_BadFormat" xml:space="preserve">
+    <value>Неверный формат домена. Например: shop.firma.uz или firma.uz (без http:// и пути).</value>
+  </data>
+  <data name="Pnl_SDom_Reserved" xml:space="preserve">
+    <value>Это наш домен — его нельзя подключить как собственный.</value>
+  </data>
+  <data name="Pnl_SDom_Taken" xml:space="preserve">
+    <value>Домен {0} подключён к другой организации.</value>
+  </data>
+  <data name="Pnl_SDom_SiteFirst" xml:space="preserve">
+    <value>Сначала включите сайт-каталог.</value>
+  </data>
+  <data name="Pnl_SDom_None" xml:space="preserve">
+    <value>Собственный домен не подключён.</value>
+  </data>
+  <data name="Pnl_SDom_Removing" xml:space="preserve">
+    <value>Домен отключается — дождитесь завершения задания сервера.</value>
+  </data>
+  <data name="Pnl_SDom_NoExpectedIp" xml:space="preserve">
+    <value>Не удалось определить адрес сервера сайта: задайте ControlPanel__Apps__SiteServerIp.</value>
+  </data>
+  <data name="Pnl_SDom_DnsOk" xml:space="preserve">
+    <value>{0}: DNS настроен верно.</value>
+  </data>
+  <data name="Pnl_SDom_DnsNotFound" xml:space="preserve">
+    <value>{0}: запись DNS не найдена (или ещё не обновилась).</value>
+  </data>
+  <data name="Pnl_SDom_DnsWrong" xml:space="preserve">
+    <value>{0} сейчас указывает на {1}, нужно: {2}.</value>
+  </data>
+  <data name="Pnl_SDom_JobQueued" xml:space="preserve">
+    <value>{0}: DNS верен — задание сервера #{1} (сертификат и привязка IIS) поставлено в очередь.</value>
+  </data>
+  <data name="Pnl_SDom_Saved" xml:space="preserve">
+    <value>{0}: сохранено.</value>
+  </data>
+  <data name="Pnl_SDom_SavedWaitDns" xml:space="preserve">
+    <value>{0} сохранён — настройте запись DNS и нажмите «Проверить».</value>
+  </data>
+  <data name="Pnl_SDom_Removed" xml:space="preserve">
+    <value>Собственный домен отключён.</value>
+  </data>
+  <data name="Pnl_SDom_RemoveQueued" xml:space="preserve">
+    <value>Домен отключён от сайта; задание очистки сервера #{0} в очереди.</value>
+  </data>
+  <data name="Pnl_SDom_JobCancelled" xml:space="preserve">
+    <value>Задание сервера отменено.</value>
+  </data>
 </root>
