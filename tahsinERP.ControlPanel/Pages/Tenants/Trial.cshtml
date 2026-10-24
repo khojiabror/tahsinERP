@@ -38,6 +38,16 @@ else
             <div><label asp-for="Input.ServerId">@L.T("Pnl_Server")</label>
                 <select asp-for="Input.ServerId">@foreach (var s in Model.Servers) { <option value="@s.Value">@(s.Value == "" ? "— " + L.T("Pnl_Ten_AutoServer") + " —" : s.Text)</option> }</select></div>
         </div>
+        <fieldset class="modules">
+            <legend>@L.T("Pnl_Ten_TrialModules")</legend>
+            <span asp-validation-for="Input.Modules"></span>
+            @foreach (var m in tahsinERP.ControlPanel.Pages.Tenants.TrialModel.ModuleChoices)
+            {
+                string code = m.ToString();
+                <label class="check"><input type="checkbox" name="Input.Modules" value="@code" checked="@Model.Input.Modules.Contains(code, StringComparer.OrdinalIgnoreCase)" /> @L.T("Pnl_Module_" + code)</label>
+            }
+            <div class="hint">@L.T("Pnl_Ten_TrialModulesHint")</div>
+        </fieldset>
         <label class="check"><input asp-for="Input.SampleData" /> @L.T("Pnl_Ten_SampleData")</label>
         <div class="hint">@L.T("Pnl_Ten_SampleHint")</div>
         <div class="hint">@L.T("Pnl_Ten_TrialInfo")</div>

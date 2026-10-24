@@ -27,7 +27,10 @@ public partial class WebUiTests
         Assert.DoesNotMatch("<div class=\"mono\">[A-Za-z0-9+/]{43}=</div>", WebUtility.HtmlDecode(await (await c.GetAsync($"/Servers/Edit/{sid}")).Content.ReadAsStringAsync()));
 
         // Sinov ochish → parol bir marta, job navbatda
-        var trial = await PostAsync(c, "/Tenants/Trial", new() { ["Input.Slug"] = "ui-trial", ["Input.LegalName"] = "UI Trial MChJ" });
+        // modul belgilanmasa — xato, tenant yaratilmaydi
+        var noModules = await PostAsync(c, "/Tenants/Trial", new() { ["Input.Slug"] = "ui-trial", ["Input.LegalName"] = "UI Trial MChJ" });
+        Assert.Contains("Kamida bitta modulni belgilang", WebUtility.HtmlDecode(await noModules.Content.ReadAsStringAsync()));
+        var trial = await PostAsync(c, "/Tenants/Trial", new() { ["Input.Slug"] = "ui-trial", ["Input.LegalName"] = "UI Trial MChJ", ["Input.Modules"] = "Mes" });
         Assert.Equal(HttpStatusCode.OK, trial.StatusCode);
         string trialHtml = await trial.Content.ReadAsStringAsync();
         var m = Regex.Match(trialHtml, "Vaqtinchalik parol: ([A-Za-z0-9]{12})");
@@ -39,7 +42,19 @@ public partial class WebUiTests
             var t = await db.Tenants.FirstAsync(x => x.Slug == "ui-trial");
             return (t.Id, (await db.ProvisioningJobs.FirstAsync(j => j.TenantId == t.Id)).Id);
         });
+        // tanlangan modul (+ bog'liqligi) tenantga, sinov obunasiga va Create job payload'iga yetadi
+        var (tModules, sModules, payload) = await f.WithScopeAsync(async sp =>
+        {
+            var db = sp.GetRequiredService<ControlDbContext>();
+            var t = await db.Tenants.FirstAsync(x => x.Id == tenantId);
+            var s = await db.Subscriptions.FirstAsync(x => x.TenantId == tenantId);
+            return (t.Modules, s.Modules, (await db.ProvisioningJobs.FirstAsync(j => j.Id == jobId)).Payload);
+        });
+        Assert.Equal("Mes,Engineering", tModules);
+        Assert.Equal("Mes,Engineering", sModules);
+        Assert.Contains("\"modules\":[\"Mes\",\"Engineering\"]", payload);
         string details = await (await c.GetAsync($"/Tenants/Details/{tenantId}")).Content.ReadAsStringAsync();
+        Assert.Contains("Ishlab chiqarish (MES), Muhandislik (BOM, norma, tannarx)", WebUtility.HtmlDecode(details));
         Assert.Contains("Provisioning (baza va ERP reestri)", details);
         Assert.Contains($"/Provisioning/Job/{jobId}", details);
         Assert.DoesNotContain(m.Groups[1].Value, details);

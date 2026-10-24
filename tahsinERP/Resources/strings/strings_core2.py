@@ -920,4 +920,9 @@ STRINGS = {
     "Task_ProjectNewAdd": ("Yangi Loyiha qo'shish", "Добавление нового проекта"),
     "Task_StatusNewAdd": ("Yangi Status qo'shish", "Добавление нового статуса"),
     "Task_TasksSlash": ("Tasks / Vazifalar", "Задачи"),
+    "Core_HomeNoExecSections": ("Paketingizdagi modullar uchun umumiy KPI paneli yo'q — yuqoridagi modul dashboardlaridan foydalaning.", "Для модулей вашего пакета нет общей KPI-панели — используйте дашборды модулей выше."),
+    "Core_HomeTileFinance": ("Moliya Dashboard", "Дашборд финансов"),
+    "Core_HomeTileDocs": ("Rasmiy hujjatlar", "Официальные документы"),
+    "Core_HomeTileDistribution": ("Distributsiya Dashboard", "Дашборд дистрибуции"),
+    "Core_HomeTileSite": ("Sayt-katalog", "Сайт-каталог"),
 }

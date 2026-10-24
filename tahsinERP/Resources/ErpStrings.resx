@@ -14286,4 +14286,19 @@
   <data name="Menu_DstSystem" xml:space="preserve">
     <value>Sozlash</value>
   </data>
+  <data name="Core_HomeNoExecSections" xml:space="preserve">
+    <value>Paketingizdagi modullar uchun umumiy KPI paneli yo'q — yuqoridagi modul dashboardlaridan foydalaning.</value>
+  </data>
+  <data name="Core_HomeTileFinance" xml:space="preserve">
+    <value>Moliya Dashboard</value>
+  </data>
+  <data name="Core_HomeTileDocs" xml:space="preserve">
+    <value>Rasmiy hujjatlar</value>
+  </data>
+  <data name="Core_HomeTileDistribution" xml:space="preserve">
+    <value>Distributsiya Dashboard</value>
+  </data>
+  <data name="Core_HomeTileSite" xml:space="preserve">
+    <value>Sayt-katalog</value>
+  </data>
 </root>

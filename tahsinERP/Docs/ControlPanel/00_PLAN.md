@@ -194,7 +194,7 @@ Jami: **~7–10 hafta** bitta dasturchi + AI yordamida. 0–2 bosqichdan keyin b
 | `START` | SRM (xarid + ombor), CRM, Topshiriqlar | 5 | ochiq |
 | `BIZNES` | Start + MES, Muhandislik (BOM / Norma / Tannarx), Moliya | 20 | ochiq |
 | `KORP` | Biznes + HR (oylik, tabel), Logistika, Rasmiy hujjatlar, Distributsiya, ustuvor qo'llab-quvvatlash | 50 | ochiq |
-| `TRIAL` | = KORP | 5 | 0, 14 kun |
+| `TRIAL` | = KORP, yoki xodim tanlagan modullar (`TRIAL:Srm,Crm`, 05_PROVISIONING.md 11) | 5 | 0, 14 kun |
 | `DIST` | Distributsiya: SRM, CRM, Topshiriqlar, Moliya, Distributsiya (MES/BOM yo'q) — asosiy zanjirdan tashqari yon paket (08_STAGE4.md 1) | 20 | ochiq |
 
 Modul cheklovi ERP tomonda (0-bosqichga qo'shilgan, ~1 hafta): `Edition → PERMISSIONMODULE` xaritasi; global filtr paketga kirmagan modul controllerlarini "Paketingizda yo'q — tarifni oshiring" sahifasiga yo'naltiradi, menyu bandlari yashiriladi.

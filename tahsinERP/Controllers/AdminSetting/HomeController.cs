@@ -40,6 +40,9 @@ namespace tahsinERP.Controllers
                     DateTime.Now.AddMinutes(30), System.Web.Caching.Cache.NoSlidingExpiration);
             }
             ViewBag.CurrencyShortname = shortname;
+            var sections = HomeSections.For(User.Identity.Name);
+            ViewBag.Sections = sections;
+            ViewBag.ModuleTiles = HomeSections.Tiles(User.Identity.Name);
             return View();
         }
 
@@ -47,6 +50,8 @@ namespace tahsinERP.Controllers
         [HttpGet]
         public JsonResult GetExecutiveDashboard(DateTime? fromDate, DateTime? toDate, int? warehouseId)
         {
+            // Faqat paketda bor va foydalanuvchi ko'ra oladigan modullar hisoblanadi (sinovda tanlangan modullar — kalitdagi Edition)
+            var sec = HomeSections.For(User.Identity.Name);
             try
             {
                 using (DBTHSNEntities db = new DBTHSNEntities())
@@ -59,13 +64,13 @@ namespace tahsinERP.Controllers
                     var selectedWarehouseId = warehouseId;
 
                     var warehouses = db.WAREHOUSES
-                        .Where(w => w.IsDeleted != true)
+                        .Where(w => sec.Stock && w.IsDeleted != true)
                         .OrderBy(w => w.WHName)
                         .Select(w => new { id = w.ID, name = w.WHName })
                         .ToList();
 
                     var rawProductIds = db.PRODUCTS
-                        .Where(p => p.IsDeleted == false &&
+                        .Where(p => sec.Stock && p.IsDeleted == false &&
                                    (p.IsRawMaterial == true ||
                                    (p.PRODUCT_CATEGORIES != null && p.PRODUCT_CATEGORIES.IsRawMaterial)))
                         .Select(p => p.ID)
@@ -82,6 +87,8 @@ namespace tahsinERP.Controllers
                     var productionsQ = db.PRODUCT_PRODUCTION.Where(x => x.IsDeleted != true);
 
                     // KPI: davr bo'yicha yig'indilar SQL'da
+                    if (!sec.Sales) { contractsQ = contractsQ.Where(x => false); ordersQ = ordersQ.Where(x => false); invoicesQ = invoicesQ.Where(x => false); }
+                    if (!sec.Production) { plansQ = plansQ.Where(x => false); productionsQ = productionsQ.Where(x => false); }
                     var contractAmount = contractsQ.Where(x => x.IssuedDate >= from && x.IssuedDate < toExcl).Sum(x => (double?)x.Amount) ?? 0d;
                     var orderAmount = ordersQ.Where(x => x.IssuedDate >= from && x.IssuedDate < toExcl).Sum(x => (double?)x.Amount) ?? 0d;
                     var invoiceAmount = invoicesQ.Where(x => x.InvoiceDate >= from && x.InvoiceDate < toExcl).Sum(x => (double?)x.TotalAmount) ?? 0d;
@@ -89,7 +96,7 @@ namespace tahsinERP.Controllers
                     var producedQty = productionsQ.Where(x => x.Date >= from && x.Date < toExcl).Sum(x => (double?)x.Total) ?? 0d;
 
                     // Topshiriqlar: barcha qatorlarni yuklash o'rniga SQL COUNT
-                    var tasksQ = db.APP_TASKS.Where(t => t.IsDeleted == false);
+                    var tasksQ = db.APP_TASKS.Where(t => sec.Tasks && t.IsDeleted == false);
                     var totalTasks = tasksQ.Count();
                     var completedTasks = tasksQ.Count(t => t.APP_TASK_STATUS_REF != null && t.APP_TASK_STATUS_REF.Code == "DONE");
                     var overdueTasks = tasksQ.Count(t => t.DueDate.HasValue && t.DueDate.Value < to.Date &&
@@ -206,13 +213,14 @@ namespace tahsinERP.Controllers
                         })
                         .ToList();
 
+                    // signallar faqat ko'rsatilayotgan bo'limlar bo'yicha (tanlanmagan modulning 0% i "xavf" emas)
                     var insights = new List<object>();
-                    if (salesConversionRate < 65) insights.Add(new { level = "high", text = L.T("Core_InsightLowConversion") });
-                    if (orderFulfillmentRate < 75) insights.Add(new { level = "high", text = L.T("Core_InsightSlowFulfillment") });
-                    if (productionExecutionRate < 80) insights.Add(new { level = "medium", text = L.T("Core_InsightLowProduction") });
-                    if (inventoryCoverageDays < 20) insights.Add(new { level = "high", text = L.T("Core_InsightDohLow") });
-                    if (inventoryCoverageDays > 90) insights.Add(new { level = "medium", text = L.T("Core_InsightDohHigh") });
-                    if (overdueTasks > 0) insights.Add(new { level = "medium", text = L.T("Core_InsightOverdueTasks") });
+                    if (sec.Sales && salesConversionRate < 65) insights.Add(new { level = "high", text = L.T("Core_InsightLowConversion") });
+                    if (sec.Sales && orderFulfillmentRate < 75) insights.Add(new { level = "high", text = L.T("Core_InsightSlowFulfillment") });
+                    if (sec.Production && productionExecutionRate < 80) insights.Add(new { level = "medium", text = L.T("Core_InsightLowProduction") });
+                    if (sec.Stock && inventoryCoverageDays < 20) insights.Add(new { level = "high", text = L.T("Core_InsightDohLow") });
+                    if (sec.Stock && inventoryCoverageDays > 90) insights.Add(new { level = "medium", text = L.T("Core_InsightDohHigh") });
+                    if (sec.Tasks && overdueTasks > 0) insights.Add(new { level = "medium", text = L.T("Core_InsightOverdueTasks") });
                     if (!insights.Any()) insights.Add(new { level = "good", text = L.T("Core_InsightAllGood") });
 
                     return Json(new
@@ -238,7 +246,8 @@ namespace tahsinERP.Controllers
                         stockCoverage,
                         insights,
                         warehouses,
-                        selectedWarehouseId
+                        selectedWarehouseId,
+                        sections = new { sales = sec.Sales, production = sec.Production, tasks = sec.Tasks, stock = sec.Stock }
                     }, JsonRequestBehavior.AllowGet);
                 }
             }
@@ -249,5 +258,64 @@ namespace tahsinERP.Controllers
                 return Json(new { error = L.T("Core_DashboardLoadError") }, JsonRequestBehavior.AllowGet);
             }
         }
+    }
+
+    /// <summary>
+    /// Bosh sahifa bo'limlari: faqat litsenziya paketida bor (sinovda — tanlangan modullar, "TRIAL:Srm,Crm") va foydalanuvchi
+    /// roli ko'ra oladigan modullar. RoleHelper.IsViewPermitted ichida EditionGate tekshiruvi bor — menyu bilan bir xil qoida.
+    /// </summary>
+    public sealed class HomeSections
+    {
+        public bool Sales { get; private set; }
+        public bool Production { get; private set; }
+        public bool Tasks { get; private set; }
+        /// <summary>Xomashyo zaxirasi (DOH, qoplash kunlari): ombor hisobotlari yoki ishlab chiqarish.</summary>
+        public bool Stock { get; private set; }
+        public bool Any { get { return Sales || Production || Tasks || Stock; } }
+
+        public static HomeSections For(string user)
+        {
+            var s = new HomeSections
+            {
+                Sales = RoleHelper.IsViewPermitted(user, "CRMDashboard") || RoleHelper.IsViewPermitted(user, "SOrder") || RoleHelper.IsViewPermitted(user, "SalesInvoices"),
+                Production = RoleHelper.IsViewPermitted(user, "MESDashboard"),
+                Tasks = RoleHelper.IsViewPermitted(user, "TaskDashboard"),
+            };
+            s.Stock = s.Production || RoleHelper.IsViewPermitted(user, "InventoryReports");
+            return s;
+        }
+
+        /// <summary>Modul dashboard'lariga tezkor kirish — ochiq va ruxsat etilgan modullar, paket tartibida.</summary>
+        public static List<HomeModuleTile> Tiles(string user)
+        {
+            var all = new[]
+            {
+                new HomeModuleTile("Supplier", "/SRMDashboard", "bx-cart", "Menu_DashSrm"),
+                new HomeModuleTile("SOrder", "/CRMDashboard", "bx-line-chart", "Menu_DashCrm"),
+                new HomeModuleTile("TaskDashboard", "/TaskDashboard", "bx-task", "Menu_DashTasks"),
+                new HomeModuleTile("MESDashboard", "/MESDashboard/Dashboard", "bx-cog", "Menu_DashMes"),
+                new HomeModuleTile("Tannarx", "/TannarxAnalytics/Dashboard", "bx-calculator", "Menu_DashCost"),
+                new HomeModuleTile("FinDashboard", "/FinDashboard/FinancialOverview", "bx-wallet", "Core_HomeTileFinance"),
+                new HomeModuleTile("HrDashboard", "/HrDashboard", "bx-group", "Menu_DashHr"),
+                new HomeModuleTile("Forwarder", "/LogisticsDashboard", "bx-car", "Menu_DashLogistics"),
+                new HomeModuleTile("OfficialLetters", "/OfficialLetters", "bx-envelope", "Core_HomeTileDocs"),
+                new HomeModuleTile("DstDashboard", "/Distribution/DstDashboard", "bx-store", "Core_HomeTileDistribution"),
+                new HomeModuleTile("SiteHome", "/Site/SiteHome", "bx-globe", "Core_HomeTileSite"),
+            };
+            return all.Where(t => RoleHelper.IsViewPermitted(user, t.Controller)).ToList();
+        }
+    }
+
+    public sealed class HomeModuleTile
+    {
+        /// <param name="controller">ko'rish huquqi va paket tekshiriladigan PERMISSIONMODULES.Module (menyudagi kabi)</param>
+        public HomeModuleTile(string controller, string url, string icon, string titleKey)
+        {
+            Controller = controller; Url = url; Icon = icon; TitleKey = titleKey;
+        }
+        public string Controller { get; private set; }
+        public string Url { get; private set; }
+        public string Icon { get; private set; }
+        public string TitleKey { get; private set; }
     }
 }

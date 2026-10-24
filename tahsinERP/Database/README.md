@@ -11,9 +11,10 @@ Database/
   Seed/100_Reference.sql       majburiy spravochniklar (generatsiya: Export-ReferenceSeed.ps1)
   Seed/105_PermissionModules_Extra.sql  eksportdan keyin qo'shilgan ruxsat modullari (mavjud bazalarga — NNN migratsiya)
   Seed/110_Defaults.sql        yangi korxona standart qatorlari (qo'lda)
-  Demo/*.sql                   demo tenant ma'lumoti (New-TenantDb.ps1 -Demo -> DB_DEMO_TEMPLATE.bak; 05_PROVISIONING.md 6)
+  Demo/NNN_<Modul>_*.sql       namuna ma'lumot, modul bo'yicha (New-TenantDb.ps1 -Demo; pastda "Demo ma'lumot")
+  Setup/300_ModuleProfile.sql  tanlangan modullar profili: rollar/ruxsatlar, omborlar, boshlang'ich kategoriyalar
   tools/Invoke-DbMigrations.ps1  runner: bitta baza yoki tenants.json dagi barchasi
-  tools/New-TenantDb.ps1         yangi baza: CREATE -> baseline -> migratsiya -> seed -> admin
+  tools/New-TenantDb.ps1         yangi baza: CREATE -> baseline -> migratsiya -> seed -> SETUP_MODULES -> (demo) -> profil -> admin
   tools/Export-ReferenceSeed.ps1 seed'ni etalon bazadan qayta generatsiya
   tools/Export-Baseline.ps1      baseline'ni qayta generatsiya ("squash", kamdan-kam)
   tools/RegressionProbe/         hisobotlar oldin/keyin solishtiruvi (Run-RegressionProbe.ps1) va barcha view'lar
@@ -83,6 +84,9 @@ shu ro'yxatga + uni ishlatadigan servisga; mavjud bazalarni to'ldirish kerak bo'
 # yangi korxona (bo'sh SQL instance yetarli)
 .\Database\tools\New-TenantDb.ps1 -Server localhost -DbName DB_firma1 -CompanyName '"Firma 1" MChJ'
 
+# faqat tanlangan modullar uchun (sinov): sozlamalar + shu modullarning namuna ma'lumoti
+.\Database\tools\New-TenantDb.ps1 -Server localhost -DbName DB_firma2 -Modules Srm,Crm,Tasks,Finance -Demo
+
 # bitta bazani yangilash (avval reja)
 .\Database\tools\Invoke-DbMigrations.ps1 -Server localhost -Database DB_firma1 -DryRun
 .\Database\tools\Invoke-DbMigrations.ps1 -Server localhost -Database DB_firma1
@@ -106,17 +110,73 @@ Bir bazada bir vaqtda faqat bitta runner (`sp_getapplock`).
 
 ## Demo ma'lumot (`Demo/`)
 
-Uydirma "Demo Plast" MChJ (plastik idishlar): 24 mahsulot (12 xomashyo + 12 tayyor, BOM/norma), 5 mijoz,
-5 ta'minotchi, ~3 oylik xarid -> ombor -> ishlab chiqarish (DLOC/FIFO lotlar) -> sotuv (QQS 12%) -> to'lovlar,
-ustav kapitali, 9 xodim va o'tgan oyning tasdiqlangan oyligi. Kirish: `demo` / `demo2026` (Admin roli).
+Uydirma "Demo Plast" MChJ (plastik idishlar): 24 mahsulot (12 xomashyo + 12 tayyor), ~3 oylik bitta hujjat ssenariysi.
+Kirish: `demo` / `demo2026` (Admin roli; sinov tenantida agent uni o'chirib qo'yadi).
 
-- `200_Demo_Master.sql` — foydalanuvchi, ombor turlari/joylari, mahsulot, BOM/norma, kontragentlar, kurslar, hisoblar.
-- `210_Demo_Operations.sql` — SRM, ombor, MES, CRM hujjatlari; `PRODUCT_STOCKS` harakatlardan, manfiy qoldiq bo'lsa THROW.
-- `220_Demo_Finance_HR.sql` — FIN_TRANSACTIONS (FinancePostingService ko'zgu yozuvlari + to'lovlar), HR.
+**Modul bo'yicha.** Fayl nomi `NNN_<Modul>_*.sql` (`Modul` = `EditionModules.ProductModule` nomi yoki `Core`). Har modul fayli
+boshida `dbo.fn_SetupHasModule('<Modul>') = 0` bo'lsa o'zini o'tkazib yuboradi — `dbo.SETUP_MODULES` (032) ni
+`New-TenantDb.ps1 -Modules` to'ldiradi, bo'sh jadval = hamma modul (demo shabloni, eski bazalar). Shuning uchun New-TenantDb
+hamma faylni beradi, qaysi biri ishlashini baza hal qiladi (test: `TrialModulesUnitTests.ScriptModuleLists_MatchProductModule`).
+
+| Fayl | Modul | Nima |
+|---|---|---|
+| `200_Core_Master.sql` | Core (har doim) | demo foydalanuvchi, ombor turlari, kategoriyalar, 24 mahsulot, kurslar, kassa/bank; ssenariy `demo_tmp` sxemasiga (narxlar, BOM, ishlab chiqarish rejasi, sarf, o'tkazma, xarid, sotuvga tayyor miqdor) |
+| `205_Engineering_Bom.sql` | Engineering | norma, BOM, tannarx |
+| `210_Srm_Purchases.sql` | Srm | ta'minotchilar, shartnoma -> buyurtma -> invoys -> SUPPLY kirimi |
+| `220_Mes_Production.sql` | Mes | SUPPLY -> PRODUCTION o'tkazma (FIFO), DLOC lotlar, ishlab chiqarish, sifat, sotuv omboriga o'tkazma, reja. Srm bo'lmasa — xomashyo boshlang'ich qoldig'i |
+| `230_Crm_Sales.sql` | Crm | mijozlar, shartnoma -> buyurtma -> invoys -> sotuv chiqimi, ochiq buyurtmalar. Mes bo'lmasa — tayyor mahsulot boshlang'ich qoldig'i |
+| `240_Finance_Ledger.sql` | Finance | ustav kapitali, mavjud invoyslar ko'zgusi va to'lovlari, doimiy xarajatlar (tashuv — Logistika bo'lmasa) |
+| `250_Hr_Payroll.sql` | Hr | tuzilma, 9 xodim, tabel, oylik (to'lovi — Finance bo'lsa) |
+| `260_Tasks_Projects.sql` | Tasks | 3 loyiha, 12 topshiriq |
+| `270_Logistics_Waybills.sql` | Logistics | ekspeditor, shartnoma/tarif, yo'l varaqalari (mavjud xarid/sotuv invoyslariga), to'lovlar |
+| `280_Docs_Letters.sql` | Docs | rasmiy xatlar (kiruvchi/chiquvchi), buyruqlar |
+| `290_Distribution_Orders.sql` | Distribution | hududlar, savdo nuqtalari, agentlar (parolsiz), narxlar, 14 buyurtma (barcha holatlar), jo'natish, qarz daftari, to'lovlar |
+| `295_Website_Catalog.sql` | Website | sayt sozlamalari, 6 mahsulot, 3 sahifa, 4 so'rov |
+| `299_Core_Finish.sql` | Core (har doim) | `PRODUCT_STOCKS` barcha harakatlardan (manfiy qoldiq — THROW), `demo_tmp` o'chiriladi |
 
 Hujjatlar ilova servislari yozadigan shaklda (raqam formatlari, statuslar, tavsiflar) — servis o'zgarsa demo ham
 yangilanadi. Sanalar `GETDATE()` ga nisbatan; har fayl bitta batch (GO yo'q) va ma'lumot bor bo'lsa o'zini
-o'tkazib yuboradi. Faqat yangi (bo'sh) bazaga mo'ljallangan.
+o'tkazib yuboradi. Runner hamma fayllarni bitta sessiyada bajaradi — har fayl oxirida o'z `#temp` jadvallarini o'chiradi.
+Faqat yangi (bo'sh) bazaga mo'ljallangan. Yangi modul demo fayli: `NNN_<Modul>_*.sql`, boshida `fn_SetupHasModule` tekshiruvi,
+miqdorlar kerak bo'lsa `demo_tmp` dan.
+
+## Modul profili (`Setup/300_ModuleProfile.sql`)
+
+Demo'dan keyin, har yangi bazada (namuna ma'lumotsiz ham) ishlaydi. Tanlanmagan modul ombori (harakatsiz bo'lsa) o'chirib qo'yiladi;
+Distributsiya — sotuv ombori savdo nuqtasi; mahsulot yo'q bazada modulga mos boshlang'ich kategoriyalar. Valyuta, o'lchov birligi,
+ТНВЭД, moliya kategoriyalari va boshqa spravochniklar Core — hammaga to'liq (keyin paket kengaysa qayta seed kerak emas).
+Controller -> modul xaritasi `EditionModules` bilan bir xil bo'lishi shart (`TrialModulesUnitTests.ModuleProfileSql_ControllerMap_MatchesEditionModules`).
+
+### Rollar va ruxsatlar
+
+Har tanlangan modulga bitta rol; ruxsatlar skriptdagi `#matrix` jadvalidan (shu jadval bilan bir xil). **C** — ko'rish + yaratish/
+tahrirlash (`ViewPermit = 1, ChangePermit = 1`), **V** — faqat ko'rish (`ViewPermit = 1, ChangePermit = 0`). O'chirish
+(`DeletePermit`) hech bir modul roliga berilmaydi — faqat Admin. Qator faqat rol moduli **va** maqsad moduli tanlangan bo'lsa
+qo'llanadi (masalan Logistika tanlanmagan bo'lsa Sotuv menejeri yo'l varaqalarini ko'rmaydi). Admin/Developer — to'liq (110_Defaults).
+Matritsadagi controller ko'rsatilgan modulga tegishliligi testda tekshiriladi (`ModuleProfileSql_PermissionMatrix_ControllersBelongToTargetModule`).
+
+| Rol (modul) | C — o'z ishi | V — faqat ko'rish |
+|---|---|---|
+| hamma modul rollari | Topshiriqlar: `Tasks`, `TaskKanban`, `TaskChangeStatus` | bosh sahifa, mahsulot, kategoriya, o'lchov birligi, valyuta, ombor, korxona, qoldiqlar; `TaskDashboard`, topshiriq loyihasi/holati/muhimligi |
+| Ta'minot menejeri (Srm) | butun SRM (xarid, ta'minotchi, kirim/chiqim, inventarizatsiya, ombor hisobotlari); mahsulot, kategoriya | ishlab chiqarish rejasi, yo'l varaqalari, moliya tranzaksiyalari |
+| Sotuv menejeri (Crm) | butun CRM (mijoz, shartnoma, buyurtma, invoys, SF, TTN) | ombor hisobotlari, ishlab chiqarish rejasi, yo'l varaqalari, moliya tranzaksiyalari |
+| Ishlab chiqarish ustasi (Mes) | butun MES; ishlab chiqarishdan sotuvga o'tkazma | BOM/norma/tannarx, kirim/chiqim, ombor hisobotlari |
+| Texnolog (Engineering) | BOM, norma, tannarx; mahsulot, kategoriya | butun MES |
+| Hisobchi (Finance) | butun Moliya; valyuta | xarid invoys/shartnoma, sotuv invoys/shartnoma, oylik, yo'l varaqasi to'lovi va shartnomasi, distributsiya to'lovlari va qarzlari |
+| Kadrlar mutaxassisi (Hr) | butun HR | buyruqlar, lavozim yo'riqnomalari |
+| Logist (Logistics) | butun Logistika | xarid buyurtma/invoys, sotuv buyurtma/invoys, distributsiya reyslari |
+| Devonxona mudiri (Docs) | rasmiy xat, buyruq, standart, yo'riqnoma | xodimlar, bo'linmalar, lavozimlar |
+| Distributsiya menejeri | butun Distributsiya (maxsus `Dst` huquqlari — tannarx, kredit limitidan o'tish, cheksiz chegirma — Admin'da); mahsulot | moliya tranzaksiyalari, sayt so'rovlari |
+| Sayt menejeri (Website) | butun Sayt-katalog | distributsiya narx va qoldiqlari, mijozlar |
+
+## Bosh sahifa va dashboardlar (ERP)
+
+`HomeController` / `Views/Home/Index.cshtml` bo'limlari kalitdagi paket (sinovda tanlangan modullar) **va** foydalanuvchi roli
+bo'yicha (`HomeSections`, `RoleHelper.IsViewPermitted` — menyu bilan bir xil qoida): sotuv KPI/grafik — CRM, ishlab chiqarish — MES,
+topshiriqlar — Tasks, xomashyo qoplash kunlari — ombor hisobotlari yoki MES. Server ham faqat shu bo'limlarni hisoblaydi va
+signallar (insights) faqat ko'rsatilgan bo'limlar bo'yicha chiqadi. Yuqorida ochiq modul dashboardlariga tezkor plitkalar
+(SRM, CRM, Topshiriqlar, MES, Tannarx, Moliya, HR, Logistika, Hujjatlar, Distributsiya, Sayt); umumiy KPI bo'limi bo'lmasa
+(masalan faqat HR + Hujjatlar) — faqat plitkalar va izoh.
 
 ## Baseline va seed'ni qayta generatsiya qilish
 

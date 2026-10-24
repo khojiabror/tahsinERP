@@ -66,8 +66,8 @@ public sealed class TractionService(ControlDbContext db, Clock clock, Provisioni
             .Where(s => s.Status == SubscriptionStatus.Active && !SubscriptionService.IsAddOn(s))
             .OrderByDescending(s => s.Period != BillingPeriod.Trial).ThenByDescending(s => s.EndDate).FirstOrDefault();
         List<Subscription> AddOns(int tid) => subsByTenant.GetValueOrDefault(tid)?.Where(s => LicenseIssuer.AddOnCovers(s, today)).ToList() ?? [];
-        // Kalitdagi kabi Edition: paket kodi + faol xizmatlar ("KORP+SITE"). Paket yo'q — null (cheklovsiz deb hisoblanadi).
-        string? Edition(int tid) => Current(tid)?.Plan?.Code is { } code ? LicenseIssuer.ComposeEdition(code, AddOns(tid).Select(a => a.Plan!.Code)) : null;
+        // Kalitdagi kabi Edition: paket kodi (+ sinovda tanlangan modullar) + faol xizmatlar ("KORP+SITE", "TRIAL:Srm,Crm"). Paket yo'q — null (cheklovsiz).
+        string? Edition(int tid) => Current(tid) is { Plan.Code: { } code } cur ? LicenseIssuer.ComposeEdition(code, AddOns(tid).Select(a => a.Plan!.Code), cur.Modules) : null;
         bool Matches(int tid, string plan) => EditionModules.AddOnsOf("X+" + plan).Count > 0
             ? AddOns(tid).Any(a => string.Equals(a.Plan!.Code, plan, StringComparison.OrdinalIgnoreCase))
             : string.Equals(Current(tid)?.Plan?.Code, plan, StringComparison.OrdinalIgnoreCase);

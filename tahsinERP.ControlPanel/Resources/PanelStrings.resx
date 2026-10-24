@@ -2279,7 +2279,7 @@ Birinchi kirishda parolni almashtirish so'raladi.</value>
     <value>SaaS manzili:</value>
   </data>
   <data name="Pnl_Ten_SampleData" xml:space="preserve">
-    <value>Namuna ma'lumotlar bilan (mahsulotlar, kontragentlar, ~3 oylik xarid/ishlab chiqarish/sotuv, xodimlar)</value>
+    <value>Namuna ma'lumotlar bilan (faqat belgilangan modullar: mahsulotlar, kontragentlar, ~3 oylik hujjatlar, xodimlar...)</value>
   </data>
   <data name="Pnl_Ten_SampleHint" xml:space="preserve">
     <value>Belgilanmasa — bo'sh baza (faqat spravochniklar). Namuna bazada demo foydalanuvchi o'chirib qo'yiladi, kirish faqat admin orqali.</value>
@@ -2345,7 +2345,7 @@ Birinchi kirishda parolni almashtirish so'raladi.</value>
     <value>Sinov yakunlanmoqda: kirish yopildi, baza o'chiriladi (oldin .bak arxiv). Job #{0}.</value>
   </data>
   <data name="Pnl_Ten_TrialInfo" xml:space="preserve">
-    <value>TRIAL: Korporativ modullari, 5 foydalanuvchi, 14 kun. Tugagach tenant to'xtatiladi (tenants.json enabled=false).</value>
+    <value>TRIAL: belgilangan modullar, 5 foydalanuvchi, 14 kun. Tugagach tenant to'xtatiladi (tenants.json enabled=false).</value>
   </data>
   <data name="Pnl_Ten_TrialOpened" xml:space="preserve">
     <value>«{0}» uchun sinov ochildi — baza yaratish navbatga qo'yildi</value>
@@ -3809,5 +3809,53 @@ Siz so'ramagan bo'lsangiz — bu xatga e'tibor bermang, parolingiz o'zgarmaydi.<
   </data>
   <data name="Pnl_NavDevelopers" xml:space="preserve">
     <value>ERP dasturchilar</value>
+  </data>
+  <data name="Pnl_Ten_TrialModules" xml:space="preserve">
+    <value>Sinovda ochiladigan modullar</value>
+  </data>
+  <data name="Pnl_Ten_TrialModulesHint" xml:space="preserve">
+    <value>Kalit faqat shu modullarni ochadi; bazaga faqat shularning rollari, omborlari va (belgilansa) namuna ma'lumotlari yoziladi. Ishlab chiqarish tanlansa Muhandislik (BOM/norma) ham qo'shiladi.</value>
+  </data>
+  <data name="Pnl_Ten_ModulesRequired" xml:space="preserve">
+    <value>Kamida bitta modulni belgilang.</value>
+  </data>
+  <data name="Pnl_Ten_SetupModules" xml:space="preserve">
+    <value>Modullar (baza sozlamasi)</value>
+  </data>
+  <data name="Pnl_Ten_WithSample" xml:space="preserve">
+    <value>namuna ma'lumotlar bilan</value>
+  </data>
+  <data name="Pnl_Module_Srm" xml:space="preserve">
+    <value>Ta'minot (xarid va ombor)</value>
+  </data>
+  <data name="Pnl_Module_Crm" xml:space="preserve">
+    <value>Sotuvlar (CRM)</value>
+  </data>
+  <data name="Pnl_Module_Tasks" xml:space="preserve">
+    <value>Topshiriqlar</value>
+  </data>
+  <data name="Pnl_Module_Mes" xml:space="preserve">
+    <value>Ishlab chiqarish (MES)</value>
+  </data>
+  <data name="Pnl_Module_Engineering" xml:space="preserve">
+    <value>Muhandislik (BOM, norma, tannarx)</value>
+  </data>
+  <data name="Pnl_Module_Finance" xml:space="preserve">
+    <value>Moliya</value>
+  </data>
+  <data name="Pnl_Module_Hr" xml:space="preserve">
+    <value>Kadrlar (HR)</value>
+  </data>
+  <data name="Pnl_Module_Logistics" xml:space="preserve">
+    <value>Logistika</value>
+  </data>
+  <data name="Pnl_Module_Docs" xml:space="preserve">
+    <value>Rasmiy hujjatlar</value>
+  </data>
+  <data name="Pnl_Module_Distribution" xml:space="preserve">
+    <value>Distributsiya</value>
+  </data>
+  <data name="Pnl_Module_Website" xml:space="preserve">
+    <value>Sayt-katalog (+SITE)</value>
   </data>
 </root>

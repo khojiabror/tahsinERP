@@ -132,6 +132,8 @@ public sealed class ProvisioningService(ControlDbContext db, AuditLogger audit, 
             Slug = t.Slug, DbName = t.DbName!, CompanyId = t.CompanyId, CompanyName = t.LegalName,
             AdminLogin = O.DefaultAdminLogin, AdminFullName = "Administrator", AdminEmail = t.Email,
             Demo = IsDemo(t), SampleData = t.SampleData, Backup = backup, Reason = reason?.Trim(),
+            // Create: faqat tanlangan modullar sozlamasi va namuna ma'lumoti (demo tenant — hammasi)
+            Modules = type == ProvisioningJobType.Create && !IsDemo(t) ? Licensing.LicenseIssuer.ParseModules(t.Modules)?.Select(m => m.ToString()).ToList() : null,
         };
         var job = new ProvisioningJob
         {
