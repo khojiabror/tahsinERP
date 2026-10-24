@@ -99,7 +99,7 @@
     </div>
 
 @section Scripts {
-    <script src="~/Scripts/srm/srm-server-table.js"></script>
+    <script src="@tahsinERP.Helpers.AssetVersion.Url("~/Scripts/srm/srm-server-table.js")"></script>
     <script>
         $(document).ready(function () {
             var detailsUrl = '@Url.Action("Details", "POrders")/';

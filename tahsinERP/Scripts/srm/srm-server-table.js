@@ -57,7 +57,13 @@
             ajax: {
                 url: options.dataUrl,
                 type: 'GET',
-                data: function (d) { $.extend(d, filterParams()); },
+                // Server faqat draw/start/length/search/order[0] ni o'qiydi (DataTablesPageRequest). DataTables'ning
+                // to'liq so'rovi (columns[i][...]) 9+ ustunda IIS query string chegarasidan (2048) oshib 404 berardi.
+                data: function (d) {
+                    var p = { draw: d.draw, start: d.start, length: d.length, 'search[value]': d.search ? d.search.value : '' };
+                    if (d.order && d.order.length) { p['order[0][column]'] = d.order[0].column; p['order[0][dir]'] = d.order[0].dir; }
+                    return $.extend(p, filterParams());
+                },
                 error: function (xhr) {
                     var msg = xhr.status === 403
                         ? (window.erpT ? erpT('Js_Srm_NoAccess') : "Ruxsat yo'q.")
