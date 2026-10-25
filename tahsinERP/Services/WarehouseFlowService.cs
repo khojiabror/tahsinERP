@@ -167,11 +167,14 @@ namespace tahsinERP.Services
         }
 
         /// <summary>
-        /// Qo'lda yangi kirim yaratish mumkinligi (faqat xomashyo ombori — invoys bilan).
+        /// Qo'lda yangi kirim yaratish mumkinligi: xomashyo va savdo ombori (yetkazib beruvchidan, invoys bilan).
+        /// Savdo ombori — faqat CRM/Distributsiya bilan ishlaydigan firmada tovar to'g'ridan-to'g'ri shu omborga keladi.
+        /// Ishlab chiqarish omboriga kirim faqat chiqimdan (avtomatik) tushadi.
         /// </summary>
         public static bool CanCreateManualIncome(DBTHSNEntities db, int receivingWhId)
         {
-            return WarehouseRoles.GetType(db, receivingWhId) == WarehouseRoles.Supply;
+            var type = WarehouseRoles.GetType(db, receivingWhId);
+            return type == WarehouseRoles.Supply || type == WarehouseRoles.Sales;
         }
 
         /// <summary>
@@ -184,9 +187,9 @@ namespace tahsinERP.Services
                 return L.T("Wh_WarehouseNotFoundDot");
             }
 
-            if (WarehouseRoles.IsProductionOrSales(WarehouseRoles.GetType(db, receivingWhId)))
+            if (!CanCreateManualIncome(db, receivingWhId))
             {
-                return L.T("Wh_Err_ManualIncomeProdSales");
+                return L.T("Wh_Err_ManualIncomeProd");
             }
 
             return null;
@@ -207,12 +210,11 @@ namespace tahsinERP.Services
                 return L.T("Wh_WarehouseNotFoundDot");
             }
 
-            if (WarehouseRoles.IsProductionOrSales(WarehouseRoles.GetType(db, income.ReceivingWHID)))
+            // Savdo omboriga qo'lda kirim ham bor — faqat ishlab chiqarish ombori chiqimdan kelganini qabul qiladi
+            if (WarehouseRoles.GetType(db, income.ReceivingWHID) == WarehouseRoles.Production
+                && !IsAutoLinkedTransferIncome(income))
             {
-                if (!IsAutoLinkedTransferIncome(income))
-                {
-                    return L.T("Wh_Err_OnlyAutoIncomeReceive");
-                }
+                return L.T("Wh_Err_OnlyAutoIncomeReceive");
             }
 
             return null;
@@ -233,7 +235,10 @@ namespace tahsinERP.Services
                 return L.T("Wh_WarehouseNotFoundDot");
             }
 
-            if (WarehouseRoles.IsProductionOrSales(WarehouseRoles.GetType(db, income.ReceivingWHID)))
+            // Savdo omboridagi qo'lda kirim tahrirlanadi; chiqimdan avtomatik yaratilgani — yo'q
+            var type = WarehouseRoles.GetType(db, income.ReceivingWHID);
+            if (type == WarehouseRoles.Production
+                || (type == WarehouseRoles.Sales && IsAutoLinkedTransferIncome(income)))
             {
                 return L.T("Wh_Err_ManualEditProdSales");
             }

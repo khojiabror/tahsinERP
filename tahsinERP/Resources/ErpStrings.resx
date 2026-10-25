@@ -4591,7 +4591,7 @@
     <value>Sizga biriktirilgan ombor mavjud emas</value>
   </data>
   <data name="Wh_Inc_ManualCreateNotAllowed" xml:space="preserve">
-    <value>Ushbu omborga qo'lda kirim yaratish mumkin emas. Kutilayotgan kirimlarni ro'yxatdan tanlab qabul qiling.</value>
+    <value>Qo'lda kirim faqat xomashyo yoki savdo omboriga qilinadi — siz ulardan biriga mas'ul (MRP) bo'lishingiz kerak. Kutilayotgan kirimlarni ro'yxatdan tanlab qabul qiling.</value>
   </data>
   <data name="Wh_DlocDisabled" xml:space="preserve">
     <value>DLOC moduli yoqilmagan</value>
@@ -4924,7 +4924,7 @@
     <value>Ushbu omborga faqat chiqimdan avtomatik yaratilgan kirimni qabul qilish mumkin.</value>
   </data>
   <data name="Wh_Err_ManualEditProdSales" xml:space="preserve">
-    <value>Ishlab chiqarish va Savdo omborlaridagi kirimlarni qo'lda tahrirlash mumkin emas.</value>
+    <value>Ishlab chiqarish omboridagi kirimlarni va chiqimdan avtomatik yaratilgan kirimlarni qo'lda tahrirlash mumkin emas.</value>
   </data>
   <data name="Wh_Err_ProductNotFoundId" xml:space="preserve">
     <value>Mahsulot topilmadi: {0}</value>
@@ -14285,5 +14285,8 @@
   </data>
   <data name="Menu_DstSystem" xml:space="preserve">
     <value>Sozlash</value>
+  </data>
+  <data name="Wh_Err_ManualIncomeProd" xml:space="preserve">
+    <value>Ishlab chiqarish omboriga qo'lda kirim yaratish mumkin emas. Faqat chiqim hujjatidan avtomatik yaratilgan kirimni qabul qiling.</value>
   </data>
 </root>

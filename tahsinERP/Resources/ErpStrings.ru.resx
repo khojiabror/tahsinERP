@@ -4591,7 +4591,7 @@
     <value>За вами не закреплён склад</value>
   </data>
   <data name="Wh_Inc_ManualCreateNotAllowed" xml:space="preserve">
-    <value>Для этого склада нельзя создавать приход вручную. Выберите ожидаемые приходы в списке и примите их.</value>
+    <value>Ручной приход оформляется только на склад сырья или склад продаж — вы должны быть ответственным (MRP) за один из них. Выберите ожидаемые приходы в списке и примите их.</value>
   </data>
   <data name="Wh_DlocDisabled" xml:space="preserve">
     <value>Модуль DLOC не включён</value>
@@ -4924,7 +4924,7 @@
     <value>На этот склад можно принимать только приход, автоматически созданный из расхода.</value>
   </data>
   <data name="Wh_Err_ManualEditProdSales" xml:space="preserve">
-    <value>Приходы на производственном складе и складе продаж нельзя редактировать вручную.</value>
+    <value>Приходы на производственном складе и приходы, автоматически созданные из расхода, нельзя редактировать вручную.</value>
   </data>
   <data name="Wh_Err_ProductNotFoundId" xml:space="preserve">
     <value>Продукт не найден: {0}</value>
@@ -14285,5 +14285,8 @@
   </data>
   <data name="Menu_DstSystem" xml:space="preserve">
     <value>Настройка</value>
+  </data>
+  <data name="Wh_Err_ManualIncomeProd" xml:space="preserve">
+    <value>Нельзя вручную создавать приход на производственный склад. Принимайте только приход, автоматически созданный из расходного документа.</value>
   </data>
 </root>
