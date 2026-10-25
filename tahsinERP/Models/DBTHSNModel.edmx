@@ -1979,6 +1979,7 @@
           <Property Name="ShopID" Type="int" />
           <Property Name="Account" Type="int" />
           <Property Name="WarehouseType" Type="varchar" MaxLength="20" />
+          <Property Name="AllowManualIncome" Type="bit" />
         </EntityType>
         <EntityType Name="WASTE_STOCKS">
           <Key>
@@ -8779,6 +8780,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_FACT_MONTHLY' does not h
           <Property Name="ShopID" Type="Int32" />
           <Property Name="Account" Type="Int32" />
           <Property Name="WarehouseType" Type="String" MaxLength="20" FixedLength="false" Unicode="false" />
+          <Property Name="AllowManualIncome" Type="Boolean" />
           <NavigationProperty Name="EXPENSES" Relationship="Self.FK_PROD_WRHS_EXPENSES_PROD_WRHS" FromRole="WAREHOUSES" ToRole="EXPENSES" />
           <NavigationProperty Name="EXPENSES1" Relationship="Self.FK_PROD_WRHS_EXPENSES_PROD_WRHS2" FromRole="WAREHOUSES" ToRole="EXPENSES" />
           <NavigationProperty Name="INCOMES" Relationship="Self.FK_PROD_WRHS_INCOMES_PROD_WRHS" FromRole="WAREHOUSES" ToRole="INCOMES" />
@@ -15260,6 +15262,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_FACT_MONTHLY' does not h
                 <ScalarProperty Name="ShopID" ColumnName="ShopID" />
                 <ScalarProperty Name="Account" ColumnName="Account" />
                 <ScalarProperty Name="WarehouseType" ColumnName="WarehouseType" />
+                <ScalarProperty Name="AllowManualIncome" ColumnName="AllowManualIncome" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>

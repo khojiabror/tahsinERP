@@ -264,7 +264,7 @@ namespace tahsinERP.Controllers.SRM
         }
 
         // Olish so'rovi: Incomes/yaratish
-        public async Task<ActionResult> Create()
+        public async Task<ActionResult> Create(int? warehouseId)
         {
             if (IsIncomesReadOnlyUser())
             {
@@ -279,26 +279,31 @@ namespace tahsinERP.Controllers.SRM
 
             using (var db = new DBTHSNEntities())
             {
-                var assignedWarehouseId = await GetAssignedWarehouseIdAsync(db);
-                if (!assignedWarehouseId.HasValue)
+                var assignedWarehouseIds = await GetAssignedWarehouseIdsAsync(db);
+                if (assignedWarehouseIds.Count == 0)
                 {
                     ViewBag.NoWarehouseError = L.T("Wh_NoAssignedWarehouse");
                     return View();
                 }
 
-                if (!WarehouseFlowService.CanCreateManualIncome(db, assignedWarehouseId.Value))
+                // Mas'ul omborlardan qo'lda kirim mumkin bo'lganlari (xomashyo/savdo); avval faqat birinchi ombor olinardi —
+                // u savdo/ishlab chiqarish bo'lsa, xomashyo omboriga ham mas'ul omborchi kirim qila olmasdi
+                var manualWarehouseIds = ManualIncomeWarehouseIds(db, assignedWarehouseIds);
+                if (manualWarehouseIds.Count == 0)
                 {
-                    TempData["Error"] = WarehouseFlowService.ValidateManualIncomeCreate(db, assignedWarehouseId.Value, null)
-                        ?? L.T("Wh_Inc_ManualCreateNotAllowed");
+                    TempData["Error"] = L.T("Wh_Inc_ManualCreateNotAllowed");
                     return RedirectToAction("Index");
                 }
 
+                var receivingWhId = warehouseId.HasValue && manualWarehouseIds.Contains(warehouseId.Value)
+                    ? warehouseId.Value : manualWarehouseIds[0];
+
                 await PopulateInvoiceSelectListAsync(db, requireInvoice: false);
 
-                PopulateHeaderLookups(new[] { assignedWarehouseId.Value }, null, null);
+                PopulateHeaderLookups(manualWarehouseIds, receivingWhId, null);
                 await PopulateLineLookupsAsync(db);
-                PopulateCreateDlocViewBag(db, assignedWarehouseId.Value);
-                return View();
+                PopulateCreateDlocViewBag(db, receivingWhId);
+                return View(new ViewModels.IncomeCreateViewModel { ReceivingWHID = receivingWhId });
             }
         }
 
@@ -451,14 +456,14 @@ namespace tahsinERP.Controllers.SRM
                     {
                         try
                         {
-                            var assignedWarehouseId = await GetAssignedWarehouseIdAsync(db);
-                            if (!assignedWarehouseId.HasValue)
+                            var assignedWarehouseIds = await GetAssignedWarehouseIdsAsync(db);
+                            if (assignedWarehouseIds.Count == 0)
                             {
                                 TempData["Error"] = L.T("Wh_NoAssignedWarehouse");
                                 return RedirectToAction("Index");
                             }
 
-                            if (model.ReceivingWHID != assignedWarehouseId.Value)
+                            if (!assignedWarehouseIds.Contains(model.ReceivingWHID))
                             {
                                 TempData["Error"] = L.T("Wh_Inc_OnlyAssignedWarehouse");
                                 return RedirectToAction("Index");
@@ -578,14 +583,13 @@ namespace tahsinERP.Controllers.SRM
                 }
 
                 // Xato bilan qaytishda forma to'liq qayta to'ldiriladi (SRM-B24: avval Units/Products yo'q edi)
-                var viewWarehouseId = await GetAssignedWarehouseIdAsync(db);
+                var viewWarehouseIds = ManualIncomeWarehouseIds(db, await GetAssignedWarehouseIdsAsync(db));
                 await PopulateInvoiceSelectListAsync(db, requireInvoice: false, selectedInvoiceId: model.InvoiceID);
-                PopulateHeaderLookups(viewWarehouseId.HasValue ? new[] { viewWarehouseId.Value } : null,
-                    model.ReceivingWHID, model.CurrencyID);
+                PopulateHeaderLookups(viewWarehouseIds, model.ReceivingWHID, model.CurrencyID);
                 await PopulateLineLookupsAsync(db);
 
-                if (viewWarehouseId.HasValue)
-                    PopulateCreateDlocViewBag(db, viewWarehouseId.Value);
+                if (viewWarehouseIds.Count > 0)
+                    PopulateCreateDlocViewBag(db, viewWarehouseIds.Contains(model.ReceivingWHID) ? model.ReceivingWHID : viewWarehouseIds[0]);
             }
 
             return View(model);
@@ -1504,16 +1508,15 @@ namespace tahsinERP.Controllers.SRM
             ViewBag.DlocLocationsJson = "[]";
         }
 
-        /// <summary>Foydalanuvchiga biriktirilgan birinchi ombor; biriktirilmagan bo'lsa null (SRM-B16).</summary>
-        private async Task<int?> GetAssignedWarehouseIdAsync(DBTHSNEntities db)
-        {
-            var ids = await GetAssignedWarehouseIdsAsync(db);
-            return ids.Count == 0 ? (int?)null : ids[0];
-        }
-
         private Task<List<int>> GetAssignedWarehouseIdsAsync(DBTHSNEntities db)
         {
             return WarehouseAccess.AssignedWarehouseIdsAsync(db, User.Identity.Name);
+        }
+
+        /// <summary>Biriktirilgan omborlardan qo'lda kirim yaratish mumkin bo'lganlari (xomashyo/savdo).</summary>
+        private static List<int> ManualIncomeWarehouseIds(DBTHSNEntities db, IEnumerable<int> assignedWarehouseIds)
+        {
+            return assignedWarehouseIds.Where(wid => WarehouseFlowService.CanCreateManualIncome(db, wid)).ToList();
         }
     }
 

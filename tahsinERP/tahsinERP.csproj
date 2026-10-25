@@ -3405,6 +3405,7 @@
     <Content Include="Views\Inventory\Index.cshtml" />
     <Content Include="Views\Inventory\IndexDloc.cshtml" />
     <Content Include="Views\Inventory\AssignDloc.cshtml" />
+    <Content Include="Views\Warehouse\_ManualIncomeField.cshtml" />
     <Content Include="Views\WarehouseLocations\Index.cshtml" />
     <Content Include="Views\WarehouseLocations\Create.cshtml" />
     <Content Include="Views\WarehouseLocations\Edit.cshtml" />

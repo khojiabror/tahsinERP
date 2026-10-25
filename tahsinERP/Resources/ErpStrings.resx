@@ -4591,7 +4591,7 @@
     <value>Sizga biriktirilgan ombor mavjud emas</value>
   </data>
   <data name="Wh_Inc_ManualCreateNotAllowed" xml:space="preserve">
-    <value>Ushbu omborga qo'lda kirim yaratish mumkin emas. Kutilayotgan kirimlarni ro'yxatdan tanlab qabul qiling.</value>
+    <value>Siz mas'ul bo'lgan omborlarda qo'lda kirim yoqilmagan (Sozlamalar → Omborlar → 'Qo'lda kirim'). Kutilayotgan kirimlarni ro'yxatdan tanlab qabul qiling.</value>
   </data>
   <data name="Wh_DlocDisabled" xml:space="preserve">
     <value>DLOC moduli yoqilmagan</value>
@@ -4924,7 +4924,7 @@
     <value>Ushbu omborga faqat chiqimdan avtomatik yaratilgan kirimni qabul qilish mumkin.</value>
   </data>
   <data name="Wh_Err_ManualEditProdSales" xml:space="preserve">
-    <value>Ishlab chiqarish va Savdo omborlaridagi kirimlarni qo'lda tahrirlash mumkin emas.</value>
+    <value>Chiqimdan avtomatik yaratilgan kirimni va qo'lda kirim yoqilmagan ombordagi kirimni qo'lda tahrirlash mumkin emas.</value>
   </data>
   <data name="Wh_Err_ProductNotFoundId" xml:space="preserve">
     <value>Mahsulot topilmadi: {0}</value>
@@ -14285,5 +14285,23 @@
   </data>
   <data name="Menu_DstSystem" xml:space="preserve">
     <value>Sozlash</value>
+  </data>
+  <data name="Wh_Err_ManualIncomeDisabled" xml:space="preserve">
+    <value>Bu omborga qo'lda kirim yoqilmagan (Sozlamalar → Omborlar → 'Qo'lda kirim'). Faqat chiqim hujjatidan avtomatik yaratilgan kirimni qabul qiling.</value>
+  </data>
+  <data name="Wh_AllowManualIncome" xml:space="preserve">
+    <value>Qo'lda kirim (yetkazib beruvchidan)</value>
+  </data>
+  <data name="Wh_AllowManualIncomeHint" xml:space="preserve">
+    <value>Standart: xomashyo ombori — ha; savdo ombori — paketda ishlab chiqarish bo'lmasa ha; ishlab chiqarish ombori — yo'q (tovar faqat chiqim/ko'chirish orqali keladi).</value>
+  </data>
+  <data name="Wh_ManualIncomeDefaultOpt" xml:space="preserve">
+    <value>Standart (ombor turi bo'yicha)</value>
+  </data>
+  <data name="Wh_ManualIncomeOn" xml:space="preserve">
+    <value>Ha — omborchi o'zi kirim qiladi</value>
+  </data>
+  <data name="Wh_ManualIncomeOff" xml:space="preserve">
+    <value>Yo'q — faqat chiqim/ko'chirish orqali</value>
   </data>
 </root>

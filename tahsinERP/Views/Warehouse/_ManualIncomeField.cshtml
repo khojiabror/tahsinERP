@@ -1,0 +1,7 @@
+@model tahsinERP.Models.Warehouse
+@* Qo'lda (yetkazib beruvchidan) kirim: bo'sh — ombor turi bo'yicha standart; matni turga qarab skriptda yangilanadi *@
+<div class="form-group">
+    <label for="AllowManualIncome">@L.T("Wh_AllowManualIncome")</label>
+    @Html.DropDownListFor(model => model.AllowManualIncome, ViewBag.ManualIncomeOptions as SelectList, new { @class = "form-control" })
+    <small class="text-muted">@L.T("Wh_AllowManualIncomeHint")</small>
+</div>

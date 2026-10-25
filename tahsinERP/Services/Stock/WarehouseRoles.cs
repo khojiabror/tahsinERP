@@ -28,6 +28,7 @@ namespace tahsinERP.Services.Stock
             public int ID { get; set; }
             public string WarehouseType { get; set; }
             public int? ShopID { get; set; }
+            public bool? AllowManualIncome { get; set; }
         }
 
         private static readonly ConcurrentDictionary<string, List<Row>> _active =
@@ -50,7 +51,7 @@ namespace tahsinERP.Services.Stock
                 .AsNoTracking()
                 .Where(w => w.IsDeleted != true)
                 .OrderBy(w => w.ID)
-                .Select(w => new Row { ID = w.ID, WarehouseType = w.WarehouseType, ShopID = w.ShopID })
+                .Select(w => new Row { ID = w.ID, WarehouseType = w.WarehouseType, ShopID = w.ShopID, AllowManualIncome = w.AllowManualIncome })
                 .ToList();
             _active[key] = rows;
             return rows;
@@ -81,6 +82,12 @@ namespace tahsinERP.Services.Stock
         public static string GetType(DBTHSNEntities db, int warehouseId)
         {
             return Active(db).FirstOrDefault(r => r.ID == warehouseId)?.WarehouseType;
+        }
+
+        /// <summary>Omborda aniq tanlangan "qo'lda kirim" qiymati; null — standart (ombor turi bo'yicha) yoki ombor topilmadi.</summary>
+        public static bool? GetAllowManualIncome(DBTHSNEntities db, int warehouseId)
+        {
+            return Active(db).FirstOrDefault(r => r.ID == warehouseId)?.AllowManualIncome;
         }
 
         /// <summary>Ombor faolmi (o'chirilmagan).</summary>

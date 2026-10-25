@@ -91,6 +91,16 @@ namespace tahsinERP.Controllers.Settings
                 "ID", "FullName", warehouse?.MRP);
             ViewBag.WarehouseTypes = WarehouseRoles.SelectList(warehouse?.WarehouseType);
             ViewBag.ShowShop = tahsinERP.Services.Editions.EditionGate.IsControllerAllowed("ProductProduction");
+
+            // Qo'lda kirim: bo'sh — ombor turi bo'yicha standart (Ha/Yo'q turga qarab skriptda ko'rsatiladi)
+            ViewBag.ManualIncomeOptions = new SelectList(new[]
+            {
+                new SelectListItem { Value = "", Text = L.T("Wh_ManualIncomeDefaultOpt") },
+                new SelectListItem { Value = "True", Text = L.T("Wh_ManualIncomeOn") },
+                new SelectListItem { Value = "False", Text = L.T("Wh_ManualIncomeOff") }
+            }, "Value", "Text", warehouse?.AllowManualIncome?.ToString());
+            ViewBag.ManualIncomeDefaults = new[] { "", WarehouseRoles.Supply, WarehouseRoles.Production, WarehouseRoles.Sales }
+                .ToDictionary(t => t, t => WarehouseFlowService.DefaultAllowsManualIncome(t == "" ? null : t));
         }
 
         // POST so'rovi: Warehouse/yaratish
@@ -181,7 +191,7 @@ namespace tahsinERP.Controllers.Settings
         // POST so'rovi: Warehouse/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Edit([Bind(Include = "ID,WHName,Description,IsDeleted,MRP,ShopID,Account,WarehouseType")] Warehouse warehouse)
+        public async Task<ActionResult> Edit([Bind(Include = "ID,WHName,Description,IsDeleted,MRP,ShopID,Account,WarehouseType,AllowManualIncome")] Warehouse warehouse)
         {
             using (DBTHSNEntities db = new DBTHSNEntities())
             {
