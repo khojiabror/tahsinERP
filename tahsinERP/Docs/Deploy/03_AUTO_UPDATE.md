@@ -75,7 +75,7 @@ Updater (LocalSystem) ── tarmoqqa chiqmaydi, sir saqlamaydi
 2. Panel → **Yangilanishlar** (Owner). Relizlar 10 daqiqada o'zi tekshiriladi ("Relizlarni hozir tekshirish" — darhol).
    Har ilova uchun: o'rnatilgan / mavjud versiya, o'zgarishlar (shu ilovaga tegishli commit'lar). Kodi o'zgarmagan ilovaga yangilash taklif qilinmaydi.
 3. **O'rnatish** → tasdiq → job sahifasi (log jonli, 3 s'da yangilanadi). Panelning o'zini yangilashda sahifa 30–60 s ochilmaydi — keyin natija chiqadi.
-4. **Firmalar ERP'si — tavsiya etilgan tartib:** avval `demo` → tekshiring → `ipack` → qolganlar. Har firma: zaxira (fayllar + `.bak`),
+4. **Firmalar ERP'si — tavsiya etilgan tartib:** avval sinov tenanti (masalan `test`; umumiy `demo` 2026-10-26 da olib tashlandi — 05_PROVISIONING.md 6) → tekshiring → `ipack` → qolganlar. Har firma: zaxira (fayllar + `.bak`),
    pool to'xtaydi (1–3 daqiqa), migratsiya + seed shu firma bazasiga, `/health` (ilova + baza). Xato bo'lsa o'sha firma oldingi holatiga qaytadi,
    boshqa firmalarga ta'sir yo'q.
 5. **Rollback** — oxirgi zaxiraga (fayllar). Firma uchun "Bazani ham zaxiradan tiklash" belgisi — zaxiradan keyin kiritilgan ma'lumotlar

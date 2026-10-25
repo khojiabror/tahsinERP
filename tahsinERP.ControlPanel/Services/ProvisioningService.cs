@@ -13,8 +13,11 @@ public class ProvisioningOptions
 {
     /// <summary>Tenant URL'i: https://&lt;slug&gt;.&lt;BaseDomain&gt;. Domen hali tanlanmagan — sozlamada.</summary>
     public string BaseDomain { get; set; } = "";
-    /// <summary>Kechasi shablondan qayta tiklanadigan demo tenant slug'i.</summary>
-    public string DemoSlug { get; set; } = "demo";
+    /// <summary>
+    /// Kechasi shablondan qayta tiklanadigan umumiy demo tenant slug'i. Bo'sh (standart, 2026-10-26 dan) — demo yo'q: hech bir
+    /// tenant demo hisoblanmaydi, Reset rad etiladi. Agent Demo:Slug bilan bir xil bo'lishi kerak.
+    /// </summary>
+    public string DemoSlug { get; set; } = "";
     /// <summary>Agent job'ni shuncha daqiqa band qiladi (uzun amallarda /extend bilan uzaytiradi).</summary>
     public int LeaseMinutes { get; set; } = 30;
     public int MaxAttempts { get; set; } = 5;
@@ -39,7 +42,7 @@ public sealed class ProvisioningService(ControlDbContext db, AuditLogger audit, 
 
     public string? TenantUrl(Tenant t) => string.IsNullOrWhiteSpace(O.BaseDomain) ? null : $"https://{t.Slug}.{O.BaseDomain.Trim().TrimStart('.')}";
 
-    public bool IsDemo(Tenant t) => string.Equals(t.Slug, O.DemoSlug, StringComparison.OrdinalIgnoreCase);
+    public bool IsDemo(Tenant t) => !string.IsNullOrWhiteSpace(O.DemoSlug) && string.Equals(t.Slug, O.DemoSlug, StringComparison.OrdinalIgnoreCase);
 
     /// <summary>12 belgili vaqtinchalik parol (o'xshash belgilarsiz) — New-TenantDb.ps1 bilan bir xil alifbo.</summary>
     public static string NewTempPassword()

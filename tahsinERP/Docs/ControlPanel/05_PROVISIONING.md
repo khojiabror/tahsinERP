@@ -115,7 +115,21 @@ demo skriptlari o'zgarganda).
   takroriy slug) yozishdan oldin tekshiriladi — buzilgan fayl yozilmaydi; mavjud fayl buzilgan bo'lsa job Failed (qo'lda tuzatiladi).
 - Testlarda ERP'ning haqiqiy `TenantRegistry.cs` fayli ulanib, agent yozgan fayl u bilan o'qiladi (`ProvisioningTests.cs`).
 
-## 6. Demo tenant
+## 6. Demo tenant (ixtiyoriy — 2026-10-26 dan o'chiq)
+
+**Holat.** Umumiy ko'rgazma `demo.tahsinerp.uz` olib tashlandi: saytda unga havola yo'q edi (landing «umumiy ko'rgazma emas, shaxsiy
+demo» deydi), sinov endi tanlangan modullar va ularning namuna ma'lumoti bilan ochiladi (11-bo'lim), demo esa serverda alohida
+`erp-demo` instance, baza va tungi tiklashni band qilib turardi. Standart sozlama: panel `Provisioning:DemoSlug = ""`, agent
+`Demo:Enabled = false`, `Demo:Slug = ""` — hech bir tenant demo hisoblanmaydi, Reset rejalashtirilmaydi. Kod qoldirildi; qayta yoqish —
+pastdagi sozlash va ikkala slug bir xil.
+
+Prod'dan olib tashlash tartibi:
+1. Panel → Tashkilotlar → `demo` → **Arxiv** (Owner, sabab) → job tugagach **O'chirish** (baza, arxiv, tenants.json yozuvi).
+2. RDP, Administrator PowerShell: `tools\deploy\Remove-ErpInstance.ps1 -Slug demo -Demo -RemoveFiles` — IIS `erp-demo` sayt/pool,
+   Updater `state.json` dagi instance, `C:\inetpub\erp\demo`, `DB_DEMO_TEMPLATE.bak`, agentdagi tungi tiklash.
+3. Relizlarni avval sinash uchun (03_AUTO_UPDATE.md 4-qadam) — oddiy sinov tenanti (masalan `test`).
+
+Yoqilgan bo'lsa (eski tavsif):
 
 - Panelda bir marta: SaaS tenant `demo` (yoki `Provisioning:DemoSlug`), uzoq muddatli obuna (masalan KORP, Owner qo'lda — Trial 14 kundan
   keyin to'xtatib qo'yadi) → «Bazani yaratish».

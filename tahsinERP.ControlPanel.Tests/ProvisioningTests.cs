@@ -97,11 +97,22 @@ public class AgentUnitTests : IDisposable
         Assert.Equal("parol=******** ok", ScriptRunner.Redact("parol=Sirli-123 ok", ["Sirli-123"]));
     }
 
+    /// <summary>Umumiy demo standart holatda o'chiq (2026-10-26): agent Reset rejalashtirmaydi, panel hech bir tenantni demo demaydi.</summary>
+    [Fact]
+    public void Demo_IsOffByDefault()
+    {
+        var clock = new TestClock(new DateTimeOffset(2026, 10, 18, 22, 30, 0, TimeSpan.Zero)); // Toshkent 03:30 — oyna ichida
+        var opts = new AgentOptions { Paths = { StateDir = _dir } };
+        Assert.False(opts.Demo.Enabled);
+        Assert.Null(new DemoScheduler(opts, clock, NullLogger<DemoScheduler>.Instance).DueKey());
+        Assert.Equal("", new tahsinERP.ControlPanel.Services.ProvisioningOptions().DemoSlug);
+    }
+
     [Fact]
     public void DemoScheduler_OnlyInWindow_OncePerDay()
     {
         var clock = new TestClock(new DateTimeOffset(2026, 10, 19, 5, 0, 0, TimeSpan.Zero)); // Toshkent 10:00
-        var opts = new AgentOptions { Paths = { StateDir = _dir } };
+        var opts = new AgentOptions { Paths = { StateDir = _dir }, Demo = { Enabled = true, Slug = "demo" } };
         var s = new DemoScheduler(opts, clock, NullLogger<DemoScheduler>.Instance);
         Assert.Null(s.DueKey());
         clock.SetUtcNow(new DateTimeOffset(2026, 10, 18, 22, 30, 0, TimeSpan.Zero)); // Toshkent 19.10 03:30
@@ -393,7 +404,7 @@ public partial class ProvisioningIntegrationTests(PanelFactory f) : IClassFixtur
                 DatabaseRoot = DatabaseRoot(), TenantsFile = Path.Combine(_work, "tenants.json"), BaseDomain = PanelFactory.BaseDomain,
                 BackupDir = Path.Combine(_work, "sql"), ArchiveDir = Path.Combine(_work, "archive"), StateDir = Path.Combine(_work, "state"),
             },
-            Demo = { Slug = PanelFactory.DemoSlug, UserLogin = "demo", UserPassword = "DemoParol-2026", TemplateBak = Path.Combine(_work, "sql", "DB_DEMO_TEMPLATE.bak") },
+            Demo = { Enabled = true, Slug = PanelFactory.DemoSlug, UserLogin = "demo", UserPassword = "DemoParol-2026", TemplateBak = Path.Combine(_work, "sql", "DB_DEMO_TEMPLATE.bak") },
         };
         var services = new ServiceCollection();
         services.AddLogging(b => b.SetMinimumLevel(LogLevel.Warning));
