@@ -3530,4 +3530,7 @@ Kamomad: {4} qator, ortiqcha: {5} qator</value>
   <data name="Scopes_AnyUserHint" xml:space="preserve">
     <value>Agent bo'lmagan xodimlar (omborchi, kassir, rahbar) uchun ombor/hudud/mijoz cheklovi.</value>
   </data>
+  <data name="NameRu_Hint" xml:space="preserve">
+    <value>Ruscha interfeysda shu nom ko'rsatiladi; bo'sh bo'lsa — o'zbekcha nom. O'zbek kirillda nom avtomatik kirillga o'giriladi.</value>
+  </data>
 </root>

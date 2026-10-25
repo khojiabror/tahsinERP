@@ -48,7 +48,7 @@ namespace tahsinERP.Areas.Distribution.Controllers
                         where pf == null || pf.IsSaleActive
                         select new
                         {
-                            p.ID, p.PNo, p.Name, p.CategoryID,
+                            p.ID, p.PNo, p.Name, p.CategoryID, NameRu = pf != null ? pf.NameRu : null,
                             Unit = db.Units.Where(u => u.ID == p.UnitID).Select(u => u.ShortName).FirstOrDefault(),
                             HasDefault = db.PriceListItems.Any(x => x.ProductID == p.ID && x.PriceTypeID == defaultType && x.ValidFrom <= now)
                         };
@@ -77,7 +77,7 @@ namespace tahsinERP.Areas.Distribution.Controllers
                     recordsFiltered = result.Filtered,
                     data = result.Rows.Select(r => new
                     {
-                        id = r.ID, pno = r.PNo, name = r.Name, unit = r.Unit,
+                        id = r.ID, pno = r.PNo, name = Localized(r.Name, r.NameRu), unit = r.Unit,
                         prices = current.Where(c => c.Key.ProductID == r.ID)
                             .ToDictionary(c => c.Key.PriceTypeID.ToString(), c => new { price = c.Value.Price, min = c.Value.MinPrice })
                     })
@@ -248,7 +248,9 @@ namespace tahsinERP.Areas.Distribution.Controllers
             using (var db = NewDb())
             {
                 var rows = db.Products.Where(p => !p.IsDeleted && (q == null || p.PNo.Contains(q) || p.Name.Contains(q)))
-                    .OrderBy(p => p.Name).Take(30).Select(p => new { id = p.ID, text = p.PNo + " — " + p.Name }).ToList();
+                    .OrderBy(p => p.Name).Take(30)
+                    .Select(p => new { p.ID, p.PNo, p.Name, NameRu = db.ProductProfiles.Where(pf => pf.ProductID == p.ID).Select(pf => pf.NameRu).FirstOrDefault() })
+                    .ToList().Select(p => new { id = p.ID, text = p.PNo + " — " + Localized(p.Name, p.NameRu) }).ToList();
                 return Json(new { results = rows }, JsonRequestBehavior.AllowGet);
             }
         }

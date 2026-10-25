@@ -56,7 +56,7 @@ namespace tahsinERP.Areas.Distribution.Controllers
                     using (var db = NewDb())
                     {
                         var headers = db.PriceTypes.Where(t => t.IsActive).OrderBy(t => t.SortOrder).ToList()
-                            .SelectMany(t => new[] { Localized(t.Name, t.NameRu), Localized(t.Name, t.NameRu) + " min" });
+                            .SelectMany(t => new[] { StoredName(t.Name, t.NameRu), StoredName(t.Name, t.NameRu) + " min" });
                         bytes = ImportService.Template(new[] { new ImportService.Column("pno", "Artikul", "Артикул", true) }, IsRussian, headers);
                     }
                     break;

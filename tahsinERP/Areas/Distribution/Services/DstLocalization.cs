@@ -62,6 +62,23 @@ namespace tahsinERP.Areas.Distribution.Services
         /// <summary>Ruscha (ikki tilli nomlar uchun: NameRu to'ldirilgan bo'lsa).</summary>
         public static bool IsRussian(string language) => Languages.Normalize(language) == Russian;
 
+        /// <summary>
+        /// Ikki tilli nom (tovar, hudud, narx turi, sabab...) — bitta, joriy UI tilida: ruscha interfeysda rus nomi (bo'sh bo'lsa
+        /// o'zbekcha), o'zbek kirillda — o'zbekcha nomning transliteratsiyasi, aks holda o'zbekcha. Ro'yxat va hujjatlar shu bilan.
+        /// </summary>
+        public static string Name(string uz, string ru) => NameFor(Languages.Current, uz, ru);
+
+        /// <summary><see cref="Name"/> — berilgan tilda (bot, bildirishnoma).</summary>
+        public static string NameFor(string language, string uz, string ru)
+        {
+            switch (Languages.Normalize(language))
+            {
+                case Russian: return string.IsNullOrWhiteSpace(ru) ? uz : ru;
+                case UzbekCyrillic: return string.IsNullOrEmpty(uz) ? uz : UzTransliterator.ToCyrillicCached(uz);
+                default: return uz;
+            }
+        }
+
         /// <summary>Foydalanuvchi tili: o'zi tanlagan, aks holda firma standart tili.</summary>
         public static string LanguageOf(int userId)
         {

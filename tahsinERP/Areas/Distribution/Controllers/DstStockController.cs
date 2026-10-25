@@ -42,6 +42,7 @@ namespace tahsinERP.Areas.Distribution.Controllers
                            select new
                            {
                                s.WHID, s.ProductID, p.PNo, p.Name, p.CategoryID, OnHand = s.Amount,
+                               NameRu = db.ProductProfiles.Where(pf => pf.ProductID == p.ID).Select(pf => pf.NameRu).FirstOrDefault(),
                                Reserved = db.StockReservations.Where(r => r.WarehouseID == s.WHID && r.ProductID == s.ProductID).Sum(r => (decimal?)r.QtyBase) ?? 0,
                                MinQty = db.ProductStockLimits.Where(l => l.WarehouseID == s.WHID && l.ProductID == s.ProductID).Select(l => (decimal?)l.MinQty).FirstOrDefault(),
                                Unit = db.Units.Where(u => u.ID == p.UnitID).Select(u => u.ShortName).FirstOrDefault()
@@ -52,11 +53,11 @@ namespace tahsinERP.Areas.Distribution.Controllers
 
                 // barcha omborlar jami (ombor tanlanmasa) — tovar bo'yicha guruh
                 var q = warehouseId.HasValue
-                    ? rows.Select(x => new { x.ProductID, x.PNo, x.Name, x.Unit, x.OnHand, x.Reserved, MinQty = x.MinQty })
-                    : rows.GroupBy(x => new { x.ProductID, x.PNo, x.Name, x.Unit })
+                    ? rows.Select(x => new { x.ProductID, x.PNo, x.Name, x.NameRu, x.Unit, x.OnHand, x.Reserved, MinQty = x.MinQty })
+                    : rows.GroupBy(x => new { x.ProductID, x.PNo, x.Name, x.NameRu, x.Unit })
                         .Select(g => new
                         {
-                            g.Key.ProductID, g.Key.PNo, g.Key.Name, g.Key.Unit,
+                            g.Key.ProductID, g.Key.PNo, g.Key.Name, g.Key.NameRu, g.Key.Unit,
                             OnHand = g.Sum(x => x.OnHand), Reserved = g.Sum(x => x.Reserved), MinQty = g.Sum(x => x.MinQty)
                         });
                 if (filter == "low") q = q.Where(x => x.MinQty != null && x.OnHand - x.Reserved < x.MinQty);
@@ -84,7 +85,7 @@ namespace tahsinERP.Areas.Distribution.Controllers
                     recordsFiltered = result.Filtered,
                     data = result.Rows.Select(r => new
                     {
-                        productId = r.ProductID, pno = r.PNo, name = r.Name, unit = r.Unit,
+                        productId = r.ProductID, pno = r.PNo, name = Localized(r.Name, r.NameRu), unit = r.Unit,
                         onHand = r.OnHand, reserved = r.Reserved, available = r.OnHand - r.Reserved, min = r.MinQty,
                         low = r.MinQty.HasValue && r.OnHand - r.Reserved < r.MinQty
                     })

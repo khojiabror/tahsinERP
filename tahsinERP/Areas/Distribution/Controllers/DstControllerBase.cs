@@ -57,8 +57,14 @@ namespace tahsinERP.Areas.Distribution.Controllers
             return new DistributionUnitOfWork(new AuditActor(RoleHelper.GetUserId(CurrentUserName), AuditActor.Web));
         }
 
-        /// <summary>Ikki tilli nom: ruscha bo'lsa va to'ldirilgan bo'lsa — ruscha.</summary>
+        /// <summary>Ikki tilli nom — ko'rsatish uchun, joriy tilda (<see cref="DstLocalization.Name"/>: ru / kirill / lotin).</summary>
         protected string Localized(string uz, string ru)
+        {
+            return DstLocalization.Name(uz, ru);
+        }
+
+        /// <summary>Excel import/shablon sarlavhasi: faqat bazadagi qiymat (ruscha yoki o'zbekcha) — import shu matn bilan solishtiradi.</summary>
+        protected string StoredName(string uz, string ru)
         {
             return IsRussian && !string.IsNullOrWhiteSpace(ru) ? ru : uz;
         }

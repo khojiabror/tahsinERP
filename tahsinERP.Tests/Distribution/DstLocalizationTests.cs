@@ -29,6 +29,24 @@ namespace tahsinERP.Tests.Distribution
                 .Elements("data").Select(d => (string)d.Attribute("name")).OrderBy(k => k).ToArray();
         }
 
+        /// <summary>Ikki tilli nom — bitta, tanlangan tilda: ru — rus nomi (bo'sh bo'lsa o'zbekcha), oz — kirill, uz — o'zbekcha.</summary>
+        [TestMethod]
+        public void Name_OneValue_InSelectedLanguage()
+        {
+            Assert.AreEqual("Цемент М400", DstLocalization.NameFor("ru", "Sement M400", "Цемент М400"));
+            Assert.AreEqual("Sement M400", DstLocalization.NameFor("ru", "Sement M400", " "));
+            Assert.AreEqual("Sement M400", DstLocalization.NameFor("uz", "Sement M400", "Цемент М400"));
+            Assert.AreEqual("Семент М400", DstLocalization.NameFor("oz", "Sement M400", "Цемент М400"));
+            Assert.AreEqual("", DstLocalization.NameFor("oz", "", null));
+            var saved = Thread.CurrentThread.CurrentUICulture;
+            try
+            {
+                Thread.CurrentThread.CurrentUICulture = CultureInfo.GetCultureInfo("ru-RU");
+                Assert.AreEqual("Ташкент", DstLocalization.Name("Toshkent", "Ташкент"));
+            }
+            finally { Thread.CurrentThread.CurrentUICulture = saved; }
+        }
+
         [TestMethod]
         public void EveryUzbekKey_HasRussianTranslation()
         {
