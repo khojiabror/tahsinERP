@@ -780,6 +780,7 @@
     <Compile Include="Helpers\AssetVersion.cs" />
     <Compile Include="Helpers\BalanceCategoryDisplayHelper.cs" />
     <Compile Include="Helpers\DocFileAccess.cs" />
+    <Compile Include="Helpers\Breadcrumb.cs" />
     <Compile Include="Helpers\LayoutBadges.cs" />
     <Compile Include="Helpers\ModelStateExtensions.cs" />
     <Compile Include="Helpers\UploadHelper.cs" />

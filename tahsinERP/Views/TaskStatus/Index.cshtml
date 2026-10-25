@@ -27,7 +27,7 @@
                                         <a href="~/Tasks">@L.T("Menu_Tasks")</a>
                                     </li>
                                     <li class="breadcrumb-item">
-                                        <a href="#">@L.T("Menu_TaskSettings")</a>
+                                        @Html.Link(L.T("Menu_TaskSettings"), "TaskStatus")
                                     </li>
                                     <li class="breadcrumb-item active">
                                         @L.T("Menu_Statuses")
