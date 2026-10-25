@@ -16,8 +16,8 @@
                             <div class="breadcrumb-wrapper col-12">
                                 <ol class="breadcrumb rounded-pill breadcrumb-divider d-flex align-items-center">
                                     <li class="breadcrumb-item"><a href="~/Home"><i class="bx bx-home-alt"></i></a></li>
-                                    <li class="breadcrumb-item">@L.T("Menu_Dashboard")</li>
-                                    <li class="breadcrumb-item">@L.T("Menu_DashFinance")</li>
+                                    <li class="breadcrumb-item">@Html.Link(L.T("Menu_Dashboard"), "Home")</li>
+                                    <li class="breadcrumb-item">@Html.Link(L.T("Menu_DashFinance"), "FinDashboard", "FinancialOverview")</li>
                                     <li class="breadcrumb-item active">@Model.Title</li>
                                 </ol>
                             </div>

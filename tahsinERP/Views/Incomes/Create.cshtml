@@ -201,6 +201,14 @@
                     var dlocPutawayUrl = '@Url.Action("GetDlocPutawayInfo", "Incomes")';
                     var dlocCreateUrl = '@dlocCreateUrl';
 
+                    // DLOC joylari omborga bog'liq — boshqa ombor tanlansa forma o'sha ombor bilan qayta ochiladi
+                    $('#ReceivingWHID').on('change', function () {
+                        var whId = $(this).val();
+                        if (dlocEnabled && whId) {
+                            window.location.href = '@Url.Action("Create", "Incomes")?warehouseId=' + encodeURIComponent(whId);
+                        }
+                    });
+
                     $('#invoiceSelect').on('change', function () {
                         if ($(this).val()) {
                             $('#loadInvoiceBtn').show();

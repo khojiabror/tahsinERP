@@ -75,6 +75,7 @@
                                                     <small class="text-muted">@L.T("Wh_ProductionShopHint")</small>
                                                 </div>
                                             }
+                                            @Html.Partial("_ManualIncomeField", Model)
                                             <div class="form-group">
                                                 <label for="MRP">@L.T("Wh_MrpLiable") <span class="text-danger">*</span></label>
                                                 @Html.DropDownListFor(model => model.MRP, ViewBag.MRPUsers as SelectList, L.T("Wh_SelectDashed"), new { @class = "form-control select2" })
@@ -122,6 +123,16 @@
             }
             $('#WarehouseType').on('change', toggleShop);
             toggleShop();
+            // "Standart" bandida ombor turi bo'yicha natija (Ha/Yo'q)
+            var manualIncomeDefaults = @Html.Raw(Json.Encode(ViewBag.ManualIncomeDefaults));
+            var $manualDefaultOpt = $('#AllowManualIncome option[value=""]');
+            var manualDefaultText = $manualDefaultOpt.text();
+            function updateManualIncomeDefault() {
+                var on = manualIncomeDefaults[$('#WarehouseType').val() || ''] === true;
+                $manualDefaultOpt.text(manualDefaultText + ': ' + (on ? '@L.Js("Js_Yes")' : '@L.Js("Js_No")'));
+            }
+            $('#WarehouseType').on('change', updateManualIncomeDefault);
+            updateManualIncomeDefault();
         });
     </script>
 }

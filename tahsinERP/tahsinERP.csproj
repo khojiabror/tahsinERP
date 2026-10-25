@@ -780,6 +780,7 @@
     <Compile Include="Helpers\AssetVersion.cs" />
     <Compile Include="Helpers\BalanceCategoryDisplayHelper.cs" />
     <Compile Include="Helpers\DocFileAccess.cs" />
+    <Compile Include="Helpers\Breadcrumb.cs" />
     <Compile Include="Helpers\LayoutBadges.cs" />
     <Compile Include="Helpers\ModelStateExtensions.cs" />
     <Compile Include="Helpers\UploadHelper.cs" />
@@ -2860,6 +2861,7 @@
     <Content Include="assets\js\lazy-pdfmake.js" />
     <Content Include="assets\js\dt-defaults.js" />
     <Content Include="assets\js\fullscreen-shell.js" />
+    <Content Include="assets\js\session-idle.js" />
     <Content Include="assets\js\scripts.js" />
     <Content Include="assets\js\theme.js" />
     <Content Include="Content\fin-dashboard.css" />
@@ -3405,6 +3407,7 @@
     <Content Include="Views\Inventory\Index.cshtml" />
     <Content Include="Views\Inventory\IndexDloc.cshtml" />
     <Content Include="Views\Inventory\AssignDloc.cshtml" />
+    <Content Include="Views\Warehouse\_ManualIncomeField.cshtml" />
     <Content Include="Views\WarehouseLocations\Index.cshtml" />
     <Content Include="Views\WarehouseLocations\Create.cshtml" />
     <Content Include="Views\WarehouseLocations\Edit.cshtml" />

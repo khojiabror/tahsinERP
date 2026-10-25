@@ -455,7 +455,7 @@ Ro'yxat sahifalanadi; filtrlar: hudud, agent, toifa (A/B/C), tasdiq holati ("Tas
 | Mo'ljal | Topish uchun belgi | Bozor yonida |
 | Kenglik, Uzunlik | GPS koordinata (Yandex xaritadan nusxa); ikkalasi birga | 41.2856, 69.2034 |
 
-Koordinata kiritilgach yonida Yandex xaritada ochish tugmasi chiqadi — joyni tekshiring.
+Kenglik va uzunlik yonidagi xarita tugmasi koordinata yozilishi bilan (saqlashdan oldin ham) faollashadi va joyni Yandex xaritada ochadi — tekshiring. Yandex'dan `41.2856, 69.2034` ko'rinishida nusxalangan qatorni Kenglik maydoniga qo'ysangiz, ikkala maydonga o'zi bo'linadi.
 
 **Savdo shartlari**
 

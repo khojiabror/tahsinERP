@@ -1,5 +1,11 @@
 @model string
-@* Sahifa sarlavhasi (breadcrumb). Model — sahifa nomi; ViewBag.DstParent — ixtiyoriy oraliq bo'g'in. *@
+@* Sahifa sarlavhasi (breadcrumb). Model — sahifa nomi; ViewBag.DstParent — ixtiyoriy oraliq bo'g'in
+   (joriy controller ro'yxatiga havola, ko'rish huquqi bo'lmasa matn). *@
+@{
+    var dstController = (string)ViewContext.RouteData.Values["controller"];
+    var dstParentLink = ViewBag.DstParent != null
+        && tahsinERP.Models.RoleHelper.IsViewPermitted(User.Identity.Name, dstController, "Index");
+}
 <div class="content-header row">
     <div class="content-header-left col-12 mb-2 mt-1">
         <div class="breadcrumb-wrapper">
@@ -8,7 +14,16 @@
                 <li class="breadcrumb-item"><a href="@Url.Action("Index", "DstHome", new { area = "Distribution" })">@DstLocalization.T("Module_Title")</a></li>
                 @if (ViewBag.DstParent != null)
                 {
-                    <li class="breadcrumb-item">@ViewBag.DstParent</li>
+                    <li class="breadcrumb-item">
+                        @if (dstParentLink)
+                        {
+                            <a href="@Url.Action("Index", dstController, new { area = "Distribution" })">@ViewBag.DstParent</a>
+                        }
+                        else
+                        {
+                            @ViewBag.DstParent
+                        }
+                    </li>
                 }
                 <li class="breadcrumb-item active">@Model</li>
             </ol>

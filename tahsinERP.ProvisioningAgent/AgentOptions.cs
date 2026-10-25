@@ -90,10 +90,15 @@ public sealed class AgentOptions
         public string StateDir { get; set; } = @"C:\ProgramData\tahsinERP\Agent";
     }
 
+    /// <summary>
+    /// Umumiy ko'rgazma demo tenant (har kecha shablondan tiklanadi). 2026-10-26 dan standart holatda O'CHIQ: mijozlar shaxsiy
+    /// sinov muhitida (tanlangan modullar + namuna ma'lumot) ishlaydi, prod'dagi demo.tahsinerp.uz olib tashlandi
+    /// (05_PROVISIONING.md 6). Qayta yoqish: Demo:Enabled = true, Demo:Slug va panel Provisioning:DemoSlug bir xil.
+    /// </summary>
     public sealed class DemoSection
     {
-        public bool Enabled { get; set; } = true;
-        public string Slug { get; set; } = "demo";
+        public bool Enabled { get; set; }
+        public string Slug { get; set; } = "";
         /// <summary>Demo shablon zaxirasi. Yo'q bo'lsa Reset vaqtida Database/Demo skriptlaridan yaratiladi.</summary>
         public string? TemplateBak { get; set; }
         /// <summary>Kechki reset soati (TimeZone bo'yicha) va oyna (shu soatdan keyin necha soat ichida — agent o'chiq bo'lsa kunduzi reset qilinmasin).</summary>

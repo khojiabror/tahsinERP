@@ -121,9 +121,9 @@ namespace tahsinERP.Areas.Distribution.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit(CustomerInput input, byte[] visitDay)
+        public ActionResult Edit(CustomerInput input, int[] visitDay)
         {
-            input.VisitDays = (byte)(visitDay?.Aggregate(0, (acc, d) => acc | d) ?? 0);
+            input.VisitDays = VisitDaysMask(visitDay);
             try
             {
                 using (var check = NewDb())
@@ -154,6 +154,15 @@ namespace tahsinERP.Areas.Distribution.Controllers
             using (var db = NewDb())
                 FillLookups(db);
             return View(input);
+        }
+
+        /// <summary>
+        /// Tashrif kunlari katakchalari (Du=1 .. Ya=64) → CUSTOMER_PROFILES.VisitDays bit maskasi. Parametr int[] bo'lishi shart:
+        /// byte[] ni MVC Base64 matn deb bog'laydi va "1", "16" kabi qiymatda FormatException (500) beradi.
+        /// </summary>
+        public static byte VisitDaysMask(int[] days)
+        {
+            return (byte)((days ?? new int[0]).Where(d => d > 0).Aggregate(0, (acc, d) => acc | d) & 127);
         }
 
         /// <summary>Agent qo'shgan yangi nuqtani tasdiqlash.</summary>

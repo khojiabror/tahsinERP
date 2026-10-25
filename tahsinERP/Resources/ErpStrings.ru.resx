@@ -4591,7 +4591,7 @@
     <value>За вами не закреплён склад</value>
   </data>
   <data name="Wh_Inc_ManualCreateNotAllowed" xml:space="preserve">
-    <value>Для этого склада нельзя создавать приход вручную. Выберите ожидаемые приходы в списке и примите их.</value>
+    <value>На складах, за которые вы отвечаете, ручной приход не включён (Настройки → Склады → «Ручной приход»). Выберите ожидаемые приходы в списке и примите их.</value>
   </data>
   <data name="Wh_DlocDisabled" xml:space="preserve">
     <value>Модуль DLOC не включён</value>
@@ -4924,7 +4924,7 @@
     <value>На этот склад можно принимать только приход, автоматически созданный из расхода.</value>
   </data>
   <data name="Wh_Err_ManualEditProdSales" xml:space="preserve">
-    <value>Приходы на производственном складе и складе продаж нельзя редактировать вручную.</value>
+    <value>Нельзя вручную редактировать приход, автоматически созданный из расхода, и приход на складе, где ручной приход не включён.</value>
   </data>
   <data name="Wh_Err_ProductNotFoundId" xml:space="preserve">
     <value>Продукт не найден: {0}</value>
@@ -11413,7 +11413,7 @@
     <value>Пароль</value>
   </data>
   <data name="Core_KeepMeSigned" xml:space="preserve">
-    <value>Оставаться в системе (1 час)</value>
+    <value>Оставаться в системе</value>
   </data>
   <data name="Core_AccountSettings" xml:space="preserve">
     <value>Настройки учётной записи</value>
@@ -14285,5 +14285,29 @@
   </data>
   <data name="Menu_DstSystem" xml:space="preserve">
     <value>Настройка</value>
+  </data>
+  <data name="Wh_Err_ManualIncomeDisabled" xml:space="preserve">
+    <value>Для этого склада ручной приход не включён (Настройки → Склады → «Ручной приход»). Принимайте только приход, автоматически созданный из расходного документа.</value>
+  </data>
+  <data name="Wh_AllowManualIncome" xml:space="preserve">
+    <value>Ручной приход (от поставщика)</value>
+  </data>
+  <data name="Wh_AllowManualIncomeHint" xml:space="preserve">
+    <value>По умолчанию: склад сырья — да; склад продаж — да, если в пакете нет производства; производственный склад — нет (товар поступает только через расход/перемещение).</value>
+  </data>
+  <data name="Wh_ManualIncomeDefaultOpt" xml:space="preserve">
+    <value>По умолчанию (по типу склада)</value>
+  </data>
+  <data name="Wh_ManualIncomeOn" xml:space="preserve">
+    <value>Да — кладовщик сам оформляет приход</value>
+  </data>
+  <data name="Wh_ManualIncomeOff" xml:space="preserve">
+    <value>Нет — только через расход/перемещение</value>
+  </data>
+  <data name="Core_IdleWarning" xml:space="preserve">
+    <value>Из-за бездействия вы выйдете из системы через {0} сек.</value>
+  </data>
+  <data name="Core_IdleStay" xml:space="preserve">
+    <value>Продолжить</value>
   </data>
 </root>
