@@ -11413,7 +11413,7 @@
     <value>Kalit so'zi</value>
   </data>
   <data name="Core_KeepMeSigned" xml:space="preserve">
-    <value>Meni tizimda saqlab qolish (1 soat)</value>
+    <value>Meni tizimda saqlab qolish</value>
   </data>
   <data name="Core_AccountSettings" xml:space="preserve">
     <value>Akkaunt sozlamalari</value>
@@ -14285,5 +14285,11 @@
   </data>
   <data name="Menu_DstSystem" xml:space="preserve">
     <value>Sozlash</value>
+  </data>
+  <data name="Core_IdleWarning" xml:space="preserve">
+    <value>Harakat bo'lmagani uchun {0} soniyadan keyin tizimdan chiqasiz.</value>
+  </data>
+  <data name="Core_IdleStay" xml:space="preserve">
+    <value>Davom etish</value>
   </data>
 </root>

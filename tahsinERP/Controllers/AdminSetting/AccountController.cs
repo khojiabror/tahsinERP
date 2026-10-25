@@ -21,10 +21,13 @@ namespace tahsinERP.Controllers
     [System.Web.Mvc.SessionState(System.Web.SessionState.SessionStateBehavior.Required)]
     public class AccountController : Controller
     {
-        // Session timeout constants (in minutes)
-        // web.config <forms timeout> dan olinadi (sliding)
-        private static readonly int DEFAULT_SESSION_TIMEOUT = (int)FormsAuthentication.Timeout.TotalMinutes;
-        private const int KEEP_LOGGED_IN_TIMEOUT = 60; // 1 hour
+        /// <summary>
+        /// Harakatsizlik chegarasi (daqiqa): shuncha vaqt so'rov bo'lmasa seans tugaydi. Chipta sliding — har so'rovda yangilanadi
+        /// (FormsAuthentication chipta davri bo'yicha uzaytiradi, web.config'dagi timeout'dan qat'i nazar). Brauzerdagi taymer
+        /// (assets/js/session-idle.js) ham shu qiymat bilan foydalanuvchini chiqaradi. "Meni saqlab qolish" — cookie brauzer
+        /// yopilganda ham qoladi, lekin harakatsizlik chegarasi o'sha.
+        /// </summary>
+        public const int IdleTimeoutMinutes = 30;
 
         [AllowAnonymous]
         public ActionResult Login()
@@ -164,7 +167,7 @@ namespace tahsinERP.Controllers
                 }
 
                 // Aniqlash session timeout based on "Keep me logged in"
-                int sessionTimeout = user.KeepMeSigned ? KEEP_LOGGED_IN_TIMEOUT : DEFAULT_SESSION_TIMEOUT;
+                int sessionTimeout = IdleTimeoutMinutes;
                 var expirationTime = DateTime.Now.AddMinutes(sessionTimeout);
 
                 // Yaratish authentication ticket bilan username as identity
@@ -273,6 +276,14 @@ namespace tahsinERP.Controllers
                 // Xatolikni qayd etamiz, lekin login jarayonini to'xtatmaymiz
                 System.Diagnostics.Debug.WriteLine($"SetUserEntry xatoligi: {ex.Message}");
             }
+        }
+
+        /// <summary>Brauzer taymeri: foydalanuvchi sahifada ishlayapti (yozish, aylantirish), lekin so'rov yubormayapti — seans uzaytiriladi.</summary>
+        [HttpGet]
+        [OutputCache(NoStore = true, Duration = 0)]
+        public ActionResult KeepAlive()
+        {
+            return new HttpStatusCodeResult(204);
         }
 
         [AllowAnonymous]

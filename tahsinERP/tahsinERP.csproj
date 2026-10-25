@@ -2860,6 +2860,7 @@
     <Content Include="assets\js\lazy-pdfmake.js" />
     <Content Include="assets\js\dt-defaults.js" />
     <Content Include="assets\js\fullscreen-shell.js" />
+    <Content Include="assets\js\session-idle.js" />
     <Content Include="assets\js\scripts.js" />
     <Content Include="assets\js\theme.js" />
     <Content Include="Content\fin-dashboard.css" />
