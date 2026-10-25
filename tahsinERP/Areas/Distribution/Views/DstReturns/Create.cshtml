@@ -43,7 +43,7 @@
             <div class="card">
                 <div class="card-header"><h4 class="card-title">@DstLocalization.T("Return_FromShipments")</h4></div>
                 <div class="card-body">
-                    <table class="table table-sm" id="shippedTable">
+                    <table class="table table-sm doc-lines" id="shippedTable">
                         <thead><tr><th>@DstLocalization.T("Shipments")</th><th>@DstLocalization.T("Product")</th><th class="text-right">@DstLocalization.T("Return_Available")</th><th class="text-right">@DstLocalization.T("Price")</th><th style="width:140px">@DstLocalization.T("Qty")</th></tr></thead>
                         <tbody><tr><td colspan="5" class="text-muted">@DstLocalization.T("Order_SelectCustomer")</td></tr></tbody>
                     </table>
@@ -57,7 +57,7 @@
                     <div class="form-row mb-1">
                         <div class="col-md-12"><select id="rProduct" class="form-control" style="width:100%"></select></div>
                     </div>
-                    <table class="table table-sm" id="freeTable"><tbody></tbody></table>
+                    <table class="table table-sm doc-lines" id="freeTable"><tbody></tbody></table>
                     <button type="button" class="btn btn-primary" id="rSave">@DstLocalization.T("Save")</button>
                     <a class="btn btn-light" href="@Url.Action("Index")">@DstLocalization.T("Back")</a>
                 </div>
