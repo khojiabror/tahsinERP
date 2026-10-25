@@ -11413,7 +11413,7 @@
     <value>Пароль</value>
   </data>
   <data name="Core_KeepMeSigned" xml:space="preserve">
-    <value>Оставаться в системе (1 час)</value>
+    <value>Оставаться в системе</value>
   </data>
   <data name="Core_AccountSettings" xml:space="preserve">
     <value>Настройки учётной записи</value>
@@ -14303,5 +14303,11 @@
   </data>
   <data name="Wh_ManualIncomeOff" xml:space="preserve">
     <value>Нет — только через расход/перемещение</value>
+  </data>
+  <data name="Core_IdleWarning" xml:space="preserve">
+    <value>Из-за бездействия вы выйдете из системы через {0} сек.</value>
+  </data>
+  <data name="Core_IdleStay" xml:space="preserve">
+    <value>Продолжить</value>
   </data>
 </root>

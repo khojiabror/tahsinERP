@@ -1007,6 +1007,9 @@
         <script src="~/app-assets/js/core/app.min.js"></script>
         <script src="~/app-assets/js/scripts/components.min.js"></script>
         <script src="@tahsinERP.Helpers.AssetVersion.Url("~/assets/js/fullscreen-shell.js")"></script>
+        <script src="@tahsinERP.Helpers.AssetVersion.Url("~/assets/js/session-idle.js")" data-idle-minutes="@tahsinERP.Controllers.AccountController.IdleTimeoutMinutes"
+                data-keepalive-url="@Url.Action("KeepAlive", "Account", new { area = "" })" data-logout-url="@Url.Action("Logout", "Account", new { area = "" })"
+                data-warning="@L.T("Core_IdleWarning")" data-stay="@L.T("Core_IdleStay")"></script>
         <script src="~/app-assets/js/scripts/datatables/datatable.js"></script>
         <script src="~/app-assets/js/scripts/forms/select/form-select2.js"></script>
         <script src="~/Scripts/app/erp-datatable.js"></script>

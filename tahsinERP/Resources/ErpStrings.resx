@@ -11413,7 +11413,7 @@
     <value>Kalit so'zi</value>
   </data>
   <data name="Core_KeepMeSigned" xml:space="preserve">
-    <value>Meni tizimda saqlab qolish (1 soat)</value>
+    <value>Meni tizimda saqlab qolish</value>
   </data>
   <data name="Core_AccountSettings" xml:space="preserve">
     <value>Akkaunt sozlamalari</value>
@@ -14303,5 +14303,11 @@
   </data>
   <data name="Wh_ManualIncomeOff" xml:space="preserve">
     <value>Yo'q — faqat chiqim/ko'chirish orqali</value>
+  </data>
+  <data name="Core_IdleWarning" xml:space="preserve">
+    <value>Harakat bo'lmagani uchun {0} soniyadan keyin tizimdan chiqasiz.</value>
+  </data>
+  <data name="Core_IdleStay" xml:space="preserve">
+    <value>Davom etish</value>
   </data>
 </root>
