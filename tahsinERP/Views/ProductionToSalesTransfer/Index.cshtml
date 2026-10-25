@@ -22,7 +22,7 @@
                                         <a href="~/Home"><i class="bx bx-home-alt"></i></a>
                                     </li>
                                     <li class="breadcrumb-item">
-                                        <a href="#">@L.T("Wh_Warehouse")</a>
+                                        @Html.Link(L.T("Wh_Warehouse"), "InventoryReports", "Dashboard")
                                     </li>
                                     <li class="breadcrumb-item active">
                                         @L.T("Wh_Pts_Transfers")
