@@ -167,14 +167,41 @@ namespace tahsinERP.Services
         }
 
         /// <summary>
-        /// Qo'lda yangi kirim yaratish mumkinligi: xomashyo va savdo ombori (yetkazib beruvchidan, invoys bilan).
-        /// Savdo ombori — faqat CRM/Distributsiya bilan ishlaydigan firmada tovar to'g'ridan-to'g'ri shu omborga keladi.
-        /// Ishlab chiqarish omboriga kirim faqat chiqimdan (avtomatik) tushadi.
+        /// Ombor turi bo'yicha standart "qo'lda kirim" (WAREHOUSES.AllowManualIncome = NULL bo'lganda):
+        /// xomashyo — ha; savdo — paketda ishlab chiqarish (MES) bo'lmasa ha (CRM/Distributsiya firmasida tovar
+        /// to'g'ridan-to'g'ri savdo omboriga keladi, MES firmasida esa ishlab chiqarishdan ko'chiriladi);
+        /// ishlab chiqarish va turi berilmagan — yo'q.
+        /// </summary>
+        public static bool DefaultAllowsManualIncome(string warehouseType)
+        {
+            if (warehouseType == WarehouseRoles.Supply)
+                return true;
+            if (warehouseType == WarehouseRoles.Sales)
+                return !tahsinERP.Services.Editions.EditionGate.IsControllerAllowed("ProductProduction");
+            return false;
+        }
+
+        /// <summary>
+        /// Qo'lda (yetkazib beruvchidan, invoys bilan) yangi kirim yaratish mumkinligi: omborda aniq tanlangan qiymat,
+        /// bo'lmasa — <see cref="DefaultAllowsManualIncome"/>.
         /// </summary>
         public static bool CanCreateManualIncome(DBTHSNEntities db, int receivingWhId)
         {
-            var type = WarehouseRoles.GetType(db, receivingWhId);
-            return type == WarehouseRoles.Supply || type == WarehouseRoles.Sales;
+            if (!WarehouseRoles.Exists(db, receivingWhId))
+                return false;
+            return WarehouseRoles.GetAllowManualIncome(db, receivingWhId)
+                ?? DefaultAllowsManualIncome(WarehouseRoles.GetType(db, receivingWhId));
+        }
+
+        /// <summary>
+        /// Ishlab chiqarish/savdo omboridagi qo'lda (chiqimdan avtomatik yaratilmagan) kirim: faqat omborda qo'lda kirim
+        /// yoqilgan bo'lsa qabul qilinadi va tahrirlanadi. Xomashyo/oddiy omborda cheklov yo'q (avvalgidek).
+        /// </summary>
+        private static bool IsBlockedManualIncome(DBTHSNEntities db, INCOME income)
+        {
+            return WarehouseRoles.IsProductionOrSales(WarehouseRoles.GetType(db, income.ReceivingWHID))
+                && !IsAutoLinkedTransferIncome(income)
+                && !CanCreateManualIncome(db, income.ReceivingWHID);
         }
 
         /// <summary>
@@ -189,7 +216,7 @@ namespace tahsinERP.Services
 
             if (!CanCreateManualIncome(db, receivingWhId))
             {
-                return L.T("Wh_Err_ManualIncomeProd");
+                return L.T("Wh_Err_ManualIncomeDisabled");
             }
 
             return null;
@@ -210,9 +237,7 @@ namespace tahsinERP.Services
                 return L.T("Wh_WarehouseNotFoundDot");
             }
 
-            // Savdo omboriga qo'lda kirim ham bor — faqat ishlab chiqarish ombori chiqimdan kelganini qabul qiladi
-            if (WarehouseRoles.GetType(db, income.ReceivingWHID) == WarehouseRoles.Production
-                && !IsAutoLinkedTransferIncome(income))
+            if (IsBlockedManualIncome(db, income))
             {
                 return L.T("Wh_Err_OnlyAutoIncomeReceive");
             }
@@ -235,10 +260,9 @@ namespace tahsinERP.Services
                 return L.T("Wh_WarehouseNotFoundDot");
             }
 
-            // Savdo omboridagi qo'lda kirim tahrirlanadi; chiqimdan avtomatik yaratilgani — yo'q
-            var type = WarehouseRoles.GetType(db, income.ReceivingWHID);
-            if (type == WarehouseRoles.Production
-                || (type == WarehouseRoles.Sales && IsAutoLinkedTransferIncome(income)))
+            // Ishlab chiqarish/savdo omboridagi avtomatik kirim (chiqimdan) — tahrirlanmaydi; qo'lda kirim — faqat yoqilgan omborda
+            if (WarehouseRoles.IsProductionOrSales(WarehouseRoles.GetType(db, income.ReceivingWHID))
+                && (IsAutoLinkedTransferIncome(income) || IsBlockedManualIncome(db, income)))
             {
                 return L.T("Wh_Err_ManualEditProdSales");
             }
