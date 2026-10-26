@@ -132,6 +132,7 @@ public static class Labels
         ProvisioningJobType.Archive => L.T("Pnl_JobType_Archive"),
         ProvisioningJobType.Delete => L.T("Pnl_JobType_Delete"),
         ProvisioningJobType.EndTrial => L.T("Pnl_JobType_EndTrial"),
+        ProvisioningJobType.SiteDomain => L.T("Pnl_JobType_SiteDomain"),
         _ => t.ToString()
     };
 
@@ -149,6 +150,22 @@ public static class Labels
     {
         ProvisioningJobStatus.Succeeded => "ok", ProvisioningJobStatus.Running => "info", ProvisioningJobStatus.Pending => "warn",
         ProvisioningJobStatus.Failed => "bad", _ => "muted"
+    };
+
+    public static string Of(SiteDomainStatus s) => s switch
+    {
+        SiteDomainStatus.PendingDns => L.T("Pnl_SDom_St_PendingDns"),
+        SiteDomainStatus.Binding => L.T("Pnl_SDom_St_Binding"),
+        SiteDomainStatus.Active => L.T("Pnl_SDom_St_Active"),
+        SiteDomainStatus.Failed => L.T("Pnl_SDom_St_Failed"),
+        SiteDomainStatus.Removing => L.T("Pnl_SDom_St_Removing"),
+        _ => s.ToString()
+    };
+
+    public static string Badge(SiteDomainStatus s) => s switch
+    {
+        SiteDomainStatus.Active => "ok", SiteDomainStatus.Binding or SiteDomainStatus.Removing => "info", SiteDomainStatus.PendingDns => "warn",
+        _ => "bad"
     };
 
     public static string Month(int m) => m switch

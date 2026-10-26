@@ -37,4 +37,8 @@ dotnet tahsinERP.Site.dll snapshot import demo snapshot.json # ERP'siz namoyish 
 Namoyish nusxasini lokal ERP bazasidan olish: `tahsinERP.Tests` → `SiteDemoExport` (SITE_DEMO_OUT muhit o'zgaruvchisi bilan; bazaga yozilgani rollback).
 Lokal sinov: `?tenant=demo` (`Site__AllowTenantQuery=true`, faqat localhost).
 
+Firmaning o'z domeni (`SiteTenants.CustomDomain`): boshqaruv paneli `PUT /admin/api/tenants/{slug}/domain` `{host, redirect}` bilan ulaydi;
+IIS binding va sertifikat — provisioning agenti (`Docs/ControlPanel/09_SITE_CUSTOM_DOMAIN.md`). `Site__RedirectHttpToHttps` (standart true)
+— o'z domenining http so'rovi https'ga.
+
 Deploy: `deploy/tahsin-site.service`, `deploy/Caddyfile` (on-demand TLS — kompaniya domenlari uchun sertifikat avtomatik, faqat ma'lum domenlarga).

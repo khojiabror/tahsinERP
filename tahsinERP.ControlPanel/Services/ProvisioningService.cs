@@ -31,7 +31,7 @@ public class ProvisioningOptions
 /// - maxfiy parametrlar (reg_token, vaqtinchalik parol) faqat shifrlangan holda, job muvaffaqiyatli tugagach/bekor qilingach o'chiriladi.
 /// </summary>
 public sealed class ProvisioningService(ControlDbContext db, AuditLogger audit, Clock clock, TenantService tenants, ISecretProtector protector,
-    ITelegramSender telegram, IOptions<ProvisioningOptions> options, ILogger<ProvisioningService> log)
+    ITelegramSender telegram, IOptions<ProvisioningOptions> options, ILogger<ProvisioningService> log, IAppsClient? apps = null)
 {
     private ProvisioningOptions O => options.Value;
     private const int MaxLogChars = 200_000;
@@ -65,8 +65,9 @@ public sealed class ProvisioningService(ControlDbContext db, AuditLogger audit, 
     }
 
     /// <summary>Job qo'shadi. Xodim amali — staffId (null — tizim/agent). Biznes qoidasi buzilsa DomainException.</summary>
+    /// <param name="payloadExtra">Turga xos maydonlar (SiteDomain: domen va tozalanadigan hostlar).</param>
     public async Task<EnqueueResult> EnqueueAsync(Tenant t, ProvisioningJobType type, string? reason = null, string? idempotencyKey = null,
-        CancellationToken ct = default, bool backup = true)
+        CancellationToken ct = default, bool backup = true, Action<JobPayload>? payloadExtra = null)
     {
         if (idempotencyKey != null)
         {
@@ -127,6 +128,10 @@ public sealed class ProvisioningService(ControlDbContext db, AuditLogger audit, 
                 if (t.Status == TenantStatus.Archived) throw new DomainException(L.T("Pnl_Prov_AlreadyArchived"));
                 if (string.IsNullOrWhiteSpace(reason)) throw new DomainException(L.T("Pnl_Prov_EndTrialReasonRequired"));
                 break;
+            case ProvisioningJobType.SiteDomain:
+                if (t.Status == TenantStatus.Archived) throw new DomainException(L.T("Pnl_Prov_Archived"));
+                if (payloadExtra is null) throw new DomainException("SiteDomain: domen berilmagan.");
+                break;
         }
         if (t.ServerId is null) throw new DomainException(L.T("Pnl_Prov_NoServer"));
 
@@ -138,6 +143,7 @@ public sealed class ProvisioningService(ControlDbContext db, AuditLogger audit, 
             // Create: faqat tanlangan modullar sozlamasi va namuna ma'lumoti (demo tenant — hammasi)
             Modules = type == ProvisioningJobType.Create && !IsDemo(t) ? Licensing.LicenseIssuer.ParseModules(t.Modules)?.Select(m => m.ToString()).ToList() : null,
         };
+        payloadExtra?.Invoke(payload);
         var job = new ProvisioningJob
         {
             TenantId = t.Id, Type = type, Status = ProvisioningJobStatus.Pending,
@@ -247,15 +253,20 @@ public sealed class ProvisioningService(ControlDbContext db, AuditLogger audit, 
         return n;
     }
 
-    /// <summary>Agent uchun keyingi job (eng eskisi). Muddati o'tgan Running job qayta beriladi.</summary>
-    public async Task<JobLease?> LeaseAsync(Server server, CancellationToken ct = default)
+    /// <summary>
+    /// Agent uchun keyingi job (eng eskisi). Muddati o'tgan Running job qayta beriladi. Yangi turlar (SiteDomain) faqat shu imkoniyatni
+    /// e'lon qilgan agentga — eski agent ularni o'qiy olmaydi, navbatda kutib turadi.
+    /// </summary>
+    public async Task<JobLease?> LeaseAsync(Server server, CancellationToken ct = default, IReadOnlyCollection<string>? capabilities = null)
     {
+        bool siteDomain = capabilities?.Contains(AgentCapabilities.SiteDomain) == true;
         await ReconcileAsync(server.Id, ct);
         for (int guard = 0; guard < 20; guard++)
         {
             DateTime now = clock.UtcNow;
             var job = await db.ProvisioningJobs.Include(j => j.Tenant)
                 .Where(j => j.Tenant!.ServerId == server.Id
+                            && (siteDomain || j.Type != ProvisioningJobType.SiteDomain)
                             && ((j.Status == ProvisioningJobStatus.Pending && j.NotBeforeUtc <= now)
                                 || (j.Status == ProvisioningJobStatus.Running && j.LeaseUntilUtc < now)))
                 .OrderBy(j => j.Id).FirstOrDefaultAsync(ct);
@@ -321,6 +332,7 @@ public sealed class ProvisioningService(ControlDbContext db, AuditLogger audit, 
         job.LeaseToken = null;
         job.LeaseUntilUtc = null;
         string? welcomePassword = null;
+        (string Slug, string? Host, bool Redirect)? sitePush = null;
 
         if (c.Outcome == JobOutcome.Succeeded)
         {
@@ -364,6 +376,9 @@ public sealed class ProvisioningService(ControlDbContext db, AuditLogger audit, 
                     t.ArchiveLocation = Truncate(c.ArchiveLocation, 500);
                     if (t.ArchiveLocation is null) t.DeletedAtUtc = now; // arxivsiz — ma'lumot butunlay o'chdi
                     break;
+                case ProvisioningJobType.SiteDomain:
+                    sitePush = await SiteDomainService.ApplyJobResultAsync(db, job, t, true, null, now, ct);
+                    break;
             }
             audit.Add("provisioning.succeeded", "Tenant", t.Id, before,
                 new { JobId = job.Id, job.Type, t.Status, t.ProvisionedAtUtc, t.RegistryEnabled, t.ArchiveLocation, t.DeletedAtUtc }, staffIdOverride: null);
@@ -380,9 +395,17 @@ public sealed class ProvisioningService(ControlDbContext db, AuditLogger audit, 
         {
             FinishFailed(job, c.Error ?? "Noma'lum xato", c.ExitCode);
             if (c.RegistryEnabled.HasValue) t.RegistryEnabled = c.RegistryEnabled;
+            if (job.Type == ProvisioningJobType.SiteDomain) await SiteDomainService.ApplyJobResultAsync(db, job, t, false, job.Error, now, ct);
         }
         try { await db.SaveChangesAsync(ct); }
         catch (Exception ex) when (BillingService.IsConcurrencyConflict(ex)) { return CompleteStatus.LeaseLost; }
+
+        if (sitePush is { } sp && apps is { SiteConfigured: true })
+        {
+            // sertifikat tayyor — sayt ilovasida yo'naltirish yoqiladi; xato bo'lsa firma sahifasidagi «Saqlash» qayta yuboradi
+            try { await apps.SetSiteDomainAsync(sp.Slug, sp.Host, sp.Redirect, ct); }
+            catch (DomainException ex) { log.LogWarning("Sayt ilovasiga domen holati yuborilmadi ({Slug}): {Error}", sp.Slug, ex.Message); }
+        }
 
         if (welcomePassword != null)
             await SendWelcomeAsync(t, job, welcomePassword, ct);
@@ -428,6 +451,8 @@ public sealed class ProvisioningService(ControlDbContext db, AuditLogger audit, 
         job.Status = ProvisioningJobStatus.Cancelled;
         job.SecretsProtected = null;
         job.FinishedAtUtc = clock.UtcNow;
+        if (job.Type == ProvisioningJobType.SiteDomain && await db.Tenants.FindAsync([job.TenantId], ct) is { } t)
+            await SiteDomainService.ApplyJobResultAsync(db, job, t, false, L.T("Pnl_SDom_JobCancelled"), clock.UtcNow, ct);
         audit.Add("provisioning.cancel", "Tenant", job.TenantId, new { Status = before }, new { JobId = job.Id, job.Type, job.Status });
         await db.SaveChangesAsync(ct);
     }

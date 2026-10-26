@@ -57,13 +57,25 @@ public static class AgentProtocol
     }
 }
 
-public enum JobKind { Create = 1, Reset = 2, Suspend = 3, Resume = 4, Archive = 5, Delete = 6, EndTrial = 7 }
+public enum JobKind { Create = 1, Reset = 2, Suspend = 3, Resume = 4, Archive = 5, Delete = 6, EndTrial = 7, SiteDomain = 8 }
+
+/// <summary>
+/// Agent imkoniyatlari (LeaseRequest.Capabilities). Panel yangi turdagi job'ni faqat uni e'lon qilgan agentga beradi —
+/// eski agent noma'lum JobKind'ni o'qiy olmay qolmasin.
+/// </summary>
+public static class AgentCapabilities
+{
+    /// <summary>Sayt-katalog uchun o'z domeni: IIS binding + win-acme HTTP-01 sertifikat (JobKind.SiteDomain).</summary>
+    public const string SiteDomain = "site-domain";
+}
 
 public enum JobOutcome { Succeeded = 1, Failed = 2, Retry = 3 }
 
 public sealed class LeaseRequest
 {
     public string? Host { get; set; }
+    /// <summary><see cref="AgentCapabilities"/> qiymatlari; null — eski agent (faqat asosiy job turlari).</summary>
+    public List<string>? Capabilities { get; set; }
 }
 
 /// <summary>Agentga berilgan job. Secrets faqat shu javobda keladi (HTTPS), agent ularni log'ga yozmaydi.</summary>
@@ -103,6 +115,10 @@ public sealed class JobPayload
     /// <summary>Panel Servers.SqlInstance — ma'lumot uchun; agent o'z sozlamasidagi SQL instance'ga ulanadi.</summary>
     public string? SqlInstance { get; set; }
     public string? Reason { get; set; }
+    /// <summary>SiteDomain: ulanadigan o'z domeni (IIS binding + sertifikat). Null — faqat tozalash.</summary>
+    public string? SiteDomain { get; set; }
+    /// <summary>SiteDomain: olib tashlanadigan eski domenlar (binding, win-acme yangilanishi va sertifikat o'chiriladi).</summary>
+    public List<string>? SiteDomainRemove { get; set; }
 }
 
 public sealed class JobSecrets

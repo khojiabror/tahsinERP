@@ -35,6 +35,7 @@ public class ControlDbContext(DbContextOptions<ControlDbContext> options) : DbCo
     public DbSet<ServerInventory> ServerInventories => Set<ServerInventory>();
     public DbSet<DemoRequest> DemoRequests => Set<DemoRequest>();
     public DbSet<ErpDeveloper> ErpDevelopers => Set<ErpDeveloper>();
+    public DbSet<TenantSiteDomain> SiteDomains => Set<TenantSiteDomain>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -383,6 +384,18 @@ public class ControlDbContext(DbContextOptions<ControlDbContext> options) : DbCo
             e.Property(x => x.Error).HasMaxLength(1000);
             e.HasOne<Invoice>().WithMany().HasForeignKey(x => x.InvoiceId).OnDelete(DeleteBehavior.Restrict);
             e.HasOne<Payment>().WithMany().HasForeignKey(x => x.PaymentId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        b.Entity<TenantSiteDomain>(e =>
+        {
+            e.ToTable("SiteDomains");
+            e.HasIndex(x => x.TenantId).IsUnique();
+            e.HasIndex(x => x.Host).IsUnique();
+            e.Property(x => x.Host).HasMaxLength(253);
+            e.Property(x => x.PendingRemoval).HasMaxLength(1000);
+            e.Property(x => x.DnsResult).HasMaxLength(500);
+            e.Property(x => x.Error).HasMaxLength(2000);
+            e.HasOne(x => x.Tenant).WithMany().HasForeignKey(x => x.TenantId).OnDelete(DeleteBehavior.Cascade);
         });
 
         b.Entity<DemoRequest>(e =>

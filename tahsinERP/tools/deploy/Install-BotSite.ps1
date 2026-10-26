@@ -14,6 +14,7 @@
 .EXAMPLE
     .\Install-BotSite.ps1 -Domain tahsinerp.uz
     .\Install-BotSite.ps1 -Domain tahsinerp.uz -KeepSecrets -CertThumbprint <*.tahsinerp.uz> -SaytCertThumbprint <*.sayt.tahsinerp.uz>
+    .\Install-BotSite.ps1 -Domain tahsinerp.uz -KeepSecrets -SiteServerIp 63.183.64.107   # firma o'z domeni uchun DNS tekshiruvi
 #>
 [CmdletBinding()]
 param(
@@ -26,6 +27,8 @@ param(
     [string] $PanelPool = 'tahsinERP.ControlPanel',
     [string] $CertThumbprint,
     [string] $SaytCertThumbprint,
+    # Sayt serverining ochiq IP manzili: panel firmaning o'z domeni A yozuvini shunga solishtiradi (09_SITE_CUSTOM_DOMAIN.md)
+    [string] $SiteServerIp,
     [switch] $KeepSecrets
 )
 
@@ -146,6 +149,7 @@ if (Test-Path "IIS:\AppPools\$PanelPool") {
     Set-PoolEnv $PanelPool 'ControlPanel__Apps__BotUrl' "https://bot.$Domain"
     Set-PoolEnv $PanelPool 'ControlPanel__Apps__SiteUrl' "https://api.sayt.$Domain"
     Set-PoolEnv $PanelPool 'ControlPanel__Apps__AdminKey' $adminKey
+    if ($SiteServerIp) { Set-PoolEnv $PanelPool 'ControlPanel__Apps__SiteServerIp' $SiteServerIp.Trim() }
     & $appcmd recycle apppool /apppool.name:$PanelPool | Out-Null
     Ok 'panel: firma sahifasidan bot/sayt ulash yoqildi (ControlPanel__Apps__*)'
 } else { Skip "panel pool'i yo'q ($PanelPool) - panel ulanishi keyin shu skriptni -KeepSecrets bilan qayta ishga tushirib yoziladi" }

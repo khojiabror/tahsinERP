@@ -10,10 +10,12 @@ namespace tahsinERP.Site.Admin;
 ///   GET  /admin/api/tenants/{slug}          — holat
 ///   PUT  /admin/api/tenants/{slug}          — {erpBaseUrl, erpTenant} yoqish/yangilash
 ///   POST /admin/api/tenants/{slug}/disable  — o'chirish
+///   PUT  /admin/api/tenants/{slug}/domain   — {host, redirect} o'z domeni (host null — olib tashlash)
 /// </summary>
 public static class AdminEndpoints
 {
     public sealed record UpsertRequest(string? ErpBaseUrl, string? ErpTenant);
+    public sealed record DomainRequest(string? Host, bool Redirect);
 
     public static void Map(WebApplication app)
     {
@@ -27,6 +29,13 @@ public static class AdminEndpoints
             await Safe(async () =>
             {
                 await admin.UpsertAsync(slug, body.ErpBaseUrl ?? "", body.ErpTenant, ct);
+                return Results.Ok(await admin.StatusAsync(slug, ct));
+            }));
+
+        g.MapPut("/tenants/{slug}/domain", async (string slug, DomainRequest body, SiteTenantAdmin admin, IOptions<SiteOptions> options, CancellationToken ct) =>
+            await Safe(async () =>
+            {
+                await admin.SetDomainAsync(slug, body.Host, body.Redirect, options.Value.BaseDomain, ct);
                 return Results.Ok(await admin.StatusAsync(slug, ct));
             }));
 

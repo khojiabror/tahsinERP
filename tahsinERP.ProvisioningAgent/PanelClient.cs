@@ -21,6 +21,7 @@ public sealed class PanelClient
     public PanelClient(HttpClient http, AgentOptions options, TimeProvider time, HttpClient? downloadHttp)
     {
         _http = http;
+        _capabilities = options.SiteDomains.Enabled ? [AgentCapabilities.SiteDomain] : [];
         _time = time;
         if (string.IsNullOrWhiteSpace(options.Panel.Url)) throw new InvalidOperationException("Panel:Url sozlanmagan.");
         if (options.Panel.ServerId <= 0) throw new InvalidOperationException("Panel:ServerId sozlanmagan.");
@@ -34,6 +35,7 @@ public sealed class PanelClient
     }
 
     private readonly HttpClient _downloadHttp;
+    private readonly List<string> _capabilities;
 
     public sealed class PanelException(HttpStatusCode status, string body) : Exception($"Panel {(int)status}: {body}")
     {
@@ -58,7 +60,7 @@ public sealed class PanelClient
 
     public async Task<JobLease?> LeaseAsync(CancellationToken ct)
     {
-        using var r = await PostAsync("api/agent/lease", new LeaseRequest { Host = Environment.MachineName }, ct);
+        using var r = await PostAsync("api/agent/lease", new LeaseRequest { Host = Environment.MachineName, Capabilities = _capabilities }, ct);
         if (r.StatusCode == HttpStatusCode.NoContent) return null;
         return await ReadAsync<JobLease>(r, ct);
     }

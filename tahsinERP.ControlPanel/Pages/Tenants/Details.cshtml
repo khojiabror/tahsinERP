@@ -162,6 +162,48 @@
                 </form>
                 <p class="hint">@L.T("Pnl_Ten_SiteHint")</p>
             }
+            @if (Model.SiteError == null && (Model.SiteDomain != null || Model.Site is { Exists: true, Active: true }))
+            {
+                var sd = Model.SiteDomain;
+                <h3>@L.T("Pnl_SDom_Title")</h3>
+                @if (sd != null)
+                {
+                    <dl class="props">
+                        <dt>@L.T("Pnl_SDom_Domain")</dt>
+                        <dd>@if (sd.Status == SiteDomainStatus.Active) { <a href="https://@sd.Host" target="_blank" rel="noopener">https://@sd.Host</a> } else { <code>@sd.Host</code> }
+                            <span class="badge @Labels.Badge(sd.Status)">@Labels.Of(sd.Status)</span></dd>
+                        <dt>DNS</dt>
+                        <dd>@(sd.DnsCheckedAtUtc is null ? L.T("Pnl_SDom_DnsNotChecked") : (sd.DnsOk ? L.T("Pnl_SDom_DnsOkShort") : L.T("Pnl_SDom_DnsBadShort")) + " · " + sd.DnsResult + " · " + sd.DnsCheckedAtUtc.Value.ToString("dd.MM.yyyy HH:mm") + " UTC")</dd>
+                        @if (sd.Status == SiteDomainStatus.Active && sd.RedirectToDomain) { <dt>@L.T("Pnl_SDom_RedirectShort")</dt><dd>@Model.SiteDefaultHost → @sd.Host</dd> }
+                        @if (sd.LastJobId != null) { <dt>@L.T("Pnl_SDom_Job")</dt><dd><a href="/Provisioning/Job/@sd.LastJobId">#@sd.LastJobId</a></dd> }
+                        @if (sd.Error != null) { <dt>@L.T("Pnl_LastError")</dt><dd class="mono">@sd.Error</dd> }
+                        @if (Model.Site is { Exists: true } && Model.Site.Domain != (sd.Status == SiteDomainStatus.Removing ? null : sd.Host))
+                        {
+                            <dt>@L.T("Pnl_Ten_SiteCatalog")</dt><dd class="hint">@L.T("Pnl_SDom_OutOfSync", Model.Site.Domain ?? "—")</dd>
+                        }
+                    </dl>
+                }
+                @if (Model.CanSell && Model.SiteConfigured && sd?.Status != SiteDomainStatus.Removing)
+                {
+                    <form method="post" class="stack" autocomplete="off">
+                        <div><label asp-for="SiteDomainInput">@L.T("Pnl_SDom_Domain")</label>
+                            <input asp-for="SiteDomainInput" type="text" placeholder="shop.firma.uz" spellcheck="false" /></div>
+                        <label class="check"><input asp-for="SiteDomainRedirect" type="checkbox" /> @L.T("Pnl_SDom_Redirect", Model.SiteDefaultHost ?? "")</label>
+                        <div class="actions">
+                            <button type="submit" asp-page-handler="SiteDomainSave">@(sd == null ? L.T("Pnl_SDom_Connect") : L.T("Save"))</button>
+                            @if (sd?.Status is SiteDomainStatus.PendingDns or SiteDomainStatus.Failed) { <button type="submit" class="secondary" asp-page-handler="SiteDomainCheck">@L.T("Pnl_SDom_Check")</button> }
+                            @if (sd != null) { <button type="submit" class="danger" asp-page-handler="SiteDomainRemove">@L.T("Pnl_SDom_Remove")</button> }
+                        </div>
+                    </form>
+                }
+                else if (Model.CanSell && sd?.Status == SiteDomainStatus.Removing && sd.Error != null)
+                {
+                    <form method="post" class="actions"><button type="submit" class="danger" asp-page-handler="SiteDomainRemove">@L.T("Pnl_SDom_RemoveRetry")</button></form>
+                }
+                <p class="hint">@L.T("Pnl_SDom_DnsHelpA", Model.SiteExpectedIps.Count > 0 ? string.Join(", ", Model.SiteExpectedIps) : L.T("Pnl_SDom_ServerIp"))
+                    @if (Model.SiteDefaultHost != null) { @L.T("Pnl_SDom_DnsHelpCname", Model.SiteDefaultHost) }
+                    @L.T("Pnl_SDom_DnsHelpTail")</p>
+            }
         </div>
     </div>
 }

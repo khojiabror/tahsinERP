@@ -92,7 +92,7 @@ public static class AgentApi
     {
         var (a, err) = await AuthenticateAsync(http, db, protector, clock, ct);
         if (a is null) return err!;
-        var lease = await provisioning.LeaseAsync(a.Server, ct);
+        var lease = await provisioning.LeaseAsync(a.Server, ct, Read<LeaseRequest>(a.Body)?.Capabilities);
         return lease is null ? Results.NoContent() : Results.Json(lease, AgentProtocol.Json);
     }
 
