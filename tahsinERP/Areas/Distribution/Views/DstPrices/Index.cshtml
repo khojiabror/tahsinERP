@@ -3,7 +3,6 @@
     ViewBag.Title = DstLocalization.T("Prices");
     bool canChange = ViewBag.DstCanChange == true;
     var types = (List<PriceType>)ViewBag.PriceTypes;
-    bool ru = System.Threading.Thread.CurrentThread.CurrentUICulture.TwoLetterISOLanguageName == "ru";
 }
 @Html.AntiForgeryToken()
 <div class="app-content content">
@@ -43,7 +42,7 @@
                                 <th>@DstLocalization.T("Name")</th>
                                 @foreach (var t in types)
                                 {
-                                    <th class="text-right">@(ru && !string.IsNullOrEmpty(t.NameRu) ? t.NameRu : t.Name)@(t.IsDefault ? " *" : "")</th>
+                                    <th class="text-right">@DstLocalization.Name(t.Name, t.NameRu)@(t.IsDefault ? " *" : "")</th>
                                 }
                                 <th></th>
                             </tr>
@@ -93,7 +92,7 @@
                     <select id="mType" class="form-control">
                         @foreach (var t in types)
                         {
-                            <option value="@t.ID">@(ru && !string.IsNullOrEmpty(t.NameRu) ? t.NameRu : t.Name)</option>
+                            <option value="@t.ID">@DstLocalization.Name(t.Name, t.NameRu)</option>
                         }
                     </select>
                 </div>
@@ -123,7 +122,7 @@
     <script>
         $(function () {
             var canChange = @(canChange ? "true" : "false");
-            var types = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(types.Select(t => new { id = t.ID, name = ru && !string.IsNullOrEmpty(t.NameRu) ? t.NameRu : t.Name })));
+            var types = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(types.Select(t => new { id = t.ID, name = DstLocalization.Name(t.Name, t.NameRu) })));
             var money = new Intl.NumberFormat('ru-RU');
             var columns = [
                 { data: 'pno', render: dstEsc },

@@ -96,7 +96,7 @@ namespace tahsinERP.Areas.Distribution.Controllers
                     recordsFiltered = result.Filtered,
                     data = result.Rows.Select(r => new
                     {
-                        id = r.ID, pno = r.PNo, name = r.Name, nameRu = r.NameRu, category = r.Category, brand = r.Brand,
+                        id = r.ID, pno = r.PNo, name = Localized(r.Name, r.NameRu), category = r.Category, brand = r.Brand,
                         unit = r.Unit, units = r.Units, barcodes = r.Barcodes, price = r.Price,
                         hasProfile = r.HasProfile, sale = r.IsSaleActive
                     })

@@ -26,7 +26,7 @@ namespace tahsinERP.Areas.Distribution.Services
             {
                 foreach (var t in byParent[parentId].OrderBy(t => t.Name))
                 {
-                    string name = russian && !string.IsNullOrWhiteSpace(t.NameRu) ? t.NameRu : t.Name;
+                    string name = russian ? DstLocalization.NameFor(DstLocalization.Russian, t.Name, t.NameRu) : DstLocalization.Name(t.Name, t.NameRu);
                     string path = prefix == null ? name : prefix + " / " + name;
                     result.Add(new Node { Item = t, Depth = depth, Path = path });
                     if (depth < 3) Walk(t.ID, depth + 1, path);
@@ -36,7 +36,7 @@ namespace tahsinERP.Areas.Distribution.Services
             Walk(null, 0, null);
             // ota-onasi topilmagan (yetim) yozuvlar ham ko'rinsin
             foreach (var orphan in list.Where(t => t.ParentID.HasValue && !ids.Contains(t.ParentID.Value)).OrderBy(t => t.Name))
-                result.Add(new Node { Item = orphan, Depth = 0, Path = orphan.Name });
+                result.Add(new Node { Item = orphan, Depth = 0, Path = russian ? DstLocalization.NameFor(DstLocalization.Russian, orphan.Name, orphan.NameRu) : DstLocalization.Name(orphan.Name, orphan.NameRu) });
             return result;
         }
     }

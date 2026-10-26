@@ -28,7 +28,6 @@
                             <thead>
                                 <tr>
                                     <th>@DstLocalization.T("Name")</th>
-                                    <th>@DstLocalization.T("NameRu")</th>
                                     <th>@DstLocalization.T("Level")</th>
                                     <th class="text-right">@DstLocalization.T("Customers")</th>
                                     <th>@DstLocalization.T("Status")</th>
@@ -47,9 +46,8 @@
                                     <tr class="@(t.IsActive ? "" : "text-muted")">
                                         <td style="padding-left:@(12 + n.Depth * 24)px">
                                             @if (n.Depth > 0) { <span class="text-muted">└</span> }
-                                            @t.Name
+                                            @DstLocalization.Name(t.Name, t.NameRu)
                                         </td>
-                                        <td>@t.NameRu</td>
                                         <td>@levelNames[t.Level]</td>
                                         <td class="text-right">@used</td>
                                         <td>@(t.IsActive ? DstLocalization.T("Active") : DstLocalization.T("Inactive"))</td>
@@ -97,7 +95,7 @@
                     </select>
                 </div>
                 <div class="form-group"><label>@DstLocalization.T("Name")</label><input id="tName" class="form-control" maxlength="100" /></div>
-                <div class="form-group"><label>@DstLocalization.T("NameRu")</label><input id="tNameRu" class="form-control" maxlength="100" /></div>
+                <div class="form-group"><label>@DstLocalization.T("NameRu")</label><input id="tNameRu" class="form-control" maxlength="100" /><small class="form-text text-muted">@DstLocalization.T("NameRu_Hint")</small></div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-light" data-dismiss="modal">@DstLocalization.T("Cancel")</button>
