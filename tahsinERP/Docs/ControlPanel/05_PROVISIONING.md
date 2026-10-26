@@ -23,7 +23,7 @@ Holat: 2026-10-19. Bog'liq: `00_PLAN.md` (7), `02_MULTI_TENANT.md` (tenants.json
 
 | Tur | Kim | Shart | Agent nima qiladi | Muvaffaqiyatda panel |
 |---|---|---|---|---|
-| Create | Sales/Owner | SaaS, `DbName`, baza hali yaratilmagan | baza bor-yo'qligini tekshiradi → `New-TenantDb.ps1` (parol env orqali; `SampleData` bo'lsa `-Demo` — Database/Demo namuna ma'lumotlari, so'ng demo skripti yaratgan `demo/demo2026` foydalanuvchisi o'chirib qo'yiladi va paroli tasodifiy qilinadi) → `LICENSE_STATE.RegToken` → `tenants.json` upsert → bazaga ulanib tekshiradi | `ProvisionedAtUtc`, `RegistryEnabled`; Telegram'ga URL/login/parol |
+| Create | Sales/Owner | SaaS, `DbName`, baza hali yaratilmagan | baza bor-yo'qligini tekshiradi → `New-TenantDb.ps1` (parol env orqali; payload `Modules` bo'lsa `-Modules` — faqat shu modullar sozlamasi, 11-bo'lim; `SampleData` bo'lsa `-Demo` — Database/Demo namuna ma'lumotlari (faqat tanlangan modullarniki), so'ng demo skripti yaratgan `demo/demo2026` foydalanuvchisi o'chirib qo'yiladi va paroli tasodifiy qilinadi) → `LICENSE_STATE.RegToken` → `tenants.json` upsert → bazaga ulanib tekshiradi | `ProvisionedAtUtc`, `RegistryEnabled`; Telegram'ga URL/login/parol |
 | Suspend | Sales/Owner yoki avtomatik | baza yaratilgan | `enabled: false` | `RegistryEnabled=false` |
 | Resume | Sales/Owner yoki avtomatik | faol obuna bor | `enabled: true` | `RegistryEnabled=true` |
 | Archive | **Owner**, sabab majburiy | baza yaratilgan | `enabled:false` → `BACKUP ... COPY_ONLY, CHECKSUM` + `RESTORE VERIFYONLY` → `IBackupStore` (hozir lokal papka) → `DROP DATABASE` | `Status=Archived`, `ArchiveLocation` |
@@ -191,7 +191,7 @@ Domen nomi hali tanlanmagan — quyida `<domen>`. Tanlangach: ERP `TAHSINERP_BAS
    ```bash
    dotnet run --environment Development
    ```
-4. Panel → «+ Sinov ochish» → parol ko'rsatiladi → ~30 soniyada job «Bajarildi».
+4. Panel → «+ Sinov ochish» → modullarni belgilang → parol ko'rsatiladi → ~30 soniyada job «Bajarildi».
 5. ERP'ni ko'p-tenant rejimida sinash: ERP app pool/IIS Express'ga `TAHSINERP_TENANTS_FILE` = agent yozgan fayl.
 
 Testlar (lokal SQL'da vaqtinchalik bazalar, oxirida o'chiriladi; `C:\ProgramData\tahsinERP-test` ga SQL xizmati uchun ruxsat beriladi):
@@ -230,3 +230,42 @@ agent ularni o'qimaydi ham. `ActionName` erkin matn (hujjat/kontragent nomi bo'l
 9+ xonali raqam/telefon (STIR, karta, hisob raqami) → `[raqam]`, 200 belgigacha qisqartiriladi; butunlay o'chirish —
 agent `Usage:IncludeActionText=false` (faqat modul va vaqt). Ma'lumot faqat xodimlarga (barcha rollar o'qiydi), 90 kundan keyin o'chadi.
 Mijoz bilan shartnoma/maxfiylik siyosatida «xizmat sifati uchun foydalanish statistikasi yig'iladi» bandi bo'lishi kerak.
+
+## 11. Sinov modullari (2026-10-25)
+
+Sinov ochishda hamma modul uchun demo ochilmaydi: xodim formada modullarni belgilaydi (SRM, CRM, Topshiriqlar, MES, Muhandislik,
+Moliya, HR, Logistika, Hujjatlar, Distributsiya, +Sayt-katalog — `EditionModules.ProductModule`). Kamida bitta modul majburiy;
+MES tanlansa Muhandislik avtomatik qo'shiladi (`EditionModules.RequiredBy`). tahsinerp.uz demo so'rovidan ochilsa — so'rovdagi modullar
+oldindan belgilangan.
+
+**Kalit (litsenziya).** Alohida paket kodi yoki yangi kalit maydoni o'rniga mavjud Edition qatori kengaytirildi:
+`TRIAL:Srm,Crm,Tasks` (+ Sayt tanlansa `+SITE`, xuddi pullik xizmat obunasi kabi). Sabab: v2 imzolangan payload formati va ERP'ning
+`EditionGate` → `EditionModules.IsModuleAllowed` yo'li o'zgarmaydi, menyu/controller/API cheklovi shu bitta xaritadan ishlaydi;
+`PlanCodes.Trial` va hayot sikli (14 kun, 5 foydalanuvchi, Suspended) ham o'zgarmaydi. Ruxsat = paket modullari ∩ ro'yxat (kalit
+paketdan kengaytira olmaydi). Hamma modul tanlansa ro'yxat yozilmaydi (`TRIAL`). `:` ni bilmaydigan eski ERP bunday qatorni noma'lum
+paket deb hamma modulni ochadi — yopib qo'ymaydi (sinov firmalari doim joriy versiyada yaratiladi).
+
+| Joy | Nima saqlanadi |
+|---|---|
+| `Tenants.Modules` | baza qaysi modullar uchun tayyorlangan (`Srm,Crm,Website`; null — hammasi: eski tenantlar, demo) — Create payload'iga |
+| `Subscriptions.Modules` | sinov obunasidagi modullar — `LicenseIssuer.ComposeEdition(plan, xizmatlar, modules)` → kalitdagi Edition. Pullik obunaga o'tilganda yangi obuna (Modules = null) paketning hamma modullarini ochadi |
+| `JobPayload.Modules` | agentga: `New-TenantDb.ps1 -Modules Srm,Crm,...` (agent nomlarni `EditionModules` bilan tekshiradi; noma'lum — Failed) |
+| tenant bazasi `dbo.SETUP_MODULES` (032) | tanlangan modullar; `Setup/300_ModuleProfile.sql` va `Demo/*.sql` shunga qarab ishlaydi (bo'sh — hammasi) |
+
+**Baza (Database/README.md «Demo ma'lumot», «Modul profili»).** Spravochniklar (valyuta, o'lchov birligi, ТНВЭД, moliya kategoriyalari...)
+Core — hammaga to'liq. Modulga bog'liq sozlamalar: har tanlangan modulga rol (faqat shu modul controllerlariga huquq), tanlanmagan modul
+omborlari o'chirilgan, namuna ma'lumotsiz bazada boshlang'ich kategoriyalar. Namuna ma'lumot (`SampleData`) — faqat tanlangan modullar
+fayllari; bog'liq ssenariy yetishmasa (masalan CRM bor, MES yo'q) boshlang'ich qoldiq kirimi bilan to'ldiriladi.
+
+**Rollar va bosh sahifa.** Har tanlangan modulga rol: o'z moduli — ko'rish+o'zgartirish (C), qo'shni modullarning kerakli bo'limlari
+va spravochniklar — faqat ko'rish (V), o'chirish — faqat Admin; to'liq jadval — Database/README.md «Rollar va ruxsatlar». ERP bosh
+sahifasi (KPI, grafiklar, signallar) va modul plitkalari faqat kalitdagi modullar va foydalanuvchi roli ko'ra oladigan bo'limlar bilan
+chiqadi (`HomeSections`) — sinov mijozi birinchi kirishda o'zi tanlagan modullar ma'lumotini ko'radi.
+
+**Versiya mosligi.** Yangi panel + eski agent: `Modules` e'tiborsiz — baza hamma modul bilan (kalit baribir tanlanganlarni ochadi).
+Agent `Database/` papkasi ERP reliz bilan keladi (Updater `/MIR` — eski demo fayllari qolmaydi); demo shabloni `DB_DEMO_TEMPLATE.bak`
+eski fayllar bilan yaratilgan bo'lsa `build-demo-template` bilan qayta yarating.
+
+Tekshirish: `TrialModulesUnitTests` (Edition qatori, agent argumentlari, SQL xaritasi `EditionModules` bilan bir xilligi),
+`ProvisioningIntegrationTests.TrialWithModules_DatabaseHasOnlySelectedModulesSetupAndSampleData` (lokal SQL'da to'liq oqim),
+`WebUiProvisioningTests` (forma).

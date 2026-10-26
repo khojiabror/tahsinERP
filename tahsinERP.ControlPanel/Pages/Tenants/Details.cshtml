@@ -33,6 +33,10 @@
             <dt>@L.T("Pnl_Contact")</dt><dd>@t.ContactName @t.Phone @t.Email</dd>
             <dt>Telegram</dt><dd>@t.TelegramChatId</dd>
             <dt>@L.T("Pnl_Ten_DbServer")</dt><dd>@t.DbName @t.Server?.Name</dd>
+            @if (t.Modules is { } mods)
+            {
+                <dt>@L.T("Pnl_Ten_SetupModules")</dt><dd>@string.Join(", ", mods.Split(',').Select(m => L.T("Pnl_Module_" + m)))@(t.SampleData ? " · " + L.T("Pnl_Ten_WithSample") : "")</dd>
+            }
             <dt>CompanyID</dt><dd>@t.CompanyId</dd>
             <dt>InstallationId</dt><dd><code>@(t.InstallationId ?? L.T("Pnl_NotBound"))</code></dd>
             <dt>@L.T("Pnl_LastSeen")</dt><dd>@t.LastSeenUtc @t.LastVersion @t.LastHost</dd>

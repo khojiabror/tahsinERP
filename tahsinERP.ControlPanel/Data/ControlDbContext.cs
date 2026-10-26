@@ -110,6 +110,7 @@ public class ControlDbContext(DbContextOptions<ControlDbContext> options) : DbCo
             e.Property(x => x.LastHost).HasMaxLength(253);
             e.Property(x => x.Notes).HasMaxLength(2000);
             e.Property(x => x.ArchiveLocation).HasMaxLength(500);
+            e.Property(x => x.Modules).HasMaxLength(500);
             e.Property(x => x.OnlineCheck).HasDefaultValue(OnlineCheckMode.Optional).HasSentinel((OnlineCheckMode)0);
             e.Property(x => x.RowVersion).IsRowVersion();
             e.HasOne(x => x.Server).WithMany().HasForeignKey(x => x.ServerId).OnDelete(DeleteBehavior.Restrict);
@@ -120,6 +121,7 @@ public class ControlDbContext(DbContextOptions<ControlDbContext> options) : DbCo
             e.HasIndex(x => new { x.TenantId, x.Status });
             e.HasOne(x => x.Tenant).WithMany(t => t.Subscriptions).HasForeignKey(x => x.TenantId).OnDelete(DeleteBehavior.Restrict);
             e.HasOne(x => x.Plan).WithMany().HasForeignKey(x => x.PlanId).OnDelete(DeleteBehavior.Restrict);
+            e.Property(x => x.Modules).HasMaxLength(500);
             e.Property(x => x.RowVersion).IsRowVersion();
         });
 

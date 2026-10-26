@@ -45,7 +45,7 @@ public sealed partial class TenantService(ControlDbContext db, AuditLogger audit
     private static object Snapshot(Tenant t) => new
     {
         t.Slug, t.LegalName, t.Inn, t.ContactName, t.Phone, t.Email, t.TelegramChatId, t.Address,
-        t.Deployment, t.Status, t.CompanyId, t.DbName, t.ServerId, t.InstallationId, t.Notes, t.OnlineCheck, t.OfflineGraceDays
+        t.Deployment, t.Status, t.CompanyId, t.DbName, t.ServerId, t.InstallationId, t.Notes, t.OnlineCheck, t.OfflineGraceDays, t.SampleData, t.Modules
     };
 
     private async Task ValidateAsync(Tenant t, CancellationToken ct)

@@ -1,16 +1,23 @@
 ﻿<#
 .SYNOPSIS
-    Yangi korxona bazasini 0 dan yaratadi: CREATE DATABASE -> baseline -> migratsiyalar -> seed (-> demo) -> admin.
+    Yangi korxona bazasini 0 dan yaratadi: CREATE DATABASE -> baseline -> migratsiyalar -> seed -> modullar (SETUP_MODULES)
+    -> (demo) -> modul profili -> admin.
 
 .DESCRIPTION
     SSMS kerak emas. Panel agenti (yoki odam) shu skriptni chaqiradi; kontrakt: Docs/ControlPanel/03_DB_PROVISIONING.md.
     Skript tenants.json, DNS/IIS va litsenziyaga TEGMAYDI; LICENSE_STATE/InstallationId YOZILMAYDI.
 
-    Natija stdout'ning oxirgi qatorida: "RESULT {json}" — ok, exitCode, database, adminLogin, tempPassword, backup.
+    -Modules: baza qaysi modullar uchun tayyorlanadi (EditionModules.ProductModule nomlari: Srm, Crm, Tasks, Mes, Engineering,
+    Finance, Hr, Logistics, Docs, Distribution, Website; vergul bilan ham bo'ladi). dbo.SETUP_MODULES ga yoziladi; Demo/*.sql
+    faqat shu modullarning namuna ma'lumotini, Setup/300_ModuleProfile.sql faqat ularning rollari/omborlarini qo'llaydi.
+    Mes tanlansa Engineering avtomatik qo'shiladi. Berilmasa — hamma modul (eski xatti-harakat, demo shabloni).
+
+    Natija stdout'ning oxirgi qatorida: "RESULT {json}" — ok, exitCode, database, adminLogin, tempPassword, backup, modules.
     Xato bo'lsa yangi yaratilgan baza o'chiriladi (-KeepOnFailure bilan qoldiriladi).
 
 .EXAMPLE
     .\New-TenantDb.ps1 -Server localhost -DbName DB_firma1 -CompanyName '"Firma 1" MChJ'
+    .\New-TenantDb.ps1 -Server localhost -DbName DB_firma2 -Modules Srm,Crm,Tasks,Finance -Demo
     .\New-TenantDb.ps1 -Server localhost -DbName DB_DEMO -Demo -BackupTo C:\Backups\DB_DEMO_TEMPLATE.bak
     .\New-TenantDb.ps1 -Server localhost -DbName DB_TEMPLATE -NoAdmin -BackupTo C:\Backups\DB_TEMPLATE.bak
 #>
@@ -30,6 +37,8 @@ param(
     [switch]$NoAdmin,
 
     [switch]$Demo,
+    # Tanlangan modullar (bo'sh — hammasi). Agent: -Modules Srm,Crm,...
+    [string[]]$Modules,
     # Seed (+demo) dan keyin, admin yaratilishidan OLDIN COPY_ONLY backup (DB_TEMPLATE.bak / DB_DEMO_TEMPLATE.bak)
     [string]$BackupTo,
 
@@ -102,6 +111,20 @@ if ($Collation -notmatch '^[A-Za-z0-9_]+$') { Finish $EXIT_BAD_ARGS "Collation y
 if (-not $NoAdmin -and ($AdminLogin -notmatch '^[A-Za-z0-9_\.\-]{3,30}$')) { Finish $EXIT_BAD_ARGS "AdminLogin yaroqsiz (3-30 belgi, A-Za-z0-9_.-)" }
 if ($AdminPassword -and $AdminPassword.Length -lt 8) { Finish $EXIT_BAD_ARGS 'AdminPassword kamida 8 belgi bo''lishi kerak' }
 
+# Modullar: EditionModules.ProductModule nomlari (registrsiz), tartib — paket tartibi; Mes -> + Engineering (EditionModules.RequiredBy)
+$AllModules = @('Srm', 'Crm', 'Tasks', 'Mes', 'Engineering', 'Finance', 'Hr', 'Logistics', 'Docs', 'Distribution', 'Website')
+$selected = @()
+if ($Modules) {
+    $names = @($Modules | ForEach-Object { "$_" -split ',' } | ForEach-Object { $_.Trim() } | Where-Object { $_ })
+    foreach ($n in $names) {
+        $m = $AllModules | Where-Object { $_ -eq $n } | Select-Object -First 1   # -eq registrsiz
+        if (-not $m) { Finish $EXIT_BAD_ARGS "Noma'lum modul: $n (ruxsat: $($AllModules -join ', '))" }
+    }
+    if ($names | Where-Object { $_ -eq 'Mes' }) { $names += 'Engineering' }
+    $selected = @($AllModules | Where-Object { $names -contains $_ })
+}
+$result.modules = $(if ($selected.Count -gt 0) { $selected } else { $null })
+
 try { $master = New-Conn 'master' } catch { Finish $EXIT_CONNECT "SQL Server'ga ulanib bo'lmadi ($Server): $($_.Exception.Message)" }
 $exists = [int](Exec $master 'SELECT COUNT(*) FROM sys.databases WHERE name = @n' @{ '@n' = $DbName })
 if ($exists -gt 0) { $master.Dispose(); Finish $EXIT_DB_EXISTS "Baza allaqachon mavjud: $DbName (skript mavjud bazani o'zgartirmaydi)" }
@@ -115,28 +138,41 @@ try {
     $created = $true
     Exec $master "ALTER DATABASE [$DbName] SET RECOVERY $RecoveryModel" | Out-Null
 
-    # ---------------- 2. baseline + migratsiya + seed (+ demo) ----------------
+    # ---------------- 2. baseline + migratsiya + seed ----------------
     $runner = Join-Path $PSScriptRoot 'Invoke-DbMigrations.ps1'
     $extra = @()
     if ($Demo) {
+        # har demo fayl o'z modulini dbo.fn_SetupHasModule bilan tekshiradi (200/299 — Core, har doim)
         $demoDir = Join-Path $root 'Demo'
         if (Test-Path -LiteralPath $demoDir) { $extra = @(Get-ChildItem -LiteralPath $demoDir -Filter '*.sql' | Sort-Object Name | ForEach-Object { $_.FullName }) }
         if ($extra.Count -eq 0) { $code = $EXIT_BAD_ARGS; throw [System.Exception]::new("Demo skriptlari topilmadi: $demoDir") }
     }
+    $setupDir = Join-Path $root 'Setup'
+    if (Test-Path -LiteralPath $setupDir) { $extra += @(Get-ChildItem -LiteralPath $setupDir -Filter '*.sql' | Sort-Object Name | ForEach-Object { $_.FullName }) }
     $runArgs = @{ Server = $Server; Database = $DbName; Seed = $true; DatabaseRoot = $root }
     if ($SqlUser) { $runArgs.SqlUser = $SqlUser; $runArgs.SqlPassword = $SqlPassword }
-    if ($extra.Count -gt 0) { $runArgs.ExtraScripts = $extra }
     if ($LogFile) { $runArgs.LogFile = $LogFile }
     & $runner @runArgs
     if ($LASTEXITCODE -ne 0) { throw [System.Exception]::new("Migratsiya runner xato kodi: $LASTEXITCODE") }
 
     $db = New-Conn $DbName
     try {
+        # ---------------- 3. modullar -> (demo) -> modul profili ----------------
+        foreach ($m in $selected) {
+            Exec $db 'IF NOT EXISTS (SELECT 1 FROM dbo.SETUP_MODULES WHERE Module = @m) INSERT INTO dbo.SETUP_MODULES (Module) VALUES (@m)' @{ '@m' = $m } | Out-Null
+        }
+        Write-Log 'INFO' ("Modullar: " + $(if ($selected.Count -gt 0) { $selected -join ', ' } else { 'hammasi' }))
+        if ($extra.Count -gt 0) {
+            $runArgs.ExtraScripts = $extra
+            & $runner @runArgs
+            if ($LASTEXITCODE -ne 0) { throw [System.Exception]::new("Demo/profil skriptlari xato kodi: $LASTEXITCODE") }
+        }
+
         if ($CompanyName) {
             Exec $db 'UPDATE dbo.COMPANIES SET Name = @n WHERE ID = 1' @{ '@n' = $CompanyName } | Out-Null
         }
 
-        # ---------------- 3. shablon backup (admin'siz) ----------------
+        # ---------------- 4. shablon backup (admin'siz) ----------------
         if ($BackupTo) {
             Write-Log 'INFO' "BACKUP -> $BackupTo"
             try {
@@ -146,7 +182,7 @@ try {
             catch { $code = $EXIT_BACKUP; throw }
         }
 
-        # ---------------- 4. admin ----------------
+        # ---------------- 5. admin ----------------
         if (-not $NoAdmin) {
             $tempPwd = if ($AdminPassword) { $AdminPassword } else { New-TempPassword }
             $h = New-PasswordHash $tempPwd

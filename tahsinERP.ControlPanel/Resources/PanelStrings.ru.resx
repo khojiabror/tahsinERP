@@ -2279,7 +2279,7 @@
     <value>Адрес SaaS:</value>
   </data>
   <data name="Pnl_Ten_SampleData" xml:space="preserve">
-    <value>С демо-данными (товары, контрагенты, ~3 месяца закупок/производства/продаж, сотрудники)</value>
+    <value>С демо-данными (только отмеченные модули: товары, контрагенты, документы за ~3 месяца, сотрудники...)</value>
   </data>
   <data name="Pnl_Ten_SampleHint" xml:space="preserve">
     <value>Если не отмечено — пустая база (только справочники). В демо-базе пользователь demo отключается, вход только через admin.</value>
@@ -2345,7 +2345,7 @@
     <value>Пробный период завершается: доступ закрыт, база будет удалена (предварительно архив .bak). Задание #{0}.</value>
   </data>
   <data name="Pnl_Ten_TrialInfo" xml:space="preserve">
-    <value>TRIAL: модули Корпоративного, 5 пользователей, 14 дней. По окончании тенант приостанавливается (tenants.json enabled=false).</value>
+    <value>TRIAL: отмеченные модули, 5 пользователей, 14 дней. По окончании тенант приостанавливается (tenants.json enabled=false).</value>
   </data>
   <data name="Pnl_Ten_TrialOpened" xml:space="preserve">
     <value>Для «{0}» открыт пробный период — создание базы поставлено в очередь</value>
@@ -3809,5 +3809,53 @@ tahsinERP портал: код входа {1}. Действует {2} мин.
   </data>
   <data name="Pnl_NavDevelopers" xml:space="preserve">
     <value>ERP-разработчики</value>
+  </data>
+  <data name="Pnl_Ten_TrialModules" xml:space="preserve">
+    <value>Модули пробного периода</value>
+  </data>
+  <data name="Pnl_Ten_TrialModulesHint" xml:space="preserve">
+    <value>Ключ открывает только эти модули; в базу записываются только их роли, склады и (если отмечено) демо-данные. При выборе производства добавляется и Инжиниринг (BOM/нормы).</value>
+  </data>
+  <data name="Pnl_Ten_ModulesRequired" xml:space="preserve">
+    <value>Отметьте хотя бы один модуль.</value>
+  </data>
+  <data name="Pnl_Ten_SetupModules" xml:space="preserve">
+    <value>Модули (настройка базы)</value>
+  </data>
+  <data name="Pnl_Ten_WithSample" xml:space="preserve">
+    <value>с демо-данными</value>
+  </data>
+  <data name="Pnl_Module_Srm" xml:space="preserve">
+    <value>Снабжение (закупки и склад)</value>
+  </data>
+  <data name="Pnl_Module_Crm" xml:space="preserve">
+    <value>Продажи (CRM)</value>
+  </data>
+  <data name="Pnl_Module_Tasks" xml:space="preserve">
+    <value>Задачи</value>
+  </data>
+  <data name="Pnl_Module_Mes" xml:space="preserve">
+    <value>Производство (MES)</value>
+  </data>
+  <data name="Pnl_Module_Engineering" xml:space="preserve">
+    <value>Инжиниринг (BOM, нормы, себестоимость)</value>
+  </data>
+  <data name="Pnl_Module_Finance" xml:space="preserve">
+    <value>Финансы</value>
+  </data>
+  <data name="Pnl_Module_Hr" xml:space="preserve">
+    <value>Кадры (HR)</value>
+  </data>
+  <data name="Pnl_Module_Logistics" xml:space="preserve">
+    <value>Логистика</value>
+  </data>
+  <data name="Pnl_Module_Docs" xml:space="preserve">
+    <value>Официальные документы</value>
+  </data>
+  <data name="Pnl_Module_Distribution" xml:space="preserve">
+    <value>Дистрибуция</value>
+  </data>
+  <data name="Pnl_Module_Website" xml:space="preserve">
+    <value>Сайт-каталог (+SITE)</value>
   </data>
 </root>

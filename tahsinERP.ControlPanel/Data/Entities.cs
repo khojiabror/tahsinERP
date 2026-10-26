@@ -163,6 +163,12 @@ public class Tenant
     public DateTime? DeletedAtUtc { get; set; }
     /// <summary>Baza namuna ma'lumotlar bilan yaratilgan/yaratiladi (Database/Demo skriptlari).</summary>
     public bool SampleData { get; set; }
+    /// <summary>
+    /// Baza qaysi modullar uchun tayyorlangan/tayyorlanadi: ProductModule nomlari vergul bilan ("Srm,Crm,Tasks,Website"),
+    /// EditionModules.NormalizeModules tartibida. Null — hamma modul (eski tenantlar, demo). Create job shu ro'yxat bo'yicha
+    /// rol/ombor sozlamalari va namuna ma'lumotlarini qo'llaydi (New-TenantDb.ps1 -Modules). Sinovda TRIAL obunasiga ham yoziladi.
+    /// </summary>
+    public string? Modules { get; set; }
     /// <summary>Sinov muddatidan oldin yakunlangan vaqt (EndTrial job tugagan).</summary>
     public DateTime? TrialEndedAtUtc { get; set; }
 
@@ -197,6 +203,11 @@ public class Subscription
     public DateOnly EndDate { get; set; }
     public bool AutoRenew { get; set; }
     public SubscriptionStatus Status { get; set; }
+    /// <summary>
+    /// Paketdan tanlangan modullar (ProductModule nomlari vergul bilan) — hozircha faqat sinovda. Null — paketning hamma modullari.
+    /// Kalitga "TRIAL:Srm,Crm(+SITE)" bo'lib yoziladi (LicenseIssuer.ComposeEdition, EditionModules.ComposeModules).
+    /// </summary>
+    public string? Modules { get; set; }
     public DateTime CreatedAtUtc { get; set; }
     public byte[] RowVersion { get; set; } = [];
 }

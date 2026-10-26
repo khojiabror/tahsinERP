@@ -1,5 +1,9 @@
 @{
     ViewBag.Title = L.T("Core_HomeTitle");
+    // Bo'limlar paket (sinovda tanlangan modullar) va rol ruxsati bo'yicha — HomeSections (HomeController.cs)
+    var sec = (tahsinERP.Controllers.HomeSections)ViewBag.Sections;
+    var tiles = (System.Collections.Generic.List<tahsinERP.Controllers.HomeModuleTile>)ViewBag.ModuleTiles;
+    bool showGauge = sec.Sales || sec.Production || sec.Tasks;
 }
 <!-- BEGIN: Content-->
 <div class="app-content content">
@@ -22,6 +26,29 @@
         </div>
         <div class="content-body">
             <section id="dashboard-ecommerce">
+                @if (tiles.Count > 0)
+                {
+                    <div class="row" id="home-module-tiles">
+                        @foreach (var t in tiles)
+                        {
+                            <div class="col-xl-2 col-md-3 col-sm-4 col-6">
+                                <a href="@t.Url" class="card text-center mb-1"><div class="card-body py-1">
+                                    <i class="bx @t.Icon font-large-1 text-primary"></i>
+                                    <p class="mb-0 mt-50 text-truncate">@L.T(t.TitleKey)</p>
+                                </div></a>
+                            </div>
+                        }
+                    </div>
+                }
+                @if (!sec.Any)
+                {
+                    <div class="row"><div class="col-12"><div class="card"><div class="card-body">
+                        <h4 class="mb-50">@L.T("Core_ExecPanelTitle")</h4>
+                        <p class="text-muted mb-0">@L.T("Core_HomeNoExecSections")</p>
+                    </div></div></div></div>
+                }
+                else
+                {
                 <div class="row mb-1">
                     <div class="col-12">
                         <div class="card">
@@ -31,9 +58,12 @@
                                     <small class="text-muted">@L.T("Core_ExecPanelSubtitle")</small>
                                 </div>
                                 <div class="d-flex align-items-center mt-1 mt-md-0">
-                                    <select id="warehouseFilter" class="form-control mr-1" style="min-width: 220px;">
-                                        <option value="">@L.T("Core_AllWarehousesRaw")</option>
-                                    </select>
+                                    @if (sec.Stock)
+                                    {
+                                        <select id="warehouseFilter" class="form-control mr-1" style="min-width: 220px;">
+                                            <option value="">@L.T("Core_AllWarehousesRaw")</option>
+                                        </select>
+                                    }
                                     <input type="date" id="fromDate" class="form-control mr-1" style="min-width: 150px;" />
                                     <input type="date" id="toDate" class="form-control mr-1" style="min-width: 150px;" />
                                     <button class="btn btn-primary" id="applyFilters">
@@ -46,47 +76,83 @@
                 </div>
 
                 <div class="row">
-                    <div class="col-xl-3 col-sm-6 col-12"><div class="card"><div class="card-body"><p class="mb-0 text-muted">@L.T("Core_KpiMonthlyConversion")</p><h2 class="mb-50" id="kpi-conversion">0%</h2><small class="text-muted">@L.T("Core_KpiContractToOrder")</small></div></div></div>
-                    <div class="col-xl-3 col-sm-6 col-12"><div class="card"><div class="card-body"><p class="mb-0 text-muted">@L.T("Core_KpiSalesFulfillment")</p><h2 class="mb-50" id="kpi-fulfillment">0%</h2><small class="text-muted">@L.T("Core_KpiOrderToInvoice")</small></div></div></div>
-                    <div class="col-xl-3 col-sm-6 col-12"><div class="card"><div class="card-body"><p class="mb-0 text-muted">@L.T("Core_KpiProductionExec")</p><h2 class="mb-50" id="kpi-production">0%</h2><small class="text-muted">@L.T("Core_KpiPlanToActual")</small></div></div></div>
-                    <div class="col-xl-3 col-sm-6 col-12"><div class="card"><div class="card-body"><p class="mb-0 text-muted">@L.T("Core_KpiTasksExec")</p><h2 class="mb-50" id="kpi-tasks">0%</h2><small class="text-muted"><span id="task-done">0</span>/<span id="task-total">0</span> @L.T("Core_KpiDone")</small></div></div></div>
+                    @if (sec.Sales)
+                    {
+                        <div class="col-xl-3 col-sm-6 col-12"><div class="card"><div class="card-body"><p class="mb-0 text-muted">@L.T("Core_KpiMonthlyConversion")</p><h2 class="mb-50" id="kpi-conversion">0%</h2><small class="text-muted">@L.T("Core_KpiContractToOrder")</small></div></div></div>
+                    }
+                    @if (sec.Sales)
+                    {
+                        <div class="col-xl-3 col-sm-6 col-12"><div class="card"><div class="card-body"><p class="mb-0 text-muted">@L.T("Core_KpiSalesFulfillment")</p><h2 class="mb-50" id="kpi-fulfillment">0%</h2><small class="text-muted">@L.T("Core_KpiOrderToInvoice")</small></div></div></div>
+                    }
+                    @if (sec.Production)
+                    {
+                        <div class="col-xl-3 col-sm-6 col-12"><div class="card"><div class="card-body"><p class="mb-0 text-muted">@L.T("Core_KpiProductionExec")</p><h2 class="mb-50" id="kpi-production">0%</h2><small class="text-muted">@L.T("Core_KpiPlanToActual")</small></div></div></div>
+                    }
+                    @if (sec.Tasks)
+                    {
+                        <div class="col-xl-3 col-sm-6 col-12"><div class="card"><div class="card-body"><p class="mb-0 text-muted">@L.T("Core_KpiTasksExec")</p><h2 class="mb-50" id="kpi-tasks">0%</h2><small class="text-muted"><span id="task-done">0</span>/<span id="task-total">0</span> @L.T("Core_KpiDone")</small></div></div></div>
+                    }
                 </div>
 
                 <div class="row">
-                    <div class="col-xl-3 col-sm-6 col-12"><div class="card"><div class="card-body"><p class="mb-0 text-muted">@L.T("Core_KpiDoh")</p><h3 id="kpi-doh">@L.T("Core_DaysValue", 0)</h3></div></div></div>
-                    <div class="col-xl-3 col-sm-6 col-12"><div class="card"><div class="card-body"><p class="mb-0 text-muted">@L.T("Core_KpiCoverageDays")</p><h3 id="kpi-coverage">@L.T("Core_DaysValue", 0)</h3></div></div></div>
-                    <div class="col-xl-3 col-sm-6 col-12"><div class="card"><div class="card-body"><p class="mb-0 text-muted">@L.T("Core_KpiSalesOrders")</p><h3 id="kpi-orders-amount">0</h3></div></div></div>
-                    <div class="col-xl-3 col-sm-6 col-12"><div class="card"><div class="card-body"><p class="mb-0 text-muted">@L.T("Core_KpiInvoiceVolume")</p><h3 id="kpi-invoice-amount">0</h3></div></div></div>
+                    @if (sec.Stock)
+                    {
+                        <div class="col-xl-3 col-sm-6 col-12"><div class="card"><div class="card-body"><p class="mb-0 text-muted">@L.T("Core_KpiDoh")</p><h3 id="kpi-doh">@L.T("Core_DaysValue", 0)</h3></div></div></div>
+                    }
+                    @if (sec.Stock)
+                    {
+                        <div class="col-xl-3 col-sm-6 col-12"><div class="card"><div class="card-body"><p class="mb-0 text-muted">@L.T("Core_KpiCoverageDays")</p><h3 id="kpi-coverage">@L.T("Core_DaysValue", 0)</h3></div></div></div>
+                    }
+                    @if (sec.Sales)
+                    {
+                        <div class="col-xl-3 col-sm-6 col-12"><div class="card"><div class="card-body"><p class="mb-0 text-muted">@L.T("Core_KpiSalesOrders")</p><h3 id="kpi-orders-amount">0</h3></div></div></div>
+                    }
+                    @if (sec.Sales)
+                    {
+                        <div class="col-xl-3 col-sm-6 col-12"><div class="card"><div class="card-body"><p class="mb-0 text-muted">@L.T("Core_KpiInvoiceVolume")</p><h3 id="kpi-invoice-amount">0</h3></div></div></div>
+                    }
                 </div>
 
                 <div class="row match-height">
-                    <div class="col-lg-6 col-12">
-                        <div class="card">
-                            <div class="card-header"><h4 class="card-title mb-0">@L.T("Core_ChartSalesTrend")</h4></div>
-                            <div class="card-body"><div id="sales-funnel-chart"></div></div>
+                    @if (sec.Sales)
+                    {
+                        <div class="col-lg-6 col-12">
+                            <div class="card">
+                                <div class="card-header"><h4 class="card-title mb-0">@L.T("Core_ChartSalesTrend")</h4></div>
+                                <div class="card-body"><div id="sales-funnel-chart"></div></div>
+                            </div>
                         </div>
-                    </div>
-                    <div class="col-lg-6 col-12">
-                        <div class="card">
-                            <div class="card-header"><h4 class="card-title mb-0">@L.T("Core_ChartProductionTrend")</h4></div>
-                            <div class="card-body"><div id="production-trend-chart"></div></div>
+                    }
+                    @if (sec.Production)
+                    {
+                        <div class="col-lg-6 col-12">
+                            <div class="card">
+                                <div class="card-header"><h4 class="card-title mb-0">@L.T("Core_ChartProductionTrend")</h4></div>
+                                <div class="card-body"><div id="production-trend-chart"></div></div>
+                            </div>
                         </div>
-                    </div>
+                    }
                 </div>
 
                 <div class="row match-height">
-                    <div class="col-lg-6 col-12">
-                        <div class="card">
-                            <div class="card-header"><h4 class="card-title mb-0">@L.T("Core_ChartCoverageRisk")</h4></div>
-                            <div class="card-body"><div id="coverage-heat-chart"></div></div>
+                    @if (sec.Stock)
+                    {
+                        <div class="col-lg-6 col-12">
+                            <div class="card">
+                                <div class="card-header"><h4 class="card-title mb-0">@L.T("Core_ChartCoverageRisk")</h4></div>
+                                <div class="card-body"><div id="coverage-heat-chart"></div></div>
+                            </div>
                         </div>
-                    </div>
-                    <div class="col-lg-6 col-12">
-                        <div class="card">
-                            <div class="card-header"><h4 class="card-title mb-0">@L.T("Core_ChartExecutionKpi")</h4></div>
-                            <div class="card-body"><div id="execution-gauge-chart"></div></div>
+                    }
+                    @if (showGauge)
+                    {
+                        <div class="col-lg-6 col-12">
+                            <div class="card">
+                                <div class="card-header"><h4 class="card-title mb-0">@L.T("Core_ChartExecutionKpi")</h4></div>
+                                <div class="card-body"><div id="execution-gauge-chart"></div></div>
+                            </div>
                         </div>
-                    </div>
+                    }
                 </div>
                 <div class="row">
                     <div class="col-12">
@@ -96,6 +162,7 @@
                         </div>
                     </div>
                 </div>
+                }
             </section>
 
         </div>
@@ -116,6 +183,8 @@
         var charts = {};
         var currencyShortname = '@(ViewBag.CurrencyShortname ?? "")';
         var warehouseInitialized = false;
+        var hasExec = @(sec.Any ? "true" : "false");
+        function el(id) { return document.getElementById(id); }
         var T = {
             days: '@L.Js("Core_DaysValue")',
             noSignal: '@L.Js("Core_NoSignal")',
@@ -169,10 +238,12 @@
                 var color = x.level === 'high' ? 'danger' : (x.level === 'medium' ? 'warning' : 'success');
                 html += '<div class="alert alert-light-' + color + ' mb-1"><i class="bx bx-bell mr-50"></i>' + x.text + '</div>';
             });
-            document.getElementById('insight-list').innerHTML = html || '<p class="text-muted mb-0">' + T.noSignal + '</p>';
+            if (!el('insight-list')) return;
+            el('insight-list').innerHTML = html || '<p class="text-muted mb-0">' + T.noSignal + '</p>';
         }
 
         function renderSalesFunnelChart(data) {
+            if (!el('sales-funnel-chart')) return;
             var trend = data.trend || [];
             var periods = trend.map(function (x) { return x.period; });
             charts.sales = new ApexCharts(document.querySelector("#sales-funnel-chart"), {
@@ -196,6 +267,7 @@
         }
 
         function renderProductionTrendChart(data) {
+            if (!el('production-trend-chart')) return;
             var trend = data.trend || [];
             var periods = trend.map(function (x) { return x.period; });
             charts.production = new ApexCharts(document.querySelector("#production-trend-chart"), {
@@ -219,6 +291,7 @@
         }
 
         function renderCoverageChart(data) {
+            if (!el('coverage-heat-chart')) return;
             var stock = (data.stockCoverage || []).slice(0, 12);
             charts.coverage = new ApexCharts(document.querySelector("#coverage-heat-chart"), {
                 chart: { type: 'bar', height: 340, toolbar: { show: false } },
@@ -257,12 +330,18 @@
         }
 
         function renderExecutionGauge(data) {
-            var k = data.kpis || {};
+            if (!el('execution-gauge-chart')) return;
+            var k = data.kpis || {}, s = data.sections || {};
+            // faqat ko'rsatilayotgan modullar halqalari
+            var rings = [];
+            if (s.sales) rings.push({ v: k.orderFulfillmentRate || 0, l: T.orderExec, c: '#1f8ef1' });
+            if (s.production) rings.push({ v: k.productionExecutionRate || 0, l: T.productionExec, c: accentColor() });
+            if (s.tasks) rings.push({ v: k.taskCompletionRate || 0, l: T.taskExec, c: '#FDAC41' });
             charts.gauge = new ApexCharts(document.querySelector("#execution-gauge-chart"), {
                 chart: { type: 'radialBar', height: 340 },
-                series: [k.orderFulfillmentRate || 0, k.productionExecutionRate || 0, k.taskCompletionRate || 0],
-                labels: [T.orderExec, T.productionExec, T.taskExec],
-                colors: ['#1f8ef1', accentColor(), '#FDAC41'],
+                series: rings.map(function (r) { return r.v; }),
+                labels: rings.map(function (r) { return r.l; }),
+                colors: rings.map(function (r) { return r.c; }),
                 plotOptions: {
                     radialBar: {
                         offsetY: 0,
@@ -320,7 +399,7 @@
         function loadExecutiveDashboard() {
             var fromDate = $('#fromDate').val();
             var toDate = $('#toDate').val();
-            var warehouseId = $('#warehouseFilter').val();
+            var warehouseId = $('#warehouseFilter').val() || '';
             $.ajax({
                 url: '/Home/GetExecutiveDashboard',
                 method: 'GET',
@@ -346,6 +425,7 @@
         }
 
         function init() {
+            if (!hasExec) return;
             if (typeof jQuery === 'undefined' || typeof ApexCharts === 'undefined') {
                 return setTimeout(init, 100);
             }

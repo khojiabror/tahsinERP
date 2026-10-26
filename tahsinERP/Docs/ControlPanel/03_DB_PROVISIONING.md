@@ -22,7 +22,7 @@ ulanuvchi login'da `dbcreator` (New-TenantDb) yoki bazada `db_owner` (Invoke-DbM
 powershell -NoProfile -ExecutionPolicy Bypass -File Database\tools\New-TenantDb.ps1 `
     -Server <sql> -DbName DB_<slug> [-SqlUser u -SqlPassword p] `
     [-CompanyName '"Firma" MChJ'] [-AdminLogin admin] [-AdminFullName ...] [-AdminEmail ...] [-AdminPassword ...] `
-    [-NoAdmin] [-Demo] [-BackupTo <fayl.bak>] [-RecoveryModel FULL|SIMPLE] [-KeepOnFailure] [-LogFile <fayl>]
+    [-NoAdmin] [-Demo] [-Modules Srm,Crm,...] [-BackupTo <fayl.bak>] [-RecoveryModel FULL|SIMPLE] [-KeepOnFailure] [-LogFile <fayl>]
 ```
 
 | Parametr | Ma'nosi |
@@ -33,6 +33,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File Database\tools\New-TenantDb.
 | `-AdminPassword` | berilmasa 12 belgili tasodifiy parol. Har holda birinchi kirishda almashtirish majburiy. |
 | `-NoAdmin` | admin yaratilmaydi (shablon baza uchun). |
 | `-Demo` | `Database/Demo/*.sql` ham qo'llanadi (demo tenant, "Demo Plast" MChJ; kirish `demo` / `demo2026`). Sanalar skript ishlagan kunga nisbatan — `DB_DEMO_TEMPLATE.bak` ni muntazam (masalan haftada) qayta yarating, aks holda dashboard oynalari (so'nggi 30 kun, joriy oy) bo'shab qoladi. Demo skriptlari topilmasa — kod 2. |
+| `-Modules` | baza qaysi modullar uchun tayyorlanadi: `EditionModules.ProductModule` nomlari (`Srm, Crm, Tasks, Mes, Engineering, Finance, Hr, Logistics, Docs, Distribution, Website`), vergul bilan; registr ahamiyatsiz, `Mes` -> `+Engineering`. `dbo.SETUP_MODULES` ga yoziladi: `Setup/300_ModuleProfile.sql` faqat shu modullarning rollari/omborlarini, `-Demo` faqat shularning namuna ma'lumotini qo'llaydi (Database/README.md). Noma'lum nom — kod 2. Berilmasa — hamma modul (oldingi xatti-harakat). Modul ruxsatining o'zi — litsenziya kalitida (`TRIAL:Srm,Crm`), skript unga tegmaydi. |
 | `-BackupTo` | seed (+demo) dan keyin, **admin yaratilishidan oldin** `COPY_ONLY` backup — `DB_TEMPLATE.bak` / `DB_DEMO_TEMPLATE.bak`. Yo'l SQL Server xizmati yoza oladigan joy bo'lishi kerak. |
 | (env) `TAHSINERP_ADMIN_PASSWORD`, `TAHSINERP_SQL_PASSWORD` | `-AdminPassword` / `-SqlPassword` berilmasa shu env'dan olinadi — parol buyruq satrida (jarayonlar ro'yxatida) ko'rinmasin. Provisioning agenti shunday chaqiradi (05_PROVISIONING.md). |
 | `-KeepOnFailure` | xato bo'lsa yarim yaratilgan bazani o'chirmaslik (tahlil uchun). Standart: o'chiriladi. |
@@ -80,7 +81,7 @@ Database\tools\Invoke-DbMigrations.ps1 -AllTenants [-TenantsFile <yo'l>] [-Conne
 - Har qator: `yyyy-MM-dd HH:mm:ss [LEVEL] matn`; LEVEL: INFO, PLAN, SQL (PRINT xabarlari), WARN, ERROR (stderr), RESULT.
 - **Oxirgi qator** doimo `... [RESULT] {json}` — agent faqat shuni parse qiladi:
   - Invoke-DbMigrations: `{"ok":true,"exitCode":0,"dryRun":false,"targets":[{"target":"slug/DB","applied":[...],"pending":[...],"status":"ok|failed|connect-failed|checksum-mismatch|not-baselined|locked","exitCode":0,"error":null}]}`
-  - New-TenantDb: `{"ok":true,"exitCode":0,"database":"DB_x","server":"...","adminLogin":"admin","tempPassword":"...","backup":null,"error":""}`
+  - New-TenantDb: `{"ok":true,"exitCode":0,"database":"DB_x","server":"...","adminLogin":"admin","tempPassword":"...","backup":null,"error":"","modules":["Srm","Crm"]}` (`modules` — `null` = hammasi)
 - `-LogFile` — shu qatorlar faylga ham (UTF-8, qo'shib yoziladi).
 - **`tempPassword` maxfiy**: agent uni faqat xush kelibsiz xabariga qo'yadi, job log'iga/DB'ga ochiq yozmaydi
   (RESULT qatorini saqlashdan oldin maydonni o'chiring). Foydalanuvchi birinchi kirishda almashtiradi.
@@ -92,6 +93,8 @@ Database\tools\Invoke-DbMigrations.ps1 -AllTenants [-TenantsFile <yo'l>] [-Conne
   ruxsat modullari + Admin/Developer rollari va to'liq huquqlari, balans va moliya kategoriyalari (SystemCode),
   P&L moddalari, hujjat turlari/holatlari, topshiriq holatlari/muhimliklari, transport turlari, "Jihoz" mahsulot kategoriyasi,
   `COMPANIES` (ID=1), sex va 3 ombor (Xomashyo / Ishlab chiqarish / Savdo), "Doimiy harajatlar qarzi", "Aksiyador hissalari".
+- Modullar (`-Modules`): `dbo.SETUP_MODULES`; `Setup/300_ModuleProfile.sql` — har tanlangan modulga rol (faqat shu modul
+  controllerlariga huquq), tanlanmagan modul omborlari o'chirilgan, mahsulot yo'q bo'lsa boshlang'ich kategoriyalar.
 - Admin bilan birga: `Kassa` (9000) va `Hisob raqam` (9001) UZS hisoblari.
 - `dbo.SCHEMA_VERSIONS` — qaysi baseline/migratsiya/seed qachon qo'llangani.
 - Yangi bazada litsenziya yo'q: admin kiradi, modullar `License` sahifasiga yo'naltiriladi — panel oqimi (01_LICENSE_API.md).

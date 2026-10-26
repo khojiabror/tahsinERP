@@ -11,6 +11,7 @@ using tahsinERP.ControlPanel.Hosting;
 using tahsinERP.ControlPanel.Portal;
 using Microsoft.Extensions.Options;
 using tahsinERP.ControlPanel.I18n;
+using tahsinERP.Services.Editions;
 
 namespace tahsinERP.ControlPanel.Pages.Tenants;
 
@@ -538,7 +539,15 @@ public class TrialModel(ControlDbContext db, TenantService tenants, Provisioning
         public int? ServerId { get; set; }
         /// <summary>Namuna ma'lumotlar bilan (Database/Demo): mijoz bo'sh emas, to'ldirilgan tizimni ko'radi.</summary>
         public bool SampleData { get; set; } = true;
+        /// <summary>
+        /// Sinovda ochiladigan modullar (ProductModule nomlari). Kalitga "TRIAL:..." bo'lib, bazaga — faqat shu modullarning rol/ombor
+        /// sozlamalari va namuna ma'lumotlari bo'lib yetadi. MES tanlansa Muhandislik avtomatik qo'shiladi.
+        /// </summary>
+        public List<string> Modules { get; set; } = [];
     }
+
+    /// <summary>Formadagi modul katakchalari: paket modullari tartibida, oxirida qo'shimcha xizmat (Sayt-katalog).</summary>
+    public static IReadOnlyList<ProductModule> ModuleChoices { get; } = [.. EditionModules.PaidModules, .. EditionModules.AddOnModules];
 
     [BindProperty] public TrialInput Input { get; set; } = new();
     /// <summary>tahsinerp.uz demo so'rovi (Leads) — forma shundan to'ldiriladi, sinov ochilgach so'rov tenantga bog'lanadi.</summary>
@@ -559,6 +568,8 @@ public class TrialModel(ControlDbContext db, TenantService tenants, Provisioning
             Input.Phone = r.Phone;
             Input.Email = r.Email;
             Input.Slug = SuggestSlug(r.Company);
+            // Saytdagi formada belgilangan modullar ("srm,crm,mes") — xodim o'zgartirishi mumkin
+            Input.Modules = LicenseIssuer.ParseModules(r.Modules)?.Select(m => m.ToString()).ToList() ?? [];
         }
     }
 
@@ -588,12 +599,16 @@ public class TrialModel(ControlDbContext db, TenantService tenants, Provisioning
     public async Task<IActionResult> OnPostAsync()
     {
         Servers = await ServerList.LoadAsync(db);
+        var modules = LicenseIssuer.ParseModules(string.Join(",", Input.Modules));
+        if (modules is null)
+            ModelState.AddModelError("Input.Modules", L.T("Pnl_Ten_ModulesRequired"));
         if (!ModelState.IsValid) return Page();
+        Input.Modules = modules!.Select(m => m.ToString()).ToList();
         var t = new Tenant
         {
             Slug = Input.Slug, LegalName = Input.LegalName, Inn = Input.Inn, ContactName = Input.ContactName?.Trim(), Phone = Input.Phone?.Trim(),
             Email = Input.Email?.Trim(), TelegramChatId = Input.TelegramChatId?.Trim(), Deployment = DeploymentKind.SaaS, CompanyId = 1,
-            ServerId = Input.ServerId, SampleData = Input.SampleData,
+            ServerId = Input.ServerId, SampleData = Input.SampleData, Modules = LicenseIssuer.FormatModules(modules),
         };
         if (!await TryAsync(async () =>
             {

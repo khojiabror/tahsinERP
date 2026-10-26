@@ -14310,4 +14310,19 @@
   <data name="Core_IdleStay" xml:space="preserve">
     <value>Продолжить</value>
   </data>
+  <data name="Core_HomeNoExecSections" xml:space="preserve">
+    <value>Для модулей вашего пакета нет общей KPI-панели — используйте дашборды модулей выше.</value>
+  </data>
+  <data name="Core_HomeTileFinance" xml:space="preserve">
+    <value>Дашборд финансов</value>
+  </data>
+  <data name="Core_HomeTileDocs" xml:space="preserve">
+    <value>Официальные документы</value>
+  </data>
+  <data name="Core_HomeTileDistribution" xml:space="preserve">
+    <value>Дашборд дистрибуции</value>
+  </data>
+  <data name="Core_HomeTileSite" xml:space="preserve">
+    <value>Сайт-каталог</value>
+  </data>
 </root>

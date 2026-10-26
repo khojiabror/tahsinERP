@@ -93,6 +93,11 @@ public sealed class JobPayload
     public bool Demo { get; set; }
     /// <summary>Create: namuna ma'lumotlar bilan (Database/Demo skriptlari; demo foydalanuvchi o'chirib qo'yiladi).</summary>
     public bool SampleData { get; set; }
+    /// <summary>
+    /// Create: baza qaysi modullar uchun tayyorlanadi — ProductModule nomlari ("Srm", "Crm", "Website"...). Null/bo'sh — hammasi
+    /// (eski panel, demo). Agent New-TenantDb.ps1 -Modules ga beradi: rol/ombor profili va faqat shu modullarning namuna ma'lumoti.
+    /// </summary>
+    public List<string>? Modules { get; set; }
     /// <summary>EndTrial: bazani o'chirishdan oldin .bak arxiv olinsinmi.</summary>
     public bool Backup { get; set; }
     /// <summary>Panel Servers.SqlInstance — ma'lumot uchun; agent o'z sozlamasidagi SQL instance'ga ulanadi.</summary>
