@@ -780,6 +780,7 @@
     <Compile Include="Helpers\AssetVersion.cs" />
     <Compile Include="Helpers\BalanceCategoryDisplayHelper.cs" />
     <Compile Include="Helpers\DocFileAccess.cs" />
+    <Compile Include="Helpers\Breadcrumb.cs" />
     <Compile Include="Helpers\LayoutBadges.cs" />
     <Compile Include="Helpers\ModelStateExtensions.cs" />
     <Compile Include="Helpers\UploadHelper.cs" />
@@ -2862,6 +2863,7 @@
     <Content Include="assets\js\dt-defaults.js" />
     <Content Include="assets\js\fullscreen-shell.js" />
     <Content Include="assets\js\line-editor.js" />
+    <Content Include="assets\js\session-idle.js" />
     <Content Include="assets\js\scripts.js" />
     <Content Include="assets\js\theme.js" />
     <Content Include="Content\fin-dashboard.css" />
