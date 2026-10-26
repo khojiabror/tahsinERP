@@ -40,9 +40,10 @@ namespace tahsinERP.Controllers
                     DateTime.Now.AddMinutes(30), System.Web.Caching.Cache.NoSlidingExpiration);
             }
             ViewBag.CurrencyShortname = shortname;
-            var sections = HomeSections.For(User.Identity.Name);
+            var userName = User?.Identity?.Name;   // testda HttpContext yo'q
+            var sections = HomeSections.For(userName);
             ViewBag.Sections = sections;
-            ViewBag.ModuleTiles = HomeSections.Tiles(User.Identity.Name);
+            ViewBag.ModuleTiles = HomeSections.Tiles(userName);
             return View();
         }
 
