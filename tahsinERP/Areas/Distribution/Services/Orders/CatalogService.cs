@@ -77,7 +77,7 @@ namespace tahsinERP.Areas.Distribution.Services.Orders
                 stock.TryGetValue(p.ID, out var available);
                 return new CatalogItem
                 {
-                    Id = p.ID, PNo = p.PNo, Name = p.Name, NameRu = p.NameRu, Text = p.PNo + " — " + p.Name,
+                    Id = p.ID, PNo = p.PNo, Name = p.Name, NameRu = p.NameRu, Text = p.PNo + " — " + DstLocalization.Name(p.Name, p.NameRu),
                     CategoryId = p.CategoryID, Category = p.Category, Available = available,
                     Promo = promoLabels.TryGetValue(p.ID, out var promo) ? string.Join(", ", promo) : null,
                     Units = units.UnitsOf(p.ID).Select(u => new CatalogUnit

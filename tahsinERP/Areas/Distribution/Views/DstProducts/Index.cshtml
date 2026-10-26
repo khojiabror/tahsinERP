@@ -69,7 +69,6 @@
                     { data: 'pno', render: dstEsc },
                     { data: 'name', render: function (v, t, r) {
                         var s = dstEsc(v);
-                        if (r.nameRu) s += '<div class="small text-muted">' + dstEsc(r.nameRu) + '</div>';
                         if (!r.hasProfile) s += ' <span class="badge badge-light-secondary">@DstLocalization.T("Product_NoProfile")</span>';
                         else if (!r.sale) s += ' <span class="badge badge-light-warning">@DstLocalization.T("Product_NotOnSale")</span>';
                         return s;

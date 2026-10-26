@@ -10,9 +10,10 @@ namespace tahsinERP.ProvisioningAgent;
 /// (baza bor → tekshiriladi; tenants.json o'zgarmagan bo'lsa yozilmaydi; arxiv bor → qayta zaxira qilinmaydi).
 /// Xato turlari: <see cref="TransientJobException"/> → Retry, <see cref="InvalidJobException"/> → Failed.
 /// </summary>
-public sealed class JobExecutor(AgentOptions options, SqlOps sql, ScriptRunner scripts, IBackupStore backups, ILogger<JobExecutor> logger)
+public sealed class JobExecutor(AgentOptions options, SqlOps sql, ScriptRunner scripts, IBackupStore backups, ILogger<JobExecutor> logger,
+    SiteDomainOps? siteDomains = null)
 {
-    /// <summary>Database/Demo/200_Demo_Master.sql yaratadigan foydalanuvchi (demo / demo2026).</summary>
+    /// <summary>Database/Demo/200_Core_Master.sql yaratadigan foydalanuvchi (demo / demo2026).</summary>
     public const string SampleUserLogin = "demo";
 
     // 03_DB_PROVISIONING.md, 3-bo'lim
@@ -55,6 +56,7 @@ public sealed class JobExecutor(AgentOptions options, SqlOps sql, ScriptRunner s
                 case JobKind.Archive: await ArchiveAsync(p, c, log, ct); break;
                 case JobKind.Delete: await DeleteAsync(p, c, log, ct); break;
                 case JobKind.EndTrial: await EndTrialAsync(p, c, log, ct); break;
+                case JobKind.SiteDomain: await SiteDomainAsync(p, log, ct); break;
                 default: throw new InvalidJobException($"Noma'lum job turi: {lease.Type}");
             }
             c.Outcome = JobOutcome.Succeeded;
@@ -106,7 +108,10 @@ public sealed class JobExecutor(AgentOptions options, SqlOps sql, ScriptRunner s
             if (!string.IsNullOrWhiteSpace(p.AdminEmail)) { args.Add("-AdminEmail"); args.Add(p.AdminEmail!); }
             if (!string.IsNullOrWhiteSpace(options.Sql.User)) { args.Add("-SqlUser"); args.Add(options.Sql.User!); }
             if (p.SampleData) args.Add("-Demo");
-            log.Info("New-TenantDb.ps1 ishga tushirildi" + (p.SampleData ? " (namuna ma'lumotlar bilan: Database/Demo)" : ""));
+            var modules = SetupModules(p);
+            if (modules.Count > 0) { args.Add("-Modules"); args.Add(string.Join(",", modules)); }
+            log.Info("New-TenantDb.ps1 ishga tushirildi" + (p.SampleData ? " (namuna ma'lumotlar bilan: Database/Demo)" : "")
+                     + (modules.Count > 0 ? "; modullar: " + string.Join(", ", modules) : "; modullar: hammasi"));
             var r = await scripts.RunAsync("New-TenantDb.ps1", args, new Dictionary<string, string?> { ["TAHSINERP_ADMIN_PASSWORD"] = password }, ct);
             log.Raw(r.Log);
             c.ExitCode = r.ExitCode;
@@ -131,6 +136,24 @@ public sealed class JobExecutor(AgentOptions options, SqlOps sql, ScriptRunner s
         log.Info($"tenants.json: {p.Slug} → {p.DbName}, enabled={p.Enabled.ToString().ToLowerInvariant()}" + (changed ? "" : " (o'zgarishsiz)"));
         c.RegistryEnabled = p.Enabled;
         log.Info(await sql.ProbeAsync(p.DbName, ct));
+    }
+
+    /// <summary>
+    /// Payload'dagi modullar → New-TenantDb.ps1 -Modules (ProductModule nomlari, EditionModules tartibi va bog'liqliklari bilan).
+    /// Noma'lum nom — Failed (panel bilan versiya farqi: jim o'tkazib yuborilsa mijoz kutgan modul bazada tayyorlanmay qolardi).
+    /// Bo'sh — hamma modul.
+    /// </summary>
+    public static IReadOnlyList<string> SetupModules(JobPayload p)
+    {
+        if (p.Modules is null || p.Modules.Count == 0) return [];
+        var list = new List<tahsinERP.Services.Editions.ProductModule>();
+        foreach (var name in p.Modules)
+        {
+            if (!tahsinERP.Services.Editions.EditionModules.TryParseModule(name, out var m) || m == tahsinERP.Services.Editions.ProductModule.Core)
+                throw new InvalidJobException($"Noma'lum modul: {name}");
+            list.Add(m);
+        }
+        return tahsinERP.Services.Editions.EditionModules.NormalizeModules(list).Select(m => m.ToString()).ToList();
     }
 
     /// <summary>Baza allaqachon bor: oldingi urinish yaratgan tahsinERP bazasi bo'lsa davom etamiz, begona bo'lsa — to'xtaymiz.</summary>
@@ -268,6 +291,25 @@ public sealed class JobExecutor(AgentOptions options, SqlOps sql, ScriptRunner s
             log.Info("baza allaqachon yo'q" + (c.ArchiveLocation != null ? $", arxiv bor (oldingi urinish): {c.ArchiveLocation}" : " va arxiv topilmadi"));
         }
         else log.Info("baza allaqachon yo'q");
+    }
+
+    // ---------------- SiteDomain ----------------
+    /// <summary>Sayt-katalog o'z domeni: avval eski domen tozalanadi, keyin yangisi ulanadi (binding + sertifikat).</summary>
+    private async Task SiteDomainAsync(JobPayload p, JobLog log, CancellationToken ct)
+    {
+        if (siteDomains is null || !options.SiteDomains.Enabled) throw new InvalidJobException("SiteDomains o'chirilgan (agent sozlamasi).");
+        var remove = (p.SiteDomainRemove ?? []).Where(h => h != p.SiteDomain).Distinct().ToList();
+        if (p.SiteDomain is null && remove.Count == 0) throw new InvalidJobException("Domen berilmagan.");
+        foreach (var old in remove)
+        {
+            log.Info($"o'z domeni olib tashlanmoqda: {old}");
+            await siteDomains.UnbindAsync(old, log.Info, ct);
+        }
+        if (p.SiteDomain != null)
+        {
+            log.Info($"o'z domeni ulanmoqda: {p.SiteDomain} → {options.SiteDomains.IisSite}");
+            await siteDomains.BindAsync(p.SiteDomain, log.Info, ct);
+        }
     }
 
     // ---------------- Delete ----------------

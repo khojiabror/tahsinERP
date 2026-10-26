@@ -1,9 +1,14 @@
 /* =====================================================================
-   tahsinERP — DEMO korxona: master ma'lumot (New-TenantDb.ps1 -Demo, seed'dan keyin).
+   tahsinERP — DEMO korxona: asosiy (Core) master ma'lumot va ssenariy (New-TenantDb.ps1 -Demo, seed'dan keyin).
    Uydirma "Demo Plast" MChJ — plastik idishlar ishlab chiqaruvchi.
 
-   Bu faylda: demo foydalanuvchi, ombor turlari/joylari, mahsulot kategoriyalari, 24 mahsulot,
-   BOM + norma, 5 mijoz, 5 ta'minotchi, valyuta kurslari, kassa/bank hisoblari, aksiyadorlar.
+   Demo modul bo'yicha bo'lingan (README "Demo ma'lumot"): har fayl dbo.fn_SetupHasModule('<Modul>') bilan o'zi
+   qo'llanadi yoki o'tkazib yuboriladi (SETUP_MODULES bo'sh — hammasi). Bu fayl har doim ishlaydi (Core):
+   demo foydalanuvchi, ombor turlari, mahsulot kategoriyalari, 24 mahsulot, valyuta kurslari, kassa/bank hisoblari.
+
+   Ssenariy: modullar bir-biriga bog'liq hujjat zanjiri (xarid -> ishlab chiqarish -> sotuv) bo'lagini o'zi yozadi, lekin
+   miqdorlar bitta rejadan olinadi — shu fayl uni demo_tmp sxemasiga yozadi (mahsulot narxlari, BOM, ishlab chiqarish rejasi,
+   sarf, haftalik o'tkazma, xarid qatorlari, sotuvga tayyor miqdor). 299_Core_Finish.sql demo_tmp'ni o'chiradi.
 
    Sanalar GETDATE() ga nisbatan (shablon qachon yaratilsa, shu kungacha bo'lgan ~3 oy tarix).
    Idempotent: USERS'da 'demo' bo'lsa fayl hech narsa qilmaydi. Bitta batch (GO yo'q) — RETURN butun
@@ -21,10 +26,11 @@ BEGIN
 END
 
 DECLARE @t date = CAST(GETDATE() AS date);
+DECLARE @start date = DATEADD(day, -56, @t);          -- ishlab chiqarish davri: 8 hafta
 DECLARE @uzs int = (SELECT ID FROM dbo.CURRENCIES WHERE Shortname = 'UZS');
 DECLARE @usd int = (SELECT ID FROM dbo.CURRENCIES WHERE Shortname = 'USD');
 DECLARE @rub int = (SELECT ID FROM dbo.CURRENCIES WHERE Shortname = 'RUB');
-DECLARE @admin int = (SELECT ID FROM dbo.ROLES WHERE RName = N'Admin' AND ISNULL(IsDeleted, 0) = 0);
+DECLARE @admin int = (SELECT ID FROM dbo.ROLES WHERE SystemCode = 'ADMIN' AND ISNULL(IsDeleted, 0) = 0);
 DECLARE @pcs int = (SELECT ID FROM dbo.UNITS WHERE SystemCode = 'PCS');
 DECLARE @kg int = (SELECT ID FROM dbo.UNITS WHERE SystemCode = 'KG');
 IF @uzs IS NULL OR @admin IS NULL OR @pcs IS NULL OR @kg IS NULL
@@ -43,18 +49,11 @@ DECLARE @u int = SCOPE_IDENTITY();
 INSERT INTO dbo.USERROLES (UserID, RoleID) VALUES (@u, @admin);
 
 -- ---------------- omborlar: tur (WarehouseRoles) va mas'ul (MRP) ----------------
+-- Tanlanmagan modul omborlarini Setup/300_ModuleProfile.sql (demodan keyin) o'chiradi.
 UPDATE dbo.WAREHOUSES SET WarehouseType = 'SUPPLY'     WHERE ID = 3 AND WarehouseType IS NULL;
 UPDATE dbo.WAREHOUSES SET WarehouseType = 'PRODUCTION' WHERE ID = 6 AND WarehouseType IS NULL;
 UPDATE dbo.WAREHOUSES SET WarehouseType = 'SALES'      WHERE ID = 7 AND WarehouseType IS NULL;
 UPDATE dbo.WAREHOUSES SET MRP = @u WHERE ID IN (3, 6, 7) AND MRP IS NULL;
-DECLARE @whProd int = (SELECT MIN(ID) FROM dbo.WAREHOUSES WHERE WarehouseType = 'PRODUCTION' AND ISNULL(IsDeleted, 0) = 0);
-IF @whProd IS NULL THROW 50002, 'Demo: PRODUCTION ombori topilmadi', 1;
-
--- Ishlab chiqarish ombori DLOC (ProductionDlocGuard faol joy talab qiladi)
-INSERT INTO dbo.WAREHOUSE_LOCATIONS (WarehouseID, LocationCode, LocationName, CapacityUomID, MinCapacity, MaxCapacity,
-                                     AllowMixedLots, AllowMixedProducts, IsActive, IsDeleted, CreatedAt)
-VALUES (@whProd, 'A-01', N'Sex ombori — granula va tayyor mahsulot', NULL, 0, 1000000, 1, 1, 1, 0, DATEADD(day, -100, @t)),
-       (@whProd, 'A-02', N'Sex ombori — qadoq va butlovchilar',       NULL, 0, 1000000, 1, 1, 1, 0, DATEADD(day, -100, @t));
 
 -- ---------------- mahsulot kategoriyalari (Code = 5 xonali MAX+1, ProductCategoryController) ----------------
 DECLARE @catBase int = ISNULL((SELECT MAX(TRY_CAST(Code AS int)) FROM dbo.PRODUCT_CATEGORIES), 0);
@@ -110,8 +109,33 @@ FROM @p p JOIN @cats c ON c.K = p.Cat
 ORDER BY p.Ord;
 UPDATE p SET ID = m.ID FROM @p p JOIN @pm m ON m.PNo = p.PNo;
 
--- ---------------- BOM / norma (NormController: NORM_INPUT_LINES -> NORMVERSIONS/NORMLINES -> BOM) ----------------
--- 1 dona tayyor mahsulot uchun sarf; kg materiallarga 2% chiqindi.
+-- ---------------- valyuta kurslari (UZS uchun 1 so'm; CRM boshqa valyutani shu orqali so'mga o'giradi) ----------------
+;WITH n AS (SELECT TOP (181) ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) - 1 AS k FROM sys.all_objects)
+INSERT INTO dbo.CURRENCY_RATES (CurrencyID, RateDate, Rate, Source, CreatedDT)
+SELECT c.CurrencyID, DATEADD(day, -n.k, @t),
+       CAST(c.Base + c.Step * ((180 - n.k) / 7) + c.Wobble * ((n.k * 37) % 11 - 5) AS decimal(18, 6)), 'CBU', DATEADD(day, -n.k, @t)
+FROM n
+CROSS JOIN (VALUES (@usd, 12650.00, 12.0, 4.0), (@rub, 152.00, -0.20, 0.35)) c (CurrencyID, Base, Step, Wobble)
+WHERE c.CurrencyID IS NOT NULL;
+
+-- ---------------- pul hisoblari (New-TenantDb admin bosqichi FIN_ACCOUNTS bo'sh bo'lsagina yaratadi) ----------------
+-- Core'da: moliya, logistika (yo'l varaqasi to'lovi) va distributsiya (mijoz to'lovi) shu hisoblarga yozadi.
+INSERT INTO dbo.FIN_ACCOUNTS (Code, Name, OwnerName, CurrencyID, IsCash, IsBank, IsActive, CreatedByUserID, CreatedDT, BalanceCategoryID, IsDeleted)
+VALUES ('9000', N'Kassa', NULL, @uzs, 1, 0, 1, @u, DATEADD(day, -100, @t), (SELECT ID FROM dbo.FIN_BALANCE_CATEGORIES WHERE SystemCode = 'CASH'), 0),
+       ('9001', N'Hisob raqam (Demo bank)', NULL, @uzs, 0, 1, 1, @u, DATEADD(day, -100, @t), (SELECT ID FROM dbo.FIN_BALANCE_CATEGORIES WHERE SystemCode = 'BANK'), 0);
+
+/* =====================================================================
+   Ssenariy (demo_tmp): modul fayllari shu jadvallardan o'qiydi — har biri o'z bo'lagini yozadi.
+   ===================================================================== */
+IF SCHEMA_ID(N'demo_tmp') IS NULL EXEC (N'CREATE SCHEMA demo_tmp');
+
+-- mahsulotlar va narxlar
+SELECT ID, PNo, Name, Unit AS UnitID, IsRaw, BasePrice AS Price, DailyQty, SupplierNo,
+       CASE WHEN IsRaw = 0 THEN Ord - 12 END AS FgIdx
+INTO demo_tmp.PROD
+FROM @p;
+
+-- BOM: 1 dona tayyor mahsulot uchun sarf (Qty — norma), kg materiallarga 2% chiqindi (BomQty — BOM_LINES, sarf shu bo'yicha)
 DECLARE @bom TABLE (FG varchar(15), Mat varchar(15), Qty decimal(18,4));
 INSERT INTO @bom (FG, Mat, Qty) VALUES
 ('TM-001','XM-001',0.28),  ('TM-001','XM-004',0.006), ('TM-001','XM-012',1), ('TM-001','XM-010',1), ('TM-001','XM-008',0.05),
@@ -126,75 +150,57 @@ INSERT INTO @bom (FG, Mat, Qty) VALUES
 ('TM-010','XM-003',0.22),  ('TM-010','XM-006',0.005), ('TM-010','XM-010',1), ('TM-010','XM-009',0.05),
 ('TM-011','XM-001',2.40),  ('TM-011','XM-004',0.05),  ('TM-011','XM-007',0.012), ('TM-011','XM-010',1), ('TM-011','XM-011',0.03),
 ('TM-012','XM-001',6.50),  ('TM-012','XM-002',1.00),  ('TM-012','XM-004',0.14), ('TM-012','XM-007',0.03), ('TM-012','XM-010',1), ('TM-012','XM-011',0.08);
-
-DECLARE @normFrom date = DATEFROMPARTS(YEAR(DATEADD(day, -100, @t)), MONTH(DATEADD(day, -100, @t)), 1);
-DECLARE @normMonth char(7) = CONVERT(char(7), @normFrom, 126);   -- 'yyyy-MM' = BOM_HEADERS.VersionNo
-
-INSERT INTO dbo.NORM_INPUT_LINES (ProductID, MaterialID, CutLengthMm, PiecesPerProduct, Month, CreatedByUserID, CreatedDT, Price,
-                                  Consumption, WasteAmount, UnitID, Comment)
-SELECT f.ID, m.ID, 0, 1, @normMonth, @u, DATEADD(day, -100, @t), m.BasePrice, b.Qty,
-       CASE WHEN m.Unit = @kg THEN ROUND(b.Qty * 0.02, 4) ELSE 0 END, m.Unit, NULL
+SELECT f.ID AS FG, m.ID AS Mat, b.Qty, CAST(CASE WHEN m.Unit = @kg THEN ROUND(b.Qty * 1.02, 4) ELSE b.Qty END AS decimal(18,4)) AS BomQty,
+       m.Unit AS UnitID, CASE WHEN m.Unit = @kg THEN 2 ELSE 0 END AS WastePercent
+INTO demo_tmp.BOM
 FROM @bom b JOIN @p f ON f.PNo = b.FG JOIN @p m ON m.PNo = b.Mat;
 
-DECLARE @nv TABLE (ProductID int, ID int);
-INSERT INTO dbo.NORMVERSIONS (ProductID, EffectiveFrom, EffectiveTo, Comment, IsDeleted)
-OUTPUT inserted.ProductID, inserted.ID INTO @nv
-SELECT ID, @normFrom, NULL, N'Asosiy norma', 0 FROM @p WHERE IsRaw = 0;
+-- 1. ishlab chiqarish rejasi (yakshanbasiz, har mahsulot kun ora)
+CREATE TABLE demo_tmp.PP (K int IDENTITY PRIMARY KEY, ProductID int, D date, DayIdx int, Wk int, Qty int, DayShift int, NightShift int,
+                          At datetime, Rejected int);
+;WITH n AS (SELECT TOP (56) ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) - 1 AS k FROM sys.all_objects),
+d AS (SELECT DATEADD(day, k, @start) AS D, k AS DayIdx FROM n WHERE DATEDIFF(day, '19000101', DATEADD(day, k, @start)) % 7 <> 6)
+INSERT INTO demo_tmp.PP (ProductID, D, DayIdx, Wk, Qty, DayShift, NightShift, At, Rejected)
+SELECT p.ID, d.D, d.DayIdx, d.DayIdx / 7, q.Qty, CEILING(q.Qty * 0.6), q.Qty - CEILING(q.Qty * 0.6),
+       DATEADD(minute, 17 * 60 + p.FgIdx * 3, CAST(d.D AS datetime)),
+       CASE WHEN (d.DayIdx + p.FgIdx) % 3 = 0 THEN FLOOR(q.Qty * 0.01) ELSE 0 END
+FROM d CROSS JOIN demo_tmp.PROD p
+CROSS APPLY (SELECT CAST(ROUND(p.DailyQty * 2 * (0.85 + 0.05 * ((d.DayIdx * 3 + p.FgIdx) % 7)), 0) AS int) AS Qty) q
+WHERE p.IsRaw = 0 AND (d.DayIdx + p.FgIdx) % 2 = 0
+ORDER BY d.D, p.FgIdx;
 
-INSERT INTO dbo.NORMLINES (NormID, MaterialID, QtyPerUnit, WastePercent, UnitID)
-SELECT nv.ID, m.ID, b.Qty, CASE WHEN m.Unit = @kg THEN 2 ELSE 0 END, m.Unit
-FROM @bom b JOIN @p f ON f.PNo = b.FG JOIN @p m ON m.PNo = b.Mat JOIN @nv nv ON nv.ProductID = f.ID;
+-- har ishlab chiqarishning xomashyo sarfi (BOM x miqdor)
+CREATE TABLE demo_tmp.CONS (K int IDENTITY PRIMARY KEY, PPK int, Mat int, Qty decimal(18,4), UnitID int, At datetime);
+INSERT INTO demo_tmp.CONS (PPK, Mat, Qty, UnitID, At)
+SELECT pp.K, b.Mat, ROUND(b.BomQty * pp.Qty, 4), b.UnitID, pp.At
+FROM demo_tmp.PP pp JOIN demo_tmp.BOM b ON b.FG = pp.ProductID
+ORDER BY pp.At, pp.K, b.Mat;
 
-DECLARE @bh TABLE (ProductID int, ID int);
-INSERT INTO dbo.BOM_HEADERS (ProductID, VersionNo, IsActive, CreatedAt)
-OUTPUT inserted.ProductID, inserted.ID INTO @bh
-SELECT ID, @normMonth, 1, DATEADD(day, -100, @t) FROM @p WHERE IsRaw = 0;
+-- 2. haftalik o'tkazma SUPPLY -> PRODUCTION (hafta boshida 08:00, ehtiyoj + 5%)
+CREATE TABLE demo_tmp.TR (K int IDENTITY PRIMARY KEY, Wk int, Mat int, Qty decimal(18,4), UnitID int, At datetime);
+INSERT INTO demo_tmp.TR (Wk, Mat, Qty, UnitID, At)
+SELECT pp.Wk, c.Mat,
+       CASE WHEN c.UnitID = @kg THEN CEILING(SUM(c.Qty) * 1.05) ELSE CEILING(SUM(c.Qty) * 1.05 / 10) * 10 END,
+       c.UnitID, DATEADD(hour, 8, CAST(DATEADD(day, 7 * pp.Wk, @start) AS datetime))
+FROM demo_tmp.CONS c JOIN demo_tmp.PP pp ON pp.K = c.PPK
+GROUP BY pp.Wk, c.Mat, c.UnitID
+ORDER BY pp.Wk, c.Mat;
 
-INSERT INTO dbo.BOM_LINES (BOMID, ComponentID, Qty, UnitID)
-SELECT bh.ID, m.ID, CASE WHEN m.Unit = @kg THEN ROUND(b.Qty * 1.02, 4) ELSE b.Qty END, m.Unit
-FROM @bom b JOIN @p f ON f.PNo = b.FG JOIN @p m ON m.PNo = b.Mat JOIN @bh bh ON bh.ProductID = f.ID;
+-- 3. xaridlar: 5 tur x 5 ta'minotchi (jami o'tkazmaning ~130%)
+CREATE TABLE demo_tmp.PR (R int, Mat int, SupNo int, Qty decimal(18,4), Price decimal(18,2), UnitID int, D date);
+INSERT INTO demo_tmp.PR (R, Mat, SupNo, Qty, Price, UnitID, D)
+SELECT r.R, p.ID, p.SupplierNo,
+       CASE WHEN p.UnitID = @kg THEN CEILING(tt.Qty * 0.26 / 25) * 25 ELSE CEILING(tt.Qty * 0.26 / 100) * 100 END,
+       ROUND(p.Price * (1 + 0.015 * r.R), 2), p.UnitID, DATEADD(day, r.Ofs, @t)
+FROM demo_tmp.PROD p
+JOIN (SELECT Mat, SUM(Qty) AS Qty FROM demo_tmp.TR GROUP BY Mat) tt ON tt.Mat = p.ID
+CROSS JOIN (VALUES (0, -80), (1, -62), (2, -44), (3, -26), (4, -9)) r (R, Ofs)
+WHERE p.IsRaw = 1;
 
--- ---------------- mijozlar va ta'minotchilar (IsDeleted = 0 — ro'yxatlar IsDeleted == false bilan) ----------------
-INSERT INTO dbo.CUSTOMERS (Name, Address, Country, Telephone, Email, ContactPersonName, DirectorName, IsDeleted, DUNS, Type, City)
-VALUES ('"Uy-Ro''zg''or Savdo" MChJ', 'Chilonzor tumani, Bunyodkor ko''chasi 45', 'O''zbekiston', '+998 90 111-22-33', 'savdo@uyrozgor.uz', 'Rahimov Bobur', 'Rahimov Anvar', 0, '301111111', 'MChJ', 'Toshkent'),
-       ('"Bozor Plus" MChJ',          'Registon ko''chasi 8',                     'O''zbekiston', '+998 91 222-33-44', 'info@bozorplus.uz', 'Saidova Malika', 'Saidov Jamshid', 0, '302222222', 'MChJ', 'Samarqand'),
-       ('"Orzu Market" XK',           'Mustaqillik ko''chasi 17',                 'O''zbekiston', '+998 93 333-44-55', 'orzu.market@mail.uz', 'Tursunov Ulug''bek', 'Tursunova Dilnoza', 0, '303333333', 'XK', 'Farg''ona'),
-       ('"Mega Opt" MChJ',            'Bobur shoh ko''chasi 102',                 'O''zbekiston', '+998 94 444-55-66', 'opt@megaopt.uz', 'Qodirov Sherzod', 'Qodirov Farhod', 0, '304444444', 'MChJ', 'Andijon'),
-       ('"Navro''z Trade" MChJ',      'B.Naqshband ko''chasi 21',                 'O''zbekiston', '+998 95 555-66-77', 'trade@navroz.uz', 'Ergasheva Nodira', 'Ergashev Rustam', 0, '305555555', 'MChJ', 'Buxoro');
-
-INSERT INTO dbo.SUPPLIERS (Name, Address, Country, Telephone, Email, ContactPersonName, DirectorName, IsDeleted, DUNS, Type, City)
-VALUES ('"Sho''rtan Polimer Savdo" MChJ', 'Sanoat zonasi, 3-uchastka',  'O''zbekiston', '+998 75 521-10-10', 'sales@shortanpolimer.uz', 'Normatov Ilhom', 'Normatov Akmal', 0, '311111111', 'Granula', 'Qarshi'),
-       ('"Polietilen Invest" MChJ',      'Olmazor tumani, Sanoat 5',   'O''zbekiston', '+998 71 245-20-20', 'info@pe-invest.uz', 'Yusupov Dilshod', 'Yusupov Bahrom', 0, '312222222', 'Granula', 'Toshkent'),
-       ('"Color Master" MChJ',           'Yangiyo''l yo''li 14',       'O''zbekiston', '+998 71 233-30-30', 'order@colormaster.uz', 'Abdullayeva Zarina', 'Abdullayev Sanjar', 0, '313333333', 'Bo''yoq', 'Toshkent'),
-       ('"Karton Pack" MChJ',            'Chirchiq sh., Zavod ko''chasi 2', 'O''zbekiston', '+998 70 715-40-40', 'pack@kartonpack.uz', 'Hasanov Otabek', 'Hasanov Murod', 0, '314444444', 'Qadoq', 'Chirchiq'),
-       ('"Metall Detal Servis" XK',      'Yunusobod tumani, 19-mavze', 'O''zbekiston', '+998 99 850-50-50', 'mds@detal.uz', 'Mirzayev Sardor', 'Mirzayev Hamid', 0, '315555555', 'Butlovchi', 'Toshkent');
-
--- ---------------- valyuta kurslari (UZS uchun 1 so'm; CRM boshqa valyutani shu orqali so'mga o'giradi) ----------------
-;WITH n AS (SELECT TOP (181) ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) - 1 AS k FROM sys.all_objects)
-INSERT INTO dbo.CURRENCY_RATES (CurrencyID, RateDate, Rate, Source, CreatedDT)
-SELECT c.CurrencyID, DATEADD(day, -n.k, @t),
-       CAST(c.Base + c.Step * ((180 - n.k) / 7) + c.Wobble * ((n.k * 37) % 11 - 5) AS decimal(18, 6)), 'CBU', DATEADD(day, -n.k, @t)
-FROM n
-CROSS JOIN (VALUES (@usd, 12650.00, 12.0, 4.0), (@rub, 152.00, -0.20, 0.35)) c (CurrencyID, Base, Step, Wobble)
-WHERE c.CurrencyID IS NOT NULL;
-
--- ---------------- pul hisoblari (New-TenantDb admin bosqichi FIN_ACCOUNTS bo'sh bo'lsagina yaratadi) ----------------
-INSERT INTO dbo.FIN_ACCOUNTS (Code, Name, OwnerName, CurrencyID, IsCash, IsBank, IsActive, CreatedByUserID, CreatedDT, BalanceCategoryID, IsDeleted)
-VALUES ('9000', N'Kassa', NULL, @uzs, 1, 0, 1, @u, DATEADD(day, -100, @t), (SELECT ID FROM dbo.FIN_BALANCE_CATEGORIES WHERE SystemCode = 'CASH'), 0),
-       ('9001', N'Hisob raqam (Demo bank)', NULL, @uzs, 0, 1, 1, @u, DATEADD(day, -100, @t), (SELECT ID FROM dbo.FIN_BALANCE_CATEGORIES WHERE SystemCode = 'BANK'), 0);
-
--- Ustav kapitali: aksiyador hissalari kategoriyasi balansdagi CHARTER_CAPITAL qatoriga bog'lanadi
-INSERT INTO dbo.FIN_BALANCE_CATEGORY_CATEGORIES (BalanceCategoryID, CategoryID)
-SELECT b.ID, c.ID
-FROM dbo.FIN_BALANCE_CATEGORIES b CROSS JOIN dbo.FIN_CATEGORIES c
-WHERE b.SystemCode = 'CHARTER_CAPITAL' AND c.SystemCode = 'SHAREHOLDER_CONTRIBUTION'
-  AND NOT EXISTS (SELECT 1 FROM dbo.FIN_BALANCE_CATEGORY_CATEGORIES x WHERE x.BalanceCategoryID = b.ID AND x.CategoryID = c.ID);
-
-INSERT INTO dbo.SHAREHOLDERS (FullName, Phone, Notes, IsActive, IsDeleted)
-VALUES (N'Karimov Aziz Bahodirovich', N'+998 90 900-00-01', N'Ta''sischi, direktor', 1, 0),
-       (N'Sobirova Gulnora Akmalovna', N'+998 90 900-00-02', N'Ta''sischi', 1, 0);
-INSERT INTO dbo.SHAREHOLDER_SHARE_PERIODS (ShareholderID, FromDate, ToDate, SharePercent)
-SELECT ID, DATEADD(day, -100, @t), NULL, CASE WHEN FullName LIKE N'Karimov%' THEN 60 ELSE 40 END
-FROM dbo.SHAREHOLDERS WHERE FullName IN (N'Karimov Aziz Bahodirovich', N'Sobirova Gulnora Akmalovna');
+-- 4. haftalik sotuvga tayyor tayyor mahsulot (sifat nazoratidan o'tgani; MES uni sotuv omboriga o'tkazadi, CRM shu bo'yicha sotadi)
+SELECT Wk, ProductID, SUM(Qty - Rejected) AS Qty
+INTO demo_tmp.FTL
+FROM demo_tmp.PP WHERE Wk <= 6
+GROUP BY Wk, ProductID;
 
 PRINT 'Demo master: OK';

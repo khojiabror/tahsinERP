@@ -2279,7 +2279,7 @@ Birinchi kirishda parolni almashtirish so'raladi.</value>
     <value>SaaS manzili:</value>
   </data>
   <data name="Pnl_Ten_SampleData" xml:space="preserve">
-    <value>Namuna ma'lumotlar bilan (mahsulotlar, kontragentlar, ~3 oylik xarid/ishlab chiqarish/sotuv, xodimlar)</value>
+    <value>Namuna ma'lumotlar bilan (faqat belgilangan modullar: mahsulotlar, kontragentlar, ~3 oylik hujjatlar, xodimlar...)</value>
   </data>
   <data name="Pnl_Ten_SampleHint" xml:space="preserve">
     <value>Belgilanmasa — bo'sh baza (faqat spravochniklar). Namuna bazada demo foydalanuvchi o'chirib qo'yiladi, kirish faqat admin orqali.</value>
@@ -2345,7 +2345,7 @@ Birinchi kirishda parolni almashtirish so'raladi.</value>
     <value>Sinov yakunlanmoqda: kirish yopildi, baza o'chiriladi (oldin .bak arxiv). Job #{0}.</value>
   </data>
   <data name="Pnl_Ten_TrialInfo" xml:space="preserve">
-    <value>TRIAL: Korporativ modullari, 5 foydalanuvchi, 14 kun. Tugagach tenant to'xtatiladi (tenants.json enabled=false).</value>
+    <value>TRIAL: belgilangan modullar, 5 foydalanuvchi, 14 kun. Tugagach tenant to'xtatiladi (tenants.json enabled=false).</value>
   </data>
   <data name="Pnl_Ten_TrialOpened" xml:space="preserve">
     <value>«{0}» uchun sinov ochildi — baza yaratish navbatga qo'yildi</value>
@@ -3809,5 +3809,170 @@ Siz so'ramagan bo'lsangiz — bu xatga e'tibor bermang, parolingiz o'zgarmaydi.<
   </data>
   <data name="Pnl_NavDevelopers" xml:space="preserve">
     <value>ERP dasturchilar</value>
+  </data>
+  <data name="Pnl_Ten_TrialModules" xml:space="preserve">
+    <value>Sinovda ochiladigan modullar</value>
+  </data>
+  <data name="Pnl_Ten_TrialModulesHint" xml:space="preserve">
+    <value>Kalit faqat shu modullarni ochadi; bazaga faqat shularning rollari, omborlari va (belgilansa) namuna ma'lumotlari yoziladi. Ishlab chiqarish tanlansa Muhandislik (BOM/norma) ham qo'shiladi.</value>
+  </data>
+  <data name="Pnl_Ten_ModulesRequired" xml:space="preserve">
+    <value>Kamida bitta modulni belgilang.</value>
+  </data>
+  <data name="Pnl_Ten_SetupModules" xml:space="preserve">
+    <value>Modullar (baza sozlamasi)</value>
+  </data>
+  <data name="Pnl_Ten_WithSample" xml:space="preserve">
+    <value>namuna ma'lumotlar bilan</value>
+  </data>
+  <data name="Pnl_Module_Srm" xml:space="preserve">
+    <value>Ta'minot (xarid va ombor)</value>
+  </data>
+  <data name="Pnl_Module_Crm" xml:space="preserve">
+    <value>Sotuvlar (CRM)</value>
+  </data>
+  <data name="Pnl_Module_Tasks" xml:space="preserve">
+    <value>Topshiriqlar</value>
+  </data>
+  <data name="Pnl_Module_Mes" xml:space="preserve">
+    <value>Ishlab chiqarish (MES)</value>
+  </data>
+  <data name="Pnl_Module_Engineering" xml:space="preserve">
+    <value>Muhandislik (BOM, norma, tannarx)</value>
+  </data>
+  <data name="Pnl_Module_Finance" xml:space="preserve">
+    <value>Moliya</value>
+  </data>
+  <data name="Pnl_Module_Hr" xml:space="preserve">
+    <value>Kadrlar (HR)</value>
+  </data>
+  <data name="Pnl_Module_Logistics" xml:space="preserve">
+    <value>Logistika</value>
+  </data>
+  <data name="Pnl_Module_Docs" xml:space="preserve">
+    <value>Rasmiy hujjatlar</value>
+  </data>
+  <data name="Pnl_Module_Distribution" xml:space="preserve">
+    <value>Distributsiya</value>
+  </data>
+  <data name="Pnl_Module_Website" xml:space="preserve">
+    <value>Sayt-katalog (+SITE)</value>
+  </data>
+  <data name="Pnl_JobType_SiteDomain" xml:space="preserve">
+    <value>Sayt domeni</value>
+  </data>
+  <data name="Pnl_SDom_Title" xml:space="preserve">
+    <value>O'z domeni</value>
+  </data>
+  <data name="Pnl_SDom_Domain" xml:space="preserve">
+    <value>Domen</value>
+  </data>
+  <data name="Pnl_SDom_Connect" xml:space="preserve">
+    <value>Domenni ulash</value>
+  </data>
+  <data name="Pnl_SDom_Check" xml:space="preserve">
+    <value>DNS'ni tekshirish va ulash</value>
+  </data>
+  <data name="Pnl_SDom_Remove" xml:space="preserve">
+    <value>Olib tashlash</value>
+  </data>
+  <data name="Pnl_SDom_RemoveRetry" xml:space="preserve">
+    <value>Olib tashlashni qayta urinish</value>
+  </data>
+  <data name="Pnl_SDom_Redirect" xml:space="preserve">
+    <value>Ulangach {0} manzilini shu domenga yo'naltirish (301)</value>
+  </data>
+  <data name="Pnl_SDom_RedirectShort" xml:space="preserve">
+    <value>Yo'naltirish</value>
+  </data>
+  <data name="Pnl_SDom_Job" xml:space="preserve">
+    <value>Server amali</value>
+  </data>
+  <data name="Pnl_SDom_St_PendingDns" xml:space="preserve">
+    <value>DNS kutilmoqda</value>
+  </data>
+  <data name="Pnl_SDom_St_Binding" xml:space="preserve">
+    <value>Sertifikat olinmoqda</value>
+  </data>
+  <data name="Pnl_SDom_St_Active" xml:space="preserve">
+    <value>Faol</value>
+  </data>
+  <data name="Pnl_SDom_St_Failed" xml:space="preserve">
+    <value>Xato</value>
+  </data>
+  <data name="Pnl_SDom_St_Removing" xml:space="preserve">
+    <value>Olib tashlanmoqda</value>
+  </data>
+  <data name="Pnl_SDom_DnsNotChecked" xml:space="preserve">
+    <value>hali tekshirilmagan</value>
+  </data>
+  <data name="Pnl_SDom_DnsOkShort" xml:space="preserve">
+    <value>to'g'ri</value>
+  </data>
+  <data name="Pnl_SDom_DnsBadShort" xml:space="preserve">
+    <value>serverga qaramayapti</value>
+  </data>
+  <data name="Pnl_SDom_OutOfSync" xml:space="preserve">
+    <value>Sayt ilovasida boshqa qiymat: {0}. «Saqlash» qayta yuboradi.</value>
+  </data>
+  <data name="Pnl_SDom_DnsHelpA" xml:space="preserve">
+    <value>DNS (domen ro'yxatdan o'tgan joyda): A yozuv — domen yoki subdomen → {0}.</value>
+  </data>
+  <data name="Pnl_SDom_DnsHelpCname" xml:space="preserve">
+    <value>Subdomen uchun CNAME ham bo'ladi → {0}.</value>
+  </data>
+  <data name="Pnl_SDom_DnsHelpTail" xml:space="preserve">
+    <value>Boshqa A/AAAA yozuvlarni o'chiring, Cloudflare bo'lsa proxy o'chiq (DNS only). DNS tarqalgach «Tekshirish» — sertifikat (Let's Encrypt) avtomatik olinadi.</value>
+  </data>
+  <data name="Pnl_SDom_ServerIp" xml:space="preserve">
+    <value>sayt serveri IP manzili</value>
+  </data>
+  <data name="Pnl_SDom_BadFormat" xml:space="preserve">
+    <value>Domen formati noto'g'ri. Masalan: shop.firma.uz yoki firma.uz (http:// va yo'lsiz).</value>
+  </data>
+  <data name="Pnl_SDom_Reserved" xml:space="preserve">
+    <value>Bu bizning domenimiz — o'z domeni sifatida ulab bo'lmaydi.</value>
+  </data>
+  <data name="Pnl_SDom_Taken" xml:space="preserve">
+    <value>{0} domeni boshqa firmaga ulangan.</value>
+  </data>
+  <data name="Pnl_SDom_SiteFirst" xml:space="preserve">
+    <value>Avval sayt-katalogni yoqing.</value>
+  </data>
+  <data name="Pnl_SDom_None" xml:space="preserve">
+    <value>O'z domeni ulanmagan.</value>
+  </data>
+  <data name="Pnl_SDom_Removing" xml:space="preserve">
+    <value>Domen olib tashlanmoqda — server amali tugashini kuting.</value>
+  </data>
+  <data name="Pnl_SDom_NoExpectedIp" xml:space="preserve">
+    <value>Sayt serveri manzili aniqlanmadi: ControlPanel__Apps__SiteServerIp ni sozlang.</value>
+  </data>
+  <data name="Pnl_SDom_DnsOk" xml:space="preserve">
+    <value>{0}: DNS to'g'ri.</value>
+  </data>
+  <data name="Pnl_SDom_DnsNotFound" xml:space="preserve">
+    <value>{0}: DNS yozuvi topilmadi (yoki hali tarqalmagan).</value>
+  </data>
+  <data name="Pnl_SDom_DnsWrong" xml:space="preserve">
+    <value>{0} hozir {1} ga qaraydi, kerak: {2}.</value>
+  </data>
+  <data name="Pnl_SDom_JobQueued" xml:space="preserve">
+    <value>{0}: DNS to'g'ri — sertifikat va IIS binding uchun server amali #{1} navbatga qo'yildi.</value>
+  </data>
+  <data name="Pnl_SDom_Saved" xml:space="preserve">
+    <value>{0}: saqlandi.</value>
+  </data>
+  <data name="Pnl_SDom_SavedWaitDns" xml:space="preserve">
+    <value>{0} saqlandi — DNS yozuvini sozlang va «Tekshirish»ni bosing.</value>
+  </data>
+  <data name="Pnl_SDom_Removed" xml:space="preserve">
+    <value>O'z domeni olib tashlandi.</value>
+  </data>
+  <data name="Pnl_SDom_RemoveQueued" xml:space="preserve">
+    <value>O'z domeni saytdan olib tashlandi; serverni tozalash amali #{0} navbatda.</value>
+  </data>
+  <data name="Pnl_SDom_JobCancelled" xml:space="preserve">
+    <value>Server amali bekor qilindi.</value>
   </data>
 </root>

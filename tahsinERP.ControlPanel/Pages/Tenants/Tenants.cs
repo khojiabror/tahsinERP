@@ -11,6 +11,7 @@ using tahsinERP.ControlPanel.Hosting;
 using tahsinERP.ControlPanel.Portal;
 using Microsoft.Extensions.Options;
 using tahsinERP.ControlPanel.I18n;
+using tahsinERP.Services.Editions;
 
 namespace tahsinERP.ControlPanel.Pages.Tenants;
 
@@ -159,8 +160,16 @@ public class EditModel(ControlDbContext db, TenantService tenants, LicenseIssuer
 }
 
 public class DetailsModel(ControlDbContext db, TenantService tenants, LicenseIssuer issuer, ProvisioningService provisioning, UsageService usage,
-    PortalAuthService portalAuth, PortalNotifier notifier, IOptions<PanelHostOptions> hosts, TenantAppsService apps) : PanelPageModel
+    PortalAuthService portalAuth, PortalNotifier notifier, IOptions<PanelHostOptions> hosts, TenantAppsService apps, SiteDomainService siteDomains) : PanelPageModel
 {
+    // ── Sayt-katalog: firmaning o'z domeni ──
+    public TenantSiteDomain? SiteDomain { get; private set; }
+    /// <summary>Domen A yozuvi qarashi kerak bo'lgan manzillar (DNS ko'rsatmasi uchun).</summary>
+    public List<string> SiteExpectedIps { get; private set; } = [];
+    public string? SiteDefaultHost => siteDomains.DefaultSiteHost(Tenant);
+    [BindProperty] public string? SiteDomainInput { get; set; }
+    [BindProperty] public bool SiteDomainRedirect { get; set; }
+
     // ── Telegram bot va sayt-katalog ──
     public bool AppsLoaded { get; private set; }
     public bool BotConfigured => apps.BotConfigured;
@@ -258,7 +267,31 @@ public class DetailsModel(ControlDbContext db, TenantService tenants, LicenseIss
         if (Tenant.Deployment != DeploymentKind.SaaS || (!apps.BotConfigured && !apps.SiteConfigured)) return;
         (Bot, BotError, Site, SiteError) = await apps.StatusAsync(Tenant, HttpContext.RequestAborted);
         AppsLoaded = true;
+        SiteDomain = await siteDomains.GetAsync(Tenant.Id, HttpContext.RequestAborted);
+        if (SiteDomain != null || Site is { Exists: true, Active: true })
+            SiteExpectedIps = [.. (await siteDomains.ExpectedAddressesAsync(Tenant, HttpContext.RequestAborted)).Select(a => a.ToString())];
+        if (!Request.HasFormContentType)
+        {
+            SiteDomainInput = SiteDomain?.Host;
+            SiteDomainRedirect = SiteDomain?.RedirectToDomain ?? true;
+        }
     }
+
+    public Task<IActionResult> OnPostSiteDomainSaveAsync(int id) => AppsActionAsync(id,
+        async () => { var d = await siteDomains.SetAsync(Tenant, SiteDomainInput, SiteDomainRedirect); FlashOk = SiteDomainFlash(d); }, null);
+
+    public Task<IActionResult> OnPostSiteDomainCheckAsync(int id) => AppsActionAsync(id,
+        async () => { var r = await siteDomains.CheckAsync(Tenant); if (r.Ok) FlashOk = r.Message; else FlashError = r.Message; }, null);
+
+    public Task<IActionResult> OnPostSiteDomainRemoveAsync(int id) => AppsActionAsync(id,
+        async () => { var job = await siteDomains.RemoveAsync(Tenant); FlashOk = job is null ? L.T("Pnl_SDom_Removed") : L.T("Pnl_SDom_RemoveQueued", job.Id); }, null);
+
+    private static string SiteDomainFlash(TenantSiteDomain d) => d.Status switch
+    {
+        SiteDomainStatus.Binding => L.T("Pnl_SDom_JobQueued", d.Host, d.LastJobId),
+        SiteDomainStatus.Active => L.T("Pnl_SDom_Saved", d.Host),
+        _ => L.T("Pnl_SDom_SavedWaitDns", d.Host),
+    };
 
     public async Task<IActionResult> OnPostBotConnectAsync(int id)
     {
@@ -281,13 +314,14 @@ public class DetailsModel(ControlDbContext db, TenantService tenants, LicenseIss
 
     public Task<IActionResult> OnPostSiteDisableAsync(int id) => AppsActionAsync(id, () => apps.DisableSiteAsync(Tenant), L.T("Pnl_Ten_SiteDisabled"));
 
-    private async Task<IActionResult> AppsActionAsync(int id, Func<Task> action, string ok)
+    /// <param name="ok">Muvaffaqiyat xabari; null — amalning o'zi Flash qo'yadi.</param>
+    private async Task<IActionResult> AppsActionAsync(int id, Func<Task> action, string? ok)
     {
         if (!await LoadAsync(id)) return NotFound();
         if (!CanSell) return Forbidden();
         if (await TryAsync(action))
         {
-            FlashOk = ok;
+            if (ok != null) FlashOk = ok;
             return RedirectToPage(new { id });
         }
         await LoadAppsAsync();
@@ -538,7 +572,15 @@ public class TrialModel(ControlDbContext db, TenantService tenants, Provisioning
         public int? ServerId { get; set; }
         /// <summary>Namuna ma'lumotlar bilan (Database/Demo): mijoz bo'sh emas, to'ldirilgan tizimni ko'radi.</summary>
         public bool SampleData { get; set; } = true;
+        /// <summary>
+        /// Sinovda ochiladigan modullar (ProductModule nomlari). Kalitga "TRIAL:..." bo'lib, bazaga — faqat shu modullarning rol/ombor
+        /// sozlamalari va namuna ma'lumotlari bo'lib yetadi. MES tanlansa Muhandislik avtomatik qo'shiladi.
+        /// </summary>
+        public List<string> Modules { get; set; } = [];
     }
+
+    /// <summary>Formadagi modul katakchalari: paket modullari tartibida, oxirida qo'shimcha xizmat (Sayt-katalog).</summary>
+    public static IReadOnlyList<ProductModule> ModuleChoices { get; } = [.. EditionModules.PaidModules, .. EditionModules.AddOnModules];
 
     [BindProperty] public TrialInput Input { get; set; } = new();
     /// <summary>tahsinerp.uz demo so'rovi (Leads) — forma shundan to'ldiriladi, sinov ochilgach so'rov tenantga bog'lanadi.</summary>
@@ -559,6 +601,8 @@ public class TrialModel(ControlDbContext db, TenantService tenants, Provisioning
             Input.Phone = r.Phone;
             Input.Email = r.Email;
             Input.Slug = SuggestSlug(r.Company);
+            // Saytdagi formada belgilangan modullar ("srm,crm,mes") — xodim o'zgartirishi mumkin
+            Input.Modules = LicenseIssuer.ParseModules(r.Modules)?.Select(m => m.ToString()).ToList() ?? [];
         }
     }
 
@@ -588,12 +632,16 @@ public class TrialModel(ControlDbContext db, TenantService tenants, Provisioning
     public async Task<IActionResult> OnPostAsync()
     {
         Servers = await ServerList.LoadAsync(db);
+        var modules = LicenseIssuer.ParseModules(string.Join(",", Input.Modules));
+        if (modules is null)
+            ModelState.AddModelError("Input.Modules", L.T("Pnl_Ten_ModulesRequired"));
         if (!ModelState.IsValid) return Page();
+        Input.Modules = modules!.Select(m => m.ToString()).ToList();
         var t = new Tenant
         {
             Slug = Input.Slug, LegalName = Input.LegalName, Inn = Input.Inn, ContactName = Input.ContactName?.Trim(), Phone = Input.Phone?.Trim(),
             Email = Input.Email?.Trim(), TelegramChatId = Input.TelegramChatId?.Trim(), Deployment = DeploymentKind.SaaS, CompanyId = 1,
-            ServerId = Input.ServerId, SampleData = Input.SampleData,
+            ServerId = Input.ServerId, SampleData = Input.SampleData, Modules = LicenseIssuer.FormatModules(modules),
         };
         if (!await TryAsync(async () =>
             {

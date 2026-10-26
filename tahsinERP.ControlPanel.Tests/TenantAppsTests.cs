@@ -49,6 +49,12 @@ public class TenantAppsTests(PanelFactory f) : IClassFixture<PanelFactory>
 
         public Task<SiteAppStatus> DisableSiteAsync(string slug, CancellationToken ct = default) =>
             Task.FromResult(_sites[slug] = _sites[slug] with { Active = false });
+
+        public Task<SiteAppStatus> SetSiteDomainAsync(string slug, string? host, bool redirect, CancellationToken ct = default)
+        {
+            Calls.Add(("domain", slug, host, redirect.ToString(), null));
+            return Task.FromResult(_sites[slug] = _sites[slug] with { Domain = host, RedirectToDomain = redirect });
+        }
     }
 
     private static string Token(string html) =>

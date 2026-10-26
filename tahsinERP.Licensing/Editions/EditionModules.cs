@@ -32,13 +32,18 @@ namespace tahsinERP.Services.Editions
     ///   START  = SRM, CRM, Topshiriqlar                          (5 foydalanuvchi)
     ///   BIZNES = START + MES, Muhandislik, Moliya                (20)
     ///   KORP   = BIZNES + HR, Logistika, Rasmiy hujjatlar, Distributsiya (50)
-    ///   TRIAL  = KORP                                            (5, 14 kun)
+    ///   TRIAL  = KORP                                            (5, 14 kun) — yoki xodim tanlagan modullar (pastga qarang)
     ///   DIST   = SRM, CRM, Topshiriqlar, Moliya, Distributsiya   (20) — distribyutorlar uchun yon tarmoq: MES/BOM/HR/Logistika/
     ///            Rasmiy hujjatlar yo'q (Distribution/00_PLAN.md 1, 4-faza). START→BIZNES→KORP zanjirida emas: DIST'dan
     ///            BIZNES'ga o'tish Distributsiyani yo'qotadi — tavsiyalar <see cref="SuggestEditionsFor"/> bilan.
     ///
     /// Qo'shimcha xizmatlar (paketdan tashqari, alohida sotiladi) Edition'ga "+" bilan yoziladi: "KORP+SITE", "START+SITE".
     /// Kalit formati o'zgarmaydi (v2 payload'dagi Edition qatori). Hozircha: SITE → Website.
+    ///
+    /// Tanlangan modullar (sinov): paket kodidan keyin ":" va modul nomlari vergul bilan — "TRIAL:Srm,Crm,Tasks",
+    /// "TRIAL:Mes,Engineering+SITE" (<see cref="ComposeModules"/>). Ruxsat = paket modullari ∩ ro'yxat — paketdan kengaytirib
+    /// bo'lmaydi. Panel sinov formasida xodim belgilagan modullar shu yo'l bilan kalitga yetadi (alohida paket kodi kerak emas,
+    /// imzolangan payload formati o'zgarmaydi). ":" ni bilmaydigan eski ERP bunday qatorni noma'lum paket deb hamma modulni ochadi.
     ///
     /// Orqaga moslik: Edition bo'sh, eski v1 kalit yoki noma'lum nom (masalan "Standard", "Pro") — HAMMA modul ochiq.
     /// Xaritada yo'q controller ham ochiq (Core) — yangi controller qo'shilsa testi
@@ -170,12 +175,92 @@ namespace tahsinERP.Services.Editions
             return AddOnModules.Contains(module);
         }
 
-        /// <summary>"KORP+SITE" → "KORP" (bo'sh/null — o'zi).</summary>
+        /// <summary>"KORP+SITE" → "KORP", "TRIAL:Srm,Crm+SITE" → "TRIAL" (bo'sh/null — o'zi).</summary>
         public static string BaseEdition(string edition)
         {
             if (string.IsNullOrWhiteSpace(edition)) return edition;
+            string head = PackagePart(edition);
+            int colon = head.IndexOf(':');
+            return (colon < 0 ? head : head.Substring(0, colon)).Trim();
+        }
+
+        // "+" gacha bo'lgan qism: "TRIAL:Srm,Crm+SITE" → "TRIAL:Srm,Crm"
+        private static string PackagePart(string edition)
+        {
             int plus = edition.IndexOf('+');
             return (plus < 0 ? edition : edition.Substring(0, plus)).Trim();
+        }
+
+        /// <summary>
+        /// Edition'dagi tanlangan modullar ("TRIAL:Srm,Crm" → Srm, Crm), paket tartibida. Ro'yxat yo'q — null (paketning hamma
+        /// modullari). Noma'lum nom, Core va qo'shimcha xizmat (Website — "+SITE" bilan yoziladi) e'tiborga olinmaydi.
+        /// </summary>
+        public static IReadOnlyList<ProductModule> SelectedModulesOf(string edition)
+        {
+            if (string.IsNullOrWhiteSpace(edition)) return null;
+            string head = PackagePart(edition);
+            int colon = head.IndexOf(':');
+            if (colon < 0) return null;
+            var picked = new HashSet<ProductModule>();
+            foreach (var name in head.Substring(colon + 1).Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+            {
+                ProductModule m;
+                if (TryParseModule(name, out m) && m != ProductModule.Core && !IsAddOn(m)) picked.Add(m);
+            }
+            return KorpModules.Where(picked.Contains).ToList();
+        }
+
+        /// <summary>Modul nomi (ProductModule, registrsiz): "srm" → Srm. Raqamli qiymat qabul qilinmaydi.</summary>
+        public static bool TryParseModule(string name, out ProductModule module)
+        {
+            module = ProductModule.Core;
+            string n = (name ?? "").Trim();
+            if (n.Length == 0 || !char.IsLetter(n[0])) return false;
+            return Enum.TryParse(n, true, out module) && Enum.IsDefined(typeof(ProductModule), module);
+        }
+
+        /// <summary>Modul bog'liqligi: ishlab chiqarish sarfni BOM/norma bo'yicha hisoblaydi — MES tanlansa Muhandislik ham kerak.</summary>
+        public static IReadOnlyList<ProductModule> RequiredBy(ProductModule module)
+        {
+            return module == ProductModule.Mes ? new[] { ProductModule.Engineering } : new ProductModule[0];
+        }
+
+        /// <summary>
+        /// Tanlangan modullarni tartibga soladi: Core olib tashlanadi, bog'liqliklar qo'shiladi, takror yo'q; paket modullari
+        /// <see cref="PaidModules"/> tartibida, qo'shimcha xizmatlar oxirida.
+        /// </summary>
+        public static IReadOnlyList<ProductModule> NormalizeModules(IEnumerable<ProductModule> modules)
+        {
+            var set = new HashSet<ProductModule>((modules ?? new ProductModule[0]).Where(m => m != ProductModule.Core));
+            foreach (var m in set.ToList())
+                foreach (var r in RequiredBy(m)) set.Add(r);
+            return KorpModules.Where(set.Contains).Concat(AddOnModules.Where(set.Contains)).ToList();
+        }
+
+        /// <summary>
+        /// Paket kodi + tanlangan modullar → kalitdagi Edition qatori: ("TRIAL", [Srm, Crm, Website]) → "TRIAL:Srm,Crm+SITE".
+        /// Paketning hamma modullari tanlansa ro'yxat yozilmaydi ("TRIAL+SITE"); faqat xizmat tanlansa — bo'sh ro'yxat ("TRIAL:+SITE");
+        /// paketda yo'q modul tashlab yuboriladi.
+        /// Natija barqaror — bir xil to'plam doim bir xil qator.
+        /// </summary>
+        public static string ComposeModules(string baseCode, IEnumerable<ProductModule> modules)
+        {
+            if (string.IsNullOrWhiteSpace(baseCode) || baseCode.IndexOf('+') >= 0 || baseCode.IndexOf(':') >= 0)
+                throw new ArgumentException("Paket kodi noto'g'ri: " + baseCode);
+            string code = baseCode.Trim();
+            var list = NormalizeModules(modules);
+            var all = EditionMap.ContainsKey(code) ? EditionMap[code] : new HashSet<ProductModule>(KorpModules);
+            var package = list.Where(m => !IsAddOn(m) && all.Contains(m)).ToList();
+            string head = package.Count > 0 && all.All(package.Contains) ? code : code + ":" + string.Join(",", package);
+            return head + string.Concat(list.Where(IsAddOn).Select(m => "+" + AddOnMap.First(p => p.Value == m).Key));
+        }
+
+        // Paket ruxsat bergan modullar: kod bo'yicha; tanlangan ro'yxat bo'lsa — kesishmasi (paketdan kengaymaydi).
+        private static HashSet<ProductModule> PackageModules(string edition)
+        {
+            var byCode = EditionMap[BaseEdition(edition)];
+            var selected = SelectedModulesOf(edition);
+            return selected == null ? byCode : new HashSet<ProductModule>(selected.Where(byCode.Contains));
         }
 
         /// <summary>Edition'dagi qo'shimcha xizmat modullari ("KORP+SITE" → Website).</summary>
@@ -194,7 +279,7 @@ namespace tahsinERP.Services.Editions
         /// <summary>Paketga kirgan modullar (Core'siz) + qo'shimcha xizmatlar. Cheklovsiz/noma'lum paket — paket modullari hammasi.</summary>
         public static IReadOnlyList<ProductModule> ModulesOf(string edition)
         {
-            var modules = IsRestrictedEdition(edition) ? KorpModules.Where(m => EditionMap[BaseEdition(edition)].Contains(m)).ToList() : KorpModules.ToList();
+            var modules = IsRestrictedEdition(edition) ? KorpModules.Where(PackageModules(edition).Contains).ToList() : KorpModules.ToList();
             modules.AddRange(AddOnsOf(edition).Where(m => !modules.Contains(m)));
             return modules;
         }
@@ -243,7 +328,7 @@ namespace tahsinERP.Services.Editions
                 return true;   // eski/cheklovsiz kalit — hammasi, qo'shimcha xizmatlar ham
             if (IsAddOn(module))
                 return AddOnsOf(edition).Contains(module);
-            return EditionMap[BaseEdition(edition)].Contains(module);
+            return PackageModules(edition).Contains(module);
         }
 
         public static bool IsControllerAllowed(string edition, string controller)
@@ -264,8 +349,8 @@ namespace tahsinERP.Services.Editions
         public static bool Covers(string target, string current)
         {
             if (!IsRestrictedEdition(target)) return true;
-            var t = EditionMap[BaseEdition(target)];
-            var cur = IsRestrictedEdition(current) ? (IEnumerable<ProductModule>)EditionMap[BaseEdition(current)] : KorpModules;
+            var t = PackageModules(target);
+            var cur = IsRestrictedEdition(current) ? (IEnumerable<ProductModule>)PackageModules(current) : KorpModules;
             return cur.All(t.Contains);
         }
 
@@ -278,7 +363,7 @@ namespace tahsinERP.Services.Editions
         {
             if (module == ProductModule.Core || IsAddOn(module)) return new string[0];
             var with = SellableEditions.Where(e => EditionMap[e].Contains(module)).ToList();
-            string current = BaseEdition(currentEdition);
+            string current = currentEdition;
             var keeping = with.Where(e => Covers(e, current)).ToList();
             return keeping.Concat(with.Where(e => !keeping.Contains(e))).ToList();
         }
@@ -315,7 +400,14 @@ namespace tahsinERP.Services.Editions
         {
             var addOns = AddOnsOf(edition);
             if (addOns.Count > 0)
-                return EditionDisplayName(BaseEdition(edition)) + " + " + string.Join(", ", addOns.Select(DisplayName));
+                return EditionDisplayName(PackagePart(edition)) + " + " + string.Join(", ", addOns.Select(DisplayName));
+            var selected = SelectedModulesOf(edition);
+            if (selected != null)
+            {
+                string code = BaseEdition(edition);
+                string name = string.Equals(code, Trial, StringComparison.OrdinalIgnoreCase) ? "Sinov" : EditionDisplayName(code);
+                return name + ": " + (selected.Count == 0 ? "—" : string.Join(", ", selected.Select(DisplayName)));
+            }
             switch ((edition ?? "").Trim().ToUpperInvariant())
             {
                 case Start: return "Start";

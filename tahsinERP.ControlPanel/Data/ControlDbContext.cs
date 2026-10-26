@@ -35,6 +35,7 @@ public class ControlDbContext(DbContextOptions<ControlDbContext> options) : DbCo
     public DbSet<ServerInventory> ServerInventories => Set<ServerInventory>();
     public DbSet<DemoRequest> DemoRequests => Set<DemoRequest>();
     public DbSet<ErpDeveloper> ErpDevelopers => Set<ErpDeveloper>();
+    public DbSet<TenantSiteDomain> SiteDomains => Set<TenantSiteDomain>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -110,6 +111,7 @@ public class ControlDbContext(DbContextOptions<ControlDbContext> options) : DbCo
             e.Property(x => x.LastHost).HasMaxLength(253);
             e.Property(x => x.Notes).HasMaxLength(2000);
             e.Property(x => x.ArchiveLocation).HasMaxLength(500);
+            e.Property(x => x.Modules).HasMaxLength(500);
             e.Property(x => x.OnlineCheck).HasDefaultValue(OnlineCheckMode.Optional).HasSentinel((OnlineCheckMode)0);
             e.Property(x => x.RowVersion).IsRowVersion();
             e.HasOne(x => x.Server).WithMany().HasForeignKey(x => x.ServerId).OnDelete(DeleteBehavior.Restrict);
@@ -120,6 +122,7 @@ public class ControlDbContext(DbContextOptions<ControlDbContext> options) : DbCo
             e.HasIndex(x => new { x.TenantId, x.Status });
             e.HasOne(x => x.Tenant).WithMany(t => t.Subscriptions).HasForeignKey(x => x.TenantId).OnDelete(DeleteBehavior.Restrict);
             e.HasOne(x => x.Plan).WithMany().HasForeignKey(x => x.PlanId).OnDelete(DeleteBehavior.Restrict);
+            e.Property(x => x.Modules).HasMaxLength(500);
             e.Property(x => x.RowVersion).IsRowVersion();
         });
 
@@ -381,6 +384,18 @@ public class ControlDbContext(DbContextOptions<ControlDbContext> options) : DbCo
             e.Property(x => x.Error).HasMaxLength(1000);
             e.HasOne<Invoice>().WithMany().HasForeignKey(x => x.InvoiceId).OnDelete(DeleteBehavior.Restrict);
             e.HasOne<Payment>().WithMany().HasForeignKey(x => x.PaymentId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        b.Entity<TenantSiteDomain>(e =>
+        {
+            e.ToTable("SiteDomains");
+            e.HasIndex(x => x.TenantId).IsUnique();
+            e.HasIndex(x => x.Host).IsUnique();
+            e.Property(x => x.Host).HasMaxLength(253);
+            e.Property(x => x.PendingRemoval).HasMaxLength(1000);
+            e.Property(x => x.DnsResult).HasMaxLength(500);
+            e.Property(x => x.Error).HasMaxLength(2000);
+            e.HasOne(x => x.Tenant).WithMany().HasForeignKey(x => x.TenantId).OnDelete(DeleteBehavior.Cascade);
         });
 
         b.Entity<DemoRequest>(e =>

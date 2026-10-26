@@ -54,6 +54,12 @@ public sealed class TenantMiddleware(RequestDelegate next, CatalogStore store, I
             await http.Response.WriteAsync("Sayt topilmadi / Сайт не найден");
             return;
         }
+        if (DomainRedirect(tenant, host, http.Request.IsHttps, options.Value.RedirectHttpToHttps, path) is { } target)
+        {
+            http.Response.StatusCode = StatusCodes.Status301MovedPermanently;
+            http.Response.Headers.Location = target + http.Request.PathBase + path + http.Request.QueryString;
+            return;
+        }
         site.Tenant = tenant;
         site.Index = store.Get(tenant.Slug);
         site.Host = host;
@@ -68,5 +74,19 @@ public sealed class TenantMiddleware(RequestDelegate next, CatalogStore store, I
         var first = path.Value?.Split('/', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
         site.Lang = Text.T.IsLanguage(first) && site.Index.SupportsLanguage(first!) ? first! : site.Index.DefaultLanguage;
         await next(http);
+    }
+
+    /// <summary>
+    /// O'z domeni uchun 301 manzili (sxema + host) yoki null: RedirectToDomain yoqilgan bo'lsa boshqa hostlar (standart subdomen, www.)
+    /// o'z domeniga; o'z domenining http so'rovi — https'ga (IIS'da domen uchun http binding ham bor). ACME yo'li tegilmaydi.
+    /// </summary>
+    public static string? DomainRedirect(SiteTenant tenant, string host, bool isHttps, bool httpToHttps, PathString path)
+    {
+        var domain = tenant.CustomDomain;
+        if (string.IsNullOrEmpty(domain) || path.StartsWithSegments("/.well-known")) return null;
+        bool onDomain = string.Equals(host, domain, StringComparison.OrdinalIgnoreCase);
+        if (tenant.RedirectToDomain && !onDomain) return "https://" + domain;
+        if (httpToHttps && !isHttps && (onDomain || string.Equals(host, "www." + domain, StringComparison.OrdinalIgnoreCase))) return "https://" + host.ToLowerInvariant();
+        return null;
     }
 }

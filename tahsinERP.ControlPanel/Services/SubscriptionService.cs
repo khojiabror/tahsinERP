@@ -13,7 +13,7 @@ namespace tahsinERP.ControlPanel.Services;
 public sealed class SubscriptionService(ControlDbContext db, AuditLogger audit, Clock clock, IOptions<PanelOptions> options,
     ILogger<SubscriptionService> log)
 {
-    private static object Snapshot(Subscription s) => new { s.TenantId, s.PlanId, s.Users, s.Period, s.StartDate, s.EndDate, s.AutoRenew, s.Status };
+    private static object Snapshot(Subscription s) => new { s.TenantId, s.PlanId, s.Users, s.Period, s.StartDate, s.EndDate, s.AutoRenew, s.Status, s.Modules };
 
     /// <summary>Qo'shimcha xizmat obunasimi (Plan yuklangan bo'lishi kerak).</summary>
     public static bool IsAddOn(Subscription s) => s.Plan?.IsAddOn == true;
@@ -29,6 +29,7 @@ public sealed class SubscriptionService(ControlDbContext db, AuditLogger audit, 
         {
             TenantId = t.Id, PlanId = plan.Id, Plan = plan, Users = plan.MaxUsers, Period = BillingPeriod.Trial,
             StartDate = today, EndDate = today.AddDays((plan.TrialDays ?? 14) - 1), Status = SubscriptionStatus.Active,
+            Modules = Licensing.LicenseIssuer.FormatModules(Licensing.LicenseIssuer.ParseModules(t.Modules)),   // xodim tanlagan modullar → kalit
             CreatedAtUtc = clock.UtcNow,
         };
         db.Subscriptions.Add(sub);

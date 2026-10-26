@@ -126,6 +126,40 @@ public sealed class LicenseIssuer(ControlDbContext db, ILicenseSigner signer, Au
         return baseCode.Trim() + string.Concat(codes.OrderBy(c => c.Order).ThenBy(c => c.Code, StringComparer.Ordinal).Select(c => "+" + c.Code));
     }
 
+    /// <summary>
+    /// <see cref="ComposeEdition(string, IEnumerable{string}?)"/> + obunada tanlangan modullar (Subscription.Modules, sinov):
+    /// ("TRIAL", [], "Srm,Crm,Website") → "TRIAL:Srm,Crm+SITE". Tanlangan xizmat moduli (Website) faol xizmat obunasi bilan bir xil
+    /// "+KOD" bo'ladi. <paramref name="modules"/> bo'sh/null — paketning hamma modullari (oldingi xatti-harakat).
+    /// </summary>
+    public static string ComposeEdition(string baseCode, IEnumerable<string>? addOnCodes, string? modules)
+    {
+        var selected = ParseModules(modules);
+        if (selected is null)
+            return ComposeEdition(baseCode, addOnCodes);
+        string withModules = EditionModules.ComposeModules(baseCode.Trim(), selected);   // "TRIAL:Srm,Crm+SITE"
+        int plus = withModules.IndexOf('+');
+        string head = plus < 0 ? withModules : withModules[..plus];
+        var addOns = (addOnCodes ?? []).Concat(plus < 0 ? [] : withModules[(plus + 1)..].Split('+'));
+        return ComposeEdition(head, addOns);
+    }
+
+    /// <summary>"Srm,crm, Website" → modullar (NormalizeModules); bo'sh yoki birorta ham taniqli nom yo'q — null.</summary>
+    public static IReadOnlyList<ProductModule>? ParseModules(string? modules)
+    {
+        if (string.IsNullOrWhiteSpace(modules)) return null;
+        var list = new List<ProductModule>();
+        foreach (var name in modules.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+            if (EditionModules.TryParseModule(name, out var m) && m != ProductModule.Core) list.Add(m);
+        return list.Count == 0 ? null : EditionModules.NormalizeModules(list);
+    }
+
+    /// <summary>Modullar → saqlanadigan qator ("Srm,Crm,Website"); null/bo'sh — null.</summary>
+    public static string? FormatModules(IEnumerable<ProductModule>? modules)
+    {
+        var list = modules is null ? [] : EditionModules.NormalizeModules(modules);
+        return list.Count == 0 ? null : string.Join(",", list);
+    }
+
     /// <summary>Kalitga kiradigan qo'shimcha xizmat: faol, boshlangan va davri tugamagan obuna.</summary>
     public static bool AddOnCovers(Subscription s, DateOnly today) =>
         s.Plan is { IsAddOn: true } && s.Status == SubscriptionStatus.Active && s.StartDate <= today && s.EndDate >= today;
@@ -166,7 +200,7 @@ public sealed class LicenseIssuer(ControlDbContext db, ILicenseSigner signer, Au
             if (expiry > addOnEnd)
                 expiry = addOnEnd;
         }
-        string edition = ComposeEdition(sub.Plan.Code, covering.Select(a => a.Plan!.Code));
+        string edition = ComposeEdition(sub.Plan.Code, covering.Select(a => a.Plan!.Code), sub.Modules);
         return new LicenseRequest(edition, sub.Users, start, expiry, sub.Id, covering.Count == 0 ? "Obuna bo'yicha" : "Obuna bo'yicha (+ qo'shimcha xizmat)");
     }
 

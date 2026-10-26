@@ -163,6 +163,12 @@ public class Tenant
     public DateTime? DeletedAtUtc { get; set; }
     /// <summary>Baza namuna ma'lumotlar bilan yaratilgan/yaratiladi (Database/Demo skriptlari).</summary>
     public bool SampleData { get; set; }
+    /// <summary>
+    /// Baza qaysi modullar uchun tayyorlangan/tayyorlanadi: ProductModule nomlari vergul bilan ("Srm,Crm,Tasks,Website"),
+    /// EditionModules.NormalizeModules tartibida. Null — hamma modul (eski tenantlar, demo). Create job shu ro'yxat bo'yicha
+    /// rol/ombor sozlamalari va namuna ma'lumotlarini qo'llaydi (New-TenantDb.ps1 -Modules). Sinovda TRIAL obunasiga ham yoziladi.
+    /// </summary>
+    public string? Modules { get; set; }
     /// <summary>Sinov muddatidan oldin yakunlangan vaqt (EndTrial job tugagan).</summary>
     public DateTime? TrialEndedAtUtc { get; set; }
 
@@ -197,6 +203,11 @@ public class Subscription
     public DateOnly EndDate { get; set; }
     public bool AutoRenew { get; set; }
     public SubscriptionStatus Status { get; set; }
+    /// <summary>
+    /// Paketdan tanlangan modullar (ProductModule nomlari vergul bilan) — hozircha faqat sinovda. Null — paketning hamma modullari.
+    /// Kalitga "TRIAL:Srm,Crm(+SITE)" bo'lib yoziladi (LicenseIssuer.ComposeEdition, EditionModules.ComposeModules).
+    /// </summary>
+    public string? Modules { get; set; }
     public DateTime CreatedAtUtc { get; set; }
     public byte[] RowVersion { get; set; } = [];
 }
@@ -361,7 +372,41 @@ public class ApiNonce
     public DateTime ExpiresUtc { get; set; }
 }
 
-public enum ProvisioningJobType { Create = 1, Reset = 2, Suspend = 3, Resume = 4, Archive = 5, Delete = 6, EndTrial = 7 }
+public enum ProvisioningJobType { Create = 1, Reset = 2, Suspend = 3, Resume = 4, Archive = 5, Delete = 6, EndTrial = 7, SiteDomain = 8 }
+
+/// <summary>
+/// O'z domeni holati: DNS kutilmoqda → (DNS server IP'ga qaradi) Binding — agent sertifikat va IIS binding qilmoqda → Active.
+/// Failed — agent xatosi (DNS tuzatilgach «Tekshirish» qayta urinadi). Removing — agent eski binding/sertifikatni tozalamoqda.
+/// </summary>
+public enum SiteDomainStatus { PendingDns = 1, Binding = 2, Active = 3, Failed = 4, Removing = 5 }
+
+/// <summary>
+/// Sayt-katalogning firma o'z domeni (Docs/ControlPanel/09_SITE_CUSTOM_DOMAIN.md): {slug}.sayt.&lt;domen&gt; o'rniga yoki u bilan birga
+/// shop.firma.uz. Firmaga bitta domen; domen butun panel bo'yicha noyob. Sayt ilovasiga /admin/api orqali yetkaziladi,
+/// sertifikat va IIS binding — agent (ProvisioningJobType.SiteDomain).
+/// </summary>
+public class TenantSiteDomain
+{
+    public int Id { get; set; }
+    public int TenantId { get; set; }
+    public Tenant? Tenant { get; set; }
+    /// <summary>Normallashtirilgan host (kichik harf, punycode).</summary>
+    public string Host { get; set; } = "";
+    public SiteDomainStatus Status { get; set; } = SiteDomainStatus.PendingDns;
+    /// <summary>Faol bo'lgach standart subdomen o'z domeniga 301 bilan yo'naltirilsin.</summary>
+    public bool RedirectToDomain { get; set; }
+    /// <summary>Agent tozalashi kerak bo'lgan eski hostlar (vergul bilan) — domen almashtirilgan/olib tashlangan.</summary>
+    public string? PendingRemoval { get; set; }
+    public DateTime? DnsCheckedAtUtc { get; set; }
+    public bool DnsOk { get; set; }
+    /// <summary>Oxirgi DNS tekshiruvida topilgan manzillar (yoki xato).</summary>
+    public string? DnsResult { get; set; }
+    public long? LastJobId { get; set; }
+    public string? Error { get; set; }
+    public DateTime? ActivatedAtUtc { get; set; }
+    public DateTime CreatedAtUtc { get; set; }
+    public DateTime UpdatedAtUtc { get; set; }
+}
 
 public enum ProvisioningJobStatus { Pending = 1, Running = 2, Succeeded = 3, Failed = 4, Cancelled = 5 }
 

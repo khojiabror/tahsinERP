@@ -47,8 +47,10 @@ namespace tahsinERP.Areas.Distribution.Controllers
                             c.ID, c.Name, c.Address, c.Telephone, p.INN, p.Category, p.PointType, p.TerritoryID, p.AgentUserID,
                             p.CreditLimit, p.PaymentDays, p.IsApproved, p.Lat,
                             Territory = db.Territories.Where(t => t.ID == p.TerritoryID).Select(t => t.Name).FirstOrDefault(),
+                            TerritoryRu = db.Territories.Where(t => t.ID == p.TerritoryID).Select(t => t.NameRu).FirstOrDefault(),
                             Agent = db.Users.Where(u => u.ID == p.AgentUserID).Select(u => u.FullName ?? u.Uname).FirstOrDefault(),
-                            PriceType = db.PriceTypes.Where(t => t.ID == p.PriceTypeID).Select(t => t.Name).FirstOrDefault()
+                            PriceType = db.PriceTypes.Where(t => t.ID == p.PriceTypeID).Select(t => t.Name).FirstOrDefault(),
+                            PriceTypeRu = db.PriceTypes.Where(t => t.ID == p.PriceTypeID).Select(t => t.NameRu).FirstOrDefault()
                         };
 
                 q = scope.Apply(q, x => x.ID);
@@ -80,8 +82,8 @@ namespace tahsinERP.Areas.Distribution.Controllers
                     data = result.Rows.Select(c => new
                     {
                         id = c.ID, name = c.Name, inn = c.INN, phone = c.Telephone, address = c.Address,
-                        territory = c.Territory, agent = c.Agent, category = c.Category,
-                        pointType = DstLocalization.T("PointType_" + c.PointType), priceType = c.PriceType,
+                        territory = Localized(c.Territory, c.TerritoryRu), agent = c.Agent, category = c.Category,
+                        pointType = DstLocalization.T("PointType_" + c.PointType), priceType = Localized(c.PriceType, c.PriceTypeRu),
                         creditLimit = c.CreditLimit, paymentDays = c.PaymentDays, approved = c.IsApproved, hasGeo = c.Lat != null
                     })
                 }, JsonRequestBehavior.AllowGet);

@@ -288,7 +288,7 @@ Shuni bilish kerak:
 - Til har foydalanuvchiga alohida saqlanadi va boshqa xodimlarga ta'sir qilmaydi. Hech narsa tanlanmagan bo'lsa — o'zbekcha.
 - Faqat matnlar almashadi. Sana va son ko'rinishi (masalan `15 376 400`) o'zgarmaydi.
 - Bot va bildirishnomalar ham xodimning shu tilida keladi (Telegram ilovasining tili emas). Agent ruscha ishlashi uchun uning ERP foydalanuvchisi nomidan bir marta Русский tanlanadi. Tilni o'zgartirgandan keyin botda **/start** yoki **/menu** bosilsa, bot menyusi yangi tilga o'tadi (qayta ulash shart emas).
-- Ma'lumotnomalarda ikkita nom bor: **Nomi** va **Nomi (rus)** (hudud, tovar, narx turi, sabab, brend). Ruscha interfeysda rus nomi to'ldirilgan bo'lsa u, bo'lmasa o'zbekcha nom ko'rsatiladi. Excel shablonlari ham interfeys tilida yuklanadi.
+- Ma'lumotnomalarda (hudud, tovar, narx turi, sabab) **Nomi** va ixtiyoriy **Nomi (rus)** kiritiladi, lekin ro'yxat va hujjatlarda **bitta nom tanlangan tilda** ko'rsatiladi: ruscha interfeysda rus nomi (bo'sh bo'lsa — o'zbekcha), o'zbek kirillda — nom avtomatik kirillga o'giriladi, o'zbek lotinda — o'zbekcha. Avtomatik tarjima yo'q: rus nomini qo'lda yozing. Excel shablonlari interfeys tilida yuklanadi.
 - Tizimning boshqa modullari (Omborxona, Moliya va hokazo) hozircha o'zbekcha; til tugmasi faqat Distributsiyaga ta'sir qiladi.
 - Mijozga boradigan bildirishnomalar mijozning Telegram ilovasi tilida keladi (ulanishda va har **/start**, **/menu** da yangilanadi).
 

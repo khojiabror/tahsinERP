@@ -47,7 +47,6 @@
                             <thead>
                                 <tr>
                                     <th>@DstLocalization.T("Name")</th>
-                                    @if (hasNameRu) { <th>@DstLocalization.T("NameRu")</th> }
                                     @if (extraTitle != null) { <th>@extraTitle</th> }
                                     @if (hasSort) { <th>@DstLocalization.T("SortOrder")</th> }
                                     <th>@DstLocalization.T("Status")</th>
@@ -59,10 +58,9 @@
                                 {
                                     <tr class="@(r.IsActive ? "" : "text-muted")">
                                         <td>
-                                            @r.Name
+                                            @(hasNameRu ? DstLocalization.Name(r.Name, r.NameRu) : r.Name)
                                             @if (r.IsDefault) { <span class="badge badge-light-primary ml-50">@DstLocalization.T("Default")</span> }
                                         </td>
-                                        @if (hasNameRu) { <td>@r.NameRu</td> }
                                         @if (extraTitle != null)
                                         {
                                             <td>@(kind == DstDictionariesController.Reasons ? DstLocalization.T("ReasonType_" + r.Extra) : r.Extra)</td>
@@ -101,7 +99,7 @@
                 <div class="form-group"><label>@DstLocalization.T("Name")</label><input id="dName" class="form-control" maxlength="100" /></div>
                 @if (hasNameRu)
                 {
-                    <div class="form-group"><label>@DstLocalization.T("NameRu")</label><input id="dNameRu" class="form-control" maxlength="100" /></div>
+                    <div class="form-group"><label>@DstLocalization.T("NameRu")</label><input id="dNameRu" class="form-control" maxlength="100" /><small class="form-text text-muted">@DstLocalization.T("NameRu_Hint")</small></div>
                 }
                 @if (kind == DstDictionariesController.SubCategories)
                 {

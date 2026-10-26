@@ -13,6 +13,25 @@ public sealed class AgentOptions
     public PowerShellSection PowerShell { get; set; } = new();
     public UsageSection Usage { get; set; } = new();
     public UpdatesSection Updates { get; set; } = new();
+    public SiteDomainsSection SiteDomains { get; set; } = new();
+
+    /// <summary>
+    /// Sayt-katalog o'z domenlari (Docs/ControlPanel/09_SITE_CUSTOM_DOMAIN.md): IIS'dagi sayt ilovasiga binding va win-acme HTTP-01
+    /// (selfhosting) bilan sertifikat. Enabled bo'lsa agent panelga <c>site-domain</c> imkoniyatini e'lon qiladi.
+    /// </summary>
+    public sealed class SiteDomainsSection
+    {
+        public bool Enabled { get; set; } = true;
+        public string WacsExe { get; set; } = @"C:\tools\win-acme\wacs.exe";
+        /// <summary>Sayt-katalog IIS sayti (Install-BotSite.ps1 yaratadi).</summary>
+        public string IisSite { get; set; } = "tahsinERP.Site";
+        /// <summary>Sertifikat ombori (LocalMachine) — wildcard sertifikatlar bilan bir xil.</summary>
+        public string CertificateStore { get; set; } = "WebHosting";
+        /// <summary>ACME hisobi emaili (win-acme'da hisob allaqachon bo'lsa — bo'sh qoldiring).</summary>
+        public string? Email { get; set; }
+        public string AppCmd { get; set; } = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "System32", "inetsrv", "appcmd.exe");
+        public int TimeoutMinutes { get; set; } = 10;
+    }
 
     /// <summary>Avto-yangilash (Docs/Deploy/03_AUTO_UPDATE.md): paketni paneldan yuklab Updater inbox'iga qo'yish, inventar.</summary>
     public sealed class UpdatesSection
