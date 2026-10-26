@@ -132,7 +132,7 @@
                                         <span class="badge badge-light-danger">@L.T("Fin_TotalReceivable"): @(Model.CustomerReceivableLines.Sum(x => x.Amount).ToString("N2"))</span>
                                     </div>
                                     <div class="table-responsive">
-                                        <table class="table table-bordered table-sm" id="tblOpeningCustomerLines">
+                                        <table class="table table-bordered table-sm doc-lines" id="tblOpeningCustomerLines">
                                             <thead>
                                                 <tr>
                                                     <th style="min-width:260px;">@L.T("Fin_Customer")</th>
@@ -197,7 +197,7 @@
                                         <span class="badge badge-light-warning">@L.T("Fin_TotalPayable"): @(Model.SupplierPayableLines.Sum(x => x.Amount).ToString("N2"))</span>
                                     </div>
                                     <div class="table-responsive">
-                                        <table class="table table-bordered table-sm" id="tblOpeningSupplierLines">
+                                        <table class="table table-bordered table-sm doc-lines" id="tblOpeningSupplierLines">
                                             <thead>
                                                 <tr>
                                                     <th style="min-width:260px;">@L.T("Fin_Supplier")</th>
@@ -262,7 +262,7 @@
                                         <span class="badge badge-light-info">@L.T("Fin_TotalPayrollDebt"): @(Model.EmployeePayrollLines.Sum(x => x.Amount).ToString("N2"))</span>
                                     </div>
                                     <div class="table-responsive">
-                                        <table class="table table-bordered table-sm" id="tblOpeningPayrollLines">
+                                        <table class="table table-bordered table-sm doc-lines" id="tblOpeningPayrollLines">
                                             <thead>
                                                 <tr>
                                                     <th style="min-width:280px;">@L.T("Fin_Employee")</th>
@@ -312,7 +312,7 @@
                                         <span class="badge badge-light-warning">@L.T("Fin_TotalLogisticsDebt"): @(Model.ForwarderPayableLines.Sum(x => x.Amount).ToString("N2"))</span>
                                     </div>
                                     <div class="table-responsive">
-                                        <table class="table table-bordered table-sm" id="tblOpeningForwarderLines">
+                                        <table class="table table-bordered table-sm doc-lines" id="tblOpeningForwarderLines">
                                             <thead>
                                                 <tr>
                                                     <th style="min-width:260px;">@L.T("Fin_Forwarder")</th>
@@ -372,7 +372,7 @@
                                         <strong>@L.T("Fin_LeaveEmpty"):</strong> @L.T("Fin_LeaveEmptyHint1") <strong>0</strong> @L.T("Fin_LeaveEmptyHint2")
                                     </p>
                                     <div class="table-responsive">
-                                        <table class="table table-striped table-bordered">
+                                        <table class="table table-striped table-bordered doc-lines">
                                             <thead>
                                                 <tr>
                                                     <th>@L.T("Category")</th>
@@ -418,7 +418,7 @@
                                         <strong>@L.T("Fin_OpeningAccountsHint2")</strong> @L.T("Fin_OpeningAccountsHint3")
                                     </p>
                                     <div class="table-responsive">
-                                        <table class="table table-striped table-bordered table-sm" id="tblOpeningAccounts">
+                                        <table class="table table-striped table-bordered table-sm doc-lines" id="tblOpeningAccounts">
                                             <thead>
                                                 <tr>
                                                     <th>@L.T("Fin_Account")</th>

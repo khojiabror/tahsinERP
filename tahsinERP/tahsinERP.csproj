@@ -2853,6 +2853,7 @@
     <Content Include="assets\css\style-rtl.css" />
     <Content Include="assets\css\style.css" />
     <Content Include="assets\css\theme.css" />
+    <Content Include="assets\css\line-editor.css" />
     <Content Include="assets\css\theme-accent.css" />
     <Content Include="assets\css\theme-dark.css" />
     <Content Include="assets\js\app.js" />
@@ -2862,6 +2863,7 @@
     <Content Include="assets\js\dt-defaults.js" />
     <Content Include="assets\js\fullscreen-shell.js" />
     <Content Include="assets\js\session-idle.js" />
+    <Content Include="assets\js\line-editor.js" />
     <Content Include="assets\js\scripts.js" />
     <Content Include="assets\js\theme.js" />
     <Content Include="Content\fin-dashboard.css" />

@@ -128,7 +128,7 @@
                                                 </div>
                                             </div>
                                             <div class="table-responsive">
-                                                <table class="table table-striped table-bordered freeze-material-table" id="cuttingLinesTable">
+                                                <table class="table table-striped table-bordered freeze-material-table doc-lines" id="cuttingLinesTable">
                                                     <thead class="thead-light">
                                                         <tr>
                                                             <th style="width: 30px;">
@@ -397,7 +397,7 @@ else
         position: sticky;
         left: 0;
         z-index: 3;
-        background: #fff;
+        background: var(--dl-bg, #fff);
     }
 
     #cuttingLinesTable.freeze-material-table th:nth-child(2),
@@ -405,14 +405,14 @@ else
         position: sticky;
         left: 42px;
         z-index: 3;
-        background: #fff;
+        background: var(--dl-bg, #fff);
         min-width: 220px;
     }
 
     #cuttingLinesTable.freeze-material-table thead th:nth-child(1),
     #cuttingLinesTable.freeze-material-table thead th:nth-child(2) {
         z-index: 4;
-        background: #f8f8f8;
+        background: var(--dl-head-bg, #f8f8f8);
     }
 
     /* Sarflanish (m) ixchamroq, Narx kengroq */
