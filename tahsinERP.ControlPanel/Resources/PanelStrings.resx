@@ -3987,4 +3987,31 @@ Siz so'ramagan bo'lsangiz — bu xatga e'tibor bermang, parolingiz o'zgarmaydi.<
   <data name="Pnl_Upd_Action_RemoveInstance" xml:space="preserve">
     <value>Instance'ni olib tashlash (firma o'chirildi)</value>
   </data>
+  <data name="Pnl_Ten_RestoreSlug" xml:space="preserve">
+    <value>Tiklashda yangi nom (bo'sh — o'sha nom)</value>
+  </data>
+  <data name="Pnl_Ten_RestoreHint" xml:space="preserve">
+    <value>Firma arxivdagi bazadan qayta ochiladi. Yangi nom berilsa, «{0}» darhol bo'shaydi: eski nom bo'yicha Telegram bot ulanishlari, sayt-katalog va alohida ERP sayti tozalanadi — bot va saytni yangi nom bilan qayta ulang. Kirish holati obunaga qarab (faol obuna yo'q — to'xtatilgan).</value>
+  </data>
+  <data name="Pnl_Ten_RestoreBtn" xml:space="preserve">
+    <value>Arxivdan tiklash</value>
+  </data>
+  <data name="Pnl_Ten_RestoreQueued" xml:space="preserve">
+    <value>Arxivdan tiklash navbatga qo'yildi (job #{0}), firma nomi: {1}.</value>
+  </data>
+  <data name="Pnl_Prov_RestoreOnlyArchived" xml:space="preserve">
+    <value>Faqat arxivlangan firmani tiklash mumkin.</value>
+  </data>
+  <data name="Pnl_Prov_RestoreNoArchive" xml:space="preserve">
+    <value>Arxiv zaxirasi yo'q — tiklab bo'lmaydi.</value>
+  </data>
+  <data name="Pnl_Prov_RestoreReasonRequired" xml:space="preserve">
+    <value>Tiklash sababini yozing.</value>
+  </data>
+  <data name="Pnl_Prov_RestoreDbTaken" xml:space="preserve">
+    <value>{0} baza nomi boshqa firmada band.</value>
+  </data>
+  <data name="Pnl_JobType_Restore" xml:space="preserve">
+    <value>Arxivdan tiklash</value>
+  </data>
 </root>

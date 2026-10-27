@@ -133,6 +133,7 @@ public static class Labels
         ProvisioningJobType.Delete => L.T("Pnl_JobType_Delete"),
         ProvisioningJobType.EndTrial => L.T("Pnl_JobType_EndTrial"),
         ProvisioningJobType.SiteDomain => L.T("Pnl_JobType_SiteDomain"),
+        ProvisioningJobType.Restore => L.T("Pnl_JobType_Restore"),
         _ => t.ToString()
     };
 
