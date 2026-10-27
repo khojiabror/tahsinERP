@@ -11,10 +11,11 @@ Database/
   Seed/100_Reference.sql       majburiy spravochniklar (generatsiya: Export-ReferenceSeed.ps1)
   Seed/105_PermissionModules_Extra.sql  eksportdan keyin qo'shilgan ruxsat modullari (mavjud bazalarga — NNN migratsiya)
   Seed/110_Defaults.sql        yangi korxona standart qatorlari (qo'lda)
-  Demo/NNN_<Modul>_*.sql       namuna ma'lumot, modul bo'yicha (New-TenantDb.ps1 -Demo; pastda "Demo ma'lumot")
-  Setup/300_ModuleProfile.sql  tanlangan modullar profili: rollar/ruxsatlar, omborlar, boshlang'ich kategoriyalar
+  Demo/NNN_<Modul>_*.sql       katta demo ssenariy, modul bo'yicha (New-TenantDb.ps1 -Demo; ochiq demo shabloni; pastda "Demo ma'lumot")
+  Setup/300_ModuleProfile.sql  tanlangan modullar profili: rollar/ruxsatlar, omborlar, boshlang'ich kategoriyalar, qadoq birliklari
+  Sample/NNN_<Modul>_*.sql     ixcham namuna — har bo'limda bittadan yozuv (New-TenantDb.ps1 -Sample; sinov korxonasi; pastda)
   tools/Invoke-DbMigrations.ps1  runner: bitta baza yoki tenants.json dagi barchasi
-  tools/New-TenantDb.ps1         yangi baza: CREATE -> baseline -> migratsiya -> seed -> SETUP_MODULES -> (demo) -> profil -> admin
+  tools/New-TenantDb.ps1         yangi baza: CREATE -> baseline -> migratsiya -> seed -> SETUP_MODULES -> (demo) -> profil -> admin -> (namuna)
   tools/Export-ReferenceSeed.ps1 seed'ni etalon bazadan qayta generatsiya
   tools/Export-Baseline.ps1      baseline'ni qayta generatsiya ("squash", kamdan-kam)
   tools/RegressionProbe/         hisobotlar oldin/keyin solishtiruvi (Run-RegressionProbe.ps1) va barcha view'lar
@@ -84,8 +85,11 @@ shu ro'yxatga + uni ishlatadigan servisga; mavjud bazalarni to'ldirish kerak bo'
 # yangi korxona (bo'sh SQL instance yetarli)
 .\Database\tools\New-TenantDb.ps1 -Server localhost -DbName DB_firma1 -CompanyName '"Firma 1" MChJ'
 
-# faqat tanlangan modullar uchun (sinov): sozlamalar + shu modullarning namuna ma'lumoti
-.\Database\tools\New-TenantDb.ps1 -Server localhost -DbName DB_firma2 -Modules Srm,Crm,Tasks,Finance -Demo
+# faqat tanlangan modullar uchun (sinov): rollar, omborlar + shu modullarning ixcham namunasi (panel "Namuna ma'lumotlar bilan")
+.\Database\tools\New-TenantDb.ps1 -Server localhost -DbName DB_firma2 -Modules Distribution,Website -Sample
+
+# ochiq demo (katta "Demo Plast" ssenariysi)
+.\Database\tools\New-TenantDb.ps1 -Server localhost -DbName DB_DEMO -Demo -BackupTo C:\Backups\DB_DEMO_TEMPLATE.bak
 
 # bitta bazani yangilash (avval reja)
 .\Database\tools\Invoke-DbMigrations.ps1 -Server localhost -Database DB_firma1 -DryRun
@@ -140,24 +144,50 @@ o'tkazib yuboradi. Runner hamma fayllarni bitta sessiyada bajaradi — har fayl 
 Faqat yangi (bo'sh) bazaga mo'ljallangan. Yangi modul demo fayli: `NNN_<Modul>_*.sql`, boshida `fn_SetupHasModule` tekshiruvi,
 miqdorlar kerak bo'lsa `demo_tmp` dan.
 
+## Ixcham namuna (`Sample/`)
+
+Sinov va pullik korxona uchun (panel "Namuna ma'lumotlar bilan" → agent `-Sample`). Katta "Demo Plast" ssenariysi (yuqorida) faqat
+ochiq demo tenant va uning shabloni uchun — mijoz bazasiga plastik idishlar va 3 oylik tarix tushmasin. Namuna admin yaratilgandan
+keyin ishlaydi (yaratuvchi — birinchi Admin; kassa hisobi bor), har fayl `fn_SetupHasModule` bilan o'zini tekshiradi va ma'lumot bor
+bo'lsa o'tkazib yuboriladi. Mijoz namunani o'z ma'lumoti bilan almashtiradi yoki o'chiradi — shuning uchun hujjat (buyurtma, kirim,
+to'lov) yaratilmaydi: o'chirib bo'lmaydigan iz qolmaydi.
+
+| Fayl | Modul | Nima |
+|---|---|---|
+| `400_Core_Products.sql` | Core | profil yaratgan har kategoriyaga bitta mahsulot: `NAM-001` tovar, `NAM-002` xomashyo, `NAM-003` tayyor mahsulot |
+| `410_Srm_Supplier.sql` | Srm | bitta ta'minotchi |
+| `420_Crm_Customer.sql` | Crm | bitta mijoz (shartnomali savdo) |
+| `430_Hr_Structure.sql` | Hr | korxona bo'linmasi va "Direktor" lavozimi |
+| `440_Tasks_Project.sql` | Tasks | "ERP" loyihasi, admin'ga topshiriq "Xodimlarni qo'shing va rollarni biriktiring" |
+| `450_Logistics_Forwarder.sql` | Logistics | bitta tashuvchi |
+| `460_Distribution_Point.sql` | Distribution | hudud (Toshkent shahri → Chilonzor), bitta savdo nuqtasi (standart narx turi, limit 10 mln, 7 kun), mahsulot distributsiya kartasi va narxi |
+| `470_Website_Page.sql` | Website | sayt nomi = korxona nomi, "Biz haqimizda" sahifasi, namuna tovar katalogda (sayt o'chiq qoladi) |
+
+Namunasiz ham har yangi bazada: distributsiyaning "agent naqdi topshiriladigan kassa" sozlamasi standart kassaga bog'lanadi (New-TenantDb, admin bosqichi).
+
 ## Modul profili (`Setup/300_ModuleProfile.sql`)
 
 Demo'dan keyin, har yangi bazada (namuna ma'lumotsiz ham) ishlaydi. Tanlanmagan modul ombori (harakatsiz bo'lsa) o'chirib qo'yiladi;
-Distributsiya — sotuv ombori savdo nuqtasi; mahsulot yo'q bazada modulga mos boshlang'ich kategoriyalar. Valyuta, o'lchov birligi,
+Distributsiya — sotuv ombori savdo nuqtasi; mahsulot yo'q bazada modulga mos boshlang'ich kategoriyalar; savdo/ombor modullarida qadoq
+birliklari (quti, pachka, blok, poddon, qop, rulon — tovarning qo'shimcha birligi faqat UNITS dan tanlanadi). Valyuta, o'lchov birligi,
 ТНВЭД, moliya kategoriyalari va boshqa spravochniklar Core — hammaga to'liq (keyin paket kengaysa qayta seed kerak emas).
 Controller -> modul xaritasi `EditionModules` bilan bir xil bo'lishi shart (`TrialModulesUnitTests.ModuleProfileSql_ControllerMap_MatchesEditionModules`).
 
 ### Rollar va ruxsatlar
 
-Har tanlangan modulga bitta rol; ruxsatlar skriptdagi `#matrix` jadvalidan (shu jadval bilan bir xil). **C** — ko'rish + yaratish/
+"Rahbar" — har doim; qolgan rollar o'z moduli tanlansa (`#roles`: Code, Module). Distributsiyada qo'llanma 1.10.1 jadvali bo'yicha
+5 ta rol. Ruxsatlar skriptdagi `#matrix` jadvalidan (shu jadval bilan bir xil). **C** — ko'rish + yaratish/
 tahrirlash (`ViewPermit = 1, ChangePermit = 1`), **V** — faqat ko'rish (`ViewPermit = 1, ChangePermit = 0`). O'chirish
-(`DeletePermit`) hech bir modul roliga berilmaydi — faqat Admin. Qator faqat rol moduli **va** maqsad moduli tanlangan bo'lsa
+(`DeletePermit`) hech bir rolga berilmaydi — faqat Admin. Qator faqat rol yaratilgan **va** maqsad moduli tanlangan bo'lsa
 qo'llanadi (masalan Logistika tanlanmagan bo'lsa Sotuv menejeri yo'l varaqalarini ko'rmaydi). Admin/Developer — to'liq (110_Defaults).
+Foydalanuvchi yaratilmaydi — admin xodimni qo'shib, rolni beradi. Distributsiya tanlanganda: Rahbarga maxsus huquqlar `DstSeeCost`,
+`DstOverrideCredit`, `DstWriteOffApprove` (cheksiz chegirma — faqat Admin); chegirma limiti agent 3%, operator 5%, rahbar 10%.
 Matritsadagi controller ko'rsatilgan modulga tegishliligi testda tekshiriladi (`ModuleProfileSql_PermissionMatrix_ControllersBelongToTargetModule`).
 
 | Rol (modul) | C — o'z ishi | V — faqat ko'rish |
 |---|---|---|
-| hamma modul rollari | Topshiriqlar: `Tasks`, `TaskKanban`, `TaskChangeStatus` | bosh sahifa, mahsulot, kategoriya, o'lchov birligi, valyuta, ombor, korxona, qoldiqlar; `TaskDashboard`, topshiriq loyihasi/holati/muhimligi |
+| hamma rollar | Topshiriqlar: `Tasks`, `TaskKanban`, `TaskChangeStatus` | bosh sahifa, mahsulot, kategoriya, o'lchov birligi, valyuta, ombor, korxona, qoldiqlar; `TaskDashboard`, topshiriq loyihasi/holati/muhimligi |
+| Rahbar (har doim) | butun Topshiriqlar; Distributsiya — buyurtma, to'lov, qaytarish, mijoz, tovar, narx, aksiya, hudud, jamoa, ma'lumotnoma, sozlamalar, import, inventarizatsiya, xatolar, hisobdan chiqarish, pereso'rtitsa, landed cost, buyurtma taklifi, marshrut, reys, mashina, KPI; sayt so'rovlari | tanlangan boshqa modullarning hammasi; Distributsiya rahbar paneli, hisobotlar, qoldiq, qarz, ko'chirma, dala nazorati (audit jurnali — faqat Admin) |
 | Ta'minot menejeri (Srm) | butun SRM (xarid, ta'minotchi, kirim/chiqim, inventarizatsiya, ombor hisobotlari); mahsulot, kategoriya | ishlab chiqarish rejasi, yo'l varaqalari, moliya tranzaksiyalari |
 | Sotuv menejeri (Crm) | butun CRM (mijoz, shartnoma, buyurtma, invoys, SF, TTN) | ombor hisobotlari, ishlab chiqarish rejasi, yo'l varaqalari, moliya tranzaksiyalari |
 | Ishlab chiqarish ustasi (Mes) | butun MES; ishlab chiqarishdan sotuvga o'tkazma | BOM/norma/tannarx, kirim/chiqim, ombor hisobotlari |
@@ -166,7 +196,11 @@ Matritsadagi controller ko'rsatilgan modulga tegishliligi testda tekshiriladi (`
 | Kadrlar mutaxassisi (Hr) | butun HR | buyruqlar, lavozim yo'riqnomalari |
 | Logist (Logistics) | butun Logistika | xarid buyurtma/invoys, sotuv buyurtma/invoys, distributsiya reyslari |
 | Devonxona mudiri (Docs) | rasmiy xat, buyruq, standart, yo'riqnoma | xodimlar, bo'linmalar, lavozimlar |
-| Distributsiya menejeri | butun Distributsiya (maxsus `Dst` huquqlari — tannarx, kredit limitidan o'tish, cheksiz chegirma — Admin'da); mahsulot | moliya tranzaksiyalari, sayt so'rovlari |
+| Distributsiya operatori | buyurtma, qaytarish, mijoz, tovar (va mahsulot), hudud, import, reys; sayt so'rovlari | hisobotlar, qoldiq, to'lov, qarz, narx, aksiya, ma'lumotnoma, xatolar |
+| Omborchi (Distribution) | buyurtma (yig'ish/jo'natish), inventarizatsiya, ko'chirma qabuli, hisobdan chiqarish, pereso'rtitsa | qoldiq, qaytarish, tovar, xatolar, buyurtma taklifi, reys |
+| Kassir (Distribution) | to'lovlar va agentlar naqdi | buyurtma, qarz, mijoz, xatolar, moliya tranzaksiyalari |
+| Savdo agenti (Distribution) | buyurtma (bot va Mini App) | xatolar |
+| Ekspeditor (Distribution) | reys natijasi (bot) | buyurtma, xatolar |
 | Sayt menejeri (Website) | butun Sayt-katalog | distributsiya narx va qoldiqlari, mijozlar |
 
 ## Bosh sahifa va dashboardlar (ERP)
