@@ -103,6 +103,7 @@
                                                                 <label>@L.T("Core_NewPassword")</label>
                                                                 @Html.PasswordFor(model => model.Password, new { @class = "form-control", @placeholder = L.T("Core_LeaveEmptyToKeep"), autocomplete = "new-password" })
                                                                 @Html.ValidationMessageFor(model => model.Password, "", new { @class = "text-danger" })
+                                                                <div class="alert alert-warning mt-50 mb-0 small" role="note"><strong>@L.T("Core_PwdWarn_Title")</strong> @L.T("Core_PwdWarn_Set")</div>
                                                             </div>
                                                         </div>
                                                     </div>

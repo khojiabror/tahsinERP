@@ -927,4 +927,12 @@ STRINGS = {
     "Core_HomeTileDocs": ("Rasmiy hujjatlar", "Официальные документы"),
     "Core_HomeTileDistribution": ("Distributsiya Dashboard", "Дашборд дистрибуции"),
     "Core_HomeTileSite": ("Sayt-katalog", "Сайт-каталог"),
+    # Parol xavfsizligi eslatmalari (majburiy qoida emas — foydalanuvchi ogohlantiriladi)
+    "Core_PwdWarn_Title": ("Kalit so'zga (parolga) hushyor bo'ling!", "Будьте внимательны с паролем!"),
+    "Core_PwdWarn_Login": ("Parolni hech kimga bermang. Oddiy parol (123456, ism, tug'ilgan yil) oson buziladi — harf, raqam va belgidan iborat kamida 8 belgili parol ishlating. Parol xavfsizligi uchun foydalanuvchining o'zi javobgar.",
+                           "Никому не сообщайте пароль. Простой пароль (123456, имя, год рождения) легко взломать — используйте не менее 8 символов из букв, цифр и знаков. Ответственность за сохранность пароля несёт сам пользователь."),
+    "Core_PwdWarn_Set": ("Murakkabroq parol qo'ying: kamida 8 belgi, katta-kichik harf, raqam va belgi aralash bo'lsin. Parolni hech kimga bermang va boshqa saytlarda ishlatmang — u bilan qilingan har bir amal sizning nomingizdan yoziladi. Parol xavfsizligi uchun o'zingiz javobgarsiz.",
+                         "Задайте сложный пароль: не менее 8 символов, заглавные и строчные буквы, цифры и знаки. Никому не сообщайте его и не используйте на других сайтах — каждое действие под этим паролем записывается от вашего имени. Ответственность за сохранность пароля несёте вы."),
+    "Core_PwdWarn_Admin": ("Xodimga murakkab parol bering (kamida 8 belgi, harf, raqam va belgi) va uni ochiq guruh chatlarida yubormang. Xodimga parolni hech kimga bermasligini va birinchi kirishda almashtirishini ayting.",
+                           "Выдавайте сотруднику сложный пароль (не менее 8 символов, буквы, цифры и знаки) и не пересылайте его в общих чатах. Попросите сотрудника никому не сообщать пароль и сменить его при первом входе."),
 }

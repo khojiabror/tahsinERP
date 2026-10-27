@@ -90,6 +90,7 @@
                                                     <fieldset class="form-group">
                                                         @Html.PasswordFor(model => model.Password, new { @class = "form-control", @placeholder = L.T("Core_PasswordOnlyChange"), @value = "" })
                                                         <small class="text-muted">@L.T("Core_PasswordChangeHint")</small>
+                                                        <small class="d-block text-warning mt-25">@L.T("Core_PwdWarn_Admin")</small>
                                                         @Html.ValidationMessageFor(model => model.Password, "", new { @class = "text-danger" })
                                                     </fieldset>
 

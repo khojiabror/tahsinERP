@@ -85,6 +85,7 @@
                                                     <fieldset class="form-group">
                                                         @Html.PasswordFor(model => model.Password, new { @class = "form-control", @placeholder = L.T("Core_PasswordPlaceholder"), @required = "required" })
                                                         @Html.ValidationMessageFor(model => model.Password, "", new { @class = "text-danger" })
+                                                        <small class="d-block text-warning mt-25">@L.T("Core_PwdWarn_Admin")</small>
                                                     </fieldset>
 
                                                     <h6 class="invoice-to">@L.T("Core_Activity")</h6>

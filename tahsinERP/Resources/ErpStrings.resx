@@ -14325,4 +14325,16 @@
   <data name="Core_HomeTileSite" xml:space="preserve">
     <value>Sayt-katalog</value>
   </data>
+  <data name="Core_PwdWarn_Title" xml:space="preserve">
+    <value>Kalit so'zga (parolga) hushyor bo'ling!</value>
+  </data>
+  <data name="Core_PwdWarn_Login" xml:space="preserve">
+    <value>Parolni hech kimga bermang. Oddiy parol (123456, ism, tug'ilgan yil) oson buziladi — harf, raqam va belgidan iborat kamida 8 belgili parol ishlating. Parol xavfsizligi uchun foydalanuvchining o'zi javobgar.</value>
+  </data>
+  <data name="Core_PwdWarn_Set" xml:space="preserve">
+    <value>Murakkabroq parol qo'ying: kamida 8 belgi, katta-kichik harf, raqam va belgi aralash bo'lsin. Parolni hech kimga bermang va boshqa saytlarda ishlatmang — u bilan qilingan har bir amal sizning nomingizdan yoziladi. Parol xavfsizligi uchun o'zingiz javobgarsiz.</value>
+  </data>
+  <data name="Core_PwdWarn_Admin" xml:space="preserve">
+    <value>Xodimga murakkab parol bering (kamida 8 belgi, harf, raqam va belgi) va uni ochiq guruh chatlarida yubormang. Xodimga parolni hech kimga bermasligini va birinchi kirishda almashtirishini ayting.</value>
+  </data>
 </root>
