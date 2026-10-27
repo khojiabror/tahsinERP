@@ -200,7 +200,11 @@ public sealed class LicenseIssuer(ControlDbContext db, ILicenseSigner signer, Au
             if (expiry > addOnEnd)
                 expiry = addOnEnd;
         }
-        string edition = ComposeEdition(sub.Plan.Code, covering.Select(a => a.Plan!.Code), sub.Modules);
+        var addOnCodes = covering.Select(a => a.Plan!.Code).ToList();
+        // Demo firma (modullari tanlanmagan — hammasi): Sayt-katalog ham to'lovsiz, alohida xizmat obunasisiz
+        if (tenant.IsDemo && sub.Period == BillingPeriod.Trial && string.IsNullOrWhiteSpace(sub.Modules) && !addOnCodes.Contains(PlanCodes.Site))
+            addOnCodes.Add(PlanCodes.Site);
+        string edition = ComposeEdition(sub.Plan.Code, addOnCodes, sub.Modules);
         return new LicenseRequest(edition, sub.Users, start, expiry, sub.Id, covering.Count == 0 ? "Obuna bo'yicha" : "Obuna bo'yicha (+ qo'shimcha xizmat)");
     }
 

@@ -2,6 +2,7 @@ using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using tahsinERP.ControlPanel.Data;
+using tahsinERP.ControlPanel.Licensing;
 using tahsinERP.ControlPanel.Services;
 using tahsinERP.Provisioning.Contracts;
 
@@ -107,5 +108,22 @@ public class DemoTenantsTests(PanelFactory f) : IClassFixture<PanelFactory>
             });
         }
         finally { f.Time.SetUtcNow(PanelFactory.Start); }
+    }
+
+    [Fact]
+    public async Task DemoWithAllModules_GetsSiteFree_PlainTrialDoesNot()
+    {
+        var created = await f.CreateTenantAsync("demo-site-t", trial: true);
+        await f.WithScopeAsync(async sp =>
+        {
+            var db = sp.GetRequiredService<ControlDbContext>();
+            var issuer = sp.GetRequiredService<LicenseIssuer>();
+            var t = await db.Tenants.SingleAsync(x => x.Id == created.Id);
+            var s = await db.Subscriptions.Include(x => x.Plan).SingleAsync(x => x.TenantId == t.Id);
+            s.Modules = null;
+            Assert.DoesNotContain("+SITE", issuer.DesiredFromSubscription(t, s)!.Edition);
+            t.IsDemo = true;
+            Assert.Equal("TRIAL+SITE", issuer.DesiredFromSubscription(t, s)!.Edition);
+        });
     }
 }
