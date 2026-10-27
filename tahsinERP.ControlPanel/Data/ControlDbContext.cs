@@ -36,6 +36,12 @@ public class ControlDbContext(DbContextOptions<ControlDbContext> options) : DbCo
     public DbSet<DemoRequest> DemoRequests => Set<DemoRequest>();
     public DbSet<ErpDeveloper> ErpDevelopers => Set<ErpDeveloper>();
     public DbSet<TenantSiteDomain> SiteDomains => Set<TenantSiteDomain>();
+    public DbSet<EconomicsSettings> EconomicsSettings => Set<EconomicsSettings>();
+    public DbSet<PlannedCost> PlannedCosts => Set<PlannedCost>();
+    public DbSet<ModuleWeight> ModuleWeights => Set<ModuleWeight>();
+    public DbSet<PlanEconomics> PlanEconomics => Set<PlanEconomics>();
+    public DbSet<Competitor> Competitors => Set<Competitor>();
+    public DbSet<Expense> Expenses => Set<Expense>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -422,6 +428,120 @@ public class ControlDbContext(DbContextOptions<ControlDbContext> options) : DbCo
         {
             e.HasKey(x => x.Year);
             e.Property(x => x.Year).ValueGeneratedNever();
+        });
+
+        ConfigureEconomics(b);
+    }
+
+    /// <summary>
+    /// Iqtisodiyot jadvallari va boshlang'ich reja (tahsinERP_Tannarx_Narx.xlsx, 2026-10): so'm = $ × 12 700.
+    /// Raqamlar keyin «Iqtisodiyot → Sozlamalar»da o'zgartiriladi.
+    /// </summary>
+    private static void ConfigureEconomics(ModelBuilder b)
+    {
+        const long Som = 100; // tiyin
+        b.Entity<EconomicsSettings>(e =>
+        {
+            e.Property(x => x.Id).ValueGeneratedNever();
+            e.Property(x => x.UsdRate).HasPrecision(18, 2);
+            e.Property(x => x.PayrollTaxPercent).HasPrecision(5, 2);
+            e.Property(x => x.TurnoverTaxPercent).HasPrecision(5, 2);
+            e.Property(x => x.BankFeePercent).HasPrecision(5, 2);
+            e.Property(x => x.ProfitTaxPercent).HasPrecision(5, 2);
+            e.HasData(new EconomicsSettings
+            {
+                Id = 1, UsdRate = 12700m, PayrollTaxPercent = 12m,
+                ServerPriceTiyin = 508_000 * Som, FirmsPerServer = 8, MinServers = 1,
+                PerFirmTiyin = 12_700 * Som, PlatformTiyin = 25_400 * Som,
+                SupportSalaryTiyin = 6_350_000 * Som, FirmsPerSupport = 15, MinSupport = 1,
+                TurnoverTaxPercent = 0m, BankFeePercent = 1m, ProfitTaxPercent = 15m
+            });
+        });
+
+        b.Entity<PlannedCost>(e =>
+        {
+            e.Property(x => x.Name).HasMaxLength(200);
+            e.HasData(
+                new PlannedCost { Id = 1, Kind = PlannedCostKind.Staff, Name = "Asoschi / rahbar", Count = 1, AmountTiyin = 0, Category = CostCategory.Admin, SortOrder = 1 },
+                new PlannedCost { Id = 2, Kind = PlannedCostKind.Staff, Name = "Dasturchi (senior)", Count = 1, AmountTiyin = 0, Category = CostCategory.Development, SortOrder = 2 },
+                new PlannedCost { Id = 3, Kind = PlannedCostKind.Staff, Name = "Dasturchi (junior)", Count = 1, AmountTiyin = 0, Category = CostCategory.Development, SortOrder = 3 },
+                new PlannedCost { Id = 4, Kind = PlannedCostKind.Staff, Name = "Sotuv menejeri", Count = 1, AmountTiyin = 6_350_000 * Som, Category = CostCategory.Sales, SortOrder = 4 },
+                new PlannedCost { Id = 5, Kind = PlannedCostKind.Other, Name = "AI vositalar (Claude va b.)", AmountTiyin = 1_270_000 * Som, Category = CostCategory.Development, SortOrder = 10 },
+                new PlannedCost { Id = 6, Kind = PlannedCostKind.Other, Name = "Marketing (reklama, ko'rgazma)", AmountTiyin = 3_810_000 * Som, Category = CostCategory.Sales, SortOrder = 11 },
+                new PlannedCost { Id = 7, Kind = PlannedCostKind.Other, Name = "Internet, telefon, aloqa", AmountTiyin = 381_000 * Som, Category = CostCategory.Admin, SortOrder = 12 },
+                new PlannedCost { Id = 8, Kind = PlannedCostKind.Other, Name = "Buxgalter / yuridik xizmat", AmountTiyin = 1_270_000 * Som, Category = CostCategory.Admin, SortOrder = 13 });
+        });
+
+        b.Entity<ModuleWeight>(e =>
+        {
+            e.HasKey(x => x.Module);
+            e.Property(x => x.Module).HasMaxLength(30);
+            e.HasData(
+                new ModuleWeight { Module = "Core", Weight = 1 }, new ModuleWeight { Module = "Srm", Weight = 2 },
+                new ModuleWeight { Module = "Crm", Weight = 2 }, new ModuleWeight { Module = "Tasks", Weight = 1 },
+                new ModuleWeight { Module = "Mes", Weight = 3 }, new ModuleWeight { Module = "Engineering", Weight = 2 },
+                new ModuleWeight { Module = "Finance", Weight = 2 }, new ModuleWeight { Module = "Hr", Weight = 2 },
+                new ModuleWeight { Module = "Logistics", Weight = 2 }, new ModuleWeight { Module = "Docs", Weight = 1 },
+                new ModuleWeight { Module = "Distribution", Weight = 3 });
+        });
+
+        b.Entity<PlanEconomics>(e =>
+        {
+            e.HasKey(x => x.PlanId);
+            e.Property(x => x.PlanId).ValueGeneratedNever();
+            e.Property(x => x.MarkupPercent).HasPrecision(6, 2);
+            e.Property(x => x.TargetGrossMarginPercent).HasPrecision(5, 2);
+            e.HasOne(x => x.Plan).WithOne().HasForeignKey<PlanEconomics>(x => x.PlanId).OnDelete(DeleteBehavior.Cascade);
+            e.HasData(
+                new PlanEconomics { PlanId = 1, PlannedTenants = 10, MarkupPercent = 40m, TargetGrossMarginPercent = 45m },
+                new PlanEconomics { PlanId = 6, PlannedTenants = 5, MarkupPercent = 40m, TargetGrossMarginPercent = 60m },
+                new PlanEconomics { PlanId = 2, PlannedTenants = 3, MarkupPercent = 40m, TargetGrossMarginPercent = 60m },
+                new PlanEconomics { PlanId = 3, PlannedTenants = 2, MarkupPercent = 40m, TargetGrossMarginPercent = 60m });
+        });
+
+        b.Entity<Competitor>(e =>
+        {
+            e.Property(x => x.Company).HasMaxLength(100);
+            e.Property(x => x.Tariff).HasMaxLength(100);
+            e.Property(x => x.PriceMonthUsd).HasPrecision(18, 2);
+            e.Property(x => x.MatchPlanCode).HasMaxLength(20);
+            e.Property(x => x.Features).HasMaxLength(200);
+            e.Property(x => x.Note).HasMaxLength(500);
+            const string all = "Warehouse,Sales,Finance,Production,Hr,~Distribution,Pos";
+            int i = 0;
+            Competitor C(string co, string tf, long? som, decimal? usd, int? users, string? plan, bool inc, string f, string note) =>
+                new() { Id = ++i, Company = co, Tariff = tf, PriceMonthTiyin = som * Som, PriceMonthUsd = usd, Users = users, MatchPlanCode = plan, Include = inc, Features = f, Note = note, SortOrder = i };
+            e.HasData(
+                C("Bito ERP", "Start", 290_000, null, 3, PlanCodes.Start, true, "Warehouse,Sales,~Finance,~Bot,Pos", "bito.uz/tarif (2026-10): +1 user 90 000 so'm, 3 filial, 14 kun bepul"),
+                C("Bito ERP", "Business", 490_000, null, 5, PlanCodes.Dist, true, "Warehouse,Sales,Finance,~Production,Distribution,Bot,Pos", "bito.uz/tarif: distributsiya, mijoz boti, cash-flow, oddiy ishlab chiqarish"),
+                C("Bito ERP", "Pro", 990_000, null, 10, PlanCodes.Biznes, true, "Warehouse,Sales,Finance,Production,Distribution,Bot,Pos", "bito.uz/tarif: pro ishlab chiqarish, shaxsiy menejer"),
+                C("Linko", "Start", 150_000, null, null, PlanCodes.Start, true, "Warehouse,Sales,~Finance,Pos", "linko.uz/pos: do'kon/POS, foydalanuvchi soni ko'rsatilmagan"),
+                C("Linko", "Standard", 250_000, null, null, PlanCodes.Start, true, "Warehouse,Sales,Finance,~Hr,Pos", "linko.uz/pos: 58/73 funksiya, aksiya 150 000"),
+                C("Linko", "Pro", 500_000, null, null, PlanCodes.Start, true, "Warehouse,Sales,Finance,~Hr,Pos", "linko.uz/pos: barcha 73 funksiya"),
+                C("Hippo", "Ombor Base", 247_200, null, null, PlanCodes.Start, true, "Warehouse,Sales,Pos", "hippo.uz/pos: 1 ombor, CRM + kassa"),
+                C("Hippo", "Ombor Medium", 412_000, null, null, PlanCodes.Start, true, "Warehouse,Sales,Pos", "hippo.uz/pos: 3 ombor"),
+                C("Hippo", "Ombor Pro", 618_000, null, null, PlanCodes.Start, true, "Warehouse,Sales,Pos", "hippo.uz/pos: 7 ombor. Hippo ERP narxi — so'rov bo'yicha"),
+                C("MoySklad", "Bazaviy", 156_800, null, null, PlanCodes.Start, true, "Warehouse,Sales,~Finance,Pos", "moysklad.uz (2026-05): 2 yur. shaxs, 0.5 GB"),
+                C("MoySklad", "Prof", 459_200, null, null, PlanCodes.Biznes, true, "Warehouse,Sales,Finance,~Production,Pos", "moysklad.uz: 10 yur. shaxs, oddiy ishlab chiqarish"),
+                C("Smartup", "So'rov bo'yicha", null, null, null, PlanCodes.Dist, false, "Warehouse,Sales,Finance,Distribution,Bot", "smartup24.com: narx ochiq emas"),
+                C("Sales Doctor", "Obuna", null, 15m, 1, PlanCodes.Dist, true, "Warehouse,Sales,~Finance,Distribution,Bot", "CEO LinkedIn: $15/oy (1 agent uchunligini aniqlashtiring)"),
+                C("1C", "UNF, 1 o'rin", 133_722, null, 1, PlanCodes.Start, true, "Warehouse,Sales,Finance,~Production,~Hr,~Pos", "4 814 000 so'm bir martalik ÷ 36 oy (1cba.uz); joriy qilish alohida"),
+                C("1C", "UNF, 5 user", 245_972, null, 5, PlanCodes.Biznes, true, "Warehouse,Sales,Finance,~Production,~Hr,~Pos", "8 855 000 so'm ÷ 36 oy (1cba.uz)"),
+                C("1C", "Savdoni boshqarish, 1 o'rin", 167_167, null, 1, PlanCodes.Dist, true, "Warehouse,Sales,~Finance,~Distribution,~Pos", "6 018 000 so'm ÷ 36 oy (1cba.uz)"),
+                C("Odoo", "Standard (Online)", null, 8.95m, 1, PlanCodes.Korp, true, all, "1-yil aksiya $7.25; hosting kiritilgan, joriy qilish hamkor orqali"),
+                C("Odoo", "Custom", null, 13.60m, 1, PlanCodes.Korp, true, all, "1-yil aksiya $10.90; Studio, API, o'z serveri"),
+                C("SAP Business One", "Starter", null, 38m, 1, PlanCodes.Start, false, "Warehouse,Sales,Finance", "Hamkorlar: ~$38/user (≤5 user); xalqaro mo'ljal"),
+                C("SAP Business One", "Professional", null, 95m, 1, PlanCodes.Korp, false, "Warehouse,Sales,Finance,Production,~Hr", "Hamkorlar: $95–185/user, joriy qilish $15 000+"));
+        });
+
+        b.Entity<Expense>(e =>
+        {
+            e.HasIndex(x => x.Date);
+            e.Property(x => x.Description).HasMaxLength(300);
+            e.Property(x => x.Currency).HasMaxLength(3);
+            e.Property(x => x.AmountOriginal).HasPrecision(18, 2);
+            e.Property(x => x.Rate).HasPrecision(18, 4);
+            e.Property(x => x.Reference).HasMaxLength(200);
         });
     }
 }

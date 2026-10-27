@@ -3987,4 +3987,652 @@ Siz so'ramagan bo'lsangiz — bu xatga e'tibor bermang, parolingiz o'zgarmaydi.<
   <data name="Pnl_Upd_Action_RemoveInstance" xml:space="preserve">
     <value>Instance'ni olib tashlash (firma o'chirildi)</value>
   </data>
+  <data name="Pnl_NavEconomics" xml:space="preserve">
+    <value>Iqtisodiyot</value>
+  </data>
+  <data name="Pnl_Econ_Title" xml:space="preserve">
+    <value>Iqtisodiyot</value>
+  </data>
+  <data name="Pnl_Econ_TabActual" xml:space="preserve">
+    <value>Reja va fakt</value>
+  </data>
+  <data name="Pnl_Econ_TabPlan" xml:space="preserve">
+    <value>Tannarx va narx</value>
+  </data>
+  <data name="Pnl_Econ_TabExpenses" xml:space="preserve">
+    <value>Xarajatlar</value>
+  </data>
+  <data name="Pnl_Econ_TabCompetitors" xml:space="preserve">
+    <value>Raqobatchilar</value>
+  </data>
+  <data name="Pnl_Econ_TabSettings" xml:space="preserve">
+    <value>Reja sozlamalari</value>
+  </data>
+  <data name="Pnl_Econ_Show" xml:space="preserve">
+    <value>Ko'rsatish</value>
+  </data>
+  <data name="Pnl_Econ_IndexHint" xml:space="preserve">
+    <value>Fakt tizimdan: to'layotgan obunalar, to'lovlar va kiritilgan xarajatlar. Summalar QQSsiz.</value>
+  </data>
+  <data name="Pnl_Econ_PayingFirms" xml:space="preserve">
+    <value>To'layotgan firmalar</value>
+  </data>
+  <data name="Pnl_Econ_RevenueMrr" xml:space="preserve">
+    <value>Tushum (MRR)</value>
+  </data>
+  <data name="Pnl_Econ_TotalCost" xml:space="preserve">
+    <value>Jami xarajat</value>
+  </data>
+  <data name="Pnl_Econ_Profit" xml:space="preserve">
+    <value>Foyda (soliqdan oldin)</value>
+  </data>
+  <data name="Pnl_Econ_ProfitPretax" xml:space="preserve">
+    <value>Foyda / zarar (soliqdan oldin)</value>
+  </data>
+  <data name="Pnl_Econ_CostPerFirm" xml:space="preserve">
+    <value>1 firma tannarxi</value>
+  </data>
+  <data name="Pnl_Econ_CostPerUser" xml:space="preserve">
+    <value>1 foydalanuvchi tannarxi</value>
+  </data>
+  <data name="Pnl_Econ_PlanValue" xml:space="preserve">
+    <value>reja: {0}</value>
+  </data>
+  <data name="Pnl_Econ_PlanAtVolume" xml:space="preserve">
+    <value>reja: {0} ({1} firmada)</value>
+  </data>
+  <data name="Pnl_Econ_NoExpenses" xml:space="preserve">
+    <value>Bu oy uchun xarajat kiritilmagan — fakt to'liq emas.</value>
+  </data>
+  <data name="Pnl_Econ_AddExpenses" xml:space="preserve">
+    <value>Xarajat kiritish</value>
+  </data>
+  <data name="Pnl_Econ_PlanVsFact" xml:space="preserve">
+    <value>Reja va fakt</value>
+  </data>
+  <data name="Pnl_Econ_FlexHint" xml:space="preserve">
+    <value>Reja haqiqiy firmalar soniga ({0}) qayta hisoblangan — adolatli solishtirish (moslashuvchan byudjet).</value>
+  </data>
+  <data name="Pnl_Econ_ColPlan" xml:space="preserve">
+    <value>Reja</value>
+  </data>
+  <data name="Pnl_Econ_ColFact" xml:space="preserve">
+    <value>Fakt</value>
+  </data>
+  <data name="Pnl_Econ_ColDiff" xml:space="preserve">
+    <value>Farq</value>
+  </data>
+  <data name="Pnl_Econ_Firms" xml:space="preserve">
+    <value>Firmalar</value>
+  </data>
+  <data name="Pnl_Econ_Deductions" xml:space="preserve">
+    <value>Tushumdan ajratmalar (aylanma soliq, bank)</value>
+  </data>
+  <data name="Pnl_Econ_CogsTotal" xml:space="preserve">
+    <value>To'g'ridan-to'g'ri tannarx (COGS)</value>
+  </data>
+  <data name="Pnl_Econ_OpexTotal" xml:space="preserve">
+    <value>Operatsion xarajatlar (OPEX)</value>
+  </data>
+  <data name="Pnl_Econ_GrossMargin" xml:space="preserve">
+    <value>Gross margin</value>
+  </data>
+  <data name="Pnl_Econ_CashBasis" xml:space="preserve">
+    <value>Kassa usuli</value>
+  </data>
+  <data name="Pnl_Econ_CashIn" xml:space="preserve">
+    <value>Kassaga tushgan (QQSsiz)</value>
+  </data>
+  <data name="Pnl_Econ_CashFlow" xml:space="preserve">
+    <value>Pul oqimi (tushgan − xarajat)</value>
+  </data>
+  <data name="Pnl_Econ_BreakEven" xml:space="preserve">
+    <value>Zararsizlik nuqtasi</value>
+  </data>
+  <data name="Pnl_Econ_BreakEvenAt" xml:space="preserve">
+    <value>{0} ta firma</value>
+  </data>
+  <data name="Pnl_Econ_BreakEvenNone" xml:space="preserve">
+    <value>zararsizlik: narx belgilanmagan</value>
+  </data>
+  <data name="Pnl_Econ_BreakEvenNoneLong" xml:space="preserve">
+    <value>1 000 firmagacha zararsizlikka chiqilmaydi yoki narxlar belgilanmagan — narxni yoki xarajatni ko'rib chiqing.</value>
+  </data>
+  <data name="Pnl_Econ_BreakEvenMrr" xml:space="preserve">
+    <value>oylik tushum {0} so'm (QQSsiz)</value>
+  </data>
+  <data name="Pnl_Econ_BreakEvenReached" xml:space="preserve">
+    <value>Zararsizlik nuqtasidan o'tilgan.</value>
+  </data>
+  <data name="Pnl_Econ_BreakEvenLeft" xml:space="preserve">
+    <value>Yana {0} ta firma kerak.</value>
+  </data>
+  <data name="Pnl_Econ_BreakEvenBasis" xml:space="preserve">
+    <value>Hisob: reja aralashmasi bo'yicha o'rtacha narx {0} so'm/firma (QQSsiz), o'rtacha {1} foydalanuvchi; server va support pog'onali o'sadi.</value>
+  </data>
+  <data name="Pnl_Econ_ByPackage" xml:space="preserve">
+    <value>Paketlar bo'yicha fakt</value>
+  </data>
+  <data name="Pnl_Econ_NoPaying" xml:space="preserve">
+    <value>Bu oyda to'layotgan firma yo'q.</value>
+  </data>
+  <data name="Pnl_Econ_MrrHint" xml:space="preserve">
+    <value>MRR — oy ichida amalda bo'lgan pullik obunalar, tarifning joriy narxi bo'yicha (yillik ÷ 12), QQSsiz. Sinov va qo'shimcha xizmatlar kirmaydi.</value>
+  </data>
+  <data name="Pnl_Econ_Trend" xml:space="preserve">
+    <value>Oxirgi 6 oy</value>
+  </data>
+  <data name="Pnl_Econ_UnitTitle" xml:space="preserve">
+    <value>1 firma va 1 foydalanuvchi tannarxi — rejadagi hajmda</value>
+  </data>
+  <data name="Pnl_Econ_UnitHint" xml:space="preserve">
+    <value>Reja: {0} ta firma, o'rtacha {1} foydalanuvchi/firma, jami {2} foydalanuvchi. Summalar so'mda, oyiga.</value>
+  </data>
+  <data name="Pnl_Econ_NoPlanVolume" xml:space="preserve">
+    <value>Sotuv rejasi kiritilmagan — tannarx 0 firma bo'yicha.</value>
+  </data>
+  <data name="Pnl_Econ_CostItem" xml:space="preserve">
+    <value>Xarajat moddasi</value>
+  </data>
+  <data name="Pnl_Econ_Basis" xml:space="preserve">
+    <value>Hisob asosi</value>
+  </data>
+  <data name="Pnl_Econ_PerMonth" xml:space="preserve">
+    <value>Jami / oy</value>
+  </data>
+  <data name="Pnl_Econ_PerFirm" xml:space="preserve">
+    <value>1 firma</value>
+  </data>
+  <data name="Pnl_Econ_PerUser" xml:space="preserve">
+    <value>1 user</value>
+  </data>
+  <data name="Pnl_Econ_Share" xml:space="preserve">
+    <value>Ulushi</value>
+  </data>
+  <data name="Pnl_Econ_Server" xml:space="preserve">
+    <value>Server (AWS)</value>
+  </data>
+  <data name="Pnl_Econ_PerFirmPlatform" xml:space="preserve">
+    <value>Zaxira, bot, platforma</value>
+  </data>
+  <data name="Pnl_Econ_BasisServer" xml:space="preserve">
+    <value>{0} ta server × narx (sig'im to'lganda +1)</value>
+  </data>
+  <data name="Pnl_Econ_BasisPerFirm" xml:space="preserve">
+    <value>firmalar × o'zgaruvchan + platforma</value>
+  </data>
+  <data name="Pnl_Econ_BasisSupport" xml:space="preserve">
+    <value>{0} ta xodim × maosh × (1 + ijtimoiy soliq)</value>
+  </data>
+  <data name="Pnl_Econ_BasisCogs" xml:space="preserve">
+    <value>mijozga xizmat — gross margin shundan</value>
+  </data>
+  <data name="Pnl_Econ_BasisOpex" xml:space="preserve">
+    <value>firmalar soniga bog'liq emas</value>
+  </data>
+  <data name="Pnl_Econ_BasisFull" xml:space="preserve">
+    <value>barcha xarajat qoplanadi</value>
+  </data>
+  <data name="Pnl_Econ_FullCost" xml:space="preserve">
+    <value>To'liq tannarx</value>
+  </data>
+  <data name="Pnl_Econ_UsdEquivalent" xml:space="preserve">
+    <value>Dollarda: jami {0}, 1 firma {1}, 1 user {2}.</value>
+  </data>
+  <data name="Pnl_Econ_SimTitle" xml:space="preserve">
+    <value>Simulyatsiya — firmalar soni o'zgarsa tannarx</value>
+  </data>
+  <data name="Pnl_Econ_SimFirms" xml:space="preserve">
+    <value>Firmalar soni</value>
+  </data>
+  <data name="Pnl_Econ_SimHint" xml:space="preserve">
+    <value>vergul bilan, ko'pi bilan 8 ta</value>
+  </data>
+  <data name="Pnl_Econ_NFirms" xml:space="preserve">
+    <value>{0} firma</value>
+  </data>
+  <data name="Pnl_Econ_Servers" xml:space="preserve">
+    <value>Serverlar soni</value>
+  </data>
+  <data name="Pnl_Econ_SupportStaff" xml:space="preserve">
+    <value>Support xodimlari</value>
+  </data>
+  <data name="Pnl_Econ_CogsPerFirm" xml:space="preserve">
+    <value>1 firma — COGS</value>
+  </data>
+  <data name="Pnl_Econ_FullPerFirm" xml:space="preserve">
+    <value>1 firma — to'liq tannarx</value>
+  </data>
+  <data name="Pnl_Econ_FullPerUser" xml:space="preserve">
+    <value>1 foydalanuvchi — to'liq tannarx</value>
+  </data>
+  <data name="Pnl_Econ_SimProfitTitle" xml:space="preserve">
+    <value>O'rtacha narxda ({0} so'm/firma, QQSsiz) foyda bormi?</value>
+  </data>
+  <data name="Pnl_Econ_PackagesTitle" xml:space="preserve">
+    <value>Paketlar: tannarx → narx</value>
+  </data>
+  <data name="Pnl_Econ_PackagesHint" xml:space="preserve">
+    <value>Narx = to'liq tannarx + sof foyda + foyda solig'i + tushumdan ajratmalar, ustiga QQS. Xarajat paketga yuk (modul ulushi × user) bo'yicha taqsimlanadi.</value>
+  </data>
+  <data name="Pnl_Econ_ModuleShare" xml:space="preserve">
+    <value>Modullar ulushi</value>
+  </data>
+  <data name="Pnl_Econ_Load" xml:space="preserve">
+    <value>Yuk koeffitsienti</value>
+  </data>
+  <data name="Pnl_Econ_PlannedFirms" xml:space="preserve">
+    <value>Rejadagi firmalar</value>
+  </data>
+  <data name="Pnl_Econ_CostSection" xml:space="preserve">
+    <value>Tannarx (1 firma, oyiga)</value>
+  </data>
+  <data name="Pnl_Econ_Infra" xml:space="preserve">
+    <value>Infratuzilma (server, zaxira, platforma)</value>
+  </data>
+  <data name="Pnl_Econ_SupportShare" xml:space="preserve">
+    <value>Support ulushi</value>
+  </data>
+  <data name="Pnl_Econ_OpexShare" xml:space="preserve">
+    <value>Operatsion xarajat ulushi</value>
+  </data>
+  <data name="Pnl_Econ_PriceSection" xml:space="preserve">
+    <value>Narx tuzilishi</value>
+  </data>
+  <data name="Pnl_Econ_NetProfit" xml:space="preserve">
+    <value>Sof foyda</value>
+  </data>
+  <data name="Pnl_Econ_Markup" xml:space="preserve">
+    <value>ustama</value>
+  </data>
+  <data name="Pnl_Econ_ProfitTax" xml:space="preserve">
+    <value>Foyda solig'i</value>
+  </data>
+  <data name="Pnl_Econ_CalcNet" xml:space="preserve">
+    <value>Hisoblangan narx (QQSsiz)</value>
+  </data>
+  <data name="Pnl_Econ_Recommended" xml:space="preserve">
+    <value>TAVSIYA NARX (QQS bilan)</value>
+  </data>
+  <data name="Pnl_Econ_PerUserGross" xml:space="preserve">
+    <value>1 foydalanuvchiga (QQS bilan)</value>
+  </data>
+  <data name="Pnl_Econ_CheckSection" xml:space="preserve">
+    <value>Tekshiruv (tarif narxi bo'yicha, bo'lmasa tavsiya)</value>
+  </data>
+  <data name="Pnl_Econ_CurrentPrice" xml:space="preserve">
+    <value>Tarifdagi narx (QQS bilan)</value>
+  </data>
+  <data name="Pnl_Econ_MarketPrice" xml:space="preserve">
+    <value>Raqobatchilarda shu paket (QQSsiz)</value>
+  </data>
+  <data name="Pnl_Econ_VsMarket" xml:space="preserve">
+    <value>Bozorga nisbatan</value>
+  </data>
+  <data name="Pnl_Econ_TargetGm" xml:space="preserve">
+    <value>Maqsadli gross margin</value>
+  </data>
+  <data name="Pnl_Econ_NetProfitPerFirm" xml:space="preserve">
+    <value>Sof foyda 1 firmadan (soliqdan keyin)</value>
+  </data>
+  <data name="Pnl_Econ_ApplyPrice" xml:space="preserve">
+    <value>Tarifga qo'yish</value>
+  </data>
+  <data name="Pnl_Econ_ApplyConfirm" xml:space="preserve">
+    <value>«{0}» tarifining oylik narxi {1} so'm (QQS bilan), yillik — 10 oylik bo'ladi. Davom etilsinmi?</value>
+  </data>
+  <data name="Pnl_Econ_PriceApplied" xml:space="preserve">
+    <value>«{0}» narxi yangilandi: {1}/oy.</value>
+  </data>
+  <data name="Pnl_Econ_PriceHint" xml:space="preserve">
+    <value>Tavsiya narx 10 000 so'mga yuqoriga yaxlitlanadi. «Tarifga qo'yish» Tariflar sahifasidagi narxni o'zgartiradi (yangi hisob-fakturalar shu narxda).</value>
+  </data>
+  <data name="Pnl_Econ_Health_Ok" xml:space="preserve">
+    <value>Yaxshi</value>
+  </data>
+  <data name="Pnl_Econ_Health_LowMargin" xml:space="preserve">
+    <value>Gross margin past</value>
+  </data>
+  <data name="Pnl_Econ_Health_AboveMarket" xml:space="preserve">
+    <value>Bozordan qimmat</value>
+  </data>
+  <data name="Pnl_Econ_Health_Loss" xml:space="preserve">
+    <value>Zarar</value>
+  </data>
+  <data name="Pnl_Econ_Health_NoPrice" xml:space="preserve">
+    <value>Narx yo'q</value>
+  </data>
+  <data name="Pnl_Econ_MethodTitle" xml:space="preserve">
+    <value>Hisob usuli</value>
+  </data>
+  <data name="Pnl_Econ_Method1" xml:space="preserve">
+    <value>COGS (to'g'ridan-to'g'ri tannarx) — faqat mijozga xizmat: server, zaxira, platforma, support. SaaS gross margin shunga nisbatan o'lchanadi (jahon standarti 60–80%, starter 40–55%).</value>
+  </data>
+  <data name="Pnl_Econ_Method2" xml:space="preserve">
+    <value>OPEX — rivojlantirish (R&amp;D), sotuv-marketing (S&amp;M), boshqaruv (G&amp;A). Firmalar soniga bog'liq emas: ko'p firmaga bo'linsa, 1 firma ulushi kamayadi.</value>
+  </data>
+  <data name="Pnl_Econ_Method3" xml:space="preserve">
+    <value>Pog'onali xarajat — server va support xodimi sig'im to'lganda qo'shiladi (masalan, 8 firmagacha 1 server, 9-firmada 2-server).</value>
+  </data>
+  <data name="Pnl_Econ_Method4" xml:space="preserve">
+    <value>Paketlarga taqsimlash — ABC usuli: katta paket (ko'p modul × ko'p user) support va OPEX'ning katta qismini oladi; infratuzilma har firmaga teng.</value>
+  </data>
+  <data name="Pnl_Econ_Method5" xml:space="preserve">
+    <value>Fakt solishtirish — moslashuvchan byudjet: reja haqiqiy firmalar soniga qayta hisoblanadi, farq faqat samaradorlikni ko'rsatadi.</value>
+  </data>
+  <data name="Pnl_Econ_Cat_Infra" xml:space="preserve">
+    <value>Infratuzilma (server, zaxira, domen)</value>
+  </data>
+  <data name="Pnl_Econ_Cat_Support" xml:space="preserve">
+    <value>Mijozlarga xizmat (support)</value>
+  </data>
+  <data name="Pnl_Econ_Cat_Development" xml:space="preserve">
+    <value>Dasturlash (R&amp;D)</value>
+  </data>
+  <data name="Pnl_Econ_Cat_Sales" xml:space="preserve">
+    <value>Sotuv va marketing</value>
+  </data>
+  <data name="Pnl_Econ_Cat_Admin" xml:space="preserve">
+    <value>Boshqaruv (ofis, buxgalter, aloqa)</value>
+  </data>
+  <data name="Pnl_Econ_Cogs" xml:space="preserve">
+    <value>Tannarx (COGS)</value>
+  </data>
+  <data name="Pnl_Econ_Opex" xml:space="preserve">
+    <value>Operatsion (OPEX)</value>
+  </data>
+  <data name="Pnl_Econ_CopyPrev" xml:space="preserve">
+    <value>O'tgan oy xarajatlarini nusxalash</value>
+  </data>
+  <data name="Pnl_Econ_CopyConfirm" xml:space="preserve">
+    <value>O'tgan oydagi barcha xarajatlar shu oyga nusxalanadi (maosh, server, ijara kabi takrorlanadiganlar uchun). Davom etilsinmi?</value>
+  </data>
+  <data name="Pnl_Econ_Copied" xml:space="preserve">
+    <value>{0} ta xarajat nusxalandi — summalarni tekshiring.</value>
+  </data>
+  <data name="Pnl_Econ_NothingToCopy" xml:space="preserve">
+    <value>O'tgan oyda xarajat yo'q.</value>
+  </data>
+  <data name="Pnl_Econ_AddExpense" xml:space="preserve">
+    <value>Xarajat qo'shish</value>
+  </data>
+  <data name="Pnl_Econ_EditExpense" xml:space="preserve">
+    <value>Xarajatni tahrirlash</value>
+  </data>
+  <data name="Pnl_Econ_CategoryHint" xml:space="preserve">
+    <value>Server, zaxira, domen → Infratuzilma; support xodimi maoshi → Mijozlarga xizmat; dasturchi, AI vositalar → Dasturlash; sotuvchi, reklama → Sotuv; rahbar, ofis, buxgalter, bank → Boshqaruv.</value>
+  </data>
+  <data name="Pnl_Econ_ByCategory" xml:space="preserve">
+    <value>Toifalar bo'yicha: reja va fakt</value>
+  </data>
+  <data name="Pnl_Econ_ExpenseList" xml:space="preserve">
+    <value>Oy xarajatlari ({0})</value>
+  </data>
+  <data name="Pnl_Econ_NoExpensesMonth" xml:space="preserve">
+    <value>Bu oyda xarajat yo'q.</value>
+  </data>
+  <data name="Pnl_Econ_Date" xml:space="preserve">
+    <value>Sana</value>
+  </data>
+  <data name="Pnl_Econ_Category" xml:space="preserve">
+    <value>Toifa</value>
+  </data>
+  <data name="Pnl_Econ_Description" xml:space="preserve">
+    <value>Nima uchun</value>
+  </data>
+  <data name="Pnl_Econ_DescriptionPh" xml:space="preserve">
+    <value>masalan: AWS Lightsail oktyabr</value>
+  </data>
+  <data name="Pnl_Econ_Amount" xml:space="preserve">
+    <value>Summa</value>
+  </data>
+  <data name="Pnl_Econ_AmountSom" xml:space="preserve">
+    <value>So'mda</value>
+  </data>
+  <data name="Pnl_Econ_Currency" xml:space="preserve">
+    <value>Valyuta</value>
+  </data>
+  <data name="Pnl_Econ_Rate" xml:space="preserve">
+    <value>Kurs (so'm / $)</value>
+  </data>
+  <data name="Pnl_Econ_Reference" xml:space="preserve">
+    <value>Hujjat / kontragent (ixtiyoriy)</value>
+  </data>
+  <data name="Pnl_Econ_ExpenseAdded" xml:space="preserve">
+    <value>Xarajat qo'shildi: {0}</value>
+  </data>
+  <data name="Pnl_Econ_ExpenseDeleted" xml:space="preserve">
+    <value>Xarajat o'chirildi.</value>
+  </data>
+  <data name="Pnl_Econ_DeleteConfirm" xml:space="preserve">
+    <value>«{0}» xarajati o'chirilsinmi?</value>
+  </data>
+  <data name="Pnl_Econ_ErrDescription" xml:space="preserve">
+    <value>Xarajat nima uchunligini yozing.</value>
+  </data>
+  <data name="Pnl_Econ_ErrAmount" xml:space="preserve">
+    <value>Summa musbat son bo'lishi kerak.</value>
+  </data>
+  <data name="Pnl_Econ_ErrCurrency" xml:space="preserve">
+    <value>Valyuta: UZS yoki USD.</value>
+  </data>
+  <data name="Pnl_Econ_ErrRate" xml:space="preserve">
+    <value>Kurs musbat son bo'lishi kerak.</value>
+  </data>
+  <data name="Pnl_Econ_ErrCategory" xml:space="preserve">
+    <value>Toifa noto'g'ri.</value>
+  </data>
+  <data name="Pnl_Econ_ErrNotFound" xml:space="preserve">
+    <value>Yozuv topilmadi.</value>
+  </data>
+  <data name="Pnl_Econ_ErrCostAmount" xml:space="preserve">
+    <value>«{0}»: summa noto'g'ri.</value>
+  </data>
+  <data name="Pnl_Econ_SettingsHint" xml:space="preserve">
+    <value>Bu yerdagi farazlar «Tannarx va narx» va «Reja va fakt»dagi reja ustunini hisoblaydi. Summalar so'mda (oyiga).</value>
+  </data>
+  <data name="Pnl_Econ_Saved" xml:space="preserve">
+    <value>Saqlandi.</value>
+  </data>
+  <data name="Pnl_Econ_AssumptionsTitle" xml:space="preserve">
+    <value>Model farazlari</value>
+  </data>
+  <data name="Pnl_Econ_InfraTitle" xml:space="preserve">
+    <value>Server va platforma</value>
+  </data>
+  <data name="Pnl_Econ_ServerPrice" xml:space="preserve">
+    <value>1 server narxi (so'm / oy)</value>
+  </data>
+  <data name="Pnl_Econ_FirmsPerServer" xml:space="preserve">
+    <value>1 serverga firmalar</value>
+  </data>
+  <data name="Pnl_Econ_MinServers" xml:space="preserve">
+    <value>Minimal serverlar</value>
+  </data>
+  <data name="Pnl_Econ_PerFirmCost" xml:space="preserve">
+    <value>1 firma o'zgaruvchan xarajati (so'm / oy)</value>
+  </data>
+  <data name="Pnl_Econ_PerFirmHint" xml:space="preserve">
+    <value>zaxira hajmi, Telegram bot, email/SMS</value>
+  </data>
+  <data name="Pnl_Econ_PlatformCost" xml:space="preserve">
+    <value>Platforma doimiy xarajati (so'm / oy)</value>
+  </data>
+  <data name="Pnl_Econ_PlatformHint" xml:space="preserve">
+    <value>domen, SSL, KMS kaliti</value>
+  </data>
+  <data name="Pnl_Econ_SupportTitle" xml:space="preserve">
+    <value>Mijozlarga xizmat (support)</value>
+  </data>
+  <data name="Pnl_Econ_SupportSalary" xml:space="preserve">
+    <value>Support xodimi maoshi (so'm / oy)</value>
+  </data>
+  <data name="Pnl_Econ_FirmsPerSupport" xml:space="preserve">
+    <value>1 xodimga firmalar</value>
+  </data>
+  <data name="Pnl_Econ_MinSupport" xml:space="preserve">
+    <value>Minimal xodimlar</value>
+  </data>
+  <data name="Pnl_Econ_TaxTitle" xml:space="preserve">
+    <value>Soliqlar va kurs</value>
+  </data>
+  <data name="Pnl_Econ_PayrollTax" xml:space="preserve">
+    <value>Ijtimoiy soliq, % (maosh ustiga)</value>
+  </data>
+  <data name="Pnl_Econ_ProfitTaxPct" xml:space="preserve">
+    <value>Foyda solig'i, %</value>
+  </data>
+  <data name="Pnl_Econ_ProfitTaxHint" xml:space="preserve">
+    <value>umumiy rejim 15; IT Park yoki aylanma soliq rejimida 0</value>
+  </data>
+  <data name="Pnl_Econ_TurnoverTax" xml:space="preserve">
+    <value>Aylanma soliq / IT Park ajratmasi, % (tushumdan)</value>
+  </data>
+  <data name="Pnl_Econ_TurnoverHint" xml:space="preserve">
+    <value>QQS to'lovchisida 0; aylanma rejimida 4; IT Park 1</value>
+  </data>
+  <data name="Pnl_Econ_BankFee" xml:space="preserve">
+    <value>Bank / to'lov komissiyasi, % (tushumdan)</value>
+  </data>
+  <data name="Pnl_Econ_UsdRate" xml:space="preserve">
+    <value>Dollar kursi (so'm)</value>
+  </data>
+  <data name="Pnl_Econ_VatFromPlans" xml:space="preserve">
+    <value>QQS stavkasi har tarifning o'zidan olinadi (Tariflar).</value>
+  </data>
+  <data name="Pnl_Econ_FixedCostsTitle" xml:space="preserve">
+    <value>Doimiy xarajatlar rejasi (jamoa va boshqalar)</value>
+  </data>
+  <data name="Pnl_Econ_FixedCostsHint" xml:space="preserve">
+    <value>Mijozlar soniga bog'liq bo'lmagan oylik xarajatlar. Server va support bu yerda emas — ular yuqorida, firmalar soniga qarab hisoblanadi. Qatorni o'chirish uchun nomini bo'shating yoki belgilang.</value>
+  </data>
+  <data name="Pnl_Econ_Kind" xml:space="preserve">
+    <value>Turi</value>
+  </data>
+  <data name="Pnl_Econ_KindStaff" xml:space="preserve">
+    <value>Xodim</value>
+  </data>
+  <data name="Pnl_Econ_KindOther" xml:space="preserve">
+    <value>Boshqa</value>
+  </data>
+  <data name="Pnl_Econ_Count" xml:space="preserve">
+    <value>Soni</value>
+  </data>
+  <data name="Pnl_Econ_MonthlySom" xml:space="preserve">
+    <value>So'm / oy (1 kishi)</value>
+  </data>
+  <data name="Pnl_Econ_NewRow" xml:space="preserve">
+    <value>yangi qator</value>
+  </data>
+  <data name="Pnl_Econ_StaffTaxHint" xml:space="preserve">
+    <value>Xodim qatorida summa — 1 kishining maoshi; ustiga ijtimoiy soliq qo'shiladi. Maosh bo'sh (0) bo'lsa tannarx haqiqiydan past chiqadi — o'zingiz ishlasangiz ham bozor maoshini qo'ying.</value>
+  </data>
+  <data name="Pnl_Econ_PackagesSettingsTitle" xml:space="preserve">
+    <value>Paketlar: sotuv rejasi va foyda</value>
+  </data>
+  <data name="Pnl_Econ_PackagesSettingsHint" xml:space="preserve">
+    <value>Rejadagi firmalar — 12 oy ichida sotish rejasi; doimiy xarajat shu hajmga bo'linadi. Ustama — to'liq tannarxga nisbatan sof foyda.</value>
+  </data>
+  <data name="Pnl_Econ_MarkupPct" xml:space="preserve">
+    <value>Ustama, %</value>
+  </data>
+  <data name="Pnl_Econ_PlanEditHint" xml:space="preserve">
+    <value>Foydalanuvchilar, modullar va QQS — tarifning o'zida:</value>
+  </data>
+  <data name="Pnl_Econ_WeightsTitle" xml:space="preserve">
+    <value>Modul og'irliklari (ball)</value>
+  </data>
+  <data name="Pnl_Econ_WeightsHint" xml:space="preserve">
+    <value>Modul qanchalik murakkab va resurs talab qiladi. Paketning modul ulushi = paket modullari balli ÷ barcha ballar.</value>
+  </data>
+  <data name="Pnl_Econ_Module" xml:space="preserve">
+    <value>Modul</value>
+  </data>
+  <data name="Pnl_Econ_Weight" xml:space="preserve">
+    <value>Ball</value>
+  </data>
+  <data name="Pnl_Econ_MarketTitle" xml:space="preserve">
+    <value>Bozor xulosasi</value>
+  </data>
+  <data name="Pnl_Econ_MarketHint" xml:space="preserve">
+    <value>1 foydalanuvchi oylik narxi: faqat «Hisobga» belgilangan va foydalanuvchi soni ma'lum tariflardan.</value>
+  </data>
+  <data name="Pnl_Econ_Compared" xml:space="preserve">
+    <value>Solishtirildi</value>
+  </data>
+  <data name="Pnl_Econ_MarketPerUser" xml:space="preserve">
+    <value>Bozor: 1 user</value>
+  </data>
+  <data name="Pnl_Econ_MinMax" xml:space="preserve">
+    <value>Min – max</value>
+  </data>
+  <data name="Pnl_Econ_OurPerUser" xml:space="preserve">
+    <value>Bizda: 1 user (QQSsiz)</value>
+  </data>
+  <data name="Pnl_Econ_MarketFootnote" xml:space="preserve">
+    <value>* mos raqobatchi yo'q — barcha raqobatchilar o'rtachasi olingan.</value>
+  </data>
+  <data name="Pnl_Econ_CompetitorsTitle" xml:space="preserve">
+    <value>Raqobatchilar tariflari</value>
+  </data>
+  <data name="Pnl_Econ_CompetitorsHint" xml:space="preserve">
+    <value>Narxni so'mda yoki dollarda kiriting (bir martalik litsenziya bo'lsa — oyga bo'lib). Yangi raqobatchi — pastdagi bo'sh qatorlarga.</value>
+  </data>
+  <data name="Pnl_Econ_Company" xml:space="preserve">
+    <value>Kompaniya</value>
+  </data>
+  <data name="Pnl_Econ_Tariff" xml:space="preserve">
+    <value>Tarif</value>
+  </data>
+  <data name="Pnl_Econ_PriceSom" xml:space="preserve">
+    <value>So'm / oy</value>
+  </data>
+  <data name="Pnl_Econ_PriceUsd" xml:space="preserve">
+    <value>$ / oy</value>
+  </data>
+  <data name="Pnl_Econ_PerUserSom" xml:space="preserve">
+    <value>1 user, so'm</value>
+  </data>
+  <data name="Pnl_Econ_MatchPlan" xml:space="preserve">
+    <value>Mos paket</value>
+  </data>
+  <data name="Pnl_Econ_Include" xml:space="preserve">
+    <value>Hisobga</value>
+  </data>
+  <data name="Pnl_Econ_Note" xml:space="preserve">
+    <value>Manba / izoh</value>
+  </data>
+  <data name="Pnl_Econ_FeatureLegend" xml:space="preserve">
+    <value>✓ — bor, ± — qisman, — — yo'q. «Hisobga» belgisiz tarif bozor o'rtachasiga kirmaydi.</value>
+  </data>
+  <data name="Pnl_Econ_Feat_Warehouse" xml:space="preserve">
+    <value>Ombor</value>
+  </data>
+  <data name="Pnl_Econ_Feat_Sales" xml:space="preserve">
+    <value>Sotuv</value>
+  </data>
+  <data name="Pnl_Econ_Feat_Finance" xml:space="preserve">
+    <value>Moliya</value>
+  </data>
+  <data name="Pnl_Econ_Feat_Production" xml:space="preserve">
+    <value>Ishlab ch.</value>
+  </data>
+  <data name="Pnl_Econ_Feat_Hr" xml:space="preserve">
+    <value>HR</value>
+  </data>
+  <data name="Pnl_Econ_Feat_Distribution" xml:space="preserve">
+    <value>Distr.</value>
+  </data>
+  <data name="Pnl_Econ_Feat_Bot" xml:space="preserve">
+    <value>Bot</value>
+  </data>
+  <data name="Pnl_Econ_Feat_Pos" xml:space="preserve">
+    <value>POS</value>
+  </data>
+  <data name="Pnl_Econ_Vat" xml:space="preserve">
+    <value>QQS</value>
+  </data>
+  <data name="Pnl_Econ_RateHint" xml:space="preserve">
+    <value>faqat USD uchun</value>
+  </data>
 </root>

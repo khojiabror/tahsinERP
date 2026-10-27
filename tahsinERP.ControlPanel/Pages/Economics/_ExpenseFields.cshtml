@@ -1,0 +1,24 @@
+@model tahsinERP.ControlPanel.Pages.Economics.ExpenseForm
+@using tahsinERP.ControlPanel.Pages.Economics
+<div class="row">
+    <div><label for="Form_Date">@L.T("Pnl_Econ_Date")</label><input type="date" id="Form_Date" name="Form.Date" value="@Model.Date?.ToString("yyyy-MM-dd")" required /></div>
+    <div><label for="Form_Category">@L.T("Pnl_Econ_Category")</label>
+        <select id="Form_Category" name="Form.Category">
+            @foreach (var c in Econ.AllCategories)
+            {
+                <option value="@c" selected="@(c == Model.Category)">@Econ.Of(c) — @(EconomicsCalculator.IsCogs(c) ? L.T("Pnl_Econ_Cogs") : L.T("Pnl_Econ_Opex"))</option>
+            }
+        </select></div>
+</div>
+<div><label for="Form_Description">@L.T("Pnl_Econ_Description")</label><input id="Form_Description" name="Form.Description" value="@Model.Description" maxlength="300" required placeholder="@L.T("Pnl_Econ_DescriptionPh")" /></div>
+<div class="row">
+    <div><label for="Form_Amount">@L.T("Pnl_Econ_Amount")</label><input id="Form_Amount" name="Form.Amount" value="@Model.Amount" inputmode="decimal" required /></div>
+    <div><label for="Form_Currency">@L.T("Pnl_Econ_Currency")</label>
+        <select id="Form_Currency" name="Form.Currency">
+            @foreach (var cur in EconomicsService.Currencies) { <option value="@cur" selected="@(cur == Model.Currency)">@cur</option> }
+        </select></div>
+</div>
+<div class="row">
+    <div><label for="Form_Rate">@L.T("Pnl_Econ_Rate")</label><input id="Form_Rate" name="Form.Rate" value="@Model.Rate" inputmode="decimal" /><div class="hint">@L.T("Pnl_Econ_RateHint")</div></div>
+    <div><label for="Form_Reference">@L.T("Pnl_Econ_Reference")</label><input id="Form_Reference" name="Form.Reference" value="@Model.Reference" maxlength="200" /></div>
+</div>

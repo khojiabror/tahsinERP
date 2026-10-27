@@ -57,6 +57,10 @@ else
             <a class="@Nav("/Bank")" href="/Bank"><svg class="i"><use href="#i-bank" /></svg>@L.T("Pnl_NavBank")</a>
         }
         <a class="@Nav("/Plans")" href="/Plans"><svg class="i"><use href="#i-layers" /></svg>@L.T("Pnl_NavPlans")</a>
+        @if (owner)
+        {
+            <a class="@Nav("/Economics")" href="/Economics"><svg class="i"><use href="#i-wallet" /></svg>@L.T("Pnl_NavEconomics")</a>
+        }
         <div class="sb-group">@L.T("Pnl_NavTech")</div>
         <a class="@Nav("/Licenses")" href="/Licenses"><svg class="i"><use href="#i-key" /></svg>@L.T("Pnl_NavLicenses")</a>
         <a class="@Nav("/Provisioning")" href="/Provisioning"><svg class="i"><use href="#i-cpu" /></svg>@L.T("Pnl_NavProvisioning")</a>

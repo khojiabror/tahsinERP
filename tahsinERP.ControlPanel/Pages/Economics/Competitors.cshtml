@@ -1,0 +1,80 @@
+@page
+@model tahsinERP.ControlPanel.Pages.Economics.CompetitorsModel
+@using tahsinERP.ControlPanel.Pages.Economics
+@{
+    ViewData["Title"] = L.T("Pnl_Econ_TabCompetitors");
+    var byId = Model.Items.ToDictionary(c => c.Id);
+}
+<h1>@L.T("Pnl_Econ_Title")</h1>
+<partial name="_EconNav" />
+
+<div class="card">
+    <h2>@L.T("Pnl_Econ_MarketTitle")</h2>
+    <p class="hint">@L.T("Pnl_Econ_MarketHint")</p>
+    <table class="econ">
+        <tr><th>@L.T("Pnl_Package")</th><th class="num">@L.T("Pnl_Econ_Compared")</th><th class="num">@L.T("Pnl_Econ_MarketPerUser")</th><th class="num">@L.T("Pnl_Econ_MinMax")</th><th class="num">@L.T("Pnl_Econ_OurPerUser")</th><th class="num">@L.T("Pnl_Econ_VsMarket")</th></tr>
+        @foreach (var r in Model.Plan.Packages)
+        {
+            var perUser = Model.Items.Where(c => c.Include && c.Users is > 0 && string.Equals(c.MatchPlanCode, r.Input.Code, StringComparison.OrdinalIgnoreCase))
+                .Select(c => EconomicsService.CompetitorPrice(c, Model.UsdRate) / c.Users!.Value).Where(v => v is > 0).Select(v => v!.Value).ToList();
+            decimal ours = r.Input.Users > 0 ? r.EffectiveNet / r.Input.Users : 0;
+            decimal? market = r.Input.MarketPerUser;
+            decimal diff = market is > 0 ? ours / market.Value - 1 : 0;
+            <tr>
+                <td><code>@r.Input.Code</code> @r.Input.Name</td>
+                <td class="num">@perUser.Count</td>
+                <td class="num">@(market is > 0 ? Econ.M(market.Value) : "—")@if (perUser.Count == 0 && market is > 0) { <span class="basis"> *</span> }</td>
+                <td class="num">@(perUser.Count > 0 ? Econ.M(perUser.Min()) + " – " + Econ.M(perUser.Max()) : "—")</td>
+                <td class="num">@Econ.M(ours)</td>
+                <td class="num @(market is > 0 ? Econ.VarClass(diff, false) : "")">@(market is > 0 ? (diff > 0 ? "+" : "") + Econ.Pct(diff) : "—")</td>
+            </tr>
+        }
+    </table>
+    <p class="hint">@L.T("Pnl_Econ_MarketFootnote")</p>
+</div>
+
+<form method="post" class="card">
+    <h2>@L.T("Pnl_Econ_CompetitorsTitle")</h2>
+    <p class="hint">@L.T("Pnl_Econ_CompetitorsHint")</p>
+    <div class="scroll">
+    <table class="edit econ">
+        <tr>
+            <th>@L.T("Pnl_Econ_Company")</th><th>@L.T("Pnl_Econ_Tariff")</th><th class="num">@L.T("Pnl_Econ_PriceSom")</th><th class="num">@L.T("Pnl_Econ_PriceUsd")</th>
+            <th class="num">@L.T("Pnl_Users")</th><th class="num">@L.T("Pnl_Econ_PerUserSom")</th>
+            @foreach (var k in Econ.FeatureKeys) { <th>@Econ.FeatureName(k)</th> }
+            <th>@L.T("Pnl_Econ_MatchPlan")</th><th>@L.T("Pnl_Econ_Include")</th><th>@L.T("Pnl_Econ_Note")</th><th>@L.T("Delete")</th>
+        </tr>
+        @for (int i = 0; i < Model.Rows.Count; i++)
+        {
+            var r = Model.Rows[i];
+            decimal? perUser = byId.TryGetValue(r.Id, out var c) && c.Users is > 0 ? EconomicsService.CompetitorPrice(c, Model.UsdRate) / c.Users.Value : null;
+            <tr>
+                <td><input type="hidden" name="Rows[@i].Id" value="@r.Id" /><input class="w-money" name="Rows[@i].Company" value="@r.Company" maxlength="100" placeholder="@(r.Id == 0 ? L.T("Pnl_Econ_NewRow") : "")" /></td>
+                <td><input class="w-money" name="Rows[@i].Tariff" value="@r.Tariff" maxlength="100" /></td>
+                <td class="num"><input class="w-money" name="Rows[@i].PriceSom" value="@r.PriceSom" inputmode="decimal" /></td>
+                <td class="num"><input class="w-sm" name="Rows[@i].PriceUsd" value="@r.PriceUsd" inputmode="decimal" /></td>
+                <td class="num"><input class="w-sm" type="number" min="0" name="Rows[@i].Users" value="@r.Users" /></td>
+                <td class="num">@(perUser is > 0 ? Econ.M(perUser.Value) : "—")</td>
+                @foreach (var k in Econ.FeatureKeys)
+                {
+                    var v = r.Features.GetValueOrDefault(k);
+                    <td><select class="w-feat" name="Rows[@i].Features[@k]" aria-label="@Econ.FeatureName(k)">
+                            <option value="" selected="@(v is null)">—</option>
+                            <option value="1" selected="@(v == "1")">✓</option>
+                            <option value="~" selected="@(v == "~")">±</option>
+                        </select></td>
+                }
+                <td><select name="Rows[@i].MatchPlanCode">
+                        <option value="">—</option>
+                        @foreach (var p in Model.Plans) { <option value="@p.Code" selected="@(string.Equals(p.Code, r.MatchPlanCode, StringComparison.OrdinalIgnoreCase))">@p.Code</option> }
+                    </select></td>
+                <td><input type="checkbox" name="Rows[@i].Include" value="true" checked="@r.Include" /><input type="hidden" name="Rows[@i].Include" value="false" /></td>
+                <td><input name="Rows[@i].Note" value="@r.Note" maxlength="500" /></td>
+                <td>@if (r.Id != 0) { <input type="checkbox" name="Rows[@i].Delete" value="true" aria-label="@L.T("Delete")" /> }</td>
+            </tr>
+        }
+    </table>
+    </div>
+    <p class="hint">@L.T("Pnl_Econ_FeatureLegend")</p>
+    <div class="actions"><button type="submit">@L.T("Save")</button></div>
+</form>
