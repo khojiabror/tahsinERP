@@ -170,10 +170,13 @@
 
             $('#gFiles').on('change', function () {
                 if (!this.files.length) return;
-                var fd = new FormData(); fd.append('productId', productId);
-                $.each(this.files, function (_, f) { fd.append('files', f); });
-                $.ajax({ url: '@Url.Action("UploadImages")', type: 'POST', data: fd, processData: false, contentType: false })
-                    .done(function (r) { if (r && r.success) location.reload(); else dstNotify(r && r.message, true); });
+                var input = this, files = $.makeArray(this.files), label = $(this).closest('label').addClass('disabled');
+                $.when.apply($, files.map(dstShrinkImage)).then(function () {
+                    var fd = new FormData(); fd.append('productId', productId);
+                    $.each(arguments, function (i, blob) { fd.append('files', blob, files[i].name); });
+                    return dstUpload('@Url.Action("UploadImages")', fd);
+                }).done(function () { location.reload(); })
+                  .fail(function () { label.removeClass('disabled'); input.value = ''; });
             });
             $('#gImport').on('click', function () {
                 dstPost('@Url.Action("ImportImages")', { productId: productId }).done(function () { location.reload(); });
