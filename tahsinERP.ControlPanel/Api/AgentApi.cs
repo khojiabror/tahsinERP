@@ -206,13 +206,14 @@ public static class AgentApi
     }
 
     internal static async Task<IResult> UpdateInventoryAsync(HttpRequest http, ControlDbContext db, ISecretProtector protector, Clock clock,
-        UpdatesService updates, CancellationToken ct)
+        UpdatesService updates, ServerHealthLog health, CancellationToken ct)
     {
         var (a, err) = await AuthenticateAsync(http, db, protector, clock, ct);
         if (a is null) return err!;
         var r = Read<UpdateInventory>(a.Body);
-        if (r is null || r.Apps.Count > 50 || r.Instances.Count > 2000) return Error(400, "bad_request");
+        if (r is null || r.Apps.Count > 50 || r.Instances.Count > 2000 || r.Health?.Disks.Count > 50) return Error(400, "bad_request");
         await updates.SaveInventoryAsync(a.Server, r, ct);
+        if (r.Health is { } h) await health.RecordAsync(a.Server.Id, h, ct);
         return Results.Json(new { ok = true });
     }
 

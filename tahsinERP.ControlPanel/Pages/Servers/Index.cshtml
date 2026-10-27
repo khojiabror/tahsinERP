@@ -3,9 +3,14 @@
 @{ ViewData["Title"] = L.T("Pnl_NavServers"); }
 <h1>@L.T("Pnl_Srv_Title")</h1>
 <div class="actions"><a class="btn" href="/Servers/Edit">+ @L.T("Pnl_Srv_Add")</a></div>
+@foreach (var r in Model.Rows.Where(r => r.Server.IsActive || r.Health?.Health is not null))
+{
+    <partial name="_HealthCard" model="r" />
+}
+<h2>@L.T("Pnl_Hlt_ServerList")</h2>
 <p class="hint">@Html.Raw(L.T("Pnl_Auth2_SrvBackupHint", "<code>Install-Backup.ps1</code>"))</p>
 <p class="hint">@L.T("Pnl_Srv_Hint")</p>
-<table>
+<div class="scroll"><table>
     <tr><th>@L.T("Name")</th><th>Host</th><th>@L.T("Pnl_Region")</th><th>SQL instance</th><th class="num">@L.T("Pnl_Tenants")</th><th>@L.T("Status")</th><th>@L.T("Pnl_Auth2_LastBackup")</th><th></th></tr>
     @foreach (var r in Model.Rows)
     {
@@ -16,7 +21,7 @@
             <td><a href="/Servers/Edit/@r.Server.Id">@L.T("Edit")</a></td>
         </tr>
     }
-</table>
+</table></div>
 @if (Model.Rows.Count == 0)
 {
     <div class="empty">@L.T("Pnl_Srv_Empty")</div>

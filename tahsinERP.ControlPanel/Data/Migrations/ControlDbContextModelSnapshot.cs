@@ -1351,6 +1351,66 @@ namespace tahsinERP.ControlPanel.Data.Migrations
                     b.ToTable("Servers");
                 });
 
+            modelBuilder.Entity("tahsinERP.ControlPanel.Data.ServerHealthDay", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<double?>("CpuAvgPercent")
+                        .HasColumnType("float");
+
+                    b.Property<double?>("CpuMaxPercent")
+                        .HasColumnType("float");
+
+                    b.Property<int>("CpuSamples")
+                        .HasColumnType("int");
+
+                    b.Property<DateOnly>("Day")
+                        .HasColumnType("date");
+
+                    b.Property<string>("DisksJson")
+                        .IsRequired()
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
+
+                    b.Property<DateTime>("FirstAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("LastAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("RamTotalBytes")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("RamUsedAvgBytes")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("RamUsedMaxBytes")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("Reboots")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Samples")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ServerId")
+                        .HasColumnType("int");
+
+                    b.Property<long>("UptimeSeconds")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ServerId", "Day")
+                        .IsUnique();
+
+                    b.ToTable("ServerHealthDays");
+                });
+
             modelBuilder.Entity("tahsinERP.ControlPanel.Data.ServerInventory", b =>
                 {
                     b.Property<int>("ServerId")
@@ -2168,6 +2228,15 @@ namespace tahsinERP.ControlPanel.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("Tenant");
+                });
+
+            modelBuilder.Entity("tahsinERP.ControlPanel.Data.ServerHealthDay", b =>
+                {
+                    b.HasOne("tahsinERP.ControlPanel.Data.Server", null)
+                        .WithMany()
+                        .HasForeignKey("ServerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("tahsinERP.ControlPanel.Data.ServerInventory", b =>
