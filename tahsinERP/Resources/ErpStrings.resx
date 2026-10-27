@@ -14325,4 +14325,16 @@
   <data name="Core_HomeTileSite" xml:space="preserve">
     <value>Sayt-katalog</value>
   </data>
+  <data name="Core_PwdWarn_Title" xml:space="preserve">
+    <value>Kalit so'ziga hushyor bo'ling!</value>
+  </data>
+  <data name="Core_PwdWarn_Login" xml:space="preserve">
+    <value>Kalit so'zini hech kimga bermang. Oddiy kalit so'zi (123456, ism, tug'ilgan yil) oson buziladi — harf, raqam va belgidan iborat kamida 8 belgili kalit so'zi ishlating. Kalit so'zi xavfsizligi uchun foydalanuvchining o'zi javobgar.</value>
+  </data>
+  <data name="Core_PwdWarn_Set" xml:space="preserve">
+    <value>Murakkabroq kalit so'zi qo'ying: kamida 8 belgi, katta-kichik harf, raqam va belgi aralash bo'lsin. Kalit so'zini hech kimga bermang va boshqa saytlarda ishlatmang — u bilan qilingan har bir amal sizning nomingizdan yoziladi. Kalit so'zi xavfsizligi uchun o'zingiz javobgarsiz.</value>
+  </data>
+  <data name="Core_PwdWarn_Admin" xml:space="preserve">
+    <value>Xodimga murakkab kalit so'zi bering (kamida 8 belgi, harf, raqam va belgi) va uni ochiq guruh chatlarida yubormang. Xodimga kalit so'zini hech kimga bermasligini va birinchi kirishda almashtirishini ayting.</value>
+  </data>
 </root>
