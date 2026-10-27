@@ -55,6 +55,18 @@ public class TenantAppsTests(PanelFactory f) : IClassFixture<PanelFactory>
             Calls.Add(("domain", slug, host, redirect.ToString(), null));
             return Task.FromResult(_sites[slug] = _sites[slug] with { Domain = host, RedirectToDomain = redirect });
         }
+
+        public Task<AppDeleteResult> DeleteBotAsync(string slug, CancellationToken ct = default)
+        {
+            Calls.Add(("bot-delete", slug, null, null, null));
+            return Task.FromResult(new AppDeleteResult(slug, _bots.Remove(slug)));
+        }
+
+        public Task<AppDeleteResult> DeleteSiteAsync(string slug, CancellationToken ct = default)
+        {
+            Calls.Add(("site-delete", slug, null, null, null));
+            return Task.FromResult(new AppDeleteResult(slug, _sites.Remove(slug)));
+        }
     }
 
     private static string Token(string html) =>
@@ -125,6 +137,37 @@ public class TenantAppsTests(PanelFactory f) : IClassFixture<PanelFactory>
             Assert.DoesNotContain(actions, a => a.Contains("secret-token"));
             return 0;
         });
+
+        // Butunlay o'chirish (arxivlangan firma): avval bot va sayt ilovalaridan firma yozuvlari, so'ng Delete job navbatga
+        int tenantId = int.Parse(details.Split('/').Last());
+        var (serverId, _) = await ProvisioningQueueTests.CreateServerAsync(f, "apps-srv-del");
+        await f.WithScopeAsync(async sp =>
+        {
+            var db = sp.GetRequiredService<ControlDbContext>();
+            var t = await db.Tenants.FirstAsync(t => t.Id == tenantId);
+            t.Status = TenantStatus.Archived;
+            t.ServerId = serverId;
+            return await db.SaveChangesAsync();
+        });
+        var del = await PostAsync(c, $"/Tenants/Delete/{tenantId}",
+            new() { ["ConfirmSlug"] = "apps-firma", ["Reason"] = "test", ["Understand"] = "true", ["Step"] = "2" });
+        Assert.True(del.StatusCode == HttpStatusCode.Redirect,
+            WebUtility.HtmlDecode(Regex.Match(await del.Content.ReadAsStringAsync(), "validation-summary-errors.{0,400}", RegexOptions.Singleline).Value));
+        Assert.Contains(fake.Calls, x => x.Op == "bot-delete" && x.Slug == "apps-firma");
+        Assert.Contains(fake.Calls, x => x.Op == "site-delete" && x.Slug == "apps-firma");
+        Assert.Equal(1, await f.WithScopeAsync(sp => sp.GetRequiredService<ControlDbContext>().ProvisioningJobs
+            .CountAsync(j => j.TenantId == tenantId && j.Type == ProvisioningJobType.Delete)));
+    }
+
+    [Fact]
+    public void ReleasedSlug_FreesName_FitsLimit()
+    {
+        Assert.Equal("smarttech-o12", ProvisioningService.ReleasedSlug("smarttech", 12));
+        var longSlug = new string('a', 62) + "b";
+        var released = ProvisioningService.ReleasedSlug(longSlug, 345);
+        Assert.Equal(63, released.Length);
+        Assert.EndsWith("-o345", released);
+        Assert.Matches("^[a-z0-9][a-z0-9-]*[a-z0-9]$", released);
     }
 
     [Fact]

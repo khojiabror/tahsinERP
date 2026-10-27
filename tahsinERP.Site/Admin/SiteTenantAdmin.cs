@@ -90,6 +90,23 @@ public sealed partial class SiteTenantAdmin(SiteDbContext db, CatalogStore store
         await db.SaveChangesAsync(ct);
     }
 
+    /// <summary>
+    /// Firma butunlay olib tashlanadi (panel firmani o'chirganda): katalog nusxasi, ariza navbati va tenant yozuvi; xotiradagi
+    /// indeks ham chiqadi. Nom keyin ochiladigan yangi firmaga bo'shaydi. Topilmasa — false (idempotent).
+    /// </summary>
+    public async Task<bool> DeleteAsync(string slug, CancellationToken ct)
+    {
+        slug = NormalizeSlug(slug);
+        var t = await db.Tenants.FirstOrDefaultAsync(x => x.Slug == slug, ct);
+        if (t is null) return false;
+        db.Snapshots.RemoveRange(await db.Snapshots.Where(x => x.TenantId == t.Id).ToListAsync(ct));
+        db.LeadOutbox.RemoveRange(await db.LeadOutbox.Where(x => x.TenantId == t.Id).ToListAsync(ct));
+        db.Tenants.Remove(t);
+        await db.SaveChangesAsync(ct);
+        await store.RefreshTenantsAsync(ct);
+        return true;
+    }
+
     /// <summary>Panel API kaliti = Base64Url(HMAC-SHA256(MasterKey, "tahsin-admin-api")) — bot bilan bir xil.</summary>
     public static string DeriveAdminKey(string masterKey) =>
         Convert.ToBase64String(HMACSHA256.HashData(Encoding.UTF8.GetBytes(masterKey), "tahsin-admin-api"u8))

@@ -134,7 +134,8 @@ public sealed class UpdatesService(ControlDbContext db, IReleaseSource source, R
         app = app.ToLowerInvariant();
         var server = await db.Servers.FirstOrDefaultAsync(s => s.Id == serverId, ct) ?? throw new DomainException(L.T("Pnl_Srv_NotFound"));
         if (server.AgentSecretProtected is null) throw new DomainException(L.T("Pnl_Upd_Err_NoAgent"));
-        bool erp = action is UpdateAction.InstallTenant or UpdateAction.CreateInstance or UpdateAction.RollbackTenant or UpdateAction.MigrateTenant;
+        bool erp = action is UpdateAction.InstallTenant or UpdateAction.CreateInstance or UpdateAction.RollbackTenant or UpdateAction.MigrateTenant
+            or UpdateAction.RemoveInstance;
         if (erp) app = ReleaseApps.Erp;
         else if (!ReleaseApps.ServerApps.Contains(app)) throw new DomainException(L.T("Pnl_Upd_Err_UnknownApp", app));
 
@@ -162,7 +163,7 @@ public sealed class UpdatesService(ControlDbContext db, IReleaseSource source, R
                     throw new DomainException(L.T("Pnl_Upd_Err_NotNewer", from, version));
                 break;
             }
-            case UpdateAction.RollbackApp or UpdateAction.RollbackTenant or UpdateAction.MigrateTenant:
+            case UpdateAction.RollbackApp or UpdateAction.RollbackTenant or UpdateAction.MigrateTenant or UpdateAction.RemoveInstance:
                 version = null;
                 if (erp && !hasInstance) throw new DomainException(L.T("Pnl_Upd_Err_NoInstance"));
                 break;
@@ -295,7 +296,9 @@ public sealed class UpdatesService(ControlDbContext db, IReleaseSource source, R
         if (inv is null) return;
         bool rollback = job.Action is UpdateAction.RollbackApp or UpdateAction.RollbackTenant;
         var now = clock.UtcNow;
-        if (job.App == ReleaseApps.Erp)
+        if (job.Action == UpdateAction.RemoveInstance)
+            inv.Instances.RemoveAll(x => x.Slug == job.Slug);
+        else if (job.App == ReleaseApps.Erp)
         {
             var i = inv.Instances.FirstOrDefault(x => x.Slug == job.Slug);
             if (i is null) inv.Instances.Add(i = new ErpInstanceInfo { Slug = job.Slug ?? "", DbName = job.DbName });

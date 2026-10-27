@@ -10,6 +10,7 @@ namespace tahsinERP.Site.Admin;
 ///   GET  /admin/api/tenants/{slug}          — holat
 ///   PUT  /admin/api/tenants/{slug}          — {erpBaseUrl, erpTenant} yoqish/yangilash
 ///   POST /admin/api/tenants/{slug}/disable  — o'chirish
+///   DELETE /admin/api/tenants/{slug}        — butunlay olib tashlash (nusxa, ariza navbati) — firma o'chirilganda
 ///   PUT  /admin/api/tenants/{slug}/domain   — {host, redirect} o'z domeni (host null — olib tashlash)
 /// </summary>
 public static class AdminEndpoints
@@ -45,6 +46,9 @@ public static class AdminEndpoints
                 await admin.DisableAsync(slug, ct);
                 return Results.Ok(await admin.StatusAsync(slug, ct));
             }));
+
+        g.MapDelete("/tenants/{slug}", async (string slug, SiteTenantAdmin admin, CancellationToken ct) =>
+            await Safe(async () => Results.Ok(new { slug, deleted = await admin.DeleteAsync(slug, ct) })));
     }
 
     /// <summary>/admin/api so'rovi — tenant middleware uni o'tkazib yuboradi.</summary>

@@ -152,6 +152,7 @@ public static class UpdateLabels
         UpdateAction.RollbackApp => L.T("Pnl_Upd_Rollback"),
         UpdateAction.RollbackTenant => L.T("Pnl_Upd_Action_RollbackTenant"),
         UpdateAction.MigrateTenant => L.T("Pnl_Upd_Action_MigrateTenant"),
+        UpdateAction.RemoveInstance => L.T("Pnl_Upd_Action_RemoveInstance"),
         _ => a.ToString(),
     };
 

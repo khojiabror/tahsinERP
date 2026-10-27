@@ -33,6 +33,7 @@ public sealed class UpdateExecutor(UpdaterOptions o, ISystemOps sys, StateStore 
                 UpdateAction.RollbackApp => await RollbackAppAsync(req, rep, ct),
                 UpdateAction.RollbackTenant => await RollbackTenantAsync(req, rep, ct),
                 UpdateAction.MigrateTenant => await MigrateTenantAsync(req, rep, ct),
+                UpdateAction.RemoveInstance => await RemoveInstanceAsync(req, rep, ct),
                 _ => throw new UpdateRejectedException($"Noma'lum amal: {req.Action}"),
             };
             rep.Line("TAYYOR" + (version is null ? "" : ": " + version));
@@ -340,6 +341,32 @@ public sealed class UpdateExecutor(UpdaterOptions o, ISystemOps sys, StateStore 
             rep.Line("OGOHLANTIRISH: health o'tmadi — qo'lda tekshiring.");
         ConsumeBackup(s => s.Instances, slug, backup);
         return backup.FromVersion;
+    }
+
+    /// <summary>
+    /// Firma panelda o'chirilganda: instance sayti va pool'i (shu bilan https://&lt;slug&gt; umumiy saytga qaytadi, u yerda firma yo'q),
+    /// papkasi va fayl/baza zaxiralari o'chiriladi, holatdan chiqariladi. Baza tegilmaydi (uni agentning Delete job'i o'chiradi).
+    /// Instance yo'q bo'lsa ham sayt/pool qoldig'i tozalanadi — qayta chaqirish xavfsiz. Shu nom bilan keyin yangi instance ochiladi.
+    /// </summary>
+    private async Task<string?> RemoveInstanceAsync(InboxRequest req, JobReporter rep, CancellationToken ct)
+    {
+        string slug = RequireSlug(req);
+        var inst = store.Load().Instances.GetValueOrDefault(slug);
+        string pool = o.InstancePool(slug);
+        rep.Stage("IIS: sayt va pool " + pool);
+        await sys.RemoveErpSiteAsync(pool, ct);
+        string path = o.InstancePath(slug);
+        rep.Stage("Papka " + path);
+        TryDelete(path);
+        foreach (var b in inst?.Backups ?? [])
+        {
+            TryDelete(b.Path);
+            TryDeleteFile(b.Path);
+            if (b.DbBackupFile is { } dbb) TryDeleteFile(dbb);
+        }
+        store.Update(s => s.Instances.Remove(slug));
+        rep.Line(inst is null ? $"{slug}: instance holatda yo'q edi — qoldiqlar tozalandi" : $"{slug}: instance olib tashlandi");
+        return null;
     }
 
     private async Task<string?> MigrateTenantAsync(InboxRequest req, JobReporter rep, CancellationToken ct)
