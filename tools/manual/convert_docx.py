@@ -15,7 +15,7 @@ Idempotent: docx o'zgarsa qayta ishga tushirish yetadi. Tayyor rasmlar qayta kod
 ishlatmaydigan rasmlar o'chiriladi. Titul va Word mundarijasi tashlanadi — kontent birinchi Heading 1 dan.
 
 Word bilan 1:1 bo'lishi uchun hamma o'lcham pt da (brauzerda 1pt = Word'dagi 1pt, 100% masshtab),
-paragraf oraliqlari qo'shiladi (flex ustun — CSS margin'lari "yutilmaydi"), ranglar esa tungi rejim uchun
+paragraf oraliqlari Word kabi max(after, before) (CSS margin collapse), ranglar esa tungi rejim uchun
 CSS o'zgaruvchilari orqali beriladi (--f-XXXXXX matn, --b-XXXXXX fon, --l-XXXXXX chiziq).
 """
 import argparse
@@ -598,6 +598,23 @@ class Converter:
                     ms = ms.replace('font-family:%s;' % font_stack(lv['r']['font']), '')
                 marker_html = '<span class="wm-num" style="min-width:%spt;%s">%s</span>' % (
                     fmt(hang), ms, html.escape(text))
+        # Word satr balandligini ishlatilgan shriftdan oladi: hamma run bir o'lchamda bo'lsa (masalan katakda 10pt),
+        # paragrafga ham shu o'lcham beriladi — aks holda CSS 11pt "strut" qatorni balandlashtiradi
+        sizes = set()
+        for r in p.iter(q('w:r')):
+            if r.find(q('w:t')) is None:
+                continue
+            rr = dict(pr)
+            rpr_el = r.find(q('w:rPr'))
+            rs = rpr_el.find(q('w:rStyle')) if rpr_el is not None else None
+            if rs is not None:
+                rr.update(self.styles.char(wval(rs)))
+            rr.update(parse_rpr(rpr_el))
+            sizes.add(rr.get('sz', self.base_size))
+        if len(sizes) == 1:
+            pr['sz'] = sizes.pop()
+        elif not sizes and mark_r.get('sz'):
+            pr['sz'] = mark_r['sz']
         # matn
         inner = self.runs(p, pr)
         is_empty = not inner.strip() and not marker_html

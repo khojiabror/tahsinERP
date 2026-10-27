@@ -116,8 +116,8 @@
             .wm-side { position: static; max-height: none; }
         }
 
-        /* Word paragraflari: oraliqlar qo'shiladi (yutilmaydi) — flex ustun */
-        .wm-page .wm-doc { display: flex; flex-direction: column; margin: 0 auto; line-height: 1.4; overflow-wrap: break-word; color: var(--wm-text); text-align: left; }
+        /* Word (compat 14/15) paragraflar oralig'i = max(oldingi after, keyingi before) — CSS margin collapse bilan bir xil */
+        .wm-page .wm-doc { display: flow-root; margin: 0 auto; line-height: 1.4; overflow-wrap: break-word; color: var(--wm-text); text-align: left; }
         .wm-page .wm-doc p, .wm-page .wm-doc h1, .wm-page .wm-doc h2, .wm-page .wm-doc h3,
         .wm-page .wm-doc span, .wm-page .wm-doc td { margin: 0; padding: 0; font: inherit; color: inherit; letter-spacing: normal; text-transform: none; }
         .wm-page .wm-doc h1, .wm-page .wm-doc h2, .wm-page .wm-doc h3 { scroll-margin-top: 6rem; }
@@ -128,7 +128,7 @@
         .wm-page .wm-doc .wm-img { max-width: 100%; height: auto; cursor: zoom-in; vertical-align: bottom; }
         .wm-page .wm-doc .wm-tw { max-width: 100%; overflow-x: auto; }
         .wm-page .wm-doc .wm-table { border-collapse: collapse; table-layout: fixed; max-width: 100%; }
-        .wm-page .wm-doc .wm-cell { display: flex; flex-direction: column; }
+        .wm-page .wm-doc .wm-cell { display: flow-root; }
         .wm-page .wm-doc .wm-cell .wm-tw { margin: 0; }
 
         /* ---- rasmni kattalashtirish ---- */
