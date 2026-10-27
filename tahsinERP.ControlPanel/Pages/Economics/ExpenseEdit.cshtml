@@ -1,0 +1,11 @@
+@page "{id:int}"
+@model tahsinERP.ControlPanel.Pages.Economics.ExpenseEditModel
+@{ ViewData["Title"] = L.T("Pnl_Econ_EditExpense"); }
+<h1>@L.T("Pnl_Econ_Title")</h1>
+<partial name="_EconNav" />
+<form method="post" class="stack card">
+    <h2>@L.T("Pnl_Econ_EditExpense")</h2>
+    <div asp-validation-summary="All"></div>
+    <partial name="_ExpenseFields" model="Model.Form" />
+    <div class="actions"><button type="submit">@L.T("Save")</button><a class="btn secondary" href="/Economics/Expenses?m=@Model.Item.Date.ToString("yyyy-MM")">@L.T("Pnl_CancelShort")</a></div>
+</form>

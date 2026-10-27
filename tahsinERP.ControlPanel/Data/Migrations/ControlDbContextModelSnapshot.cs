@@ -314,6 +314,310 @@ namespace tahsinERP.ControlPanel.Data.Migrations
                     b.ToTable("BankImportLines");
                 });
 
+            modelBuilder.Entity("tahsinERP.ControlPanel.Data.Competitor", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Company")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Features")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<bool>("Include")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("MatchPlanCode")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<long?>("PriceMonthTiyin")
+                        .HasColumnType("bigint");
+
+                    b.Property<decimal?>("PriceMonthUsd")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Tariff")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int?>("Users")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Competitors");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Company = "Bito ERP",
+                            Features = "Warehouse,Sales,~Finance,~Bot,Pos",
+                            Include = true,
+                            MatchPlanCode = "START",
+                            Note = "bito.uz/tarif (2026-10): +1 user 90 000 so'm, 3 filial, 14 kun bepul",
+                            PriceMonthTiyin = 29000000L,
+                            SortOrder = 1,
+                            Tariff = "Start",
+                            Users = 3
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Company = "Bito ERP",
+                            Features = "Warehouse,Sales,Finance,~Production,Distribution,Bot,Pos",
+                            Include = true,
+                            MatchPlanCode = "DIST",
+                            Note = "bito.uz/tarif: distributsiya, mijoz boti, cash-flow, oddiy ishlab chiqarish",
+                            PriceMonthTiyin = 49000000L,
+                            SortOrder = 2,
+                            Tariff = "Business",
+                            Users = 5
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Company = "Bito ERP",
+                            Features = "Warehouse,Sales,Finance,Production,Distribution,Bot,Pos",
+                            Include = true,
+                            MatchPlanCode = "BIZNES",
+                            Note = "bito.uz/tarif: pro ishlab chiqarish, shaxsiy menejer",
+                            PriceMonthTiyin = 99000000L,
+                            SortOrder = 3,
+                            Tariff = "Pro",
+                            Users = 10
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Company = "Linko",
+                            Features = "Warehouse,Sales,~Finance,Pos",
+                            Include = true,
+                            MatchPlanCode = "START",
+                            Note = "linko.uz/pos: do'kon/POS, foydalanuvchi soni ko'rsatilmagan",
+                            PriceMonthTiyin = 15000000L,
+                            SortOrder = 4,
+                            Tariff = "Start"
+                        },
+                        new
+                        {
+                            Id = 5,
+                            Company = "Linko",
+                            Features = "Warehouse,Sales,Finance,~Hr,Pos",
+                            Include = true,
+                            MatchPlanCode = "START",
+                            Note = "linko.uz/pos: 58/73 funksiya, aksiya 150 000",
+                            PriceMonthTiyin = 25000000L,
+                            SortOrder = 5,
+                            Tariff = "Standard"
+                        },
+                        new
+                        {
+                            Id = 6,
+                            Company = "Linko",
+                            Features = "Warehouse,Sales,Finance,~Hr,Pos",
+                            Include = true,
+                            MatchPlanCode = "START",
+                            Note = "linko.uz/pos: barcha 73 funksiya",
+                            PriceMonthTiyin = 50000000L,
+                            SortOrder = 6,
+                            Tariff = "Pro"
+                        },
+                        new
+                        {
+                            Id = 7,
+                            Company = "Hippo",
+                            Features = "Warehouse,Sales,Pos",
+                            Include = true,
+                            MatchPlanCode = "START",
+                            Note = "hippo.uz/pos: 1 ombor, CRM + kassa",
+                            PriceMonthTiyin = 24720000L,
+                            SortOrder = 7,
+                            Tariff = "Ombor Base"
+                        },
+                        new
+                        {
+                            Id = 8,
+                            Company = "Hippo",
+                            Features = "Warehouse,Sales,Pos",
+                            Include = true,
+                            MatchPlanCode = "START",
+                            Note = "hippo.uz/pos: 3 ombor",
+                            PriceMonthTiyin = 41200000L,
+                            SortOrder = 8,
+                            Tariff = "Ombor Medium"
+                        },
+                        new
+                        {
+                            Id = 9,
+                            Company = "Hippo",
+                            Features = "Warehouse,Sales,Pos",
+                            Include = true,
+                            MatchPlanCode = "START",
+                            Note = "hippo.uz/pos: 7 ombor. Hippo ERP narxi — so'rov bo'yicha",
+                            PriceMonthTiyin = 61800000L,
+                            SortOrder = 9,
+                            Tariff = "Ombor Pro"
+                        },
+                        new
+                        {
+                            Id = 10,
+                            Company = "MoySklad",
+                            Features = "Warehouse,Sales,~Finance,Pos",
+                            Include = true,
+                            MatchPlanCode = "START",
+                            Note = "moysklad.uz (2026-05): 2 yur. shaxs, 0.5 GB",
+                            PriceMonthTiyin = 15680000L,
+                            SortOrder = 10,
+                            Tariff = "Bazaviy"
+                        },
+                        new
+                        {
+                            Id = 11,
+                            Company = "MoySklad",
+                            Features = "Warehouse,Sales,Finance,~Production,Pos",
+                            Include = true,
+                            MatchPlanCode = "BIZNES",
+                            Note = "moysklad.uz: 10 yur. shaxs, oddiy ishlab chiqarish",
+                            PriceMonthTiyin = 45920000L,
+                            SortOrder = 11,
+                            Tariff = "Prof"
+                        },
+                        new
+                        {
+                            Id = 12,
+                            Company = "Smartup",
+                            Features = "Warehouse,Sales,Finance,Distribution,Bot",
+                            Include = false,
+                            MatchPlanCode = "DIST",
+                            Note = "smartup24.com: narx ochiq emas",
+                            SortOrder = 12,
+                            Tariff = "So'rov bo'yicha"
+                        },
+                        new
+                        {
+                            Id = 13,
+                            Company = "Sales Doctor",
+                            Features = "Warehouse,Sales,~Finance,Distribution,Bot",
+                            Include = true,
+                            MatchPlanCode = "DIST",
+                            Note = "CEO LinkedIn: $15/oy (1 agent uchunligini aniqlashtiring)",
+                            PriceMonthUsd = 15m,
+                            SortOrder = 13,
+                            Tariff = "Obuna",
+                            Users = 1
+                        },
+                        new
+                        {
+                            Id = 14,
+                            Company = "1C",
+                            Features = "Warehouse,Sales,Finance,~Production,~Hr,~Pos",
+                            Include = true,
+                            MatchPlanCode = "START",
+                            Note = "4 814 000 so'm bir martalik ÷ 36 oy (1cba.uz); joriy qilish alohida",
+                            PriceMonthTiyin = 13372200L,
+                            SortOrder = 14,
+                            Tariff = "UNF, 1 o'rin",
+                            Users = 1
+                        },
+                        new
+                        {
+                            Id = 15,
+                            Company = "1C",
+                            Features = "Warehouse,Sales,Finance,~Production,~Hr,~Pos",
+                            Include = true,
+                            MatchPlanCode = "BIZNES",
+                            Note = "8 855 000 so'm ÷ 36 oy (1cba.uz)",
+                            PriceMonthTiyin = 24597200L,
+                            SortOrder = 15,
+                            Tariff = "UNF, 5 user",
+                            Users = 5
+                        },
+                        new
+                        {
+                            Id = 16,
+                            Company = "1C",
+                            Features = "Warehouse,Sales,~Finance,~Distribution,~Pos",
+                            Include = true,
+                            MatchPlanCode = "DIST",
+                            Note = "6 018 000 so'm ÷ 36 oy (1cba.uz)",
+                            PriceMonthTiyin = 16716700L,
+                            SortOrder = 16,
+                            Tariff = "Savdoni boshqarish, 1 o'rin",
+                            Users = 1
+                        },
+                        new
+                        {
+                            Id = 17,
+                            Company = "Odoo",
+                            Features = "Warehouse,Sales,Finance,Production,Hr,~Distribution,Pos",
+                            Include = true,
+                            MatchPlanCode = "KORP",
+                            Note = "1-yil aksiya $7.25; hosting kiritilgan, joriy qilish hamkor orqali",
+                            PriceMonthUsd = 8.95m,
+                            SortOrder = 17,
+                            Tariff = "Standard (Online)",
+                            Users = 1
+                        },
+                        new
+                        {
+                            Id = 18,
+                            Company = "Odoo",
+                            Features = "Warehouse,Sales,Finance,Production,Hr,~Distribution,Pos",
+                            Include = true,
+                            MatchPlanCode = "KORP",
+                            Note = "1-yil aksiya $10.90; Studio, API, o'z serveri",
+                            PriceMonthUsd = 13.60m,
+                            SortOrder = 18,
+                            Tariff = "Custom",
+                            Users = 1
+                        },
+                        new
+                        {
+                            Id = 19,
+                            Company = "SAP Business One",
+                            Features = "Warehouse,Sales,Finance",
+                            Include = false,
+                            MatchPlanCode = "START",
+                            Note = "Hamkorlar: ~$38/user (≤5 user); xalqaro mo'ljal",
+                            PriceMonthUsd = 38m,
+                            SortOrder = 19,
+                            Tariff = "Starter",
+                            Users = 1
+                        },
+                        new
+                        {
+                            Id = 20,
+                            Company = "SAP Business One",
+                            Features = "Warehouse,Sales,Finance,Production,~Hr",
+                            Include = false,
+                            MatchPlanCode = "KORP",
+                            Note = "Hamkorlar: $95–185/user, joriy qilish $15 000+",
+                            PriceMonthUsd = 95m,
+                            SortOrder = 20,
+                            Tariff = "Professional",
+                            Users = 1
+                        });
+                });
+
             modelBuilder.Entity("tahsinERP.ControlPanel.Data.DemoRequest", b =>
                 {
                     b.Property<int>("Id")
@@ -404,6 +708,82 @@ namespace tahsinERP.ControlPanel.Data.Migrations
                     b.ToTable("DemoRequests");
                 });
 
+            modelBuilder.Entity("tahsinERP.ControlPanel.Data.EconomicsSettings", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("BankFeePercent")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<int>("FirmsPerServer")
+                        .HasColumnType("int");
+
+                    b.Property<int>("FirmsPerSupport")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MinServers")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MinSupport")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("PayrollTaxPercent")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<long>("PerFirmTiyin")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("PlatformTiyin")
+                        .HasColumnType("bigint");
+
+                    b.Property<decimal>("ProfitTaxPercent")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<long>("ServerPriceTiyin")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("SupportSalaryTiyin")
+                        .HasColumnType("bigint");
+
+                    b.Property<decimal>("TurnoverTaxPercent")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal>("UsdRate")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("EconomicsSettings");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            BankFeePercent = 1m,
+                            FirmsPerServer = 8,
+                            FirmsPerSupport = 15,
+                            MinServers = 1,
+                            MinSupport = 1,
+                            PayrollTaxPercent = 12m,
+                            PerFirmTiyin = 1270000L,
+                            PlatformTiyin = 2540000L,
+                            ProfitTaxPercent = 15m,
+                            ServerPriceTiyin = 50800000L,
+                            SupportSalaryTiyin = 635000000L,
+                            TurnoverTaxPercent = 0m,
+                            UsdRate = 12700m
+                        });
+                });
+
             modelBuilder.Entity("tahsinERP.ControlPanel.Data.ErpDeveloper", b =>
                 {
                     b.Property<int>("Id")
@@ -452,6 +832,58 @@ namespace tahsinERP.ControlPanel.Data.Migrations
                         .IsUnique();
 
                     b.ToTable("ErpDevelopers");
+                });
+
+            modelBuilder.Entity("tahsinERP.ControlPanel.Data.Expense", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("AmountOriginal")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<long>("AmountTiyin")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("Category")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("nvarchar(3)");
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<decimal>("Rate")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)");
+
+                    b.Property<DateTime>("RecordedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("RecordedByStaffId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Reference")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Date");
+
+                    b.ToTable("Expenses");
                 });
 
             modelBuilder.Entity("tahsinERP.ControlPanel.Data.Invoice", b =>
@@ -691,6 +1123,77 @@ namespace tahsinERP.ControlPanel.Data.Migrations
                     b.ToTable("Licenses");
                 });
 
+            modelBuilder.Entity("tahsinERP.ControlPanel.Data.ModuleWeight", b =>
+                {
+                    b.Property<string>("Module")
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<int>("Weight")
+                        .HasColumnType("int");
+
+                    b.HasKey("Module");
+
+                    b.ToTable("ModuleWeights");
+
+                    b.HasData(
+                        new
+                        {
+                            Module = "Core",
+                            Weight = 1
+                        },
+                        new
+                        {
+                            Module = "Srm",
+                            Weight = 2
+                        },
+                        new
+                        {
+                            Module = "Crm",
+                            Weight = 2
+                        },
+                        new
+                        {
+                            Module = "Tasks",
+                            Weight = 1
+                        },
+                        new
+                        {
+                            Module = "Mes",
+                            Weight = 3
+                        },
+                        new
+                        {
+                            Module = "Engineering",
+                            Weight = 2
+                        },
+                        new
+                        {
+                            Module = "Finance",
+                            Weight = 2
+                        },
+                        new
+                        {
+                            Module = "Hr",
+                            Weight = 2
+                        },
+                        new
+                        {
+                            Module = "Logistics",
+                            Weight = 2
+                        },
+                        new
+                        {
+                            Module = "Docs",
+                            Weight = 1
+                        },
+                        new
+                        {
+                            Module = "Distribution",
+                            Weight = 3
+                        });
+                });
+
             modelBuilder.Entity("tahsinERP.ControlPanel.Data.Notification", b =>
                 {
                     b.Property<int>("Id")
@@ -927,6 +1430,172 @@ namespace tahsinERP.ControlPanel.Data.Migrations
                             Name = "Distributsiya",
                             SortOrder = 5,
                             VatRatePercent = 12m
+                        });
+                });
+
+            modelBuilder.Entity("tahsinERP.ControlPanel.Data.PlanEconomics", b =>
+                {
+                    b.Property<int>("PlanId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("MarkupPercent")
+                        .HasPrecision(6, 2)
+                        .HasColumnType("decimal(6,2)");
+
+                    b.Property<int>("PlannedTenants")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("TargetGrossMarginPercent")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)");
+
+                    b.HasKey("PlanId");
+
+                    b.ToTable("PlanEconomics");
+
+                    b.HasData(
+                        new
+                        {
+                            PlanId = 1,
+                            MarkupPercent = 40m,
+                            PlannedTenants = 10,
+                            TargetGrossMarginPercent = 45m
+                        },
+                        new
+                        {
+                            PlanId = 6,
+                            MarkupPercent = 40m,
+                            PlannedTenants = 5,
+                            TargetGrossMarginPercent = 60m
+                        },
+                        new
+                        {
+                            PlanId = 2,
+                            MarkupPercent = 40m,
+                            PlannedTenants = 3,
+                            TargetGrossMarginPercent = 60m
+                        },
+                        new
+                        {
+                            PlanId = 3,
+                            MarkupPercent = 40m,
+                            PlannedTenants = 2,
+                            TargetGrossMarginPercent = 60m
+                        });
+                });
+
+            modelBuilder.Entity("tahsinERP.ControlPanel.Data.PlannedCost", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<long>("AmountTiyin")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("Category")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Count")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Kind")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("PlannedCosts");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            AmountTiyin = 0L,
+                            Category = 5,
+                            Count = 1,
+                            Kind = 1,
+                            Name = "Asoschi / rahbar",
+                            SortOrder = 1
+                        },
+                        new
+                        {
+                            Id = 2,
+                            AmountTiyin = 0L,
+                            Category = 3,
+                            Count = 1,
+                            Kind = 1,
+                            Name = "Dasturchi (senior)",
+                            SortOrder = 2
+                        },
+                        new
+                        {
+                            Id = 3,
+                            AmountTiyin = 0L,
+                            Category = 3,
+                            Count = 1,
+                            Kind = 1,
+                            Name = "Dasturchi (junior)",
+                            SortOrder = 3
+                        },
+                        new
+                        {
+                            Id = 4,
+                            AmountTiyin = 635000000L,
+                            Category = 4,
+                            Count = 1,
+                            Kind = 1,
+                            Name = "Sotuv menejeri",
+                            SortOrder = 4
+                        },
+                        new
+                        {
+                            Id = 5,
+                            AmountTiyin = 127000000L,
+                            Category = 3,
+                            Count = 1,
+                            Kind = 2,
+                            Name = "AI vositalar (Claude va b.)",
+                            SortOrder = 10
+                        },
+                        new
+                        {
+                            Id = 6,
+                            AmountTiyin = 381000000L,
+                            Category = 4,
+                            Count = 1,
+                            Kind = 2,
+                            Name = "Marketing (reklama, ko'rgazma)",
+                            SortOrder = 11
+                        },
+                        new
+                        {
+                            Id = 7,
+                            AmountTiyin = 38100000L,
+                            Category = 5,
+                            Count = 1,
+                            Kind = 2,
+                            Name = "Internet, telefon, aloqa",
+                            SortOrder = 12
+                        },
+                        new
+                        {
+                            Id = 8,
+                            AmountTiyin = 127000000L,
+                            Category = 5,
+                            Count = 1,
+                            Kind = 2,
+                            Name = "Buxgalter / yuridik xizmat",
+                            SortOrder = 13
                         });
                 });
 
@@ -2144,6 +2813,17 @@ namespace tahsinERP.ControlPanel.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("Invoice");
+                });
+
+            modelBuilder.Entity("tahsinERP.ControlPanel.Data.PlanEconomics", b =>
+                {
+                    b.HasOne("tahsinERP.ControlPanel.Data.Plan", "Plan")
+                        .WithOne()
+                        .HasForeignKey("tahsinERP.ControlPanel.Data.PlanEconomics", "PlanId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Plan");
                 });
 
             modelBuilder.Entity("tahsinERP.ControlPanel.Data.PortalInvite", b =>
