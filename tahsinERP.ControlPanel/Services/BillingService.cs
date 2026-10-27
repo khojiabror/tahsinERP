@@ -245,6 +245,58 @@ public sealed class BillingService(ControlDbContext db, AuditLogger audit, Clock
         return invoice;
     }
 
+    /// <summary>
+    /// Xato kiritilgan to'lovni butunlay o'chirish (faqat Owner; storno qilingani ham). Auditga to'liq nusxasi yoziladi, bank ko'chirmasi
+    /// qatori qayta "kutilmoqda" bo'ladi. Obuna avtomatik qisqartirilmaydi — storno kabi, kerak bo'lsa obunani alohida bekor qiling.
+    /// </summary>
+    public async Task<Invoice> DeletePaymentAsync(int paymentId, string reason, int staffId, CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(reason)) throw new DomainException(L.T("Pnl_Bill_DeleteReasonRequired"));
+        var payment = await db.Payments.FirstOrDefaultAsync(p => p.Id == paymentId, ct) ?? throw new DomainException(L.T("Pnl_Bill_PaymentNotFound"));
+        var invoice = await LoadAsync(payment.InvoiceId, ct);
+        var before = new
+        {
+            payment.InvoiceId, invoice.Number, payment.AmountTiyin, payment.PaidAt, payment.Method, payment.Reference, payment.Note,
+            payment.RecordedByStaffId, payment.RecordedAtUtc, payment.IsReversed, payment.ReverseReason, invoice.Status, invoice.PaidTiyin,
+        };
+        await using var tx = await db.Database.BeginTransactionAsync(ct);
+        foreach (var line in await db.BankImportLines.Where(l => l.PaymentId == payment.Id).ToListAsync(ct))
+        {
+            line.PaymentId = null;
+            line.AppliedKey = null;
+            line.State = BankLineState.Pending;
+        }
+        invoice.Payments.Remove(payment);
+        db.Payments.Remove(payment);
+        Recalculate(invoice);
+        audit.Add("payment.delete", "Payment", paymentId, before,
+            new { Reason = reason.Trim(), invoice.Status, invoice.PaidTiyin, SubscriptionTouched = false }, staffIdOverride: staffId);
+        await db.SaveChangesAsync(ct);
+        await tx.CommitAsync(ct);
+        return invoice;
+    }
+
+    /// <summary>
+    /// Xato yaratilgan hisob-fakturani butunlay o'chirish (faqat Owner): to'lovlari avval o'chirilgan bo'lishi, Didox'ga yuborilmagan bo'lishi
+    /// kerak. Qatorlari bilan o'chadi, portal so'rovi va bank qatoridagi havolalar bo'shatiladi; raqam qayta ishlatilmaydi.
+    /// </summary>
+    public async Task DeleteInvoiceAsync(int invoiceId, string reason, int staffId, CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(reason)) throw new DomainException(L.T("Pnl_Bill_DeleteReasonRequired"));
+        var invoice = await LoadAsync(invoiceId, ct);
+        if (invoice.Payments.Count > 0) throw new DomainException(L.T("Pnl_Bill_DeletePaymentsFirst"));
+        if (invoice.DidoxId != null) throw new DomainException(L.T("Pnl_Bill_DeleteDidox"));
+        var before = Snapshot(invoice);
+        await using var tx = await db.Database.BeginTransactionAsync(ct);
+        foreach (var r in await db.PortalRequests.Where(r => r.InvoiceId == invoiceId).ToListAsync(ct)) r.InvoiceId = null;
+        foreach (var l in await db.BankImportLines.Where(l => l.InvoiceId == invoiceId).ToListAsync(ct)) l.InvoiceId = null;
+        db.RemoveRange(invoice.Lines);
+        db.Invoices.Remove(invoice);
+        audit.Add("invoice.delete", "Invoice", invoiceId, before, new { Reason = reason.Trim() }, staffIdOverride: staffId);
+        await db.SaveChangesAsync(ct);
+        await tx.CommitAsync(ct);
+    }
+
     public static bool IsConcurrencyConflict(Exception ex) =>
         ex is DbUpdateConcurrencyException || ex.InnerException is SqlException { Number: 1205 or 2601 or 2627 };
 }

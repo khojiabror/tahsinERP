@@ -284,4 +284,26 @@ public class DetailsModel(ControlDbContext db, BillingService billing, InvoicePd
         FlashOk = L.T("Pnl_Inv_PaymentReversed");
         return RedirectToPage(new { id });
     }
+
+    /// <summary>Xato kiritilgan to'lovni butunlay o'chirish — faqat Owner, sabab majburiy (audit nusxasi bilan).</summary>
+    public async Task<IActionResult> OnPostDeletePaymentAsync(int id)
+    {
+        if (!IsOwner) return Forbidden();
+        if (!await LoadAsync(id)) return NotFound();
+        if (!await TryAsync(() => billing.DeletePaymentAsync(PaymentId, Reason ?? "", StaffId))) return Page();
+        FlashOk = L.T("Pnl_Inv_PaymentDeleted");
+        return RedirectToPage(new { id });
+    }
+
+    /// <summary>Xato yaratilgan hisob-fakturani butunlay o'chirish — faqat Owner, to'lovlarsiz.</summary>
+    public async Task<IActionResult> OnPostDeleteInvoiceAsync(int id)
+    {
+        if (!IsOwner) return Forbidden();
+        if (!await LoadAsync(id)) return NotFound();
+        int tenantId = Invoice.TenantId;
+        string number = Invoice.Number ?? "#" + id;
+        if (!await TryAsync(() => billing.DeleteInvoiceAsync(id, Reason ?? "", StaffId))) { await LoadAsync(id); return Page(); }
+        FlashOk = L.T("Pnl_Inv_InvoiceDeleted", number);
+        return RedirectToPage("/Tenants/Details", new { id = tenantId });
+    }
 }

@@ -114,6 +114,47 @@ public class BillingTests(PanelFactory f) : IClassFixture<PanelFactory>
     }
 
     [Fact]
+    public async Task DeletePayment_ThenInvoice_RemovesRows_FreesBankLine_Audits()
+    {
+        var (tenant, sub, inv) = await PaidSubscriptionSetupAsync("pay-delete", 1, register: false);
+        int staff = await f.EnsureStaffAsync();
+        var res = await f.WithScopeAsync(sp => sp.GetRequiredService<BillingService>()
+            .RecordPaymentAsync(inv.Id, MonthPrice, new DateOnly(2026, 10, 18), PaymentMethod.Bank, "PT-DEL", null, staff));
+        Assert.Equal(InvoiceStatus.Paid, res.Invoice.Status);
+        var bankLineId = await f.WithScopeAsync(async sp =>
+        {
+            var db = sp.GetRequiredService<ControlDbContext>();
+            var imp = new BankImport { FileName = "t.txt", FileHash = Guid.NewGuid().ToString("N"), UploadedByStaffId = staff, UploadedAtUtc = DateTime.UtcNow };
+            db.BankImports.Add(imp);
+            await db.SaveChangesAsync();
+            var line = new BankImportLine { ImportId = imp.Id, LineNo = 1, DocDate = new DateOnly(2026, 10, 18), AmountTiyin = MonthPrice, DedupKey = "del-" + inv.Id,
+                AppliedKey = "del-" + inv.Id, InvoiceId = inv.Id, PaymentId = res.Payment.Id, State = BankLineState.Applied };
+            db.BankImportLines.Add(line);
+            await db.SaveChangesAsync();
+            return line.Id;
+        });
+
+        await Assert.ThrowsAsync<DomainException>(() => f.WithScopeAsync(sp => sp.GetRequiredService<BillingService>().DeleteInvoiceAsync(inv.Id, "xato", staff)));
+        await Assert.ThrowsAsync<DomainException>(() => f.WithScopeAsync(sp => sp.GetRequiredService<BillingService>().DeletePaymentAsync(res.Payment.Id, " ", staff)));
+        var after = await f.WithScopeAsync(sp => sp.GetRequiredService<BillingService>().DeletePaymentAsync(res.Payment.Id, "Sinov to'lovi", staff));
+        Assert.Equal(InvoiceStatus.Issued, after.Status);
+        Assert.Equal(0, after.PaidTiyin);
+
+        await f.WithScopeAsync(sp => sp.GetRequiredService<BillingService>().DeleteInvoiceAsync(inv.Id, "Sinov hisob-fakturasi", staff));
+        await f.WithScopeAsync(async sp =>
+        {
+            var db = sp.GetRequiredService<ControlDbContext>();
+            Assert.False(await db.Payments.AnyAsync(x => x.Id == res.Payment.Id));
+            Assert.False(await db.Invoices.AnyAsync(x => x.Id == inv.Id));
+            var line = await db.BankImportLines.FirstAsync(x => x.Id == bankLineId);
+            Assert.Equal((BankLineState.Pending, (int?)null, (int?)null, (string?)null), (line.State, line.PaymentId, line.InvoiceId, line.AppliedKey));
+            Assert.True(await db.AuditLog.AnyAsync(a => a.Action == "payment.delete" && a.EntityId == res.Payment.Id.ToString() && a.StaffUserId == staff));
+            Assert.True(await db.AuditLog.AnyAsync(a => a.Action == "invoice.delete" && a.EntityId == inv.Id.ToString()));
+            Assert.Equal(new DateOnly(2026, 11, 17), (await db.Subscriptions.FirstAsync(x => x.Id == sub.Id)).EndDate); // obunaga tegilmaydi
+        });
+    }
+
+    [Fact]
     public async Task Reverse_RequiresReason_DoesNotShortenSubscription_AndNoDoubleExtension()
     {
         var (tenant, sub, inv) = await PaidSubscriptionSetupAsync("pay-reverse", 1);

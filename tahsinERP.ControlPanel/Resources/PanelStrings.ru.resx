@@ -4803,4 +4803,34 @@ tahsinERP портал: код входа {1}. Действует {2} мин.
   <data name="Pnl_Demo_KeyLater" xml:space="preserve">
     <value>ERP ещё не подключён к панели — новый ключ выпустится сам при подключении.</value>
   </data>
+  <data name="Pnl_Bill_DeleteReasonRequired" xml:space="preserve">
+    <value>Причина удаления обязательна.</value>
+  </data>
+  <data name="Pnl_Bill_DeletePaymentsFirst" xml:space="preserve">
+    <value>Сначала удалите платежи по счёту.</value>
+  </data>
+  <data name="Pnl_Bill_DeleteDidox" xml:space="preserve">
+    <value>Счёт, отправленный в Didox, удалить нельзя — отмените его.</value>
+  </data>
+  <data name="Pnl_Inv_DeleteReason" xml:space="preserve">
+    <value>причина удаления</value>
+  </data>
+  <data name="Pnl_Inv_DeletePaymentConfirm" xml:space="preserve">
+    <value>Платёж будет удалён полностью (копия останется в аудите). Подписка и ключ не изменятся. Продолжить?</value>
+  </data>
+  <data name="Pnl_Inv_PaymentDeleted" xml:space="preserve">
+    <value>Платёж удалён. Подписка и ключ не изменены — при необходимости отмените подписку.</value>
+  </data>
+  <data name="Pnl_Inv_DeleteInvoice" xml:space="preserve">
+    <value>Удалить счёт</value>
+  </data>
+  <data name="Pnl_Inv_DeleteInvoiceHint" xml:space="preserve">
+    <value>Если создан по ошибке или для теста. Номер повторно не используется.</value>
+  </data>
+  <data name="Pnl_Inv_DeleteInvoiceConfirm" xml:space="preserve">
+    <value>Счёт будет удалён полностью (копия останется в аудите). Продолжить?</value>
+  </data>
+  <data name="Pnl_Inv_InvoiceDeleted" xml:space="preserve">
+    <value>Счёт {0} удалён.</value>
+  </data>
 </root>

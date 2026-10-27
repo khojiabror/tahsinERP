@@ -84,6 +84,14 @@
                         <button type="submit" class="danger">@L.T("Pnl_Reversal")</button>
                     </form>
                 }
+                @if (Model.IsOwner)
+                {
+                    <form method="post" asp-page-handler="DeletePayment" class="toolbar" onsubmit="return confirm('@L.T("Pnl_Inv_DeletePaymentConfirm")')">
+                        <input type="hidden" name="PaymentId" value="@p.Id" />
+                        <input type="text" name="Reason" placeholder="@L.T("Pnl_Inv_DeleteReason")" />
+                        <button type="submit" class="danger">@L.T("Delete")</button>
+                    </form>
+                }
             </td>
         </tr>
     }
@@ -113,5 +121,13 @@
     <form method="post" asp-page-handler="Cancel" class="toolbar card">
         <div><label for="Reason">@L.T("Pnl_CancelReason")</label><input id="Reason" name="Reason" type="text" /></div>
         <button type="submit" class="danger">@L.T("Pnl_Inv_CancelInvoice")</button>
+    </form>
+}
+@if (Model.IsOwner && inv.Payments.Count == 0 && inv.DidoxId == null)
+{
+    <form method="post" asp-page-handler="DeleteInvoice" class="toolbar card" onsubmit="return confirm('@L.T("Pnl_Inv_DeleteInvoiceConfirm")')">
+        <div><label for="DeleteReason">@L.T("Pnl_Inv_DeleteReason")</label><input id="DeleteReason" name="Reason" type="text" /></div>
+        <button type="submit" class="danger">@L.T("Pnl_Inv_DeleteInvoice")</button>
+        <span class="hint">@L.T("Pnl_Inv_DeleteInvoiceHint")</span>
     </form>
 }

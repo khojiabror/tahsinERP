@@ -4803,4 +4803,34 @@ Siz so'ramagan bo'lsangiz — bu xatga e'tibor bermang, parolingiz o'zgarmaydi.<
   <data name="Pnl_Demo_KeyLater" xml:space="preserve">
     <value>ERP hali panelga ulanmagan — yangi kalit ERP ulanganda o'zi chiqadi.</value>
   </data>
+  <data name="Pnl_Bill_DeleteReasonRequired" xml:space="preserve">
+    <value>O'chirish sababi majburiy.</value>
+  </data>
+  <data name="Pnl_Bill_DeletePaymentsFirst" xml:space="preserve">
+    <value>Avval hisob-fakturaning to'lovlarini o'chiring.</value>
+  </data>
+  <data name="Pnl_Bill_DeleteDidox" xml:space="preserve">
+    <value>Didox'ga yuborilgan hisob-fakturani o'chirib bo'lmaydi — bekor qiling.</value>
+  </data>
+  <data name="Pnl_Inv_DeleteReason" xml:space="preserve">
+    <value>o'chirish sababi</value>
+  </data>
+  <data name="Pnl_Inv_DeletePaymentConfirm" xml:space="preserve">
+    <value>To'lov butunlay o'chiriladi (auditda nusxasi qoladi). Obuna va kalit o'zgarmaydi. Davom etasizmi?</value>
+  </data>
+  <data name="Pnl_Inv_PaymentDeleted" xml:space="preserve">
+    <value>To'lov o'chirildi. Obuna va kalit o'zgarmadi — kerak bo'lsa obunani bekor qiling.</value>
+  </data>
+  <data name="Pnl_Inv_DeleteInvoice" xml:space="preserve">
+    <value>Hisob-fakturani o'chirish</value>
+  </data>
+  <data name="Pnl_Inv_DeleteInvoiceHint" xml:space="preserve">
+    <value>Xato yoki sinov uchun yaratilgan bo'lsa. Raqami qayta ishlatilmaydi.</value>
+  </data>
+  <data name="Pnl_Inv_DeleteInvoiceConfirm" xml:space="preserve">
+    <value>Hisob-faktura butunlay o'chiriladi (auditda nusxasi qoladi). Davom etasizmi?</value>
+  </data>
+  <data name="Pnl_Inv_InvoiceDeleted" xml:space="preserve">
+    <value>Hisob-faktura {0} o'chirildi.</value>
+  </data>
 </root>
