@@ -184,12 +184,9 @@ public partial class ProvisioningIntegrationTests
         Assert.True((await JobAsync(enq.Job.Id)).Payload.Contains("\"sampleData\":true"));
         await RunAsync(worker, enq.Job.Id);
 
-        // Namuna ma'lumot bor, demo foydalanuvchi o'chirilgan, admin — vaqtinchalik parol bilan
-        Assert.NotEqual("0", await ScalarAsync(dbName, "SELECT COUNT(*) FROM dbo.PRODUCTS"));
-        Assert.Equal("0", await ScalarAsync(dbName, "SELECT CAST(IsActive AS int) FROM dbo.USERS WHERE Uname = 'demo'"));
-        string demoHash = (await ScalarAsync(dbName, "SELECT Password FROM dbo.USERS WHERE Uname = 'demo'"))!;
-        string demoSalt = (await ScalarAsync(dbName, "SELECT HashCode FROM dbo.USERS WHERE Uname = 'demo'"))!;
-        Assert.False(tahsinERP.Helpers.PasswordHasher.Verify("demo2026", demoHash, demoSalt, out _));
+        // Ixcham namuna bor (Database/Sample), ochiq parolli demo foydalanuvchi umuman yo'q, admin — vaqtinchalik parol bilan
+        Assert.NotEqual("0", await ScalarAsync(dbName, "SELECT COUNT(*) FROM dbo.PRODUCTS WHERE PNo LIKE 'NAM-%'"));
+        Assert.Null(await ScalarAsync(dbName, "SELECT Uname FROM dbo.USERS WHERE Uname = 'demo'"));
         Assert.Equal("1", await ScalarAsync(dbName, "SELECT CAST(MustChangePassword AS int) FROM dbo.USERS WHERE Uname = 'admin'"));
         Assert.Equal("\"Namuna\" MChJ", await ScalarAsync(dbName, "SELECT Name FROM dbo.COMPANIES WHERE ID = 1"));
 
@@ -197,6 +194,9 @@ public partial class ProvisioningIntegrationTests
         string adminId = (await ScalarAsync(dbName, "SELECT ID FROM dbo.USERS WHERE Uname = 'admin'"))!;
         await ScalarAsync(dbName, $"INSERT INTO dbo.USER_ENTRIES (UserID, [DateTime], IP, MAC) VALUES ({adminId}, GETDATE(), '10.1.2.3', 'AA-BB')");
         await ScalarAsync(dbName, $"INSERT INTO dbo.USERLOGS (ControllerName, ActionName, [DateTime], UserID, IP, MacAddr) VALUES ('SOrder', N'Buyurtma: mijoz info@client.uz tel +998901234567', GETDATE(), {adminId}, '10.1.2.3', 'AA-BB')");
+        // ixcham namunada hujjat yo'q — mijoz kiritgan bitta kirim (hujjatlar soni agregati uchun)
+        await ScalarAsync(dbName, @"INSERT INTO dbo.INCOMES (DocNo, ReceivingWHID, Amount, TotalPrice, IsDeleted, Description, IssueDateTime, SenderWHID, RecieveStatus, CurrencyID, InvoiceID, ProductionID)
+            SELECT 'IT-1', MIN(ID), 0, 0, 0, NULL, GETDATE(), NULL, 0, (SELECT ID FROM dbo.CURRENCIES WHERE Shortname = 'UZS'), NULL, NULL FROM dbo.WAREHOUSES WHERE ISNULL(IsDeleted, 0) = 0");
 
         var sp2 = _agentServices!;
         // ERP yozuvlari haqiqiy vaqt bilan — panel soati ham haqiqiy vaqtga (aks holda "kelajakdagi" yozuv deb rad etiladi)
@@ -217,7 +217,7 @@ public partial class ProvisioningIntegrationTests
         Assert.DoesNotContain("info@client.uz", action.Action);
         Assert.DoesNotContain("901234567", action.Action);
         Assert.Contains(users, u => u.Login == "admin" && u.LastLoginUtc != null);
-        Assert.Contains(users, u => u.Login == "demo" && !u.IsActive);
+        Assert.DoesNotContain(users, u => u.Login == "demo");   // ixcham namunada demo foydalanuvchi yaratilmaydi
         Assert.NotNull(state.LastLoginUtc);
         Assert.True(Math.Abs((state.LastLoginUtc!.Value - DateTime.UtcNow).TotalMinutes) < 5, "lokal → UTC konvertatsiya");
 
@@ -234,7 +234,7 @@ public partial class ProvisioningIntegrationTests
         });
         Assert.Contains(dailyModules, x => x.Module == "Crm" && x.Controller == "SOrder" && x.Count == 1);
         Assert.Contains(dailyUsers, x => x.Logins == 1 && x.Actions == 1);
-        Assert.Contains(dailyDocs, x => x.DocType == UsageDocTypes.SalesOrder && x.Count > 0); // Database/Demo sotuv buyurtmalari
+        Assert.Contains(dailyDocs, x => x.DocType == UsageDocTypes.Income && x.Count == 1); // testda kiritilgan kirim
 
         // Sinovni erta yakunlash: arxiv bilan → baza o'chdi, tenants.json'da yo'q, .bak bor
         var job = await f.WithScopeAsync(async sp => await sp.GetRequiredService<ProvisioningService>().EndTrialAsync(

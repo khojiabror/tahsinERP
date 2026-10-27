@@ -2279,10 +2279,10 @@ Birinchi kirishda parolni almashtirish so'raladi.</value>
     <value>SaaS manzili:</value>
   </data>
   <data name="Pnl_Ten_SampleData" xml:space="preserve">
-    <value>Namuna ma'lumotlar bilan (faqat belgilangan modullar: mahsulotlar, kontragentlar, ~3 oylik hujjatlar, xodimlar...)</value>
+    <value>Namuna ma'lumotlar bilan (belgilangan har bo'limda bittadan yozuv: tovar, mijoz, hudud, narx...)</value>
   </data>
   <data name="Pnl_Ten_SampleHint" xml:space="preserve">
-    <value>Belgilanmasa — bo'sh baza (faqat spravochniklar). Namuna bazada demo foydalanuvchi o'chirib qo'yiladi, kirish faqat admin orqali.</value>
+    <value>Belgilanmasa — bo'sh baza (spravochniklar, tayyor rollar va kerakli omborlar). Namunani mijoz o'z ma'lumoti bilan almashtiradi yoki o'chiradi.</value>
   </data>
   <data name="Pnl_Ten_SavedNoKey" xml:space="preserve">
     <value>Saqlandi, lekin kalit chiqmadi: {0}</value>
@@ -3814,7 +3814,7 @@ Siz so'ramagan bo'lsangiz — bu xatga e'tibor bermang, parolingiz o'zgarmaydi.<
     <value>Sinovda ochiladigan modullar</value>
   </data>
   <data name="Pnl_Ten_TrialModulesHint" xml:space="preserve">
-    <value>Kalit faqat shu modullarni ochadi; bazaga faqat shularning rollari, omborlari va (belgilansa) namuna ma'lumotlari yoziladi. Ishlab chiqarish tanlansa Muhandislik (BOM/norma) ham qo'shiladi.</value>
+    <value>Kalit faqat shu modullarni ochadi; bazaga "Rahbar" va shu modullarning tayyor rollari (ruxsatlari bilan), kerakli omborlar va (belgilansa) namuna yozuvlar qo'shiladi. Ishlab chiqarish tanlansa Muhandislik (BOM/norma) ham qo'shiladi.</value>
   </data>
   <data name="Pnl_Ten_ModulesRequired" xml:space="preserve">
     <value>Kamida bitta modulni belgilang.</value>
