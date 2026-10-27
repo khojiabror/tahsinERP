@@ -4053,7 +4053,6 @@ tahsinERP портал: код входа {1}. Действует {2} мин.
   <data name="Pnl_Hlt_HistoryHint" xml:space="preserve">
     <value>Дни по ташкентскому времени; выше 85% — жёлтым, выше 95% — красным. Журнал хранится 400 дней.</value>
   </data>
-||||||| 34f3faf5
   <data name="Pnl_Ten_DeleteInstanceQueued" xml:space="preserve">
     <value>Отдельный сайт ERP (инстанс) тоже будет удалён — задание обновления #{0}.</value>
   </data>
@@ -4133,7 +4132,7 @@ tahsinERP портал: код входа {1}. Действует {2} мин.
     <value>Организация станет бесплатным демо: подписка на год с автопродлением, до {0} пользователей. Продолжить?</value>
   </data>
   <data name="Pnl_Demo_Made" xml:space="preserve">
-    <value>Организация переведена в демо: подписка продлена на год, ключ обновлён.</value>
+    <value>Организация переведена в демо: подписка продлена на год.</value>
   </data>
   <data name="Pnl_Demo_ResumeQueued" xml:space="preserve">
     <value>Возобновление поставлено в очередь (задание #{0}).</value>
@@ -4149,5 +4148,11 @@ tahsinERP портал: код входа {1}. Действует {2} мин.
   </data>
   <data name="Pnl_Demo_HasPaid" xml:space="preserve">
     <value>У организации есть платная подписка — сделать демо нельзя.</value>
+  </data>
+  <data name="Pnl_Demo_KeyIssued" xml:space="preserve">
+    <value>Ключ обновлён.</value>
+  </data>
+  <data name="Pnl_Demo_KeyLater" xml:space="preserve">
+    <value>ERP ещё не подключён к панели — новый ключ выпустится сам при подключении.</value>
   </data>
 </root>

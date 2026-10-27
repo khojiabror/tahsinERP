@@ -564,6 +564,8 @@ public partial class ProvisioningIntegrationTests(PanelFactory f) : IClassFixtur
         });
         await RunAsync(worker, enq.Job.Id);
         await ScalarAsync(dbName, "UPDATE dbo.COMPANIES SET Name = N'Arxivdagi ma''lumot' WHERE ID = 1");
+        // ERP panelga bog'langan edi — arxivda eski sir qoladi
+        await ScalarAsync(dbName, "UPDATE dbo.LICENSE_STATE SET Value = N'old-secret' WHERE Name = N'PanelSecret'; IF @@ROWCOUNT = 0 INSERT INTO dbo.LICENSE_STATE (Name, Value) VALUES (N'PanelSecret', N'old-secret')");
 
         var arch = await f.WithScopeAsync(async sp => (await sp.GetRequiredService<ProvisioningService>().EnqueueAsync(
             await sp.GetRequiredService<ControlDbContext>().Tenants.FirstAsync(t => t.Id == tenant.Id), ProvisioningJobType.Archive, "test arxiv")).Job);
@@ -586,6 +588,8 @@ public partial class ProvisioningIntegrationTests(PanelFactory f) : IClassFixtur
         Assert.Null(t2.ArchiveLocation);
         Assert.True(await DbExistsAsync(newDb));
         Assert.Equal("Arxivdagi ma'lumot", await ScalarAsync(newDb, "SELECT Name FROM dbo.COMPANIES WHERE ID = 1"));
+        Assert.Null(await ScalarAsync(newDb, "SELECT Value FROM dbo.LICENSE_STATE WHERE Name = N'PanelSecret'"));   // qayta ro'yxatdan o'tadi
+        Assert.NotNull(await ScalarAsync(newDb, "SELECT Value FROM dbo.LICENSE_STATE WHERE Name = N'RegToken'"));
         var registry = new TenantsFile(opts.Paths.TenantsFile!, null);
         Assert.Null(registry.Get(slug));
         Assert.Equal(true, registry.Get(newSlug)?.Enabled);

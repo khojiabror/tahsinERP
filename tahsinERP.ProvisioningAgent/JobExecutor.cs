@@ -347,7 +347,7 @@ public sealed class JobExecutor(AgentOptions options, SqlOps sql, ScriptRunner s
         if (r.ExitCode != 0) throw new InvalidJobException($"Invoke-DbMigrations kod {r.ExitCode}");
 
         if (!string.IsNullOrWhiteSpace(options.Sql.AppLogin)) log.Info(await sql.GrantAppLoginAsync(p.DbName, options.Sql.AppLogin!, ct));
-        log.Info(await sql.WriteRegTokenAsync(p.DbName, regToken, ct));
+        log.Info(await sql.WriteRegTokenAsync(p.DbName, regToken, ct, rebind: true));
         if (p.PreviousSlug is { } prev && !string.Equals(prev, p.Slug, StringComparison.OrdinalIgnoreCase))
             log.Info("tenants.json: eski nom " + prev + (Tenants().Remove(prev) ? " olib tashlandi" : " yo'q edi"));
         Tenants().Upsert(p.Slug, p.DbName, p.CompanyId, p.Enabled);

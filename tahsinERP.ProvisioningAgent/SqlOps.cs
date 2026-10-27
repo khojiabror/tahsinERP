@@ -79,17 +79,24 @@ public sealed class SqlOps(AgentOptions options)
     /// LICENSE_STATE.RegToken (00_PLAN.md 3.2). InstallationId YOZILMAYDI — ERP o'zi yaratadi (muhrsiz InstallationId bloklanadi).
     /// ERP allaqachon panelga bog'langan bo'lsa (PanelSecret bor) — token kerak emas, tegilmaydi.
     /// </summary>
-    public async Task<string> WriteRegTokenAsync(string db, string regToken, CancellationToken ct)
+    /// <param name="rebind">
+    /// Arxivdan tiklash: bazadagi eski PanelSecret o'chiriladi — panel firmaning eski bog'lanishini (InstallationId) tozalagan, eski sir bilan
+    /// ERP endi kalit ola olmaydi; RegToken bilan qayta ro'yxatdan o'tadi.
+    /// </param>
+    public async Task<string> WriteRegTokenAsync(string db, string regToken, CancellationToken ct, bool rebind = false)
     {
         await using var c = await OpenAsync(db, ct);
         bool hasTable = Convert.ToInt32(await ScalarAsync(c, "SELECT CASE WHEN OBJECT_ID('dbo.LICENSE_STATE','U') IS NULL THEN 0 ELSE 1 END", ct)) == 1;
         if (!hasTable) throw new InvalidJobException("LICENSE_STATE jadvali yo'q — baza baseline'dan yaratilmagan.");
+        string cleared = "";
+        if (rebind && Convert.ToInt32(await ScalarAsync(c, "DELETE FROM dbo.LICENSE_STATE WHERE Name = N'PanelSecret'; SELECT @@ROWCOUNT", ct)) > 0)
+            cleared = "eski PanelSecret o'chirildi, ";
         bool bound = Convert.ToInt32(await ScalarAsync(c, "SELECT COUNT(*) FROM dbo.LICENSE_STATE WHERE Name = N'PanelSecret' AND LEN(Value) > 0", ct)) > 0;
         if (bound) return "ERP allaqachon panelga bog'langan (PanelSecret bor) — RegToken yozilmadi";
         await ScalarAsync(c,
             "UPDATE dbo.LICENSE_STATE SET Value = @v, UpdatedAt = GETDATE() WHERE Name = N'RegToken'; " +
             "IF @@ROWCOUNT = 0 INSERT INTO dbo.LICENSE_STATE (Name, Value) VALUES (N'RegToken', @v);", ct, ("@v", regToken));
-        return "LICENSE_STATE.RegToken yozildi";
+        return cleared + "LICENSE_STATE.RegToken yozildi";
     }
 
     /// <summary>COPY_ONLY + CHECKSUM backup va RESTORE VERIFYONLY.</summary>

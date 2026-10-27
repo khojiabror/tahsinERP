@@ -175,7 +175,7 @@ public class DetailsModel(ControlDbContext db, TenantService tenants, LicenseIss
         ProvisioningJob? job = null;
         if (await TryAsync(async () => job = await demos.MakeDemoAsync(Tenant)))
         {
-            FlashOk = L.T("Pnl_Demo_Made") + (job is null ? "" : " " + L.T("Pnl_Demo_ResumeQueued", job.Id));
+            FlashOk = L.T("Pnl_Demo_Made") + " " + L.T(Tenant.InstallationId is null ? "Pnl_Demo_KeyLater" : "Pnl_Demo_KeyIssued") + (job is null ? "" : " " + L.T("Pnl_Demo_ResumeQueued", job.Id));
             return RedirectToPage(new { id });
         }
         await LoadAsync(id);

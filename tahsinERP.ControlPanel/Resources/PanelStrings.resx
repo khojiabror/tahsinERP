@@ -4053,7 +4053,6 @@ Siz so'ramagan bo'lsangiz — bu xatga e'tibor bermang, parolingiz o'zgarmaydi.<
   <data name="Pnl_Hlt_HistoryHint" xml:space="preserve">
     <value>Toshkent vaqti bo'yicha kunlar; 85% dan yuqori — sariq, 95% dan yuqori — qizil. Jurnal 400 kun saqlanadi.</value>
   </data>
-||||||| 34f3faf5
   <data name="Pnl_Ten_DeleteInstanceQueued" xml:space="preserve">
     <value>Alohida ERP sayti (instance) ham olib tashlanadi — yangilash job #{0}.</value>
   </data>
@@ -4133,7 +4132,7 @@ Siz so'ramagan bo'lsangiz — bu xatga e'tibor bermang, parolingiz o'zgarmaydi.<
     <value>Firma to'lovsiz demo bo'ladi: obuna bir yilga va o'zi uzayadi, {0} tagacha foydalanuvchi. Davom etasizmi?</value>
   </data>
   <data name="Pnl_Demo_Made" xml:space="preserve">
-    <value>Firma demo qilindi: obuna bir yilga uzaytirildi, kalit yangilandi.</value>
+    <value>Firma demo qilindi: obuna bir yilga uzaytirildi.</value>
   </data>
   <data name="Pnl_Demo_ResumeQueued" xml:space="preserve">
     <value>Qayta yoqish navbatga qo'yildi (job #{0}).</value>
@@ -4149,5 +4148,11 @@ Siz so'ramagan bo'lsangiz — bu xatga e'tibor bermang, parolingiz o'zgarmaydi.<
   </data>
   <data name="Pnl_Demo_HasPaid" xml:space="preserve">
     <value>Firmada pullik obuna bor — demo qilib bo'lmaydi.</value>
+  </data>
+  <data name="Pnl_Demo_KeyIssued" xml:space="preserve">
+    <value>Kalit yangilandi.</value>
+  </data>
+  <data name="Pnl_Demo_KeyLater" xml:space="preserve">
+    <value>ERP hali panelga ulanmagan — yangi kalit ERP ulanganda o'zi chiqadi.</value>
   </data>
 </root>
