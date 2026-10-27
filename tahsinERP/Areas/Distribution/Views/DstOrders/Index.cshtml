@@ -24,7 +24,7 @@
                                 <option value="">@DstLocalization.T("All_Statuses")</option>
                                 @foreach (var s in statuses)
                                 {
-                                    <option value="@((byte)s)">@DstLocalization.T("OrderStatus_" + s)</option>
+                                    <option value="@((byte)s)" @(Request.QueryString["status"] == ((byte)s).ToString() ? "selected" : "")>@DstLocalization.T("OrderStatus_" + s)</option>
                                 }
                             </select>
                         </div>

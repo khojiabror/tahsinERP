@@ -14337,4 +14337,22 @@
   <data name="Core_PwdWarn_Admin" xml:space="preserve">
     <value>Выдавайте сотруднику сложный пароль (не менее 8 символов, буквы, цифры и знаки) и не пересылайте его в общих чатах. Попросите сотрудника никому не сообщать пароль и сменить его при первом входе.</value>
   </data>
+  <data name="Hdr_OrdersToConfirm" xml:space="preserve">
+    <value>Заказы на подтверждение</value>
+  </data>
+  <data name="Hdr_OrdersToShip" xml:space="preserve">
+    <value>Заказы к отгрузке</value>
+  </data>
+  <data name="Hdr_WriteOffsToApprove" xml:space="preserve">
+    <value>Списания на утверждение</value>
+  </data>
+  <data name="Hdr_CashHandovers" xml:space="preserve">
+    <value>Сдача наличных в кассу</value>
+  </data>
+  <data name="Hdr_NewPoints" xml:space="preserve">
+    <value>Новые торговые точки</value>
+  </data>
+  <data name="Hdr_SiteLeads" xml:space="preserve">
+    <value>Новые заявки с сайта</value>
+  </data>
 </root>
