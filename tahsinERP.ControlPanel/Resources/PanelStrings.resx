@@ -3975,4 +3975,82 @@ Siz so'ramagan bo'lsangiz — bu xatga e'tibor bermang, parolingiz o'zgarmaydi.<
   <data name="Pnl_SDom_JobCancelled" xml:space="preserve">
     <value>Server amali bekor qilindi.</value>
   </data>
+  <data name="Pnl_Hlt_ServerList" xml:space="preserve">
+    <value>Serverlar ro'yxati</value>
+  </data>
+  <data name="Pnl_Hlt_NoData" xml:space="preserve">
+    <value>ma'lumot yo'q</value>
+  </data>
+  <data name="Pnl_Hlt_NoDataHint" xml:space="preserve">
+    <value>Agent hali server holatini yubormagan. Agentni yangi versiyaga yangilang (Yangilanishlar → Provisioning agenti) — holat har 5 daqiqada keladi.</value>
+  </data>
+  <data name="Pnl_Hlt_Online" xml:space="preserve">
+    <value>onlayn</value>
+  </data>
+  <data name="Pnl_Hlt_Stale" xml:space="preserve">
+    <value>agent javob bermayapti</value>
+  </data>
+  <data name="Pnl_Hlt_Reported" xml:space="preserve">
+    <value>O'lchandi: {0}</value>
+  </data>
+  <data name="Pnl_Hlt_Ram" xml:space="preserve">
+    <value>Operativ xotira (RAM)</value>
+  </data>
+  <data name="Pnl_Hlt_UsedFree" xml:space="preserve">
+    <value>{0} band · {1} bo'sh</value>
+  </data>
+  <data name="Pnl_Hlt_Cpu" xml:space="preserve">
+    <value>Protsessor (CPU)</value>
+  </data>
+  <data name="Pnl_Hlt_Cores" xml:space="preserve">
+    <value>{0} yadro</value>
+  </data>
+  <data name="Pnl_Hlt_CpuHint" xml:space="preserve">
+    <value>oxirgi o'lchovlar oralig'idagi o'rtacha yuklama</value>
+  </data>
+  <data name="Pnl_Hlt_Uptime" xml:space="preserve">
+    <value>Ishlash vaqti</value>
+  </data>
+  <data name="Pnl_Hlt_UptimeHint" xml:space="preserve">
+    <value>oxirgi qayta yuklanishdan beri</value>
+  </data>
+  <data name="Pnl_Hlt_UptimeDays" xml:space="preserve">
+    <value>{0} kun {1} soat</value>
+  </data>
+  <data name="Pnl_Hlt_UptimeHours" xml:space="preserve">
+    <value>{0} soat {1} daq</value>
+  </data>
+  <data name="Pnl_Hlt_Disk" xml:space="preserve">
+    <value>Disk {0}</value>
+  </data>
+  <data name="Pnl_Hlt_History" xml:space="preserve">
+    <value>Kunlik jurnal (oxirgi {0} kun)</value>
+  </data>
+  <data name="Pnl_Hlt_ColDay" xml:space="preserve">
+    <value>Sana</value>
+  </data>
+  <data name="Pnl_Hlt_ColCpu" xml:space="preserve">
+    <value>CPU o'rt. / maks.</value>
+  </data>
+  <data name="Pnl_Hlt_ColRam" xml:space="preserve">
+    <value>RAM o'rt. / maks.</value>
+  </data>
+  <data name="Pnl_Hlt_ColDisks" xml:space="preserve">
+    <value>Disklar (kun oxirida)</value>
+  </data>
+  <data name="Pnl_Hlt_ColReboots" xml:space="preserve">
+    <value>Qayta yuklash</value>
+  </data>
+  <data name="Pnl_Hlt_ColSamples" xml:space="preserve">
+    <value>O'lchovlar</value>
+  </data>
+  <data name="Pnl_Hlt_Of" xml:space="preserve">
+    <value>/ {0}</value>
+  </data>
+  <data name="Pnl_Hlt_FreeOf" xml:space="preserve">
+    <value>{0} bo'sh / {1}</value>
+  </data>
+  <data name="Pnl_Hlt_HistoryHint" xml:space="preserve">
+    <value>Toshkent vaqti bo'yicha kunlar; 85% dan yuqori — sariq, 95% dan yuqori — qizil. Jurnal 400 kun saqlanadi.</value>
+  </data>
 </root>

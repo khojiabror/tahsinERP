@@ -1,0 +1,86 @@
+@model tahsinERP.ControlPanel.Pages.Servers.ServerRow
+@{
+    var c = Model.Health;
+    var h = c?.Health;
+    string Pct(double p) => p.ToString("0") + "%";
+    string Lvl(double p) => ServerHealthLog.LevelOf(p) switch { HealthLevel.Bad => "bad", HealthLevel.Warn => "warn", _ => "ok" };
+}
+<div class="card health">
+    <div class="health-head">
+        <h2>@Model.Server.Name</h2>
+        @if (h is null)
+        {
+            <span class="badge muted">@L.T("Pnl_Hlt_NoData")</span>
+        }
+        else
+        {
+            <span class="badge @(c!.Stale ? "warn" : "ok")">@(c.Stale ? L.T("Pnl_Hlt_Stale") : L.T("Pnl_Hlt_Online"))</span>
+            <span class="hint">@L.T("Pnl_Hlt_Reported", c.ReportedAtUtc?.ToString("dd.MM.yyyy HH:mm") ?? "—") UTC · @h.MachineName · @h.Os</span>
+        }
+    </div>
+    @if (h is null)
+    {
+        <p class="hint">@L.T("Pnl_Hlt_NoDataHint")</p>
+    }
+    else
+    {
+        <div class="tiles">
+            <div class="tile">
+                <div class="tile-l">@L.T("Pnl_Hlt_Ram")</div>
+                <div class="tile-v">@ServerHealthLog.Bytes(h.RamUsedBytes) <small>/ @ServerHealthLog.Bytes(h.RamTotalBytes)</small></div>
+                <meter min="0" max="100" low="@ServerHealthLog.WarnPercent" high="@ServerHealthLog.BadPercent" optimum="0" value="@h.RamPercent.ToString(System.Globalization.CultureInfo.InvariantCulture)"></meter>
+                <div class="tile-l">@L.T("Pnl_Hlt_UsedFree", Pct(h.RamPercent), ServerHealthLog.Bytes(h.RamAvailableBytes))</div>
+            </div>
+            <div class="tile">
+                <div class="tile-l">@L.T("Pnl_Hlt_Cpu")</div>
+                <div class="tile-v @(h.CpuPercent is { } cp ? "lvl-" + Lvl(cp) : "")">@(h.CpuPercent is { } cpu ? Pct(cpu) : "—") <small>· @L.T("Pnl_Hlt_Cores", h.CpuCount)</small></div>
+                <div class="tile-l">@L.T("Pnl_Hlt_CpuHint")</div>
+            </div>
+            <div class="tile">
+                <div class="tile-l">@L.T("Pnl_Hlt_Uptime")</div>
+                <div class="tile-v">@ServerHealthLog.Uptime(h.UptimeSeconds)</div>
+                <div class="tile-l">@L.T("Pnl_Hlt_UptimeHint")</div>
+            </div>
+            @foreach (var d in h.Disks)
+            {
+                <div class="tile">
+                    <div class="tile-l">@L.T("Pnl_Hlt_Disk", d.Name.TrimEnd('\\'))@(d.Label is null ? "" : " · " + d.Label)</div>
+                    <div class="tile-v">@ServerHealthLog.Bytes(d.UsedBytes) <small>/ @ServerHealthLog.Bytes(d.TotalBytes)</small></div>
+                    <meter min="0" max="100" low="@ServerHealthLog.WarnPercent" high="@ServerHealthLog.BadPercent" optimum="0" value="@d.UsedPercent.ToString(System.Globalization.CultureInfo.InvariantCulture)"></meter>
+                    <div class="tile-l">@L.T("Pnl_Hlt_UsedFree", Pct(d.UsedPercent), ServerHealthLog.Bytes(d.FreeBytes))</div>
+                </div>
+            }
+        </div>
+    }
+    @if (Model.History is { Count: > 0 } days)
+    {
+        <h3>@L.T("Pnl_Hlt_History", tahsinERP.ControlPanel.Pages.Servers.IndexModel.HistoryDays)</h3>
+        <div class="scroll">
+            <table>
+                <tr>
+                    <th>@L.T("Pnl_Hlt_ColDay")</th><th class="num">@L.T("Pnl_Hlt_ColCpu")</th><th class="num">@L.T("Pnl_Hlt_ColRam")</th>
+                    <th>@L.T("Pnl_Hlt_ColDisks")</th><th class="num">@L.T("Pnl_Hlt_Uptime")</th><th class="num">@L.T("Pnl_Hlt_ColReboots")</th><th class="num">@L.T("Pnl_Hlt_ColSamples")</th>
+                </tr>
+                @foreach (var d in days)
+                {
+                    double ramMaxPct = d.RamTotalBytes > 0 ? 100.0 * d.RamUsedMaxBytes / d.RamTotalBytes : 0;
+                    <tr>
+                        <td>@d.Day.ToString("dd.MM.yyyy")</td>
+                        <td class="num">@(d.CpuAvgPercent is { } ca ? Pct(ca) : "—") / <span class="lvl-@Lvl(d.CpuMaxPercent ?? 0)">@(d.CpuMaxPercent is { } cm ? Pct(cm) : "—")</span></td>
+                        <td class="num">@ServerHealthLog.Bytes(d.RamUsedAvgBytes) / <span class="lvl-@Lvl(ramMaxPct)">@ServerHealthLog.Bytes(d.RamUsedMaxBytes)</span> <span class="hint">@L.T("Pnl_Hlt_Of", ServerHealthLog.Bytes(d.RamTotalBytes))</span></td>
+                        <td>
+                            @foreach (var k in ServerHealthLog.Disks(d))
+                            {
+                                <div><span class="lvl-@Lvl(k.UsedPercent)">@k.Name.TrimEnd('\\') @Pct(k.UsedPercent)</span> <span class="hint">@L.T("Pnl_Hlt_FreeOf", ServerHealthLog.Bytes(k.FreeBytes), ServerHealthLog.Bytes(k.TotalBytes))</span></div>
+                            }
+                        </td>
+                        <td class="num">@ServerHealthLog.Uptime(d.UptimeSeconds)</td>
+                        <td class="num">@(d.Reboots > 0 ? d.Reboots.ToString() : "—")</td>
+                        <td class="num">@d.Samples</td>
+                    </tr>
+                }
+            </table>
+        </div>
+        <p class="hint">@L.T("Pnl_Hlt_HistoryHint")</p>
+    }
+</div>

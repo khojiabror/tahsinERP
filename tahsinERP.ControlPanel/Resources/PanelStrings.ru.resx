@@ -3975,4 +3975,82 @@ tahsinERP портал: код входа {1}. Действует {2} мин.
   <data name="Pnl_SDom_JobCancelled" xml:space="preserve">
     <value>Задание сервера отменено.</value>
   </data>
+  <data name="Pnl_Hlt_ServerList" xml:space="preserve">
+    <value>Список серверов</value>
+  </data>
+  <data name="Pnl_Hlt_NoData" xml:space="preserve">
+    <value>нет данных</value>
+  </data>
+  <data name="Pnl_Hlt_NoDataHint" xml:space="preserve">
+    <value>Агент ещё не отправлял состояние сервера. Обновите агент (Обновления → Агент provisioning) — состояние приходит каждые 5 минут.</value>
+  </data>
+  <data name="Pnl_Hlt_Online" xml:space="preserve">
+    <value>онлайн</value>
+  </data>
+  <data name="Pnl_Hlt_Stale" xml:space="preserve">
+    <value>агент не отвечает</value>
+  </data>
+  <data name="Pnl_Hlt_Reported" xml:space="preserve">
+    <value>Замер: {0}</value>
+  </data>
+  <data name="Pnl_Hlt_Ram" xml:space="preserve">
+    <value>Оперативная память (RAM)</value>
+  </data>
+  <data name="Pnl_Hlt_UsedFree" xml:space="preserve">
+    <value>занято {0} · свободно {1}</value>
+  </data>
+  <data name="Pnl_Hlt_Cpu" xml:space="preserve">
+    <value>Процессор (CPU)</value>
+  </data>
+  <data name="Pnl_Hlt_Cores" xml:space="preserve">
+    <value>ядер: {0}</value>
+  </data>
+  <data name="Pnl_Hlt_CpuHint" xml:space="preserve">
+    <value>средняя загрузка между последними замерами</value>
+  </data>
+  <data name="Pnl_Hlt_Uptime" xml:space="preserve">
+    <value>Время работы</value>
+  </data>
+  <data name="Pnl_Hlt_UptimeHint" xml:space="preserve">
+    <value>с последней перезагрузки</value>
+  </data>
+  <data name="Pnl_Hlt_UptimeDays" xml:space="preserve">
+    <value>{0} дн. {1} ч</value>
+  </data>
+  <data name="Pnl_Hlt_UptimeHours" xml:space="preserve">
+    <value>{0} ч {1} мин</value>
+  </data>
+  <data name="Pnl_Hlt_Disk" xml:space="preserve">
+    <value>Диск {0}</value>
+  </data>
+  <data name="Pnl_Hlt_History" xml:space="preserve">
+    <value>Ежедневный журнал (последние {0} дн.)</value>
+  </data>
+  <data name="Pnl_Hlt_ColDay" xml:space="preserve">
+    <value>Дата</value>
+  </data>
+  <data name="Pnl_Hlt_ColCpu" xml:space="preserve">
+    <value>CPU сред. / макс.</value>
+  </data>
+  <data name="Pnl_Hlt_ColRam" xml:space="preserve">
+    <value>RAM сред. / макс.</value>
+  </data>
+  <data name="Pnl_Hlt_ColDisks" xml:space="preserve">
+    <value>Диски (на конец дня)</value>
+  </data>
+  <data name="Pnl_Hlt_ColReboots" xml:space="preserve">
+    <value>Перезагрузки</value>
+  </data>
+  <data name="Pnl_Hlt_ColSamples" xml:space="preserve">
+    <value>Замеров</value>
+  </data>
+  <data name="Pnl_Hlt_Of" xml:space="preserve">
+    <value>/ {0}</value>
+  </data>
+  <data name="Pnl_Hlt_FreeOf" xml:space="preserve">
+    <value>свободно {0} / {1}</value>
+  </data>
+  <data name="Pnl_Hlt_HistoryHint" xml:space="preserve">
+    <value>Дни по ташкентскому времени; выше 85% — жёлтым, выше 95% — красным. Журнал хранится 400 дней.</value>
+  </data>
 </root>
