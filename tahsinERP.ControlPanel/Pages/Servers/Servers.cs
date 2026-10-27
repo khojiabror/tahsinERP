@@ -9,11 +9,13 @@ using tahsinERP.ControlPanel.I18n;
 
 namespace tahsinERP.ControlPanel.Pages.Servers;
 
-public record ServerRow(Server Server, int Tenants, BackupMonitor.Row? Backup = null);
+public record ServerRow(Server Server, int Tenants, BackupMonitor.Row? Backup = null,
+    ServerHealthLog.Current? Health = null, List<ServerHealthDay>? History = null);
 
-/// <summary>ERP serverlari (tenantlarni taqsimlash). Faqat Owner (Program.cs: AuthorizeFolder).</summary>
-public class IndexModel(ControlDbContext db, BackupMonitor backups) : PanelPageModel
+/// <summary>ERP serverlari (tenantlarni taqsimlash) va ularning resurs holati. Faqat Owner (Program.cs: AuthorizeFolder).</summary>
+public class IndexModel(ControlDbContext db, BackupMonitor backups, ServerHealthLog health) : PanelPageModel
 {
+    public const int HistoryDays = 30;
     public List<ServerRow> Rows { get; private set; } = [];
 
     public async Task OnGetAsync()
@@ -21,8 +23,11 @@ public class IndexModel(ControlDbContext db, BackupMonitor backups) : PanelPageM
         var counts = await db.Tenants.Where(t => t.ServerId != null && t.Status != TenantStatus.Archived)
             .GroupBy(t => t.ServerId!.Value).Select(g => new { g.Key, C = g.Count() }).ToDictionaryAsync(x => x.Key, x => x.C);
         var bk = (await backups.AllAsync()).ToDictionary(b => b.ServerId);
+        var current = await health.CurrentAsync();
+        var history = await health.HistoryAsync(HistoryDays);
         Rows = (await db.Servers.OrderBy(s => s.Name).ToListAsync())
-            .Select(s => new ServerRow(s, counts.GetValueOrDefault(s.Id), bk.GetValueOrDefault(s.Id))).ToList();
+            .Select(s => new ServerRow(s, counts.GetValueOrDefault(s.Id), bk.GetValueOrDefault(s.Id),
+                current.GetValueOrDefault(s.Id), history.GetValueOrDefault(s.Id))).ToList();
     }
 }
 

@@ -93,6 +93,7 @@ services.AddSingleton<InvoicePdfRenderer>();
 services.AddHttpClient<ITelegramSender, TelegramSender>(c => c.Timeout = TimeSpan.FromSeconds(15));
 services.AddHttpClient<IAppsClient, AppsHttpClient>(c => c.Timeout = TimeSpan.FromSeconds(30));
 services.AddScoped<TenantAppsService>();
+services.AddScoped<DemoService>();
 services.AddSingleton<IDnsResolver, SystemDnsResolver>();
 services.AddScoped<SiteDomainService>();
 // Avto-yangilash: GitHub relizlari (token faqat pool env'da), navbat, agent API (Docs/Deploy/03_AUTO_UPDATE.md)
@@ -100,6 +101,7 @@ services.AddSingleton<ReleaseTrust>();
 services.AddHttpClient<IReleaseSource, GitHubReleaseSource>(c => c.Timeout = TimeSpan.FromMinutes(30));
 services.AddScoped<UpdatesService>();
 services.AddScoped<BackupMonitor>();
+services.AddScoped<ServerHealthLog>();
 if (config.GetValue("ControlPanel:Panel:EnableDailyJob", true))
 {
     services.AddHostedService<DailyJobHostedService>();

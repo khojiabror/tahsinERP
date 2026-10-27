@@ -1,4 +1,5 @@
 using System.Net;
+using System.Runtime.InteropServices;
 using System.Text.Json;
 using tahsinERP.Provisioning.Contracts;
 
@@ -21,6 +22,7 @@ public sealed class UpdateRunner(AgentOptions options, SqlOps sql, TimeProvider 
     }
 
     private DateTime _nextInventoryUtc = DateTime.MinValue;
+    private readonly ServerHealthProbe _health = new();
 
     /// <summary>Testlarda almashtiriladi; prod'da kodga joylangan kalitlar (Updater bilan bir xil).</summary>
     public IReadOnlyDictionary<string, string> TrustedKeys { get; init; } = ReleaseKeys.Trusted;
@@ -234,6 +236,11 @@ public sealed class UpdateRunner(AgentOptions options, SqlOps sql, TimeProvider 
             schema[db] = await sql.SchemaVersionAsync(db, ct);
         var inv = UpdaterFiles.ToInventory(state, state.UpdaterVersion, db => schema.GetValueOrDefault(db));
         inv.Backup = ReadBackupReport(options.Updates.BackupStatusFile);
+        try { inv.Health = _health.Collect(); }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ExternalException)
+        {
+            log.LogWarning("Server holati o'lchanmadi: {Message}", ex.Message);
+        }
         return inv;
     }
 

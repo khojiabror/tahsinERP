@@ -33,6 +33,7 @@ public class ControlDbContext(DbContextOptions<ControlDbContext> options) : DbCo
     public DbSet<AppRelease> AppReleases => Set<AppRelease>();
     public DbSet<UpdateJob> UpdateJobs => Set<UpdateJob>();
     public DbSet<ServerInventory> ServerInventories => Set<ServerInventory>();
+    public DbSet<ServerHealthDay> ServerHealthDays => Set<ServerHealthDay>();
     public DbSet<DemoRequest> DemoRequests => Set<DemoRequest>();
     public DbSet<ErpDeveloper> ErpDevelopers => Set<ErpDeveloper>();
     public DbSet<TenantSiteDomain> SiteDomains => Set<TenantSiteDomain>();
@@ -244,6 +245,13 @@ public class ControlDbContext(DbContextOptions<ControlDbContext> options) : DbCo
             e.Property(x => x.ServerId).ValueGeneratedNever();
             e.HasOne<Server>().WithMany().HasForeignKey(x => x.ServerId).OnDelete(DeleteBehavior.Cascade);
             e.Property(x => x.UpdaterVersion).HasMaxLength(32);
+        });
+
+        b.Entity<ServerHealthDay>(e =>
+        {
+            e.HasIndex(x => new { x.ServerId, x.Day }).IsUnique();
+            e.HasOne<Server>().WithMany().HasForeignKey(x => x.ServerId).OnDelete(DeleteBehavior.Cascade);
+            e.Property(x => x.DisksJson).HasMaxLength(4000);
         });
 
         b.Entity<ProvisioningJob>(e =>

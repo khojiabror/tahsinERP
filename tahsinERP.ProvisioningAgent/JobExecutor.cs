@@ -57,6 +57,7 @@ public sealed class JobExecutor(AgentOptions options, SqlOps sql, ScriptRunner s
                 case JobKind.Delete: await DeleteAsync(p, c, log, ct); break;
                 case JobKind.EndTrial: await EndTrialAsync(p, c, log, ct); break;
                 case JobKind.SiteDomain: await SiteDomainAsync(p, log, ct); break;
+                case JobKind.Restore: await RestoreArchiveAsync(lease, c, log, ct); break;
                 default: throw new InvalidJobException($"Noma'lum job turi: {lease.Type}");
             }
             c.Outcome = JobOutcome.Succeeded;
@@ -109,10 +110,10 @@ public sealed class JobExecutor(AgentOptions options, SqlOps sql, ScriptRunner s
             if (!string.IsNullOrWhiteSpace(options.Sql.User)) { args.Add("-SqlUser"); args.Add(options.Sql.User!); }
             // Sinov/pullik korxona: ixcham namuna (har tanlangan bo'limda bittadan yozuv, Database/Sample). Katta "Demo Plast"
             // ssenariysi (Database/Demo) — faqat ochiq demo tenant va uning shabloni (CreateDemoTemplateAsync) uchun.
-            if (p.SampleData) args.Add(p.Demo ? "-Demo" : "-Sample");
+            if (p.SampleData) args.Add(p.Demo || p.FullSample ? "-Demo" : "-Sample");
             var modules = SetupModules(p);
             if (modules.Count > 0) { args.Add("-Modules"); args.Add(string.Join(",", modules)); }
-            log.Info("New-TenantDb.ps1 ishga tushirildi" + (!p.SampleData ? "" : p.Demo ? " (demo ma'lumotlar: Database/Demo)" : " (ixcham namuna: Database/Sample)")
+            log.Info("New-TenantDb.ps1 ishga tushirildi" + (!p.SampleData ? "" : p.Demo || p.FullSample ? " (demo ma'lumotlar: Database/Demo)" : " (ixcham namuna: Database/Sample)")
                      + (modules.Count > 0 ? "; modullar: " + string.Join(", ", modules) : "; modullar: hammasi"));
             var r = await scripts.RunAsync("New-TenantDb.ps1", args, new Dictionary<string, string?> { ["TAHSINERP_ADMIN_PASSWORD"] = password }, ct);
             log.Raw(r.Log);
@@ -312,6 +313,47 @@ public sealed class JobExecutor(AgentOptions options, SqlOps sql, ScriptRunner s
             log.Info($"o'z domeni ulanmoqda: {p.SiteDomain} → {options.SiteDomains.IisSite}");
             await siteDomains.BindAsync(p.SiteDomain, log.Info, ct);
         }
+    }
+
+    // ---------------- Restore ----------------
+    /// <summary>
+    /// Arxivlangan firmani tiklash (ixtiyoriy yangi nom bilan): arxiv .bak (ombor ichida, SHA-256 tekshiruvi) → p.DbName bazasi,
+    /// keyingi migratsiyalar, ERP login, reg_token (ERP qayta ro'yxatdan o'tadi), tenants.json: eski nom olib tashlanadi, yangisi
+    /// yoziladi. Baza oldingi urinishda tiklangan bo'lsa qayta RESTORE qilinmaydi (idempotent). Arxiv fayli o'zgarmay qoladi.
+    /// </summary>
+    private async Task RestoreArchiveAsync(JobLease lease, JobCompletion c, JobLog log, CancellationToken ct)
+    {
+        var p = lease.Payload;
+        string regToken = lease.Secrets?.RegToken ?? throw new InvalidJobException("reg_token berilmagan.");
+        if (string.IsNullOrWhiteSpace(p.ArchiveLocation)) throw new InvalidJobException("Arxiv manzili berilmagan.");
+        if (p.PreviousSlug != null) TenantsFile.ValidateSlug(p.PreviousSlug);
+        if (await sql.DatabaseExistsAsync(p.DbName, ct))
+            log.Info($"baza allaqachon bor (oldingi urinish): {p.DbName} — RESTORE o'tkazib yuborildi");
+        else
+        {
+            string bak;
+            try { bak = await backups.FetchAsync(p.ArchiveLocation, ct); }
+            catch (InvalidDataException ex) { throw new InvalidJobException(ex.Message); }
+            log.Info($"RESTORE {p.DbName} ← {bak}");
+            await sql.RestoreAsync(p.DbName, bak, ct);
+        }
+        log.Info("arxivdan keyingi migratsiyalar (Invoke-DbMigrations.ps1)");
+        var args = new List<string> { "-Server", options.Sql.Server, "-Database", p.DbName, "-DatabaseRoot", options.Paths.DatabaseRoot };
+        if (!string.IsNullOrWhiteSpace(options.Sql.User)) { args.Add("-SqlUser"); args.Add(options.Sql.User!); }
+        var r = await scripts.RunAsync("Invoke-DbMigrations.ps1", args, new Dictionary<string, string?>(), ct);
+        log.Raw(r.Log);
+        c.ExitCode = r.ExitCode;
+        if (RetryExitCodes.Contains(r.ExitCode)) throw new TransientJobException($"Invoke-DbMigrations kod {r.ExitCode}");
+        if (r.ExitCode != 0) throw new InvalidJobException($"Invoke-DbMigrations kod {r.ExitCode}");
+
+        if (!string.IsNullOrWhiteSpace(options.Sql.AppLogin)) log.Info(await sql.GrantAppLoginAsync(p.DbName, options.Sql.AppLogin!, ct));
+        log.Info(await sql.WriteRegTokenAsync(p.DbName, regToken, ct));
+        if (p.PreviousSlug is { } prev && !string.Equals(prev, p.Slug, StringComparison.OrdinalIgnoreCase))
+            log.Info("tenants.json: eski nom " + prev + (Tenants().Remove(prev) ? " olib tashlandi" : " yo'q edi"));
+        Tenants().Upsert(p.Slug, p.DbName, p.CompanyId, p.Enabled);
+        c.RegistryEnabled = p.Enabled;
+        log.Info($"tenants.json: {p.Slug} → {p.DbName}, enabled={p.Enabled.ToString().ToLowerInvariant()}");
+        log.Info(await sql.ProbeAsync(p.DbName, ct));
     }
 
     // ---------------- Delete ----------------

@@ -184,6 +184,25 @@ body.portal main { max-width: 1040px; }
 .tile-v small { font-size: 12px; font-weight: 500; color: var(--muted); }
 .tile-l { font-size: 12px; color: var(--muted); }
 
+/* ---------- Server holati (Servers/_HealthCard) ---------- */
+.health-head { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; margin-bottom: 14px; }
+.health-head h2 { margin: 0; }
+.health h3 { font-size: 13px; font-weight: 650; margin: 4px 0 10px; color: var(--text-2); }
+.health .tiles { margin-bottom: 14px; }
+.health .scroll { margin-bottom: 8px; box-shadow: none; }
+.health .scroll table { margin: 0; width: 100%; }
+.health td { vertical-align: top; }
+meter { display: block; width: 100%; height: 6px; margin: 8px 0 6px; border: 0; border-radius: 999px; background: var(--surface-3); -webkit-appearance: none; appearance: none; }
+meter::-webkit-meter-bar { height: 6px; border: 0; border-radius: 999px; background: var(--surface-3); }
+meter::-webkit-meter-optimum-value { border-radius: 999px; background: var(--ok); }
+meter::-webkit-meter-suboptimum-value { border-radius: 999px; background: var(--warn); }
+meter::-webkit-meter-even-less-good-value { border-radius: 999px; background: var(--bad); }
+meter::-moz-meter-bar { border-radius: 999px; background: var(--ok); }
+meter:-moz-meter-sub-optimum::-moz-meter-bar { background: var(--warn); }
+meter:-moz-meter-sub-sub-optimum::-moz-meter-bar { background: var(--bad); }
+.lvl-warn { color: var(--warn); font-weight: 600; }
+.lvl-bad { color: var(--bad); font-weight: 600; }
+
 /* ---------- Jadvallar ---------- */
 table {
     width: 100%; border-collapse: separate; border-spacing: 0; background: var(--surface);

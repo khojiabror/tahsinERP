@@ -1,7 +1,7 @@
 @page "{id:int}"
 @model tahsinERP.ControlPanel.Pages.Tenants.DetailsModel
 @{ var t = Model.Tenant; ViewData["Title"] = t.LegalName; }
-<h1>@t.LegalName <span class="badge @Labels.Badge(t.Status)">@Labels.Of(t.Status)</span></h1>
+<h1>@t.LegalName <span class="badge @Labels.Badge(t.Status)">@Labels.Of(t.Status)</span> @if (t.IsDemo) { <span class="badge info">@L.T("Pnl_Demo_Badge")</span> }</h1>
 <div asp-validation-summary="ModelOnly"></div>
 @if (Model.NewRegToken is not null)
 {
@@ -23,6 +23,10 @@
     @if (Model.CanSell) { <a class="btn secondary" href="/Tenants/Edit/@t.Id">@L.T("Edit")</a> }
     <form method="post" asp-page-handler="RegToken" class="inline"><button type="submit" class="secondary">@L.T("Pnl_Ten_IssueRegToken")</button></form>
     @if (Model.CanSell) { <form method="post" asp-page-handler="EnsureLicense" class="inline"><button type="submit" class="secondary">@L.T("Pnl_Ten_EnsureLicense")</button></form> }
+    @if (Model.IsOwner && !t.IsDemo && t.Deployment == DeploymentKind.SaaS && t.Status != TenantStatus.Archived)
+    {
+        <form method="post" asp-page-handler="MakeDemo" class="inline" onsubmit="return confirm('@L.T("Pnl_Demo_MakeConfirm", tahsinERP.ControlPanel.Services.DemoService.Users)')"><button type="submit" class="secondary">@L.T("Pnl_Demo_MakeBtn")</button></form>
+    }
 </div>
 <div class="cols">
     <div class="card">
@@ -86,6 +90,12 @@
                         <a class="btn danger" href="/Tenants/Delete/@t.Id">@L.T("Pnl_Ten_DeleteForever")…</a>
                     }
                 </div>
+                @if (Model.IsOwner && t.Status == TenantStatus.Archived && t.ArchiveLocation != null)
+                {
+                    <div><label asp-for="RestoreSlug">@L.T("Pnl_Ten_RestoreSlug")</label><input asp-for="RestoreSlug" type="text" placeholder="@t.Slug" /></div>
+                    <div class="hint">@L.T("Pnl_Ten_RestoreHint", t.Slug)</div>
+                    <div class="actions"><button type="submit" class="secondary" asp-page-handler="Restore">@L.T("Pnl_Ten_RestoreBtn")</button></div>
+                }
             </form>
         }
         else if (Model.ActiveJob != null)

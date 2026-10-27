@@ -122,3 +122,34 @@ public partial class WebUiTests
         Assert.Equal(TenantStatus.Suspended, await f.WithScopeAsync(sp => sp.GetRequiredService<ControlDbContext>().Tenants.Where(t => t.Id == tenantId).Select(t => t.Status).FirstAsync()));
     }
 }
+
+public partial class WebUiTests
+{
+    [Fact]
+    public async Task Demo_Ui_OwnerOpensDemo_MakeDemoButton_SalesDenied()
+    {
+        using var c = await LoginAsync("ui-demo-owner@test.uz", StaffRole.Owner);
+        await ProvisioningQueueTests.CreateServerAsync(f, "ui-demo-srv");
+        Assert.Contains("/Tenants/Demo", await (await c.GetAsync("/Tenants")).Content.ReadAsStringAsync());
+        var page = await PostAsync(c, "/Tenants/Demo", new()
+        {
+            ["Input.Slug"] = "ui-demo", ["Input.LegalName"] = "UI Demo", ["Input.Modules"] = "Distribution", ["Input.Data"] = "full",
+        });
+        string html = WebUtility.HtmlDecode(await page.Content.ReadAsStringAsync());
+        Assert.Matches("Vaqtinchalik parol: [A-Za-z0-9]{12}", html);
+        var t = await f.WithScopeAsync(sp => sp.GetRequiredService<ControlDbContext>().Tenants.AsNoTracking().FirstAsync(x => x.Slug == "ui-demo"));
+        Assert.True(t.IsDemo && t.SampleData && t.FullSampleData);
+        Assert.Equal("Distribution", t.Modules);
+        string details = await (await c.GetAsync($"/Tenants/Details/{t.Id}")).Content.ReadAsStringAsync();
+        Assert.DoesNotContain("handler=MakeDemo", details);
+
+        var other = await f.CreateTenantAsync("ui-demo-make", trial: true);
+        Assert.Contains("handler=MakeDemo", await (await c.GetAsync($"/Tenants/Details/{other.Id}")).Content.ReadAsStringAsync());
+        var make = await PostAsync(c, $"/Tenants/Details/{other.Id}?handler=MakeDemo", [], tokenFrom: $"/Tenants/Details/{other.Id}");
+        Assert.Equal(HttpStatusCode.Redirect, make.StatusCode);
+        Assert.True(await f.WithScopeAsync(sp => sp.GetRequiredService<ControlDbContext>().Tenants.Where(x => x.Id == other.Id).Select(x => x.IsDemo).FirstAsync()));
+
+        using var sales = await LoginAsync("ui-demo-sales@test.uz", StaffRole.Sales);
+        Assert.Contains("/Account/Denied", (await sales.GetAsync("/Tenants/Demo")).Headers.Location!.OriginalString);
+    }
+}

@@ -130,9 +130,10 @@ public sealed partial class TenantService(ControlDbContext db, AuditLogger audit
     /// Yangi bir martalik reg_token (7 kun). Bazada faqat SHA-256 xeshi saqlanadi; token ekranda bir marta ko'rsatiladi.
     /// Tenant allaqachon bog'langan bo'lsa ham chiqarish mumkin (ERP qayta o'rnatilganda) — yangi register eski bog'lanishni almashtiradi.
     /// </summary>
-    public async Task<string> IssueRegTokenAsync(Tenant t, CancellationToken ct = default)
+    /// <param name="allowArchived">Arxivdan tiklash (Restore job) — firma hali Archived holatida.</param>
+    public async Task<string> IssueRegTokenAsync(Tenant t, CancellationToken ct = default, bool allowArchived = false)
     {
-        if (t.Status == TenantStatus.Archived)
+        if (t.Status == TenantStatus.Archived && !allowArchived)
             throw new DomainException(L.T("Pnl_TenSvc_ArchivedNoToken"));
         string token = "RT-" + Base32.Encode(RandomNumberGenerator.GetBytes(20));
         t.RegTokenHash = HashToken(token);

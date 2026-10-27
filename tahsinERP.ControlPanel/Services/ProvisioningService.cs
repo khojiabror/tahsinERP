@@ -53,7 +53,13 @@ public sealed class ProvisioningService(ControlDbContext db, AuditLogger audit, 
         return head + suffix;
     }
 
-    public bool IsDemo(Tenant t) => !string.IsNullOrWhiteSpace(O.DemoSlug) && string.Equals(t.Slug, O.DemoSlug, StringComparison.OrdinalIgnoreCase);
+    /// <summary>
+    /// Ochiq demo (ProvisioningOptions.DemoSlug): agent kechasi shablondan tiklaydi (Reset), ochiq "demo" foydalanuvchisi bor.
+    /// </summary>
+    public bool IsPublicDemo(Tenant t) => !string.IsNullOrWhiteSpace(O.DemoSlug) && string.Equals(t.Slug, O.DemoSlug, StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>Demo firma (to'lovsiz, ko'rsatuv uchun): <see cref="Tenant.IsDemo"/> yoki ochiq demo — statistika, eslatmalardan chiqariladi.</summary>
+    public bool IsDemo(Tenant t) => t.IsDemo || IsPublicDemo(t);
 
     /// <summary>12 belgili vaqtinchalik parol (o'xshash belgilarsiz) — New-TenantDb.ps1 bilan bir xil alifbo.</summary>
     public static string NewTempPassword()
@@ -115,7 +121,7 @@ public sealed class ProvisioningService(ControlDbContext db, AuditLogger audit, 
                 secrets.RegToken = await tenants.IssueRegTokenAsync(t, ct);
                 break;
             case ProvisioningJobType.Reset:
-                if (!IsDemo(t)) throw new DomainException(L.T("Pnl_Prov_ResetOnlyDemo", O.DemoSlug));
+                if (!IsPublicDemo(t)) throw new DomainException(L.T("Pnl_Prov_ResetOnlyDemo", O.DemoSlug));
                 if (t.Status == TenantStatus.Archived) throw new DomainException(L.T("Pnl_Prov_Archived"));
                 // Shablondan tiklangan bazada InstallationId yo'q — ERP yangisini yaratib, shu token bilan qayta bog'lanadi.
                 secrets.RegToken = await tenants.IssueRegTokenAsync(t, ct);
@@ -143,6 +149,14 @@ public sealed class ProvisioningService(ControlDbContext db, AuditLogger audit, 
                 if (t.Status == TenantStatus.Archived) throw new DomainException(L.T("Pnl_Prov_Archived"));
                 if (payloadExtra is null) throw new DomainException("SiteDomain: domen berilmagan.");
                 break;
+            case ProvisioningJobType.Restore:
+                if (t.Status != TenantStatus.Archived) throw new DomainException(L.T("Pnl_Prov_RestoreOnlyArchived"));
+                if (string.IsNullOrWhiteSpace(t.ArchiveLocation)) throw new DomainException(L.T("Pnl_Prov_RestoreNoArchive"));
+                if (string.IsNullOrWhiteSpace(reason)) throw new DomainException(L.T("Pnl_Prov_RestoreReasonRequired"));
+                if (payloadExtra is null) throw new DomainException("Restore: RestoreArchiveAsync orqali.");
+                // tiklangan baza yangi o'rnatma sifatida qayta ro'yxatdan o'tadi (InstallationId — muvaffaqiyatda tozalanadi)
+                secrets.RegToken = await tenants.IssueRegTokenAsync(t, ct, allowArchived: true);
+                break;
         }
         if (t.ServerId is null) throw new DomainException(L.T("Pnl_Prov_NoServer"));
 
@@ -150,9 +164,9 @@ public sealed class ProvisioningService(ControlDbContext db, AuditLogger audit, 
         {
             Slug = t.Slug, DbName = t.DbName!, CompanyId = t.CompanyId, CompanyName = t.LegalName,
             AdminLogin = O.DefaultAdminLogin, AdminFullName = "Administrator", AdminEmail = t.Email,
-            Demo = IsDemo(t), SampleData = t.SampleData, Backup = backup, Reason = reason?.Trim(),
+            Demo = IsPublicDemo(t), SampleData = t.SampleData, FullSample = t.FullSampleData, Backup = backup, Reason = reason?.Trim(),
             // Create: faqat tanlangan modullar sozlamasi va namuna ma'lumoti (demo tenant — hammasi)
-            Modules = type == ProvisioningJobType.Create && !IsDemo(t) ? Licensing.LicenseIssuer.ParseModules(t.Modules)?.Select(m => m.ToString()).ToList() : null,
+            Modules = type == ProvisioningJobType.Create && !IsPublicDemo(t) ? Licensing.LicenseIssuer.ParseModules(t.Modules)?.Select(m => m.ToString()).ToList() : null,
         };
         payloadExtra?.Invoke(payload);
         var job = new ProvisioningJob
@@ -169,6 +183,58 @@ public sealed class ProvisioningService(ControlDbContext db, AuditLogger audit, 
         audit.Add("provisioning.enqueue", "Tenant", t.Id, after: new { JobId = job.Id, Type = type, Reason = reason, idempotencyKey });
         await db.SaveChangesAsync(ct);
         return new EnqueueResult(job, true, tempPassword);
+    }
+
+    /// <summary>
+    /// Arxivlangan firmani tiklash, ixtiyoriy yangi nom bilan (masalan sinov firmasi "smarttech" → demo "demodist"). Nom o'zgarsa:
+    /// yangi nom va baza nomi tekshiriladi, <paramref name="beforeRename"/> (eski nom bo'yicha bot/sayt/instance tozalash) chaqiriladi,
+    /// so'ng Slug va DbName darhol yangisiga o'tadi — eski nom shu zahoti bo'shaydi. Restore job: arxivdan yangi bazaga tiklash, ERP
+    /// qayta ro'yxatdan o'tadi; holat obunadan (faol obuna yo'q — To'xtatilgan, kirish yopiq).
+    /// </summary>
+    public async Task<EnqueueResult> RestoreArchiveAsync(Tenant t, string? newSlug, string? reason, Func<Task>? beforeRename = null,
+        CancellationToken ct = default)
+    {
+        if (t.Status != TenantStatus.Archived) throw new DomainException(L.T("Pnl_Prov_RestoreOnlyArchived"));
+        string archive = string.IsNullOrWhiteSpace(t.ArchiveLocation) ? throw new DomainException(L.T("Pnl_Prov_RestoreNoArchive")) : t.ArchiveLocation;
+        if (string.IsNullOrWhiteSpace(reason)) throw new DomainException(L.T("Pnl_Prov_RestoreReasonRequired"));
+        if (t.ServerId is null) throw new DomainException(L.T("Pnl_Prov_NoServer"));
+        // navbatga qo'yish shartlari nom o'zgarishidan OLDIN — keyin rad etilib, nom almashgan va bot/sayt tozalangan holda qolmasin
+        var active = await db.ProvisioningJobs.FirstOrDefaultAsync(j => j.TenantId == t.Id
+            && (j.Status == ProvisioningJobStatus.Pending || j.Status == ProvisioningJobStatus.Running), ct);
+        if (active != null) throw new DomainException(L.T("Pnl_Prov_OtherActive", Pages.Labels.Of(active.Type), active.Id));
+        newSlug = string.IsNullOrWhiteSpace(newSlug) ? t.Slug : newSlug.Trim().ToLowerInvariant();
+        string prevSlug = t.Slug;
+        if (newSlug != prevSlug)
+        {
+            string newDb = TenantService.DefaultDbName(newSlug);
+            if (TenantService.ValidateSlug(newSlug) is { } err) throw new DomainException(err);
+            if (await db.Tenants.AnyAsync(x => x.Slug == newSlug && x.Id != t.Id, ct)) throw new DomainException(L.T("Pnl_TenSvc_SlugTaken", newSlug));
+            if (await db.Tenants.AnyAsync(x => x.DbName == newDb && x.Id != t.Id, ct)) throw new DomainException(L.T("Pnl_Prov_RestoreDbTaken", newDb));
+            if (beforeRename != null) await beforeRename();
+            audit.Add("tenant.rename", "Tenant", t.Id, new { Slug = prevSlug, t.DbName }, new { Slug = newSlug, DbName = newDb, Reason = reason });
+            t.Slug = newSlug;
+            t.DbName = newDb;
+            t.InstallationId = null;
+            await db.SaveChangesAsync(ct);
+        }
+        bool enabled = DesiredEnabled(await StatusFromSubscriptionsAsync(t, ct));
+        return await EnqueueAsync(t, ProvisioningJobType.Restore, reason, ct: ct, payloadExtra: p =>
+        {
+            p.ArchiveLocation = archive;
+            p.PreviousSlug = prevSlug != t.Slug ? prevSlug : null;
+            p.Enabled = enabled;
+        });
+    }
+
+    /// <summary>Faol (add-on bo'lmagan) obunadan firma holati — kunlik tekshiruv (SubscriptionService.RunLifecycleAsync) bilan bir xil.</summary>
+    private async Task<TenantStatus> StatusFromSubscriptionsAsync(Tenant t, CancellationToken ct)
+    {
+        var today = DateOnly.FromDateTime(clock.UtcNow);
+        var active = await db.Subscriptions.Include(s => s.Plan)
+            .Where(s => s.TenantId == t.Id && s.Status == SubscriptionStatus.Active && !(s.Plan != null && s.Plan.IsAddOn))
+            .OrderByDescending(s => s.EndDate).FirstOrDefaultAsync(ct);
+        if (active is null || active.EndDate < today) return TenantStatus.Suspended;
+        return active.Period == BillingPeriod.Trial ? TenantStatus.Trial : TenantStatus.Active;
     }
 
     /// <summary>Xodim: tenantni to'xtatish (holat Suspended + Suspend job, agar baza yaratilgan bo'lsa).</summary>
@@ -271,6 +337,7 @@ public sealed class ProvisioningService(ControlDbContext db, AuditLogger audit, 
     public async Task<JobLease?> LeaseAsync(Server server, CancellationToken ct = default, IReadOnlyCollection<string>? capabilities = null)
     {
         bool siteDomain = capabilities?.Contains(AgentCapabilities.SiteDomain) == true;
+        bool restore = capabilities?.Contains(AgentCapabilities.RestoreArchive) == true;
         await ReconcileAsync(server.Id, ct);
         for (int guard = 0; guard < 20; guard++)
         {
@@ -278,6 +345,7 @@ public sealed class ProvisioningService(ControlDbContext db, AuditLogger audit, 
             var job = await db.ProvisioningJobs.Include(j => j.Tenant)
                 .Where(j => j.Tenant!.ServerId == server.Id
                             && (siteDomain || j.Type != ProvisioningJobType.SiteDomain)
+                            && (restore || j.Type != ProvisioningJobType.Restore)
                             && ((j.Status == ProvisioningJobStatus.Pending && j.NotBeforeUtc <= now)
                                 || (j.Status == ProvisioningJobStatus.Running && j.LeaseUntilUtc < now)))
                 .OrderBy(j => j.Id).FirstOrDefaultAsync(ct);
@@ -301,7 +369,8 @@ public sealed class ProvisioningService(ControlDbContext db, AuditLogger audit, 
 
             var payload = JsonSerializer.Deserialize<JobPayload>(job.Payload, AgentProtocol.Json) ?? new JobPayload();
             var t = job.Tenant!;
-            payload.Enabled = DesiredEnabled(t.Status);
+            // Restore: firma hali Archived — kirish holati obunadan hisoblangan va navbatga qo'yishda yozilgan (RestoreArchiveAsync)
+            if (job.Type != ProvisioningJobType.Restore) payload.Enabled = DesiredEnabled(t.Status);
             payload.SqlInstance = server.SqlInstance;
             JobSecrets? secrets = job.SecretsProtected is null ? null
                 : JsonSerializer.Deserialize<JobSecrets>(protector.Unprotect(job.SecretsProtected, SecretPurposes.JobSecrets), AgentProtocol.Json);
@@ -393,6 +462,12 @@ public sealed class ProvisioningService(ControlDbContext db, AuditLogger audit, 
                     break;
                 case ProvisioningJobType.SiteDomain:
                     sitePush = await SiteDomainService.ApplyJobResultAsync(db, job, t, true, null, now, ct);
+                    break;
+                case ProvisioningJobType.Restore:
+                    t.Status = await StatusFromSubscriptionsAsync(t, ct);
+                    t.RegistryEnabled = c.RegistryEnabled ?? DesiredEnabled(t.Status);
+                    t.ArchiveLocation = null;
+                    t.InstallationId = null; // ERP reg_token bilan qayta bog'lanadi
                     break;
             }
             audit.Add("provisioning.succeeded", "Tenant", t.Id, before,

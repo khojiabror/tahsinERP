@@ -55,7 +55,8 @@ public sealed class ExpiryReminderService(ControlDbContext db, ITelegramSender t
         DateOnly horizon = today.AddDays(Thresholds.Max());
         var subs = await db.Subscriptions.Include(s => s.Tenant).Include(s => s.Plan)
             .Where(s => s.Status == SubscriptionStatus.Active && s.EndDate >= today && s.EndDate <= horizon
-                        && s.Tenant!.Status != TenantStatus.Archived && s.Tenant.Status != TenantStatus.Suspended)
+                        && s.Tenant!.Status != TenantStatus.Archived && s.Tenant.Status != TenantStatus.Suspended
+                        && !s.Tenant.IsDemo)   // demo obunasi o'zi uzayadi (DemoService) — eslatma kerak emas
             .ToListAsync(ct);
 
         // Tenantning eng uzoq faol obunasi bo'yicha (masalan TRIAL + yangi to'langan obuna bo'lsa — eskisi uchun eslatma kerak emas).

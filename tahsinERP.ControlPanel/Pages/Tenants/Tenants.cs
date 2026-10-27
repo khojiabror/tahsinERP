@@ -161,8 +161,59 @@ public class EditModel(ControlDbContext db, TenantService tenants, LicenseIssuer
 }
 
 public class DetailsModel(ControlDbContext db, TenantService tenants, LicenseIssuer issuer, ProvisioningService provisioning, UsageService usage,
-    PortalAuthService portalAuth, PortalNotifier notifier, IOptions<PanelHostOptions> hosts, TenantAppsService apps, SiteDomainService siteDomains) : PanelPageModel
+    PortalAuthService portalAuth, PortalNotifier notifier, IOptions<PanelHostOptions> hosts, TenantAppsService apps, SiteDomainService siteDomains,
+    UpdatesService updates, DemoService demos) : PanelPageModel
 {
+    /// <summary>
+    /// Firmani to'lovsiz demo qilish (Owner): sinov obunasi bir yilga, o'zi uzayadi; to'xtatilgan bo'lsa qayta yoqiladi.
+    /// Masalan arxivdan "demodist" deb tiklangan sinov firmasi.
+    /// </summary>
+    public async Task<IActionResult> OnPostMakeDemoAsync(int id)
+    {
+        if (!await LoadAsync(id)) return NotFound();
+        if (!IsOwner) return Forbidden();
+        ProvisioningJob? job = null;
+        if (await TryAsync(async () => job = await demos.MakeDemoAsync(Tenant)))
+        {
+            FlashOk = L.T("Pnl_Demo_Made") + (job is null ? "" : " " + L.T("Pnl_Demo_ResumeQueued", job.Id));
+            return RedirectToPage(new { id });
+        }
+        await LoadAsync(id);
+        return Page();
+    }
+
+    /// <summary>Arxivdan tiklashda yangi nom (bo'sh — o'sha nom).</summary>
+    [BindProperty] public string? RestoreSlug { get; set; }
+
+    /// <summary>
+    /// Arxivlangan firmani tiklash, ixtiyoriy yangi nom bilan (Owner). Nom o'zgarsa — eski nom bo'yicha bot/sayt yozuvlari va alohida
+    /// ERP instance'i tozalanadi (keyin shu nom bilan yangi firma ochilganda meros qolmasin), eski nom darhol bo'shaydi.
+    /// </summary>
+    public async Task<IActionResult> OnPostRestoreAsync(int id)
+    {
+        if (!await LoadAsync(id)) return NotFound();
+        if (!IsOwner) return Forbidden();
+        string oldSlug = Tenant.Slug;
+        long? removeJob = null;
+        ProvisioningJob? job = null;
+        if (await TryAsync(async () => job = (await provisioning.RestoreArchiveAsync(Tenant, RestoreSlug, ProvisionReason, async () =>
+            {
+                await apps.PurgeAsync(Tenant);
+                if (Tenant.ServerId is int sid)
+                {
+                    var (inv, _) = await updates.InventoryAsync(sid);
+                    if (inv?.Instances.Any(i => i.Slug == oldSlug) == true)
+                        removeJob = (await updates.EnqueueAsync(sid, UpdateAction.RemoveInstance, ReleaseApps.Erp, Tenant.Id, null, false)).Id;
+                }
+            })).Job))
+        {
+            FlashOk = L.T("Pnl_Ten_RestoreQueued", job!.Id, Tenant.Slug) + (removeJob is long r ? " " + L.T("Pnl_Ten_DeleteInstanceQueued", r) : "");
+            return RedirectToPage(new { id });
+        }
+        await LoadAsync(id);
+        return Page();
+    }
+
     // ── Sayt-katalog: firmaning o'z domeni ──
     public TenantSiteDomain? SiteDomain { get; private set; }
     /// <summary>Domen A yozuvi qarashi kerak bo'lgan manzillar (DNS ko'rsatmasi uchun).</summary>
@@ -206,6 +257,7 @@ public class DetailsModel(ControlDbContext db, TenantService tenants, LicenseIss
 
     public List<ProvisioningJob> Jobs { get; private set; } = [];
     public ProvisioningJob? ActiveJob => Jobs.FirstOrDefault(j => j.IsActive);
+    /// <summary>Ochiq demo (kechasi shablondan tiklanadi) — «Shablondan qayta tiklash» tugmasi.</summary>
     public bool IsDemo { get; private set; }
     public string? TenantUrl { get; private set; }
     /// <summary>Create job uchun yaratilgan vaqtinchalik admin paroli — faqat shu javobda bir marta ko'rsatiladi.</summary>
@@ -242,7 +294,7 @@ public class DetailsModel(ControlDbContext db, TenantService tenants, LicenseIss
         StaffNames = await db.StaffUsers.ToDictionaryAsync(s => s.Id, s => s.FullName);
         PortalUsers = await db.PortalUsers.Where(u => u.TenantId == id).OrderBy(u => u.Id).ToListAsync();
         Jobs = await db.ProvisioningJobs.AsNoTracking().Where(j => j.TenantId == id).OrderByDescending(j => j.Id).Take(30).ToListAsync();
-        IsDemo = provisioning.IsDemo(t);
+        IsDemo = provisioning.IsPublicDemo(t);
         IsTrialOnly = t.Deployment == DeploymentKind.SaaS && t.DeletedAtUtc == null && await provisioning.IsTrialOnlyAsync(t);
         Usage = await db.UsageStates.AsNoTracking().FirstOrDefaultAsync(s => s.TenantId == id);
         var weekAgo = DateTime.UtcNow.AddDays(-7);
@@ -687,6 +739,62 @@ public class TrialModel(ControlDbContext db, TenantService tenants, Provisioning
             demo.HandledByStaffId = StaffId;
             demo.HandledAtUtc = DateTime.UtcNow;
             await db.SaveChangesAsync();
+        }
+        Created = t;
+        Job = r!.Job;
+        TempPassword = r.TempPassword;
+        TenantUrl = provisioning.TenantUrl(t);
+        return Page();
+    }
+}
+
+/// <summary>
+/// «Demo ochish»: to'lovsiz demo firma (DemoService) — tanlangan modullar va ma'lumot turi bilan, masalan distributsiya va ishlab chiqarish
+/// demolari alohida. Faqat egasi: demo — bepul yillik obuna.
+/// </summary>
+[Authorize(Policy = Policies.Owner)]
+public class DemoModel(ControlDbContext db, DemoService demos, ProvisioningService provisioning) : PanelPageModel
+{
+    public class DemoInput
+    {
+        [Required(ErrorMessageResourceType = typeof(PnlVal), ErrorMessageResourceName = nameof(PnlVal.SlugRequired)), StringLength(63)] public string Slug { get; set; } = "";
+        [Required(ErrorMessageResourceType = typeof(PnlVal), ErrorMessageResourceName = nameof(PnlVal.LegalNameRequired)), StringLength(300)] public string LegalName { get; set; } = "";
+        public int? ServerId { get; set; }
+        /// <summary>"sample" — ixcham namuna (Database/Sample), "full" — to'liq namuna (Database/Demo), "none" — bo'sh baza.</summary>
+        public string Data { get; set; } = "sample";
+        public List<string> Modules { get; set; } = [];
+    }
+
+    [BindProperty] public DemoInput Input { get; set; } = new();
+    public List<SelectListItem> Servers { get; private set; } = [];
+    public Tenant? Created { get; private set; }
+    public ProvisioningJob? Job { get; private set; }
+    public string? TempPassword { get; private set; }
+    public string? TenantUrl { get; private set; }
+
+    public async Task OnGetAsync() => Servers = await ServerList.LoadAsync(db);
+
+    public async Task<IActionResult> OnPostAsync()
+    {
+        Servers = await ServerList.LoadAsync(db);
+        var modules = LicenseIssuer.ParseModules(string.Join(",", Input.Modules));
+        if (modules is null)
+            ModelState.AddModelError("Input.Modules", L.T("Pnl_Ten_ModulesRequired"));
+        if (Input.Data is not ("sample" or "full" or "none")) Input.Data = "sample";
+        if (!ModelState.IsValid) return Page();
+        Input.Modules = modules!.Select(m => m.ToString()).ToList();
+        var t = new Tenant
+        {
+            Slug = Input.Slug, LegalName = Input.LegalName, CompanyId = 1, ServerId = Input.ServerId,
+            SampleData = Input.Data != "none", FullSampleData = Input.Data == "full", Modules = LicenseIssuer.FormatModules(modules),
+        };
+        ProvisioningService.EnqueueResult? r = null;
+        if (!await TryAsync(async () => r = await demos.CreateAsync(t)))
+        {
+            if (t.Id == 0) return Page();
+            FlashError = L.T("Pnl_Ten_CreatedNoJob") + " " +
+                         string.Join(" ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
+            return RedirectToPage("Details", new { id = t.Id });
         }
         Created = t;
         Job = r!.Job;

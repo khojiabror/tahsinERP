@@ -14,6 +14,11 @@ public interface IBackupStore
     Task<string?> FindLatestAsync(string slug, CancellationToken ct);
     /// <summary>Tenantning barcha arxivlari (Delete). Qaytaradi: o'chirilgan fayllar soni.</summary>
     Task<int> DeleteAllAsync(string slug, CancellationToken ct);
+    /// <summary>
+    /// Restore: arxiv manzilidan RESTORE uchun lokal .bak yo'li. Manzil shu ombor ichida bo'lishi va SHA-256 (yonidagi .sha256) mos
+    /// kelishi shart — aks holda InvalidDataException.
+    /// </summary>
+    Task<string> FetchAsync(string location, CancellationToken ct);
 }
 
 public sealed class LocalBackupStore(AgentOptions options) : IBackupStore
@@ -48,6 +53,27 @@ public sealed class LocalBackupStore(AgentOptions options) : IBackupStore
         if (!Directory.Exists(dir)) return Task.FromResult<string?>(null);
         var latest = new DirectoryInfo(dir).GetFiles("*.bak").OrderByDescending(f => f.LastWriteTimeUtc).FirstOrDefault();
         return Task.FromResult(latest is null ? null : Scheme + latest.FullName);
+    }
+
+    public async Task<string> FetchAsync(string location, CancellationToken ct)
+    {
+        if (!location.StartsWith(Scheme, StringComparison.Ordinal)) throw new InvalidDataException("Arxiv manzili lokal emas: " + location);
+        string path = Path.GetFullPath(location[Scheme.Length..]);
+        if (!path.StartsWith(Root.TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase)
+            || !path.EndsWith(".bak", StringComparison.OrdinalIgnoreCase))
+            throw new InvalidDataException("Arxiv manzili arxiv papkasidan tashqarida: " + path);
+        if (!File.Exists(path)) throw new InvalidDataException("Arxiv fayli topilmadi: " + path);
+        string shaFile = path + ".sha256";
+        if (File.Exists(shaFile))
+        {
+            string expected = (await File.ReadAllTextAsync(shaFile, ct)).Split(' ', 2)[0].Trim();
+            string actual;
+            await using (var fs = File.OpenRead(path))
+                actual = Convert.ToHexStringLower(await SHA256.HashDataAsync(fs, ct));
+            if (!string.Equals(expected, actual, StringComparison.OrdinalIgnoreCase))
+                throw new InvalidDataException("Arxiv fayli buzilgan (SHA-256 mos emas): " + path);
+        }
+        return path;
     }
 
     public Task<int> DeleteAllAsync(string slug, CancellationToken ct)

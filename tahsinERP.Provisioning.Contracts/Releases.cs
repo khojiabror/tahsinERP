@@ -215,6 +215,36 @@ public sealed class UpdateInventory
     public List<ErpInstanceInfo> Instances { get; set; } = [];
     /// <summary>Kunlik zaxiraning oxirgi natijasi (Backup-Databases.ps1 → Updates\Status\backup.json); sozlanmagan bo'lsa null.</summary>
     public BackupReport? Backup { get; set; }
+    /// <summary>Server resurslari (RAM, disklar, CPU) — agent har inventarda o'lchaydi; eski agent yubormaydi (null).</summary>
+    public ServerHealth? Health { get; set; }
+}
+
+/// <summary>Server resurslarining joriy holati. CPU — oldingi inventardan beri o'rtacha band foizi (birinchi o'lchovda null).</summary>
+public sealed class ServerHealth
+{
+    public string? MachineName { get; set; }
+    public string? Os { get; set; }
+    public int CpuCount { get; set; }
+    public double? CpuPercent { get; set; }
+    public long RamTotalBytes { get; set; }
+    public long RamAvailableBytes { get; set; }
+    public long UptimeSeconds { get; set; }
+    public List<DiskHealth> Disks { get; set; } = [];
+
+    [JsonIgnore] public long RamUsedBytes => Math.Max(0, RamTotalBytes - RamAvailableBytes);
+    [JsonIgnore] public double RamPercent => RamTotalBytes > 0 ? 100.0 * RamUsedBytes / RamTotalBytes : 0;
+}
+
+public sealed class DiskHealth
+{
+    /// <summary>Disk nomi, masalan "C:\".</summary>
+    public string Name { get; set; } = "";
+    public string? Label { get; set; }
+    public long TotalBytes { get; set; }
+    public long FreeBytes { get; set; }
+
+    [JsonIgnore] public long UsedBytes => Math.Max(0, TotalBytes - FreeBytes);
+    [JsonIgnore] public double UsedPercent => TotalBytes > 0 ? 100.0 * UsedBytes / TotalBytes : 0;
 }
 
 /// <summary>Kunlik zaxira natijasi (Docs/Deploy/04_BACKUP.md). Sirsiz: faqat holat, fayl nomlari va xato matnlari.</summary>

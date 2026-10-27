@@ -161,8 +161,15 @@ public class Tenant
     public string? ArchiveLocation { get; set; }
     /// <summary>Delete job tugagan vaqt: baza, zaxira va reestr yozuvi o'chirilgan. Moliyaviy tarix uchun qator qoladi.</summary>
     public DateTime? DeletedAtUtc { get; set; }
-    /// <summary>Baza namuna ma'lumotlar bilan yaratilgan/yaratiladi (Database/Demo skriptlari).</summary>
+    /// <summary>Baza namuna ma'lumotlar bilan yaratilgan/yaratiladi (ixcham — Database/Sample; FullSampleData — Database/Demo).</summary>
     public bool SampleData { get; set; }
+    /// <summary>SampleData bilan: katta "Demo Plast" ssenariysi (Database/Demo, ~3 oylik tarix) — ixcham namuna o'rniga. Demo firmalar uchun.</summary>
+    public bool FullSampleData { get; set; }
+    /// <summary>
+    /// Demo firma (sotuv ko'rsatuvi, to'lovsiz): sinov obunasi 1 yilga, o'zi uzayadi (SubscriptionService.RunLifecycleAsync), hisob-faktura,
+    /// muddat eslatmalari, sotuv voronkasi va faollik statistikasiga kirmaydi. DemoService.CreateAsync / MakeDemoAsync.
+    /// </summary>
+    public bool IsDemo { get; set; }
     /// <summary>
     /// Baza qaysi modullar uchun tayyorlangan/tayyorlanadi: ProductModule nomlari vergul bilan ("Srm,Crm,Tasks,Website"),
     /// EditionModules.NormalizeModules tartibida. Null — hamma modul (eski tenantlar, demo). Create job shu ro'yxat bo'yicha
@@ -372,7 +379,7 @@ public class ApiNonce
     public DateTime ExpiresUtc { get; set; }
 }
 
-public enum ProvisioningJobType { Create = 1, Reset = 2, Suspend = 3, Resume = 4, Archive = 5, Delete = 6, EndTrial = 7, SiteDomain = 8 }
+public enum ProvisioningJobType { Create = 1, Reset = 2, Suspend = 3, Resume = 4, Archive = 5, Delete = 6, EndTrial = 7, SiteDomain = 8, Restore = 9 }
 
 /// <summary>
 /// O'z domeni holati: DNS kutilmoqda → (DNS server IP'ga qaradi) Binding — agent sertifikat va IIS binding qilmoqda → Active.
@@ -798,6 +805,30 @@ public class ServerInventory
     public string Json { get; set; } = "{}";
     public string? UpdaterVersion { get; set; }
     public DateTime ReportedAtUtc { get; set; }
+}
+
+/// <summary>
+/// Server holatining kunlik jurnali (Toshkent kuni bo'yicha bitta qator): agent inventaridagi ServerHealth har kelganda
+/// yig'iladi — CPU/RAM o'rtacha va maksimum, disklar kun oxiridagi holati, qayta yuklashlar (uptime kamaygan).
+/// </summary>
+public class ServerHealthDay
+{
+    public long Id { get; set; }
+    public int ServerId { get; set; }
+    public DateOnly Day { get; set; }
+    public int Samples { get; set; }
+    public int CpuSamples { get; set; }
+    public double? CpuAvgPercent { get; set; }
+    public double? CpuMaxPercent { get; set; }
+    public long RamTotalBytes { get; set; }
+    public long RamUsedAvgBytes { get; set; }
+    public long RamUsedMaxBytes { get; set; }
+    /// <summary>Oxirgi o'lchovdagi disklar — List&lt;DiskHealth&gt; JSON.</summary>
+    public string DisksJson { get; set; } = "[]";
+    public long UptimeSeconds { get; set; }
+    public int Reboots { get; set; }
+    public DateTime FirstAtUtc { get; set; }
+    public DateTime LastAtUtc { get; set; }
 }
 
 // ── Ommaviy sayt (tahsinerp.uz) demo so'rovlari ───────────────────────────────────────────────────────────────────

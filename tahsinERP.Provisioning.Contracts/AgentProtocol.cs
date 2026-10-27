@@ -57,7 +57,7 @@ public static class AgentProtocol
     }
 }
 
-public enum JobKind { Create = 1, Reset = 2, Suspend = 3, Resume = 4, Archive = 5, Delete = 6, EndTrial = 7, SiteDomain = 8 }
+public enum JobKind { Create = 1, Reset = 2, Suspend = 3, Resume = 4, Archive = 5, Delete = 6, EndTrial = 7, SiteDomain = 8, Restore = 9 }
 
 /// <summary>
 /// Agent imkoniyatlari (LeaseRequest.Capabilities). Panel yangi turdagi job'ni faqat uni e'lon qilgan agentga beradi —
@@ -67,6 +67,8 @@ public static class AgentCapabilities
 {
     /// <summary>Sayt-katalog uchun o'z domeni: IIS binding + win-acme HTTP-01 sertifikat (JobKind.SiteDomain).</summary>
     public const string SiteDomain = "site-domain";
+    /// <summary>Arxivdan tiklash, ixtiyoriy yangi nom bilan (JobKind.Restore).</summary>
+    public const string RestoreArchive = "restore-archive";
 }
 
 public enum JobOutcome { Succeeded = 1, Failed = 2, Retry = 3 }
@@ -105,6 +107,8 @@ public sealed class JobPayload
     public bool Demo { get; set; }
     /// <summary>Create: namuna ma'lumotlar bilan (Database/Demo skriptlari; demo foydalanuvchi o'chirib qo'yiladi).</summary>
     public bool SampleData { get; set; }
+    /// <summary>SampleData bilan: katta "Demo Plast" ssenariysi (New-TenantDb -Demo) — ixcham namuna (-Sample) o'rniga.</summary>
+    public bool FullSample { get; set; }
     /// <summary>
     /// Create: baza qaysi modullar uchun tayyorlanadi — ProductModule nomlari ("Srm", "Crm", "Website"...). Null/bo'sh — hammasi
     /// (eski panel, demo). Agent New-TenantDb.ps1 -Modules ga beradi: rol/ombor profili va faqat shu modullarning namuna ma'lumoti.
@@ -119,6 +123,10 @@ public sealed class JobPayload
     public string? SiteDomain { get; set; }
     /// <summary>SiteDomain: olib tashlanadigan eski domenlar (binding, win-acme yangilanishi va sertifikat o'chiriladi).</summary>
     public List<string>? SiteDomainRemove { get; set; }
+    /// <summary>Restore: arxiv manzili (Archive job natijasi, "file:...").</summary>
+    public string? ArchiveLocation { get; set; }
+    /// <summary>Restore: firma yangi nom bilan tiklansa — eski nom (tenants.json dan olib tashlanadi).</summary>
+    public string? PreviousSlug { get; set; }
 }
 
 public sealed class JobSecrets
