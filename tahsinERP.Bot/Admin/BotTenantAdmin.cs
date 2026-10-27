@@ -119,6 +119,28 @@ public sealed partial class BotTenantAdmin(BotDbContext db, TelegramApi api, Sec
         registry.Invalidate();
     }
 
+    /// <summary>
+    /// Firma butunlay olib tashlanadi (panel firmani o'chirganda): webhook (iloji bo'lsa), Telegram ulanishlari, seanslar, navbatlar
+    /// va tenant yozuvi. Shu nom bilan keyin ochilgan yangi firma eski ulanishlarni (chat → eski ERP foydalanuvchisi) meros qilmasin.
+    /// Topilmasa — false (idempotent).
+    /// </summary>
+    public async Task<bool> DeleteAsync(string slug, CancellationToken ct)
+    {
+        slug = NormalizeSlug(slug);
+        var t = await db.Tenants.FirstOrDefaultAsync(x => x.Slug == slug, ct);
+        if (t is null) return false;
+        try { await api.CallAsync(secrets.Unprotect(t.TokenEnc), "deleteWebhook", new { }, ct); }
+        catch (Exception ex) when (ex is HttpRequestException or CryptographicException or TaskCanceledException) { }
+        db.Links.RemoveRange(await db.Links.Where(x => x.TenantId == t.Id).ToListAsync(ct));
+        db.Sessions.RemoveRange(await db.Sessions.Where(x => x.TenantId == t.Id).ToListAsync(ct));
+        db.Inbox.RemoveRange(await db.Inbox.Where(x => x.TenantId == t.Id).ToListAsync(ct));
+        db.Outbox.RemoveRange(await db.Outbox.Where(x => x.TenantId == t.Id).ToListAsync(ct));
+        db.Tenants.Remove(t);
+        await db.SaveChangesAsync(ct);
+        registry.Invalidate();
+        return true;
+    }
+
     /// <summary>secret_token: 1-256 belgi, A-Z a-z 0-9 _ -.</summary>
     internal static string NewSecret() =>
         Convert.ToBase64String(RandomNumberGenerator.GetBytes(32)).TrimEnd('=').Replace('+', '-').Replace('/', '_');

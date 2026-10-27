@@ -12,12 +12,16 @@
     faqat shu modullarning namuna ma'lumotini, Setup/300_ModuleProfile.sql faqat ularning rollari/omborlarini qo'llaydi.
     Mes tanlansa Engineering avtomatik qo'shiladi. Berilmasa — hamma modul (eski xatti-harakat, demo shabloni).
 
+    -Demo: katta "Demo Plast" ssenariysi (Demo/*.sql, ~3 oylik tarix) — ochiq demo shabloni uchun.
+    -Sample: sinov korxonasi uchun ixcham namuna (Sample/*.sql) — tanlangan har bo'limda bittadan yozuv; admin yaratilgandan
+    keyin ishlaydi (yaratuvchi — admin), shuning uchun -NoAdmin bilan e'tiborsiz qoldiriladi.
+
     Natija stdout'ning oxirgi qatorida: "RESULT {json}" — ok, exitCode, database, adminLogin, tempPassword, backup, modules.
     Xato bo'lsa yangi yaratilgan baza o'chiriladi (-KeepOnFailure bilan qoldiriladi).
 
 .EXAMPLE
     .\New-TenantDb.ps1 -Server localhost -DbName DB_firma1 -CompanyName '"Firma 1" MChJ'
-    .\New-TenantDb.ps1 -Server localhost -DbName DB_firma2 -Modules Srm,Crm,Tasks,Finance -Demo
+    .\New-TenantDb.ps1 -Server localhost -DbName DB_firma2 -Modules Distribution,Website -Sample
     .\New-TenantDb.ps1 -Server localhost -DbName DB_DEMO -Demo -BackupTo C:\Backups\DB_DEMO_TEMPLATE.bak
     .\New-TenantDb.ps1 -Server localhost -DbName DB_TEMPLATE -NoAdmin -BackupTo C:\Backups\DB_TEMPLATE.bak
 #>
@@ -37,6 +41,8 @@ param(
     [switch]$NoAdmin,
 
     [switch]$Demo,
+    # Ixcham namuna (Sample/*.sql) — admin yaratilgandan keyin; -Demo bilan birga berilmaydi
+    [switch]$Sample,
     # Tanlangan modullar (bo'sh — hammasi). Agent: -Modules Srm,Crm,...
     [string[]]$Modules,
     # Seed (+demo) dan keyin, admin yaratilishidan OLDIN COPY_ONLY backup (DB_TEMPLATE.bak / DB_DEMO_TEMPLATE.bak)
@@ -205,6 +211,10 @@ IF @uzs IS NOT NULL AND NOT EXISTS (SELECT 1 FROM dbo.FIN_ACCOUNTS)
     INSERT INTO dbo.FIN_ACCOUNTS (Code, Name, OwnerName, CurrencyID, IsCash, IsBank, IsActive, CreatedByUserID, CreatedDT, BalanceCategoryID, IsDeleted)
     VALUES ('9000', N'Kassa', NULL, @uzs, 1, 0, 1, @uid, GETDATE(), @cash, 0),
            ('9001', N'Hisob raqam', NULL, @uzs, 0, 1, 1, @uid, GETDATE(), @bank, 0);
+-- Distributsiya: agent naqdi topshiriladigan kassa — standart kassa (Sozlamalar -> Umumiy; keyin o'zgartiriladi)
+IF OBJECT_ID(N'dst.SETTINGS', N'U') IS NOT NULL
+    UPDATE dst.SETTINGS SET [Value] = CAST((SELECT ID FROM dbo.FIN_ACCOUNTS WHERE Code = '9000') AS varchar(20))
+    WHERE [Key] = 'AgentCashAccountId' AND [Value] IS NULL AND EXISTS (SELECT 1 FROM dbo.FIN_ACCOUNTS WHERE Code = '9000');
 "@ @{ '@uid' = $uid } $tran | Out-Null
                 $tran.Commit()
             }
@@ -212,6 +222,17 @@ IF @uzs IS NOT NULL AND NOT EXISTS (SELECT 1 FROM dbo.FIN_ACCOUNTS)
             $result.adminLogin = $AdminLogin
             $result.tempPassword = $tempPwd
             Write-Log 'INFO' "Admin yaratildi: $AdminLogin (birinchi kirishda parol almashtiriladi)"
+        }
+
+        # ---------------- 6. ixcham namuna (admin'dan keyin: yaratuvchi — admin, kassa hisobi bor) ----------------
+        if ($Sample -and -not $NoAdmin) {
+            $sampleDir = Join-Path $root 'Sample'
+            $sampleFiles = @()
+            if (Test-Path -LiteralPath $sampleDir) { $sampleFiles = @(Get-ChildItem -LiteralPath $sampleDir -Filter '*.sql' | Sort-Object Name | ForEach-Object { $_.FullName }) }
+            if ($sampleFiles.Count -eq 0) { $code = $EXIT_BAD_ARGS; throw [System.Exception]::new("Namuna skriptlari topilmadi: $sampleDir") }
+            $runArgs.ExtraScripts = $sampleFiles
+            & $runner @runArgs
+            if ($LASTEXITCODE -ne 0) { throw [System.Exception]::new("Namuna skriptlari xato kodi: $LASTEXITCODE") }
         }
     }
     finally { $db.Dispose() }

@@ -220,9 +220,10 @@
             });
 
             function upload(url, file) {
-                var fd = new FormData(); fd.append('file', file);
-                return $.ajax({ url: url, type: 'POST', data: fd, processData: false, contentType: false })
-                    .then(function (r) { if (r && r.success) return r.data; dstNotify(r && r.message, true); return $.Deferred().reject(); });
+                return dstShrinkImage(file).then(function (blob) {
+                    var fd = new FormData(); fd.append('file', blob, file.name);
+                    return dstUpload(url, fd);
+                });
             }
             $('#logoFile').on('change', function () {
                 if (!this.files.length) return;

@@ -73,6 +73,42 @@ public class AdminTests
         Assert.Contains(tg.Requests, r => r.Uri.AbsolutePath.EndsWith("/deleteWebhook"));
     }
 
+    /// <summary>Firma panelda o'chirilganda: ulanishlar, seanslar, navbatlar va tenant yo'qoladi — shu nomli yangi firma toza boshlaydi.</summary>
+    [Fact]
+    public async Task Delete_RemovesTenantLinksSessionsAndQueues_Idempotent()
+    {
+        var (sp, tg) = Build();
+        using var scope = sp.CreateScope();
+        var admin = scope.ServiceProvider.GetRequiredService<BotTenantAdmin>();
+        var db = scope.ServiceProvider.GetRequiredService<BotDbContext>();
+        var t = await admin.UpsertAsync("firma1", "https://firma1.example.uz/", "firma1", "123:good", verifyToken: true, CancellationToken.None);
+        var other = await admin.UpsertAsync("firma2", "https://firma2.example.uz/", "firma2", "123:good", verifyToken: true, CancellationToken.None);
+        var now = DateTime.UtcNow;
+        foreach (var id in new[] { t.Id, other.Id })
+        {
+            db.Links.Add(new BotLink { TenantId = id, TelegramUserId = 7, ChatId = 7, UserId = 5, Role = "AGENT", LinkedAt = now });
+            db.Sessions.Add(new BotSession { TenantId = id, TelegramUserId = 7, State = "x" });
+            db.Inbox.Add(new BotInboxItem { TenantId = id, UpdateId = 1, Payload = "{}", ReceivedAt = now });
+            db.Outbox.Add(new BotOutboxItem { TenantId = id, ChatId = 7, Method = "sendMessage", Payload = "{}", CreatedAt = now, NotBefore = now });
+        }
+        await db.SaveChangesAsync();
+
+        Assert.True(await admin.DeleteAsync("Firma1", CancellationToken.None));
+        Assert.False(await db.Tenants.AnyAsync(x => x.Slug == "firma1"));
+        Assert.False(await db.Links.AnyAsync(x => x.TenantId == t.Id));
+        Assert.False(await db.Sessions.AnyAsync(x => x.TenantId == t.Id));
+        Assert.False(await db.Inbox.AnyAsync(x => x.TenantId == t.Id));
+        Assert.False(await db.Outbox.AnyAsync(x => x.TenantId == t.Id));
+        Assert.Contains(tg.Requests, r => r.Uri.AbsolutePath.EndsWith("/deleteWebhook"));
+        // boshqa firma tegilmaydi
+        Assert.Equal(1, await db.Links.CountAsync(x => x.TenantId == other.Id));
+        Assert.Equal(1, await db.Outbox.CountAsync(x => x.TenantId == other.Id));
+        // qayta chaqirish xavfsiz; shu nom bilan yangi firma ulanadi
+        Assert.False(await admin.DeleteAsync("firma1", CancellationToken.None));
+        var fresh = await admin.UpsertAsync("firma1", "https://firma1.example.uz/", "firma1", "123:good", verifyToken: true, CancellationToken.None);
+        Assert.NotEqual(t.Id, fresh.Id);
+    }
+
     [Fact]
     public async Task Upsert_RejectsBadTokenSlugAndMissingToken()
     {

@@ -169,6 +169,9 @@ public class SiteDomainFlowTests(PanelFactory f) : IClassFixture<PanelFactory>
             Pushes.Add($"{slug}:{host ?? "-"}:{redirect}");
             return Task.FromResult(Sites[slug] = Sites[slug] with { Domain = host, RedirectToDomain = redirect });
         }
+        public Task<AppDeleteResult> DeleteBotAsync(string slug, CancellationToken ct = default) => throw new NotSupportedException();
+        public Task<AppDeleteResult> DeleteSiteAsync(string slug, CancellationToken ct = default) =>
+            Task.FromResult(new AppDeleteResult(slug, Sites.Remove(slug)));
     }
 
     private sealed class FakeDns : IDnsResolver

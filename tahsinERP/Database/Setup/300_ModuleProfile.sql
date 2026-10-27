@@ -2,11 +2,13 @@
    tahsinERP — yangi korxona: tanlangan modullar profili (New-TenantDb.ps1, seed va demo'dan keyin).
 
    dbo.SETUP_MODULES (032) dagi modullar bo'yicha boshlang'ich sozlama (jadval bo'sh — hamma modul):
-     1. Rollar: har tanlangan modulga bitta rol (masalan "Sotuv menejeri"); PERMISSIONS — #matrix bo'yicha aniq: o'z moduli
-        C (ko'rish + yaratish/tahrirlash), qo'shni modullarning kerakli bo'limlari V (faqat ko'rish), asosiy spravochniklar V
-        (Ta'minot/Texnolog/Distributsiya — mahsulot C), topshiriqlar — ishlash C, sozlamalari V. O'chirish — hech bir modul roliga
-        (faqat Admin). Admin/Developer o'zgarmaydi (to'liq huquq, 110_Defaults). Tanlanmagan modul bo'limlariga hech bir rol huquq
-        olmaydi; menyuni litsenziya (Edition) ham yopadi.
+     1. Rollar: "Rahbar" (har doim — tanlangan hamma bo'limni ko'radi, tasdiqlaydi, Distributsiya maxsus huquqlari) va har tanlangan
+        modulga ish roli (masalan "Sotuv menejeri"); Distributsiyada alohida: operator, omborchi, kassir, savdo agenti, ekspeditor
+        (qo'llanma 1.10.1) + chegirma limitlari. PERMISSIONS — #matrix bo'yicha aniq: o'z ishi C (ko'rish + yaratish/tahrirlash),
+        qo'shni modullarning kerakli bo'limlari V (faqat ko'rish), asosiy spravochniklar V, topshiriqlar — ishlash C, sozlamalari V.
+        O'chirish — hech bir rolga (faqat Admin). Admin/Developer o'zgarmaydi (to'liq huquq, 110_Defaults). Tanlanmagan modul
+        bo'limlariga hech bir rol huquq olmaydi; menyuni litsenziya (Edition) ham yopadi. Foydalanuvchilar yaratilmaydi — admin
+        xodimlarni qo'shib, shu rollardan birini beradi.
      2. Omborlar: tanlanmagan modul ombori (harakati yo'q bo'lsa) o'chirib qo'yiladi — PRODUCTION (Mes), SUPPLY (Srm/Mes),
         SALES (Crm/Mes/Distribution/Website); Distributsiya — sotuv ombori dst.WAREHOUSE_SETTINGS da savdo nuqtasi.
      3. Mahsulot kategoriyalari: bazada mahsulot yo'q bo'lsa (namuna ma'lumotsiz) — modulga mos boshlang'ich kategoriyalar.
@@ -62,42 +64,66 @@ INSERT INTO #cm (Module, Controller) VALUES
 -- xaritadan tashqari ruxsat yozuvlari (controller emas): Distributsiya maxsus huquqlari (DstSeeCost, DstOverrideCredit...)
 ('Distribution', 'Dst');
 
-/* ---------------- 1. modul rollari va ruxsat matritsasi ---------------- */
--- Har tanlangan modulga bitta rol. RName — ROLES.RName (varchar 25).
-CREATE TABLE #roles (Module varchar(30) COLLATE DATABASE_DEFAULT PRIMARY KEY, RName varchar(25) COLLATE DATABASE_DEFAULT, Description varchar(200) COLLATE DATABASE_DEFAULT, ID int NULL);
-INSERT INTO #roles (Module, RName, Description)
-SELECT r.Module, r.RName, r.Descr
-FROM (VALUES ('Srm', 'Ta''minot menejeri', 'Xarid, ta''minotchilar va omborlar'),
-             ('Crm', 'Sotuv menejeri', 'Mijozlar, shartnomalar, buyurtmalar va sotuv invoyslari'),
-             ('Mes', 'Ishlab chiqarish ustasi', 'Ishlab chiqarish rejasi, hisobi va sifat nazorati'),
-             ('Engineering', 'Texnolog', 'BOM, normalar va tannarx'),
-             ('Finance', 'Hisobchi', 'Pul hisoblari, to''lovlar, moliyaviy hisobotlar'),
-             ('Hr', 'Kadrlar mutaxassisi', 'Xodimlar, tabel va oylik'),
-             ('Logistics', 'Logist', 'Ekspeditorlar, tariflar va yo''l varaqalari'),
-             ('Docs', 'Devonxona mudiri', 'Rasmiy xatlar, buyruqlar va standartlar'),
-             ('Distribution', 'Distributsiya menejeri', 'Savdo nuqtalari, agentlar, buyurtmalar, qarzlar'),
-             ('Website', 'Sayt menejeri', 'Sayt-katalog: mahsulotlar, sahifalar, so''rovlar')) r (Module, RName, Descr)
-JOIN #sel s ON s.Module = r.Module;
+/* ---------------- 1. standart rollar va ruxsat matritsasi ---------------- */
+-- Rahbar (Director) — har doim: tanlangan hamma bo'limni ko'radi va tasdiqlaydi. Qolganlari — modul tanlansa: har modulga ish roli,
+-- Distributsiyada qo'llanma 1.10.1 jadvali bo'yicha alohida rollar (operator, omborchi, kassir, agent, ekspeditor).
+-- Code — skript ichidagi kalit (#matrix.Role); Module — rol qaysi modul bilan yaratiladi (NULL — har doim); RName — ROLES.RName (varchar 25).
+CREATE TABLE #roles (Code varchar(30) COLLATE DATABASE_DEFAULT PRIMARY KEY, Module varchar(30) COLLATE DATABASE_DEFAULT NULL,
+                     RName varchar(25) COLLATE DATABASE_DEFAULT, Description varchar(200) COLLATE DATABASE_DEFAULT, ID int NULL);
+INSERT INTO #roles (Code, Module, RName, Description)
+SELECT r.Code, r.Module, r.RName, r.Descr
+FROM (VALUES ('Director', NULL, 'Rahbar', 'Barcha bo''limlarni ko''radi; buyurtma, hisobdan chiqarish va limitdan oshishni tasdiqlaydi'),
+             ('Srm', 'Srm', 'Ta''minot menejeri', 'Xarid, ta''minotchilar va omborlar'),
+             ('Crm', 'Crm', 'Sotuv menejeri', 'Mijozlar, shartnomalar, buyurtmalar va sotuv invoyslari'),
+             ('Mes', 'Mes', 'Ishlab chiqarish ustasi', 'Ishlab chiqarish rejasi, hisobi va sifat nazorati'),
+             ('Engineering', 'Engineering', 'Texnolog', 'BOM, normalar va tannarx'),
+             ('Finance', 'Finance', 'Hisobchi', 'Pul hisoblari, to''lovlar, moliyaviy hisobotlar'),
+             ('Hr', 'Hr', 'Kadrlar mutaxassisi', 'Xodimlar, tabel va oylik'),
+             ('Logistics', 'Logistics', 'Logist', 'Ekspeditorlar, tariflar va yo''l varaqalari'),
+             ('Docs', 'Docs', 'Devonxona mudiri', 'Rasmiy xatlar, buyruqlar va standartlar'),
+             ('DstOperator', 'Distribution', 'Distributsiya operatori', 'Buyurtmalarni tasdiqlash, mijozlar, qaytarish, import'),
+             ('DstStorekeeper', 'Distribution', 'Omborchi', 'Yig''ish, jo''natish, inventarizatsiya, ko''chirma, hisobdan chiqarish'),
+             ('DstCashier', 'Distribution', 'Kassir', 'Mijoz to''lovlari va agentlar naqdini qabul qilish'),
+             ('DstAgent', 'Distribution', 'Savdo agenti', 'Telegram bot va Mini App: tashrif, buyurtma, to''lov'),
+             ('DstCourier', 'Distribution', 'Ekspeditor', 'Telegram bot: reys, yetkazish, manzilda to''lov'),
+             ('Website', 'Website', 'Sayt menejeri', 'Sayt-katalog: mahsulotlar, sahifalar, so''rovlar')) r (Code, Module, RName, Descr)
+WHERE r.Module IS NULL OR EXISTS (SELECT 1 FROM #sel s WHERE s.Module = r.Module);
 
 INSERT INTO dbo.ROLES (RName, Description, IsDeleted)
 SELECT r.RName, r.Description, 0 FROM #roles r
 WHERE NOT EXISTS (SELECT 1 FROM dbo.ROLES x WHERE x.RName = r.RName AND ISNULL(x.IsDeleted, 0) = 0);
 UPDATE r SET ID = x.ID FROM #roles r JOIN dbo.ROLES x ON x.RName = r.RName AND ISNULL(x.IsDeleted, 0) = 0;
 
-/* Ruxsat matritsasi: rol (moduli) -> qaysi bo'limni ko'radi (V) yoki o'zgartiradi (C = ko'rish + yaratish/tahrirlash).
+/* Ruxsat matritsasi: rol (#roles.Code) -> qaysi bo'limni ko'radi (V) yoki o'zgartiradi (C = ko'rish + yaratish/tahrirlash).
    Target = modul nomi yoki 'Core' (asosiy spravochniklar); Controller = '*' — modulning barcha bo'limlari, aks holda aniq controller.
-   Qator faqat rol moduli VA target moduli tanlangan bo'lsa qo'llanadi (Core — har doim). O'chirish (DeletePermit) — faqat Admin.
+   Qator faqat rol yaratilgan VA target moduli tanlangan bo'lsa qo'llanadi (Core — har doim). O'chirish (DeletePermit) — faqat Admin.
    Bir bo'limga ikki qator tushsa kuchlisi (C) olinadi. Jadval README "Rollar va ruxsatlar" bilan bir xil. */
-CREATE TABLE #matrix (RoleModule varchar(30) COLLATE DATABASE_DEFAULT, Target varchar(30) COLLATE DATABASE_DEFAULT,
+CREATE TABLE #matrix (Role varchar(30) COLLATE DATABASE_DEFAULT, Target varchar(30) COLLATE DATABASE_DEFAULT,
                       Controller varchar(50) COLLATE DATABASE_DEFAULT, Access char(1) COLLATE DATABASE_DEFAULT);
-INSERT INTO #matrix (RoleModule, Target, Controller, Access) VALUES
--- har bir modul roli: asosiy spravochniklar — ko'rish (bosh sahifa, mahsulot, o'lchov birligi, valyuta, ombor, korxona)
+INSERT INTO #matrix (Role, Target, Controller, Access) VALUES
+-- har bir rol: asosiy spravochniklar — ko'rish (bosh sahifa, mahsulot, o'lchov birligi, valyuta, ombor, korxona)
 ('*', 'Core', 'Home', 'V'), ('*', 'Core', 'Account', 'V'), ('*', 'Core', 'Product', 'V'), ('*', 'Core', 'ProductCategory', 'V'),
 ('*', 'Core', 'Unit', 'V'), ('*', 'Core', 'Currency', 'V'), ('*', 'Core', 'Warehouse', 'V'), ('*', 'Core', 'Company', 'V'),
 ('*', 'Core', 'ProductStock', 'V'),
--- har bir modul roli: topshiriqlar — o'z topshiriqlari bilan ishlash (C), sozlamalar (holat, muhimlik, loyiha) — ko'rish
+-- har bir rol: topshiriqlar — o'z topshiriqlari bilan ishlash (C), sozlamalar (holat, muhimlik, loyiha) — ko'rish
 ('*', 'Tasks', 'Tasks', 'C'), ('*', 'Tasks', 'TaskKanban', 'C'), ('*', 'Tasks', 'TaskChangeStatus', 'C'), ('*', 'Tasks', 'TaskDashboard', 'V'),
 ('*', 'Tasks', 'TaskProject', 'V'), ('*', 'Tasks', 'TaskStatus', 'V'), ('*', 'Tasks', 'TaskPriority', 'V'),
+-- Rahbar: tanlangan hamma modulni ko'radi, topshiriqlarni boshqaradi, Distributsiyada qo'llanmadagi "Rahbar" ustuni (audit jurnali — faqat
+-- Admin), sayt so'rovlari bilan ishlaydi. Maxsus huquqlar (tannarx, limitdan oshish, hisobdan chiqarish tasdig'i) — pastda, #grant'da.
+('Director', 'Srm', '*', 'V'), ('Director', 'Crm', '*', 'V'), ('Director', 'Mes', '*', 'V'), ('Director', 'Engineering', '*', 'V'),
+('Director', 'Finance', '*', 'V'), ('Director', 'Hr', '*', 'V'), ('Director', 'Logistics', '*', 'V'), ('Director', 'Docs', '*', 'V'),
+('Director', 'Website', '*', 'V'), ('Director', 'Website', 'SiteLeads', 'C'), ('Director', 'Tasks', '*', 'C'),
+('Director', 'Distribution', 'DstHome', 'V'), ('Director', 'Distribution', 'DstDashboard', 'V'), ('Director', 'Distribution', 'DstReports', 'V'),
+('Director', 'Distribution', 'DstStock', 'V'), ('Director', 'Distribution', 'DstDebts', 'V'), ('Director', 'Distribution', 'DstTransfers', 'V'),
+('Director', 'Distribution', 'DstField', 'V'),
+('Director', 'Distribution', 'DstOrders', 'C'), ('Director', 'Distribution', 'DstPayments', 'C'), ('Director', 'Distribution', 'DstReturns', 'C'),
+('Director', 'Distribution', 'DstCustomers', 'C'), ('Director', 'Distribution', 'DstProducts', 'C'), ('Director', 'Distribution', 'DstPrices', 'C'),
+('Director', 'Distribution', 'DstPromotions', 'C'), ('Director', 'Distribution', 'DstTerritories', 'C'), ('Director', 'Distribution', 'DstTeams', 'C'),
+('Director', 'Distribution', 'DstDictionaries', 'C'), ('Director', 'Distribution', 'DstSettings', 'C'), ('Director', 'Distribution', 'DstImport', 'C'),
+('Director', 'Distribution', 'DstInventory', 'C'), ('Director', 'Distribution', 'DstIssues', 'C'), ('Director', 'Distribution', 'DstWriteOffs', 'C'),
+('Director', 'Distribution', 'DstRegrades', 'C'), ('Director', 'Distribution', 'DstLandedCosts', 'C'), ('Director', 'Distribution', 'DstReorder', 'C'),
+('Director', 'Distribution', 'DstRoutes', 'C'), ('Director', 'Distribution', 'DstTrips', 'C'), ('Director', 'Distribution', 'DstVehicles', 'C'),
+('Director', 'Distribution', 'DstKpi', 'C'),
 -- Ta'minot menejeri
 ('Srm', 'Srm', '*', 'C'), ('Srm', 'Core', 'Product', 'C'), ('Srm', 'Core', 'ProductCategory', 'C'),
 ('Srm', 'Mes', 'ProductPlan', 'V'), ('Srm', 'Logistics', 'Waybill', 'V'), ('Srm', 'Finance', 'FinTransactions', 'V'),
@@ -123,9 +149,28 @@ INSERT INTO #matrix (RoleModule, Target, Controller, Access) VALUES
 ('Logistics', 'Crm', 'SalesInvoices', 'V'), ('Logistics', 'Crm', 'SOrder', 'V'), ('Logistics', 'Distribution', 'DstTrips', 'V'),
 -- Devonxona mudiri
 ('Docs', 'Docs', '*', 'C'), ('Docs', 'Hr', 'HrEmployees', 'V'), ('Docs', 'Hr', 'HrOrgUnits', 'V'), ('Docs', 'Hr', 'HrPositions', 'V'),
--- Distributsiya menejeri (maxsus huquqlar 'Dst' — tannarxni ko'rish, kredit limitidan o'tish, cheksiz chegirma — faqat Admin)
-('Distribution', 'Distribution', '*', 'C'), ('Distribution', 'Core', 'Product', 'C'),
-('Distribution', 'Finance', 'FinTransactions', 'V'), ('Distribution', 'Website', 'SiteLeads', 'V'),
+-- Distributsiya operatori (qo'llanma 1.10.1 "Operator" ustuni) — telefon buyurtmasi, tasdiqlash, mijozlar, import, sayt so'rovlari
+('DstOperator', 'Distribution', 'DstHome', 'V'), ('DstOperator', 'Distribution', 'DstReports', 'V'), ('DstOperator', 'Distribution', 'DstStock', 'V'),
+('DstOperator', 'Distribution', 'DstPayments', 'V'), ('DstOperator', 'Distribution', 'DstDebts', 'V'), ('DstOperator', 'Distribution', 'DstPrices', 'V'),
+('DstOperator', 'Distribution', 'DstPromotions', 'V'), ('DstOperator', 'Distribution', 'DstDictionaries', 'V'), ('DstOperator', 'Distribution', 'DstIssues', 'V'),
+('DstOperator', 'Distribution', 'DstOrders', 'C'), ('DstOperator', 'Distribution', 'DstReturns', 'C'), ('DstOperator', 'Distribution', 'DstCustomers', 'C'),
+('DstOperator', 'Distribution', 'DstProducts', 'C'), ('DstOperator', 'Distribution', 'DstTerritories', 'C'), ('DstOperator', 'Distribution', 'DstImport', 'C'),
+('DstOperator', 'Distribution', 'DstTrips', 'C'), ('DstOperator', 'Core', 'Product', 'C'), ('DstOperator', 'Website', 'SiteLeads', 'C'),
+-- Omborchi — yig'ish, jo'natish, sanoq, ko'chirma qabuli, hisobdan chiqarish (tasdiq — Rahbar)
+('DstStorekeeper', 'Distribution', 'DstHome', 'V'), ('DstStorekeeper', 'Distribution', 'DstStock', 'V'), ('DstStorekeeper', 'Distribution', 'DstReturns', 'V'),
+('DstStorekeeper', 'Distribution', 'DstProducts', 'V'), ('DstStorekeeper', 'Distribution', 'DstIssues', 'V'), ('DstStorekeeper', 'Distribution', 'DstReorder', 'V'),
+('DstStorekeeper', 'Distribution', 'DstTrips', 'V'),
+('DstStorekeeper', 'Distribution', 'DstOrders', 'C'), ('DstStorekeeper', 'Distribution', 'DstInventory', 'C'), ('DstStorekeeper', 'Distribution', 'DstTransfers', 'C'),
+('DstStorekeeper', 'Distribution', 'DstWriteOffs', 'C'), ('DstStorekeeper', 'Distribution', 'DstRegrades', 'C'),
+-- Kassir — ofis to'lovlari, agentlar naqdini qabul qilish
+('DstCashier', 'Distribution', 'DstHome', 'V'), ('DstCashier', 'Distribution', 'DstOrders', 'V'), ('DstCashier', 'Distribution', 'DstDebts', 'V'),
+('DstCashier', 'Distribution', 'DstCustomers', 'V'), ('DstCashier', 'Distribution', 'DstIssues', 'V'), ('DstCashier', 'Distribution', 'DstPayments', 'C'),
+('DstCashier', 'Finance', 'FinTransactions', 'V'),
+-- Savdo agenti — asosan bot, botdan buyurtma yuborish uchun DstOrders C shart
+('DstAgent', 'Distribution', 'DstHome', 'V'), ('DstAgent', 'Distribution', 'DstIssues', 'V'), ('DstAgent', 'Distribution', 'DstOrders', 'C'),
+-- Ekspeditor — bot: reys natijasi
+('DstCourier', 'Distribution', 'DstHome', 'V'), ('DstCourier', 'Distribution', 'DstOrders', 'V'), ('DstCourier', 'Distribution', 'DstIssues', 'V'),
+('DstCourier', 'Distribution', 'DstTrips', 'C'),
 -- Sayt menejeri
 ('Website', 'Website', '*', 'C'), ('Website', 'Distribution', 'DstPrices', 'V'), ('Website', 'Distribution', 'DstStock', 'V'),
 ('Website', 'Crm', 'Customer', 'V');
@@ -133,7 +178,7 @@ INSERT INTO #matrix (RoleModule, Target, Controller, Access) VALUES
 CREATE TABLE #grant (RoleID int, PermissionModuleID int, Chg bit, PRIMARY KEY (RoleID, PermissionModuleID));
 ;WITH m AS (
     SELECT r.ID AS RoleID, x.Target, x.Controller, x.Access
-    FROM #matrix x JOIN #roles r ON x.RoleModule = r.Module OR x.RoleModule = '*'
+    FROM #matrix x JOIN #roles r ON x.Role = r.Code OR x.Role = '*'
     WHERE x.Target = 'Core' OR EXISTS (SELECT 1 FROM #sel s WHERE s.Module = x.Target)),
 c AS (   -- '*' -> modulning barcha controllerlari (Dst maxsus yozuvlari bundan mustasno)
     SELECT m.RoleID, cm.Controller, m.Access FROM m JOIN #cm cm ON cm.Module = m.Target WHERE m.Controller = '*' AND cm.Controller <> 'Dst'
@@ -144,6 +189,14 @@ SELECT c.RoleID, pm.ID, MAX(CASE WHEN c.Access = 'C' THEN 1 ELSE 0 END)
 FROM c JOIN dbo.PERMISSIONMODULES pm ON pm.Controller = c.Controller
 GROUP BY c.RoleID, pm.ID;
 
+-- Distributsiya maxsus huquqlari (PERMISSIONMODULES.Controller = 'Dst', Module bo'yicha; DstPermissions — Change bilan): Rahbar —
+-- tannarxni ko'rish, kredit limitidan oshishga ruxsat, hisobdan chiqarishni tasdiqlash. Cheksiz chegirma — faqat Admin.
+IF EXISTS (SELECT 1 FROM #sel WHERE Module = 'Distribution')
+    INSERT INTO #grant (RoleID, PermissionModuleID, Chg)
+    SELECT r.ID, pm.ID, 1 FROM #roles r
+    JOIN dbo.PERMISSIONMODULES pm ON pm.Controller = 'Dst' AND pm.Module IN ('DstSeeCost', 'DstOverrideCredit', 'DstWriteOffApprove')
+    WHERE r.Code = 'Director' AND NOT EXISTS (SELECT 1 FROM #grant g WHERE g.RoleID = r.ID AND g.PermissionModuleID = pm.ID);
+
 -- mavjud yozuv bo'lsa ham matritsaga tenglanadi (profil qayta ishlasa ham natija bir xil)
 UPDATE p SET ViewPermit = 1, ChangePermit = g.Chg, DeletePermit = 0
 FROM dbo.PERMISSIONS p JOIN #grant g ON g.RoleID = p.RoleID AND g.PermissionModuleID = p.PermissionModuleID;
@@ -151,10 +204,11 @@ INSERT INTO dbo.PERMISSIONS (ViewPermit, ChangePermit, RoleID, PermissionModuleI
 SELECT 1, g.Chg, g.RoleID, g.PermissionModuleID, 0 FROM #grant g
 WHERE NOT EXISTS (SELECT 1 FROM dbo.PERMISSIONS p WHERE p.RoleID = g.RoleID AND p.PermissionModuleID = g.PermissionModuleID);
 
--- distributsiya menejeri: qo'lda chegirma 10% gacha
-IF EXISTS (SELECT 1 FROM #roles WHERE Module = 'Distribution')
+-- distributsiya: qo'lda chegirma limiti (qo'llanma 1.2.3) — agent 3%, operator 5%, rahbar 10%; qolgan rollar chegirma bermaydi
+IF EXISTS (SELECT 1 FROM #sel WHERE Module = 'Distribution')
     INSERT INTO dst.DISCOUNT_LIMITS (RoleID, MaxPercent)
-    SELECT ID, 10 FROM #roles r WHERE r.Module = 'Distribution' AND NOT EXISTS (SELECT 1 FROM dst.DISCOUNT_LIMITS d WHERE d.RoleID = r.ID);
+    SELECT r.ID, v.Pct FROM #roles r JOIN (VALUES ('DstAgent', 3), ('DstOperator', 5), ('Director', 10)) v (Code, Pct) ON v.Code = r.Code
+    WHERE NOT EXISTS (SELECT 1 FROM dst.DISCOUNT_LIMITS d WHERE d.RoleID = r.ID);
 
 /* ---------------- 2. omborlar ---------------- */
 DECLARE @wh TABLE (ID int PRIMARY KEY, Keep bit);
@@ -203,6 +257,16 @@ BEGIN
            @sortBase + ROW_NUMBER() OVER (ORDER BY Ord), 1, @now, 0, 0
     FROM @cat;
 END
+
+/* ---------------- 4. qadoq birliklari (savdo va ombor: quti, pachka, poddon ...) ---------------- */
+-- Tovar qo'shimcha birligi (dst.PRODUCT_UNITS, import "Birlik 2") faqat UNITS ro'yxatidagi birlik bo'lishi mumkin; seed'da faqat
+-- o'lchov birliklari bor. Kod bu birliklarni nom bo'yicha qidirmaydi — SystemCode faqat takror qo'shilmasligi uchun.
+IF EXISTS (SELECT 1 FROM #sel WHERE Module IN ('Srm', 'Crm', 'Mes', 'Distribution', 'Website'))
+    INSERT INTO dbo.UNITS (UnitName, ShortName, Code, IsDeleted, SystemCode)
+    SELECT v.Name, v.Short, 0, 0, v.Sys
+    FROM (VALUES ('quti', 'quti', 'BOX'), ('pachka', 'pachka', 'PACK'), ('blok', 'blok', 'BLOCK'),
+                 ('poddon', 'poddon', 'PALLET'), ('qop', 'qop', 'BAG'), ('rulon', 'rulon', 'ROLL')) v (Name, Short, Sys)
+    WHERE NOT EXISTS (SELECT 1 FROM dbo.UNITS u WHERE u.SystemCode = v.Sys OR u.UnitName = v.Name);
 
 DECLARE @list nvarchar(400) = (SELECT STRING_AGG(Module, ',') FROM #sel);
 DECLARE @roleCount int = (SELECT COUNT(*) FROM #roles);

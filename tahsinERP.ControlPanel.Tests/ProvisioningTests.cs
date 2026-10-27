@@ -533,10 +533,71 @@ public partial class ProvisioningIntegrationTests(PanelFactory f) : IClassFixtur
         Assert.Null(t3.RegistryEnabled);
         Assert.False(File.Exists(bak));
         Assert.Null(new TenantsFile(opts.Paths.TenantsFile!, null).Get(slug));
+        // nom va baza nomi bo'shadi — shu nom bilan yangi firma ochiladi (eski yozuv tarix uchun "<slug>-o<Id>")
+        Assert.Equal(ProvisioningService.ReleasedSlug(slug, tenant.Id), t3.Slug);
+        Assert.Null(t3.DbName);
+        var again = await f.WithScopeAsync(async sp => await sp.GetRequiredService<TenantService>().CreateAsync(
+            new Tenant { Slug = slug, LegalName = "Yangi", Deployment = DeploymentKind.SaaS, ServerId = sid }, true));
+        Assert.Equal(slug, again.Slug);
+        Assert.Equal(dbName, again.DbName);
 
         var actions = await f.WithScopeAsync(sp => sp.GetRequiredService<ControlDbContext>().AuditLog
             .Where(a => a.Entity == "Tenant" && a.EntityId == tenant.Id.ToString()).Select(a => a.Action).ToListAsync());
         Assert.Equal(5, actions.Count(a => a == "provisioning.succeeded"));
+    }
+
+    /// <summary>Sinov firmasi arxivlanadi, so'ng arxivdan YANGI nom bilan tiklanadi (smarttech → demodist holati); eski nom darhol bo'shaydi.</summary>
+    [Fact]
+    public async Task Archive_ThenRestoreWithNewSlug_FreesOldSlug()
+    {
+        var (sid, secret) = await ProvisioningQueueTests.CreateServerAsync(f, "it-srv-rs-" + _suffix);
+        var (worker, opts) = Agent(sid, secret);
+        string slug = "itr-" + _suffix, newSlug = "itn-" + _suffix;
+        string dbName = "DB_itr_" + _suffix, newDb = "DB_itn_" + _suffix;
+        _databases.Add(dbName);
+        _databases.Add(newDb);
+        var (tenant, enq) = await f.WithScopeAsync(async sp =>
+        {
+            var t = await sp.GetRequiredService<TenantService>().CreateAsync(
+                new Tenant { Slug = slug, LegalName = "\"Restore\" MChJ", Deployment = DeploymentKind.SaaS, ServerId = sid }, startTrial: true);
+            return (t, await sp.GetRequiredService<ProvisioningService>().EnqueueAsync(t, ProvisioningJobType.Create));
+        });
+        await RunAsync(worker, enq.Job.Id);
+        await ScalarAsync(dbName, "UPDATE dbo.COMPANIES SET Name = N'Arxivdagi ma''lumot' WHERE ID = 1");
+
+        var arch = await f.WithScopeAsync(async sp => (await sp.GetRequiredService<ProvisioningService>().EnqueueAsync(
+            await sp.GetRequiredService<ControlDbContext>().Tenants.FirstAsync(t => t.Id == tenant.Id), ProvisioningJobType.Archive, "test arxiv")).Job);
+        await RunAsync(worker, arch.Id);
+        Assert.False(await DbExistsAsync(dbName));
+
+        bool renamed = false;
+        var restore = await f.WithScopeAsync(async sp => (await sp.GetRequiredService<ProvisioningService>().RestoreArchiveAsync(
+            await sp.GetRequiredService<ControlDbContext>().Tenants.FirstAsync(t => t.Id == tenant.Id), newSlug, "demo uchun",
+            () => { renamed = true; return Task.CompletedTask; })).Job);
+        Assert.True(renamed);
+        var t1 = await TenantAsync(tenant.Id);
+        Assert.Equal((newSlug, newDb), (t1.Slug, t1.DbName));   // nom navbatga qo'yishdayoq almashdi
+        Assert.Contains("\"previousSlug\":\"" + slug + "\"", (await JobAsync(restore.Id)).Payload);
+
+        await RunAsync(worker, restore.Id);
+        var t2 = await TenantAsync(tenant.Id);
+        Assert.Equal(TenantStatus.Trial, t2.Status);
+        Assert.True(t2.RegistryEnabled);
+        Assert.Null(t2.ArchiveLocation);
+        Assert.True(await DbExistsAsync(newDb));
+        Assert.Equal("Arxivdagi ma'lumot", await ScalarAsync(newDb, "SELECT Name FROM dbo.COMPANIES WHERE ID = 1"));
+        var registry = new TenantsFile(opts.Paths.TenantsFile!, null);
+        Assert.Null(registry.Get(slug));
+        Assert.Equal(true, registry.Get(newSlug)?.Enabled);
+        Assert.NotNull(Erp(opts).ResolveHost($"{newSlug}.{PanelFactory.BaseDomain}"));
+
+        // eski nom bo'sh — shu nom bilan yangi firma ochiladi
+        var again = await f.WithScopeAsync(async sp => await sp.GetRequiredService<TenantService>().CreateAsync(
+            new Tenant { Slug = slug, LegalName = "Yangi", Deployment = DeploymentKind.SaaS, ServerId = sid }, true));
+        Assert.Equal(dbName, again.DbName);
+        // tiklashni qayta bosish — firma endi arxivda emas
+        await Assert.ThrowsAsync<DomainException>(() => f.WithScopeAsync(async sp => await sp.GetRequiredService<ProvisioningService>()
+            .RestoreArchiveAsync(await sp.GetRequiredService<ControlDbContext>().Tenants.FirstAsync(t => t.Id == tenant.Id), null, "x")));
     }
 
     [Fact]

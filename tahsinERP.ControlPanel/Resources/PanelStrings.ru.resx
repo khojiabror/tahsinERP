@@ -2279,10 +2279,10 @@
     <value>Адрес SaaS:</value>
   </data>
   <data name="Pnl_Ten_SampleData" xml:space="preserve">
-    <value>С демо-данными (только отмеченные модули: товары, контрагенты, документы за ~3 месяца, сотрудники...)</value>
+    <value>С примерами (по одной записи в каждом отмеченном разделе: товар, клиент, территория, цена...)</value>
   </data>
   <data name="Pnl_Ten_SampleHint" xml:space="preserve">
-    <value>Если не отмечено — пустая база (только справочники). В демо-базе пользователь demo отключается, вход только через admin.</value>
+    <value>Если не отмечено — пустая база (справочники, готовые роли и нужные склады). Примеры клиент заменяет своими данными или удаляет.</value>
   </data>
   <data name="Pnl_Ten_SavedNoKey" xml:space="preserve">
     <value>Сохранено, но ключ не выпущен: {0}</value>
@@ -3814,7 +3814,7 @@ tahsinERP портал: код входа {1}. Действует {2} мин.
     <value>Модули пробного периода</value>
   </data>
   <data name="Pnl_Ten_TrialModulesHint" xml:space="preserve">
-    <value>Ключ открывает только эти модули; в базу записываются только их роли, склады и (если отмечено) демо-данные. При выборе производства добавляется и Инжиниринг (BOM/нормы).</value>
+    <value>Ключ открывает только эти модули; в базу добавляются роль «Руководитель» и готовые роли этих модулей (с правами), нужные склады и (если отмечено) примеры. При выборе производства добавляется и Инжиниринг (BOM/нормы).</value>
   </data>
   <data name="Pnl_Ten_ModulesRequired" xml:space="preserve">
     <value>Отметьте хотя бы один модуль.</value>
@@ -4052,5 +4052,45 @@ tahsinERP портал: код входа {1}. Действует {2} мин.
   </data>
   <data name="Pnl_Hlt_HistoryHint" xml:space="preserve">
     <value>Дни по ташкентскому времени; выше 85% — жёлтым, выше 95% — красным. Журнал хранится 400 дней.</value>
+  </data>
+||||||| 34f3faf5
+  <data name="Pnl_Ten_DeleteInstanceQueued" xml:space="preserve">
+    <value>Отдельный сайт ERP (инстанс) тоже будет удалён — задание обновления #{0}.</value>
+  </data>
+  <data name="Pnl_Ten_DeleteInstanceFailed" xml:space="preserve">
+    <value>Удаление базы в очереди, но удаление отдельного сайта ERP не поставлено: {0}. Проверьте на странице «Обновления».</value>
+  </data>
+  <data name="Pnl_Ten_DeleteFreesSlug" xml:space="preserve">
+    <value>Подключения Telegram-бота, сайт-каталог и отдельный сайт ERP организации тоже будут очищены. После удаления имя «{0}» освободится — можно открыть новую организацию с этим именем.</value>
+  </data>
+  <data name="Pnl_Upd_Action_RemoveInstance" xml:space="preserve">
+    <value>Удаление инстанса (организация удалена)</value>
+  </data>
+  <data name="Pnl_Ten_RestoreSlug" xml:space="preserve">
+    <value>Новое имя при восстановлении (пусто — то же имя)</value>
+  </data>
+  <data name="Pnl_Ten_RestoreHint" xml:space="preserve">
+    <value>Организация открывается снова из архивной базы. Если задано новое имя, «{0}» сразу освобождается: подключения Telegram-бота, сайт-каталог и отдельный сайт ERP под старым именем очищаются — подключите бота и сайт заново под новым именем. Доступ — по подписке (нет активной подписки — приостановлена).</value>
+  </data>
+  <data name="Pnl_Ten_RestoreBtn" xml:space="preserve">
+    <value>Восстановить из архива</value>
+  </data>
+  <data name="Pnl_Ten_RestoreQueued" xml:space="preserve">
+    <value>Восстановление из архива поставлено в очередь (задание #{0}), имя организации: {1}.</value>
+  </data>
+  <data name="Pnl_Prov_RestoreOnlyArchived" xml:space="preserve">
+    <value>Восстановить можно только архивированную организацию.</value>
+  </data>
+  <data name="Pnl_Prov_RestoreNoArchive" xml:space="preserve">
+    <value>Нет архивной копии — восстановить нельзя.</value>
+  </data>
+  <data name="Pnl_Prov_RestoreReasonRequired" xml:space="preserve">
+    <value>Укажите причину восстановления.</value>
+  </data>
+  <data name="Pnl_Prov_RestoreDbTaken" xml:space="preserve">
+    <value>Имя базы {0} занято другой организацией.</value>
+  </data>
+  <data name="Pnl_JobType_Restore" xml:space="preserve">
+    <value>Восстановление из архива</value>
   </data>
 </root>

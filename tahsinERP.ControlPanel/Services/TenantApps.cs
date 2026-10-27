@@ -32,6 +32,9 @@ public sealed record BotAppStatus(string Slug, bool Exists, bool Active, string?
 public sealed record SiteAppStatus(string Slug, bool Exists, bool Active, string? ErpBaseUrl, string? ErpTenant, DateTime? SnapshotAt, int? Products,
     string? Domain = null, bool RedirectToDomain = false);
 
+/// <summary>DELETE /admin/api/tenants/{slug} javobi: Deleted — yozuv bor edi va o'chirildi.</summary>
+public sealed record AppDeleteResult(string Slug, bool Deleted);
+
 public interface IAppsClient
 {
     bool BotConfigured { get; }
@@ -44,6 +47,10 @@ public interface IAppsClient
     Task<SiteAppStatus> DisableSiteAsync(string slug, CancellationToken ct = default);
     /// <summary>Firmaning o'z domeni (host null — olib tashlash); redirect — standart subdomendan 301.</summary>
     Task<SiteAppStatus> SetSiteDomainAsync(string slug, string? host, bool redirect, CancellationToken ct = default);
+    /// <summary>Firma o'chirilganda: bot ilovasidan butunlay (Telegram ulanishlari, seanslar, navbat). Idempotent.</summary>
+    Task<AppDeleteResult> DeleteBotAsync(string slug, CancellationToken ct = default);
+    /// <summary>Firma o'chirilganda: sayt ilovasidan butunlay (katalog nusxasi, ariza navbati). Idempotent.</summary>
+    Task<AppDeleteResult> DeleteSiteAsync(string slug, CancellationToken ct = default);
 }
 
 public sealed class AppsHttpClient(HttpClient http, IOptions<AppsOptions> options) : IAppsClient
@@ -74,6 +81,12 @@ public sealed class AppsHttpClient(HttpClient http, IOptions<AppsOptions> option
 
     public Task<SiteAppStatus> SetSiteDomainAsync(string slug, string? host, bool redirect, CancellationToken ct = default) =>
         SendAsync<SiteAppStatus>(HttpMethod.Put, O.SiteUrl, slug, "/domain", new { host, redirect }, ct);
+
+    public Task<AppDeleteResult> DeleteBotAsync(string slug, CancellationToken ct = default) =>
+        SendAsync<AppDeleteResult>(HttpMethod.Delete, O.BotUrl, slug, "", null, ct);
+
+    public Task<AppDeleteResult> DeleteSiteAsync(string slug, CancellationToken ct = default) =>
+        SendAsync<AppDeleteResult>(HttpMethod.Delete, O.SiteUrl, slug, "", null, ct);
 
     private async Task<T> SendAsync<T>(HttpMethod method, string? baseUrl, string slug, string suffix, object? body, CancellationToken ct)
     {
@@ -156,6 +169,19 @@ public sealed class TenantAppsService(IAppsClient apps, ProvisioningService prov
     {
         await apps.DisableSiteAsync(t.Slug, ct);
         audit.Add("tenant.site-disable", "Tenant", t.Id);
+        await db.SaveChangesAsync(ct);
+    }
+
+    /// <summary>
+    /// Firma butunlay o'chirilishidan oldin: bot va sayt ilovalaridan firma yozuvlari olib tashlanadi — shu nom bilan keyin ochilgan
+    /// yangi firma eski Telegram ulanishlari va katalog nusxasini meros qilmasin. Ilova sozlanmagan bo'lsa o'tkazib yuboriladi;
+    /// aloqa xatosi (DomainException) — o'chirish to'xtaydi, nom bo'shatilmaydi.
+    /// </summary>
+    public async Task PurgeAsync(Tenant t, CancellationToken ct = default)
+    {
+        bool? bot = apps.BotConfigured ? (await apps.DeleteBotAsync(t.Slug, ct)).Deleted : null;
+        bool? site = apps.SiteConfigured ? (await apps.DeleteSiteAsync(t.Slug, ct)).Deleted : null;
+        audit.Add("tenant.apps-purge", "Tenant", t.Id, after: new { Bot = bot, Site = site });
         await db.SaveChangesAsync(ct);
     }
 

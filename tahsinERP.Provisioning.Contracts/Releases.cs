@@ -169,6 +169,8 @@ public enum UpdateAction
     RollbackTenant = 5,
     /// <summary>Firma bazasiga joriy instance versiyasidagi migratsiyalarni qayta qo'llash.</summary>
     MigrateTenant = 6,
+    /// <summary>Firma ERP instance'ini olib tashlash (sayt, pool, papka, zaxiralar) — firma panelda o'chirilganda. Baza tegilmaydi.</summary>
+    RemoveInstance = 7,
 }
 
 public enum UpdateOutcome { Succeeded = 1, Failed = 2, RolledBack = 3 }

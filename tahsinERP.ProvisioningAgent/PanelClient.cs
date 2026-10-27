@@ -21,7 +21,7 @@ public sealed class PanelClient
     public PanelClient(HttpClient http, AgentOptions options, TimeProvider time, HttpClient? downloadHttp)
     {
         _http = http;
-        _capabilities = options.SiteDomains.Enabled ? [AgentCapabilities.SiteDomain] : [];
+        _capabilities = options.SiteDomains.Enabled ? [AgentCapabilities.SiteDomain, AgentCapabilities.RestoreArchive] : [AgentCapabilities.RestoreArchive];
         _time = time;
         if (string.IsNullOrWhiteSpace(options.Panel.Url)) throw new InvalidOperationException("Panel:Url sozlanmagan.");
         if (options.Panel.ServerId <= 0) throw new InvalidOperationException("Panel:ServerId sozlanmagan.");

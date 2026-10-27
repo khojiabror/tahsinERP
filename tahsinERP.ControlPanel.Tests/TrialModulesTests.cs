@@ -102,23 +102,36 @@ public class TrialModulesUnitTests
     public void ModuleProfileSql_PermissionMatrix_ControllersBelongToTargetModule()
     {
         string sql = File.ReadAllText(Path.Combine(RepoRoot(), "tahsinERP", "Database", "Setup", "300_ModuleProfile.sql"));
-        var block = Regex.Match(sql, @"INSERT INTO #matrix \(RoleModule, Target, Controller, Access\) VALUES(.*?);", RegexOptions.Singleline);
+        // rollar: Code -> Module (NULL — har doim yaratiladigan Rahbar)
+        var rolesBlock = Regex.Match(sql, @"INSERT INTO #roles \(Code, Module, RName, Description\)(.*?)WHERE r\.Module IS NULL", RegexOptions.Singleline);
+        Assert.True(rolesBlock.Success);
+        var roles = Regex.Matches(rolesBlock.Groups[1].Value, @"\('(\w+)', (NULL|'(\w+)'), '((?:[^']|'')+)'")
+            .ToDictionary(m => m.Groups[1].Value, m => m.Groups[3].Success ? m.Groups[3].Value : null);
+        Assert.True(roles.Count >= 10);
+        Assert.All(roles.Values.Where(v => v != null), v => Assert.True(EditionModules.TryParseModule(v!, out _), v));
+        Assert.Contains(roles, r => r.Value == null);   // Rahbar
+
+        var block = Regex.Match(sql, @"INSERT INTO #matrix \(Role, Target, Controller, Access\) VALUES(.*?);", RegexOptions.Singleline);
         Assert.True(block.Success);
         var rows = Regex.Matches(block.Groups[1].Value, @"\('([\w*]+)', '(\w+)', '([\w*]+)', '([CV])'\)").ToList();
         Assert.True(rows.Count > 50);
-        var roleModules = new HashSet<string>();
         foreach (var r in rows)
         {
             string role = r.Groups[1].Value, target = r.Groups[2].Value, controller = r.Groups[3].Value;
-            if (role != "*") roleModules.Add(role);
+            Assert.True(role == "*" || roles.ContainsKey(role), $"matritsada noma'lum rol: {role}");
             if (controller == "*") { Assert.NotEqual("Core", target); continue; }
             Assert.True(EditionModules.ModuleOf(controller).ToString() == target, $"{role}: {controller} -> {EditionModules.ModuleOf(controller)}, matritsada {target}");
         }
-        // har modul rolining o'z moduli — o'zgartirish (C)
-        foreach (var m in roleModules)
-            Assert.Contains(rows, r => r.Groups[1].Value == m && r.Groups[2].Value == m && r.Groups[3].Value == "*" && r.Groups[4].Value == "C");
+        // har modul roli o'z modulida nimanidir o'zgartiradi (C); kod = modul nomi bo'lgan rol — butun modulni
+        foreach (var (code, module) in roles.Where(r => r.Value != null))
+        {
+            Assert.Contains(rows, r => r.Groups[1].Value == code && r.Groups[2].Value == module && r.Groups[4].Value == "C");
+            if (code == module)
+                Assert.Contains(rows, r => r.Groups[1].Value == code && r.Groups[2].Value == module && r.Groups[3].Value == "*" && r.Groups[4].Value == "C");
+        }
+        // Topshiriqlardan boshqa har bir modulga kamida bitta ish roli
         Assert.Equal(EditionModules.PaidModules.Concat(EditionModules.AddOnModules).Where(m => m != ProductModule.Tasks).Select(m => m.ToString()).OrderBy(x => x),
-            roleModules.OrderBy(x => x));
+            roles.Values.Where(v => v != null).Distinct().OrderBy(x => x));
     }
 
     /// <summary>New-TenantDb.ps1 va 300 profilidagi modul ro'yxati ProductModule bilan bir xil.</summary>
@@ -133,8 +146,8 @@ public class TrialModulesUnitTests
         string profile = File.ReadAllText(Path.Combine(root, "Setup", "300_ModuleProfile.sql"));
         var sqlList = Regex.Match(profile, @"FROM \(VALUES ((?:\('\w+'\),?\s*)+)\) v \(M\)").Groups[1].Value;
         Assert.Equal(expected, Regex.Matches(sqlList, "'(\\w+)'").Select(m => m.Groups[1].Value));
-        // har demo fayl (Core'dan tashqari) o'z modulini tekshiradi
-        foreach (var f in Directory.GetFiles(Path.Combine(root, "Demo"), "*.sql"))
+        // har demo va ixcham namuna fayli (Core'dan tashqari) o'z modulini tekshiradi
+        foreach (var f in Directory.GetFiles(Path.Combine(root, "Demo"), "*.sql").Concat(Directory.GetFiles(Path.Combine(root, "Sample"), "*.sql")))
         {
             var m = Regex.Match(Path.GetFileName(f), @"^\d{3}_([A-Za-z]+)_");
             Assert.True(m.Success, f);
@@ -182,18 +195,19 @@ public partial class ProvisioningIntegrationTests
         });
         Assert.Equal("TRIAL:Crm,Tasks,Finance", desired!.Edition);
 
-        // baza: tanlangan modullar yozilgan, profil va namuna faqat ular uchun
+        // baza: tanlangan modullar yozilgan, profil va ixcham namuna (har bo'limda bittadan yozuv) faqat ular uchun
         Assert.Equal("Crm,Finance,Tasks", await ScalarAsync(dbName, "SELECT STRING_AGG(Module, ',') WITHIN GROUP (ORDER BY Module) FROM dbo.SETUP_MODULES"));
-        Assert.NotEqual("0", await ScalarAsync(dbName, "SELECT COUNT(*) FROM dbo.SALES_INVOICES"));
-        Assert.NotEqual("0", await ScalarAsync(dbName, "SELECT COUNT(*) FROM dbo.APP_TASKS WHERE IsDeleted = 0"));
-        Assert.NotEqual("0", await ScalarAsync(dbName, "SELECT COUNT(*) FROM dbo.FIN_TRANSACTIONS WHERE SourceDocType = 'SalesInvoice'"));
-        Assert.Equal("0", await ScalarAsync(dbName, "SELECT COUNT(*) FROM dbo.P_INVOICES"));          // Srm yo'q
-        Assert.Equal("0", await ScalarAsync(dbName, "SELECT COUNT(*) FROM dbo.PRODUCT_PRODUCTION"));  // Mes yo'q
-        Assert.Equal("0", await ScalarAsync(dbName, "SELECT COUNT(*) FROM dbo.HR_EMPLOYEES"));        // Hr yo'q
-        Assert.Equal("0", await ScalarAsync(dbName, "SELECT COUNT(*) FROM dst.D_ORDERS"));            // Distribution yo'q
+        Assert.Equal("NAM-001", await ScalarAsync(dbName, "SELECT STRING_AGG(PNo, ',') FROM dbo.PRODUCTS"));      // faqat "Tovarlar" kategoriyasi
+        Assert.Equal("1", await ScalarAsync(dbName, "SELECT COUNT(*) FROM dbo.CUSTOMERS"));
+        Assert.Equal("1", await ScalarAsync(dbName, "SELECT COUNT(*) FROM dbo.APP_TASKS WHERE IsDeleted = 0"));
+        Assert.Equal("0", await ScalarAsync(dbName, "SELECT COUNT(*) FROM dbo.SALES_INVOICES"));     // hujjat tarixi yo'q
+        Assert.Equal("0", await ScalarAsync(dbName, "SELECT COUNT(*) FROM dbo.SUPPLIERS"));          // Srm yo'q
+        Assert.Equal("0", await ScalarAsync(dbName, "SELECT COUNT(*) FROM dbo.HR_ORG_UNITS"));       // Hr yo'q
+        Assert.Equal("0", await ScalarAsync(dbName, "SELECT COUNT(*) FROM dst.TERRITORIES"));        // Distribution yo'q
         Assert.Null(await ScalarAsync(dbName, "SELECT name FROM sys.schemas WHERE name = 'demo_tmp'"));
         Assert.Equal("SALES", await ScalarAsync(dbName, "SELECT STRING_AGG(WarehouseType, ',') FROM dbo.WAREHOUSES WHERE ISNULL(IsDeleted, 0) = 0"));
-        Assert.Equal("Hisobchi,Sotuv menejeri", await ScalarAsync(dbName,
+        Assert.Equal("1", await ScalarAsync(dbName, "SELECT COUNT(*) FROM dbo.UNITS WHERE SystemCode = 'BOX'"));
+        Assert.Equal("Hisobchi,Rahbar,Sotuv menejeri", await ScalarAsync(dbName,
             "SELECT STRING_AGG(RName, ',') WITHIN GROUP (ORDER BY RName) FROM dbo.ROLES WHERE SystemCode IS NULL AND ISNULL(IsDeleted, 0) = 0"));
         // modul rollari tanlanmagan modul controllerlariga huquq olmaydi
         Assert.Equal("0", await ScalarAsync(dbName, @"SELECT COUNT(*) FROM dbo.PERMISSIONS p JOIN dbo.ROLES r ON r.ID = p.RoleID AND r.SystemCode IS NULL
@@ -212,8 +226,11 @@ public partial class ProvisioningIntegrationTests
         Assert.Equal("C", await Access("Hisobchi", "FinTransactions"));
         Assert.Equal("V", await Access("Hisobchi", "SalesInvoices"));
         Assert.Equal("none", await Access("Hisobchi", "SOrder"));
+        Assert.Equal("V", await Access("Rahbar", "SOrder"));
+        Assert.Equal("V", await Access("Rahbar", "FinAccounts"));
+        Assert.Equal("C", await Access("Rahbar", "TaskProject"));
         Assert.Equal("0", await ScalarAsync(dbName,
             "SELECT COUNT(*) FROM dbo.PERMISSIONS p JOIN dbo.ROLES r ON r.ID = p.RoleID WHERE r.SystemCode IS NULL AND p.DeletePermit = 1"));
-        Assert.Equal("0", await ScalarAsync(dbName, "SELECT CAST(IsActive AS int) FROM dbo.USERS WHERE Uname = 'demo'"));
+        Assert.Null(await ScalarAsync(dbName, "SELECT Uname FROM dbo.USERS WHERE Uname = 'demo'"));   // ixcham namunada demo foydalanuvchi yo'q
     }
 }

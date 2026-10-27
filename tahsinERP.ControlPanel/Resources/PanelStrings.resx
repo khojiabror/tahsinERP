@@ -2279,10 +2279,10 @@ Birinchi kirishda parolni almashtirish so'raladi.</value>
     <value>SaaS manzili:</value>
   </data>
   <data name="Pnl_Ten_SampleData" xml:space="preserve">
-    <value>Namuna ma'lumotlar bilan (faqat belgilangan modullar: mahsulotlar, kontragentlar, ~3 oylik hujjatlar, xodimlar...)</value>
+    <value>Namuna ma'lumotlar bilan (belgilangan har bo'limda bittadan yozuv: tovar, mijoz, hudud, narx...)</value>
   </data>
   <data name="Pnl_Ten_SampleHint" xml:space="preserve">
-    <value>Belgilanmasa — bo'sh baza (faqat spravochniklar). Namuna bazada demo foydalanuvchi o'chirib qo'yiladi, kirish faqat admin orqali.</value>
+    <value>Belgilanmasa — bo'sh baza (spravochniklar, tayyor rollar va kerakli omborlar). Namunani mijoz o'z ma'lumoti bilan almashtiradi yoki o'chiradi.</value>
   </data>
   <data name="Pnl_Ten_SavedNoKey" xml:space="preserve">
     <value>Saqlandi, lekin kalit chiqmadi: {0}</value>
@@ -3814,7 +3814,7 @@ Siz so'ramagan bo'lsangiz — bu xatga e'tibor bermang, parolingiz o'zgarmaydi.<
     <value>Sinovda ochiladigan modullar</value>
   </data>
   <data name="Pnl_Ten_TrialModulesHint" xml:space="preserve">
-    <value>Kalit faqat shu modullarni ochadi; bazaga faqat shularning rollari, omborlari va (belgilansa) namuna ma'lumotlari yoziladi. Ishlab chiqarish tanlansa Muhandislik (BOM/norma) ham qo'shiladi.</value>
+    <value>Kalit faqat shu modullarni ochadi; bazaga "Rahbar" va shu modullarning tayyor rollari (ruxsatlari bilan), kerakli omborlar va (belgilansa) namuna yozuvlar qo'shiladi. Ishlab chiqarish tanlansa Muhandislik (BOM/norma) ham qo'shiladi.</value>
   </data>
   <data name="Pnl_Ten_ModulesRequired" xml:space="preserve">
     <value>Kamida bitta modulni belgilang.</value>
@@ -4052,5 +4052,45 @@ Siz so'ramagan bo'lsangiz — bu xatga e'tibor bermang, parolingiz o'zgarmaydi.<
   </data>
   <data name="Pnl_Hlt_HistoryHint" xml:space="preserve">
     <value>Toshkent vaqti bo'yicha kunlar; 85% dan yuqori — sariq, 95% dan yuqori — qizil. Jurnal 400 kun saqlanadi.</value>
+  </data>
+||||||| 34f3faf5
+  <data name="Pnl_Ten_DeleteInstanceQueued" xml:space="preserve">
+    <value>Alohida ERP sayti (instance) ham olib tashlanadi — yangilash job #{0}.</value>
+  </data>
+  <data name="Pnl_Ten_DeleteInstanceFailed" xml:space="preserve">
+    <value>Bazani o'chirish navbatda, lekin alohida ERP saytini olib tashlash qo'yilmadi: {0}. Yangilanishlar sahifasidan tekshiring.</value>
+  </data>
+  <data name="Pnl_Ten_DeleteFreesSlug" xml:space="preserve">
+    <value>Telegram bot ulanishlari, sayt-katalog va firmaning alohida ERP sayti ham tozalanadi. O'chirish tugagach «{0}» nomi bo'shaydi — shu nom bilan yangi firma ochish mumkin.</value>
+  </data>
+  <data name="Pnl_Upd_Action_RemoveInstance" xml:space="preserve">
+    <value>Instance'ni olib tashlash (firma o'chirildi)</value>
+  </data>
+  <data name="Pnl_Ten_RestoreSlug" xml:space="preserve">
+    <value>Tiklashda yangi nom (bo'sh — o'sha nom)</value>
+  </data>
+  <data name="Pnl_Ten_RestoreHint" xml:space="preserve">
+    <value>Firma arxivdagi bazadan qayta ochiladi. Yangi nom berilsa, «{0}» darhol bo'shaydi: eski nom bo'yicha Telegram bot ulanishlari, sayt-katalog va alohida ERP sayti tozalanadi — bot va saytni yangi nom bilan qayta ulang. Kirish holati obunaga qarab (faol obuna yo'q — to'xtatilgan).</value>
+  </data>
+  <data name="Pnl_Ten_RestoreBtn" xml:space="preserve">
+    <value>Arxivdan tiklash</value>
+  </data>
+  <data name="Pnl_Ten_RestoreQueued" xml:space="preserve">
+    <value>Arxivdan tiklash navbatga qo'yildi (job #{0}), firma nomi: {1}.</value>
+  </data>
+  <data name="Pnl_Prov_RestoreOnlyArchived" xml:space="preserve">
+    <value>Faqat arxivlangan firmani tiklash mumkin.</value>
+  </data>
+  <data name="Pnl_Prov_RestoreNoArchive" xml:space="preserve">
+    <value>Arxiv zaxirasi yo'q — tiklab bo'lmaydi.</value>
+  </data>
+  <data name="Pnl_Prov_RestoreReasonRequired" xml:space="preserve">
+    <value>Tiklash sababini yozing.</value>
+  </data>
+  <data name="Pnl_Prov_RestoreDbTaken" xml:space="preserve">
+    <value>{0} baza nomi boshqa firmada band.</value>
+  </data>
+  <data name="Pnl_JobType_Restore" xml:space="preserve">
+    <value>Arxivdan tiklash</value>
   </data>
 </root>

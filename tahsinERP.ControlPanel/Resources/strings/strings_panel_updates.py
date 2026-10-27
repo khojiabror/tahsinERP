@@ -82,6 +82,7 @@ STRINGS = {
     "Pnl_Upd_Action_CreateInstance": ("Instance yaratish", "Создать экземпляр"),
     "Pnl_Upd_Action_RollbackTenant": ("Firma rollback", "Откат организации"),
     "Pnl_Upd_Action_MigrateTenant": ("Baza migratsiyasi", "Миграция базы"),
+    "Pnl_Upd_Action_RemoveInstance": ("Instance'ni olib tashlash (firma o'chirildi)", "Удаление инстанса (организация удалена)"),
     "Pnl_Upd_Status_RolledBack": ("Xato — qaytarildi", "Ошибка — откат выполнен"),
     "Pnl_Upd_VersionUnknown": ("noma'lum", "неизвестно"),
     "Pnl_Upd_VersionLegacy": ("eski (ajratilgan)", "старая (выделенная)"),

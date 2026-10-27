@@ -12,6 +12,7 @@ using tahsinERP.ControlPanel.Portal;
 using Microsoft.Extensions.Options;
 using tahsinERP.ControlPanel.I18n;
 using tahsinERP.Services.Editions;
+using tahsinERP.Provisioning.Contracts;
 
 namespace tahsinERP.ControlPanel.Pages.Tenants;
 
@@ -160,8 +161,41 @@ public class EditModel(ControlDbContext db, TenantService tenants, LicenseIssuer
 }
 
 public class DetailsModel(ControlDbContext db, TenantService tenants, LicenseIssuer issuer, ProvisioningService provisioning, UsageService usage,
-    PortalAuthService portalAuth, PortalNotifier notifier, IOptions<PanelHostOptions> hosts, TenantAppsService apps, SiteDomainService siteDomains) : PanelPageModel
+    PortalAuthService portalAuth, PortalNotifier notifier, IOptions<PanelHostOptions> hosts, TenantAppsService apps, SiteDomainService siteDomains,
+    UpdatesService updates) : PanelPageModel
 {
+    /// <summary>Arxivdan tiklashda yangi nom (bo'sh — o'sha nom).</summary>
+    [BindProperty] public string? RestoreSlug { get; set; }
+
+    /// <summary>
+    /// Arxivlangan firmani tiklash, ixtiyoriy yangi nom bilan (Owner). Nom o'zgarsa — eski nom bo'yicha bot/sayt yozuvlari va alohida
+    /// ERP instance'i tozalanadi (keyin shu nom bilan yangi firma ochilganda meros qolmasin), eski nom darhol bo'shaydi.
+    /// </summary>
+    public async Task<IActionResult> OnPostRestoreAsync(int id)
+    {
+        if (!await LoadAsync(id)) return NotFound();
+        if (!IsOwner) return Forbidden();
+        string oldSlug = Tenant.Slug;
+        long? removeJob = null;
+        ProvisioningJob? job = null;
+        if (await TryAsync(async () => job = (await provisioning.RestoreArchiveAsync(Tenant, RestoreSlug, ProvisionReason, async () =>
+            {
+                await apps.PurgeAsync(Tenant);
+                if (Tenant.ServerId is int sid)
+                {
+                    var (inv, _) = await updates.InventoryAsync(sid);
+                    if (inv?.Instances.Any(i => i.Slug == oldSlug) == true)
+                        removeJob = (await updates.EnqueueAsync(sid, UpdateAction.RemoveInstance, ReleaseApps.Erp, Tenant.Id, null, false)).Id;
+                }
+            })).Job))
+        {
+            FlashOk = L.T("Pnl_Ten_RestoreQueued", job!.Id, Tenant.Slug) + (removeJob is long r ? " " + L.T("Pnl_Ten_DeleteInstanceQueued", r) : "");
+            return RedirectToPage(new { id });
+        }
+        await LoadAsync(id);
+        return Page();
+    }
+
     // ── Sayt-katalog: firmaning o'z domeni ──
     public TenantSiteDomain? SiteDomain { get; private set; }
     /// <summary>Domen A yozuvi qarashi kerak bo'lgan manzillar (DNS ko'rsatmasi uchun).</summary>
@@ -505,7 +539,7 @@ internal static class ServerList
 /// 2) yakuniy tasdiq sahifasi. Baza (agar qolgan bo'lsa), arxiv zaxirasi va tenants.json yozuvi o'chiriladi; moliyaviy tarix qoladi.
 /// </summary>
 [Authorize(Policy = Policies.Owner)]
-public class DeleteModel(ControlDbContext db, ProvisioningService provisioning) : PanelPageModel
+public class DeleteModel(ControlDbContext db, ProvisioningService provisioning, TenantAppsService apps, UpdatesService updates) : PanelPageModel
 {
     public Tenant Tenant { get; private set; } = null!;
     [BindProperty] public string? ConfirmSlug { get; set; }
@@ -546,9 +580,31 @@ public class DeleteModel(ControlDbContext db, ProvisioningService provisioning) 
             Step = 2; // birinchi tasdiq qabul qilindi — yakuniy sahifa
             return Page();
         }
+        // Tartib: baza o'chirish job'i (barcha shartlar shu yerda tekshiriladi) → bot va sayt ilovalaridan firma yozuvlari (aloqa
+        // xatosi — hali boshlanmagan job bekor qilinadi, nom bo'shamaydi) → firmaning alohida ERP instance'i bo'lsa, uni olib tashlash
+        // job'i. Delete job muvaffaqiyatli tugaganda nom va baza nomi bo'shatiladi (ProvisioningService).
         ProvisioningJob? job = null;
         if (!await TryAsync(async () => job = (await provisioning.EnqueueAsync(Tenant, ProvisioningJobType.Delete, Reason)).Job)) { Step = 1; return Page(); }
+        if (!await TryAsync(() => apps.PurgeAsync(Tenant)))
+        {
+            await TryAsync(() => provisioning.CancelAsync(job!));
+            Step = 1;
+            return Page();
+        }
         FlashOk = L.T("Pnl_Ten_DeleteQueued", job!.Id);
+        if (Tenant.ServerId is int serverId)
+        {
+            var (inv, _) = await updates.InventoryAsync(serverId);
+            if (inv?.Instances.Any(i => i.Slug == Tenant.Slug) == true)
+            {
+                try
+                {
+                    var uj = await updates.EnqueueAsync(serverId, UpdateAction.RemoveInstance, ReleaseApps.Erp, Tenant.Id, null, false);
+                    FlashOk += " " + L.T("Pnl_Ten_DeleteInstanceQueued", uj.Id);
+                }
+                catch (DomainException ex) { FlashError = L.T("Pnl_Ten_DeleteInstanceFailed", ex.Message); }
+            }
+        }
         return RedirectToPage("Details", new { id });
     }
 }

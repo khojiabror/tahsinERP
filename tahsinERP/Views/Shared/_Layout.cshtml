@@ -77,7 +77,7 @@
                                     }
                                     <span class="position-relative d-inline-block">
                                         @Html.Partial("_UserProfile")
-                                        @if (userTaskCount > 0 || pendingIncomeCount > 0)
+                                        @if (badges.HasAlert)
                                         {
                                             <span class="user-alert-dot"></span>
                                         }
@@ -93,13 +93,16 @@
                                             <i class="bx bx-key mr-50"></i> @L.T("Hdr_License")
                                         </a>
                                     }
-                                    <a class="dropdown-item" href="~/Tasks?assigneeUserID=@tahsinERP.Controllers.UserHelper.GetUserId(User.Identity.Name)">
-                                        <i class="bx bx-task mr-50"></i> @L.T("Hdr_Tasks")
-                                        @if (userTaskCount > 0)
-                                        {
-                                            <span class="badge badge-danger badge-pill float-right">@userTaskCount</span>
-                                        }
-                                    </a>
+                                    @if (badges.CanSeeTasks)
+                                    {
+                                        <a class="dropdown-item" href="~/Tasks?assigneeUserID=@tahsinERP.Controllers.UserHelper.GetUserId(User.Identity.Name)">
+                                            <i class="bx bx-task mr-50"></i> @L.T("Hdr_Tasks")
+                                            @if (userTaskCount > 0)
+                                            {
+                                                <span class="badge badge-danger badge-pill float-right">@userTaskCount</span>
+                                            }
+                                        </a>
+                                    }
                                     @if (isMrpUser)
                                     {
                                         <a class="dropdown-item" href="~/Incomes?status=0">
@@ -109,6 +112,20 @@
                                                 <span class="badge badge-danger badge-pill float-right">@pendingIncomeCount</span>
                                             }
                                         </a>
+                                    }
+                                    @if (badges.Approvals.Count > 0)
+                                    {
+                                        <div class="dropdown-divider"></div>
+                                        foreach (var a in badges.Approvals)
+                                        {
+                                            <a class="dropdown-item" href="@Url.Content(a.Url)">
+                                                <i class="bx @a.Icon mr-50"></i> @L.T(a.Label)
+                                                @if (a.Count > 0)
+                                                {
+                                                    <span class="badge badge-danger badge-pill float-right ml-1">@a.Count</span>
+                                                }
+                                            </a>
+                                        }
                                     }
                                     <div class="dropdown-divider mb-0"></div>
                                     <a class="dropdown-item" href="~/Account/Logout">
