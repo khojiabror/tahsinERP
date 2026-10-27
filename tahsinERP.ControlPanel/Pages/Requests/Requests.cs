@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using tahsinERP.ControlPanel.Data;
 using tahsinERP.ControlPanel.Portal;
+using tahsinERP.ControlPanel.Services;
 using tahsinERP.ControlPanel.I18n;
 
 namespace tahsinERP.ControlPanel.Pages.Requests;
@@ -17,6 +18,7 @@ public class IndexModel(ControlDbContext db, PortalRequestService service) : Pan
     [BindProperty] public int RequestId { get; set; }
     [BindProperty] public string? Reason { get; set; }
     public List<PortalRequest> Rows { get; private set; } = [];
+    public PageInfo Pager { get; private set; } = new(1, PageInfo.DefaultSize, 0);
     public Dictionary<int, string> StaffNames { get; private set; } = [];
     public Dictionary<int, (string? Number, InvoiceStatus Status)> Invoices { get; private set; } = [];
 
@@ -24,7 +26,7 @@ public class IndexModel(ControlDbContext db, PortalRequestService service) : Pan
     {
         var q = db.PortalRequests.AsNoTracking().Include(r => r.Tenant).Include(r => r.Plan).Include(r => r.PortalUser).AsQueryable();
         if (!All && Status is not null) q = q.Where(r => r.Status == Status);
-        Rows = await q.OrderByDescending(r => r.Id).Take(300).ToListAsync();
+        (Rows, Pager) = await q.OrderByDescending(r => r.Id).ToPageAsync(HttpContext);
         StaffNames = await db.StaffUsers.ToDictionaryAsync(s => s.Id, s => s.FullName);
         var ids = Rows.Where(r => r.InvoiceId != null).Select(r => r.InvoiceId!.Value).ToList();
         Invoices = await db.Invoices.AsNoTracking().Where(i => ids.Contains(i.Id)).ToDictionaryAsync(i => i.Id, i => (i.Number, i.Status));

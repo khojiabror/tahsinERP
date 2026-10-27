@@ -11,13 +11,14 @@ public class IndexModel(ControlDbContext db) : PanelPageModel
 {
     [BindProperty(SupportsGet = true)] public ProvisioningJobStatus? Status { get; set; }
     public List<ProvisioningJob> Jobs { get; private set; } = [];
+    public PageInfo Pager { get; private set; } = new(1, PageInfo.DefaultSize, 0);
     public List<Server> Servers { get; private set; } = [];
 
     public async Task OnGetAsync()
     {
         var q = db.ProvisioningJobs.AsNoTracking().Include(j => j.Tenant).AsQueryable();
         if (Status is not null) q = q.Where(j => j.Status == Status);
-        Jobs = await q.OrderByDescending(j => j.Id).Take(200).ToListAsync();
+        (Jobs, Pager) = await q.OrderByDescending(j => j.Id).ToPageAsync(HttpContext);
         Servers = await db.Servers.AsNoTracking().OrderBy(s => s.Name).ToListAsync();
         if (Jobs.Any(j => j.IsActive)) ViewData["AutoRefresh"] = 10;
     }

@@ -57,6 +57,7 @@ public class IndexModel(ControlDbContext db) : PanelPageModel
     [BindProperty(SupportsGet = true)] public string? Q { get; set; }
     [BindProperty(SupportsGet = true)] public TenantStatus? Status { get; set; }
     public List<Row> Rows { get; private set; } = [];
+    public PageInfo Pager { get; private set; } = new(1, PageInfo.DefaultSize, 0);
 
     public record Row(Tenant Tenant, string? Plan, DateOnly? EndDate, long DebtTiyin);
 
@@ -70,7 +71,8 @@ public class IndexModel(ControlDbContext db) : PanelPageModel
             string s = Q.Trim();
             q = q.Where(t => t.Slug.Contains(s) || t.LegalName.Contains(s) || (t.Inn != null && t.Inn.Contains(s)) || (t.Phone != null && t.Phone.Contains(s)));
         }
-        var tenants = await q.OrderBy(t => t.LegalName).Take(500).ToListAsync();
+        var (tenants, pager) = await q.OrderBy(t => t.LegalName).ThenBy(t => t.Id).ToPageAsync(HttpContext);
+        Pager = pager;
         var ids = tenants.Select(t => t.Id).ToList();
         var subs = await SubscriptionService.PackageOnly(db.Subscriptions).Where(s => ids.Contains(s.TenantId) && s.Status == SubscriptionStatus.Active)
             .Select(s => new { s.TenantId, Plan = s.Plan!.Name, s.EndDate }).ToListAsync();

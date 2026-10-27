@@ -14,13 +14,14 @@ public class IndexModel(ControlDbContext db) : PanelPageModel
     [BindProperty(SupportsGet = true)] public int? TenantId { get; set; }
     [BindProperty(SupportsGet = true)] public bool OnlyCurrent { get; set; }
     public List<License> Rows { get; private set; } = [];
+    public PageInfo Pager { get; private set; } = new(1, PageInfo.DefaultSize, 0);
 
     public async Task OnGetAsync()
     {
         var q = db.Licenses.Include(l => l.Tenant).AsNoTracking().AsQueryable();
         if (TenantId is not null) q = q.Where(l => l.TenantId == TenantId);
         if (OnlyCurrent) q = q.Where(l => l.SupersededById == null && l.RevokedAtUtc == null);
-        Rows = await q.OrderByDescending(l => l.Id).Take(300).ToListAsync();
+        (Rows, Pager) = await q.OrderByDescending(l => l.Id).ToPageAsync(HttpContext);
     }
 }
 

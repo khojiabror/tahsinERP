@@ -4833,4 +4833,19 @@ tahsinERP портал: код входа {1}. Действует {2} мин.
   <data name="Pnl_Inv_InvoiceDeleted" xml:space="preserve">
     <value>Счёт {0} удалён.</value>
   </data>
+  <data name="Pnl_Pager_Rows" xml:space="preserve">
+    <value>Строк:</value>
+  </data>
+  <data name="Pnl_Pager_Info" xml:space="preserve">
+    <value>{0}–{1} из {2}</value>
+  </data>
+  <data name="Pnl_Pager_Nav" xml:space="preserve">
+    <value>Страницы</value>
+  </data>
+  <data name="Pnl_Pager_Prev" xml:space="preserve">
+    <value>Предыдущая страница</value>
+  </data>
+  <data name="Pnl_Pager_Next" xml:space="preserve">
+    <value>Следующая страница</value>
+  </data>
 </root>

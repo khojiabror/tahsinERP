@@ -16,6 +16,7 @@ public class IndexModel(ControlDbContext db, Clock clock) : PanelPageModel
     [BindProperty] public int RequestId { get; set; }
     [BindProperty] public string? Note { get; set; }
     public List<DemoRequest> Rows { get; private set; } = [];
+    public PageInfo Pager { get; private set; } = new(1, PageInfo.DefaultSize, 0);
     public Dictionary<int, string> StaffNames { get; private set; } = [];
     public Dictionary<int, string> Tenants { get; private set; } = [];
 
@@ -23,7 +24,7 @@ public class IndexModel(ControlDbContext db, Clock clock) : PanelPageModel
     {
         var q = db.DemoRequests.AsNoTracking();
         if (!All) q = q.Where(r => r.Status == DemoRequestStatus.New || r.Status == DemoRequestStatus.Contacted);
-        Rows = await q.OrderByDescending(r => r.Id).Take(300).ToListAsync();
+        (Rows, Pager) = await q.OrderByDescending(r => r.Id).ToPageAsync(HttpContext);
         StaffNames = await db.StaffUsers.ToDictionaryAsync(s => s.Id, s => s.FullName);
         var ids = Rows.Where(r => r.TenantId != null).Select(r => r.TenantId!.Value).ToList();
         Tenants = await db.Tenants.Where(t => ids.Contains(t.Id)).ToDictionaryAsync(t => t.Id, t => t.LegalName);

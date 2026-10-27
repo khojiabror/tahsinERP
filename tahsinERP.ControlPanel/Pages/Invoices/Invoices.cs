@@ -57,6 +57,7 @@ public class IndexModel(ControlDbContext db) : PanelPageModel
     [BindProperty(SupportsGet = true)] public InvoiceStatus? Status { get; set; }
     [BindProperty(SupportsGet = true)] public bool Overdue { get; set; }
     public List<Invoice> Rows { get; private set; } = [];
+    public PageInfo Pager { get; private set; } = new(1, PageInfo.DefaultSize, 0);
     public DateOnly Today { get; private set; }
 
     public async Task OnGetAsync([FromServices] Clock clock)
@@ -65,7 +66,7 @@ public class IndexModel(ControlDbContext db) : PanelPageModel
         var q = db.Invoices.Include(i => i.Tenant).AsNoTracking().AsQueryable();
         if (Status is not null) q = q.Where(i => i.Status == Status);
         if (Overdue) q = q.Where(i => (i.Status == InvoiceStatus.Issued || i.Status == InvoiceStatus.PartiallyPaid) && i.DueDate < Today);
-        Rows = await q.OrderByDescending(i => i.Id).Take(300).ToListAsync();
+        (Rows, Pager) = await q.OrderByDescending(i => i.Id).ToPageAsync(HttpContext);
     }
 }
 

@@ -9,12 +9,13 @@ namespace tahsinERP.ControlPanel.Pages.Notifications;
 public class IndexModel(ControlDbContext db, ITelegramSender telegram) : PanelPageModel
 {
     public List<Notification> Rows { get; private set; } = [];
+    public PageInfo Pager { get; private set; } = new(1, PageInfo.DefaultSize, 0);
     public Dictionary<int, string> Tenants { get; private set; } = [];
     public bool TelegramConfigured => telegram.IsConfigured;
 
     public async Task OnGetAsync()
     {
-        Rows = await db.Notifications.AsNoTracking().OrderByDescending(n => n.Id).Take(300).ToListAsync();
+        (Rows, Pager) = await db.Notifications.AsNoTracking().OrderByDescending(n => n.Id).ToPageAsync(HttpContext);
         var ids = Rows.Where(r => r.TenantId != null).Select(r => r.TenantId!.Value).Distinct().ToList();
         Tenants = await db.Tenants.Where(t => ids.Contains(t.Id)).ToDictionaryAsync(t => t.Id, t => t.LegalName);
     }

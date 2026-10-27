@@ -1,0 +1,44 @@
+@* Jadval ostidagi sahifalash: qatorlar soni (10/25/50/100), "1–25 / 340" va sahifa raqamlari. Model — Paging.ToPageAsync natijasi.
+   Boshqa so'rov parametrlari (filtrlar) saqlanadi; qatorlar soni o'zgarsa — 1-sahifaga. *@
+@model PageInfo
+@{
+    var keep = Context.Request.Query
+        .Where(kv => kv.Key is not ("page" or "size" or "handler"))
+        .SelectMany(kv => kv.Value.Select(v => new KeyValuePair<string, string?>(kv.Key, v)))
+        .ToList();
+    string Href(int page) => Context.Request.Path + QueryString.Create(keep.Append(new("page", page.ToString())).Append(new("size", Model.Size.ToString())));
+    // Ko'rsatiladigan sahifa raqamlari: 1, joriy ±2, oxirgi; oraliqlar "…" bilan.
+    var nums = new SortedSet<int> { 1, Model.Pages };
+    for (int i = Model.Page - 2; i <= Model.Page + 2; i++) if (i >= 1 && i <= Model.Pages) nums.Add(i);
+}
+@if (Model.Total > PageInfo.Sizes[0])
+{
+    <div class="pager">
+        <form method="get" class="pager-size">
+            @foreach (var kv in keep) { <input type="hidden" name="@kv.Key" value="@kv.Value" /> }
+            <label for="pager-size">@L.T("Pnl_Pager_Rows")</label>
+            <select id="pager-size" name="size" data-autosubmit>
+                @foreach (int s in PageInfo.Sizes) { <option value="@s" selected="@(s == Model.Size)">@s</option> }
+            </select>
+            <noscript><button type="submit" class="secondary">OK</button></noscript>
+        </form>
+        <span class="pager-info">@L.T("Pnl_Pager_Info", Model.From, Model.To, Model.Total)</span>
+        @if (Model.Pages > 1)
+        {
+            <nav class="pager-pages" aria-label="@L.T("Pnl_Pager_Nav")">
+                @if (Model.Page > 1) { <a href="@Href(Model.Page - 1)" rel="prev" aria-label="@L.T("Pnl_Pager_Prev")">‹</a> }
+                else { <span class="off">‹</span> }
+                @{ int prev = 0; }
+                @foreach (int n in nums)
+                {
+                    if (n - prev > 1) { <span class="gap">…</span> }
+                    if (n == Model.Page) { <span class="cur" aria-current="page">@n</span> }
+                    else { <a href="@Href(n)">@n</a> }
+                    prev = n;
+                }
+                @if (Model.Page < Model.Pages) { <a href="@Href(Model.Page + 1)" rel="next" aria-label="@L.T("Pnl_Pager_Next")">›</a> }
+                else { <span class="off">›</span> }
+            </nav>
+        }
+    </div>
+}

@@ -305,6 +305,24 @@ button.link:hover { background: none; text-decoration: underline; }
 .toolbar label { font-size: 11.5px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
 .toolbar input[type=text] { min-width: 260px; }
 
+/* ---------- Sahifalash (_Pager) ---------- */
+.pager { display: flex; align-items: center; gap: 12px 20px; flex-wrap: wrap; margin: -6px 0 18px; padding: 10px 2px; color: var(--muted); font-size: 13px; }
+.pager-size { display: flex; align-items: center; gap: 8px; margin: 0; }
+.pager-size label { margin: 0; font-size: 13px; font-weight: 500; color: var(--muted); }
+.pager-size select { width: auto; height: 32px; padding: 4px 30px 4px 10px; background-position: calc(100% - 15px) 13px, calc(100% - 10px) 13px; }
+.pager-info { font-variant-numeric: tabular-nums; }
+.pager-pages { margin-left: auto; display: flex; align-items: center; gap: 4px; }
+.pager-pages a, .pager-pages span {
+    display: inline-grid; place-items: center; min-width: 32px; height: 32px; padding: 0 8px; border-radius: var(--radius-sm);
+    font-weight: 600; font-variant-numeric: tabular-nums; color: var(--text-2); border: 1px solid transparent;
+}
+.pager-pages a { border-color: var(--line); background: var(--surface); box-shadow: var(--shadow-sm); }
+.pager-pages a:hover { text-decoration: none; color: var(--accent); border-color: color-mix(in srgb, var(--accent) 40%, var(--line)); }
+.pager-pages .cur { color: #fff; background: var(--accent); border-color: var(--accent); }
+.pager-pages .off { color: var(--line-2); }
+.pager-pages .gap { min-width: 20px; padding: 0; color: var(--muted); }
+@media (max-width: 600px) { .pager-pages { margin-left: 0; width: 100%; justify-content: center; } }
+
 /* ---------- Turli ---------- */
 dl.props { display: grid; grid-template-columns: 210px 1fr; gap: 0; margin: 0; }
 dl.props dt, dl.props dd { padding: 9px 0; border-bottom: 1px dashed var(--line); }

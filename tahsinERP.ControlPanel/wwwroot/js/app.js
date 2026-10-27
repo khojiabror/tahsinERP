@@ -39,6 +39,11 @@
         });
     });
 
+    // Tanlov o'zgarganda formani yuborish (jadval "Qatorlar" tanlagichi va h.k.).
+    document.querySelectorAll('select[data-autosubmit]').forEach(function (s) {
+        s.addEventListener('change', function () { if (s.form) s.form.submit(); });
+    });
+
     // Bir martalik kod maydonlari: faqat raqam qoldiriladi.
     document.querySelectorAll('input[autocomplete="one-time-code"]').forEach(function (inp) {
         inp.addEventListener('input', function () {

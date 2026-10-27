@@ -4833,4 +4833,19 @@ Siz so'ramagan bo'lsangiz — bu xatga e'tibor bermang, parolingiz o'zgarmaydi.<
   <data name="Pnl_Inv_InvoiceDeleted" xml:space="preserve">
     <value>Hisob-faktura {0} o'chirildi.</value>
   </data>
+  <data name="Pnl_Pager_Rows" xml:space="preserve">
+    <value>Qatorlar:</value>
+  </data>
+  <data name="Pnl_Pager_Info" xml:space="preserve">
+    <value>{0}–{1} / {2}</value>
+  </data>
+  <data name="Pnl_Pager_Nav" xml:space="preserve">
+    <value>Sahifalar</value>
+  </data>
+  <data name="Pnl_Pager_Prev" xml:space="preserve">
+    <value>Oldingi sahifa</value>
+  </data>
+  <data name="Pnl_Pager_Next" xml:space="preserve">
+    <value>Keyingi sahifa</value>
+  </data>
 </root>

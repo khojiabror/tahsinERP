@@ -12,11 +12,13 @@ public class IndexModel(ControlDbContext db, BankImportService bank) : PanelPage
 {
     public record Row(BankImport Import, int Lines, int Matched, int Applied, long AppliedTiyin);
     public List<Row> Rows { get; private set; } = [];
+    public PageInfo Pager { get; private set; } = new(1, PageInfo.DefaultSize, 0);
     [BindProperty] public IFormFile? Upload { get; set; }
 
     public async Task OnGetAsync()
     {
-        var imports = await db.BankImports.AsNoTracking().OrderByDescending(i => i.Id).Take(100).ToListAsync();
+        var (imports, pager) = await db.BankImports.AsNoTracking().OrderByDescending(i => i.Id).ToPageAsync(HttpContext);
+        Pager = pager;
         var ids = imports.Select(i => i.Id).ToList();
         var stats = await db.BankImportLines.Where(l => ids.Contains(l.ImportId)).GroupBy(l => l.ImportId)
             .Select(g => new
