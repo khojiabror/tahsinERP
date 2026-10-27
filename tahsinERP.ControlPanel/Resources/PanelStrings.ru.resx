@@ -3987,4 +3987,31 @@ tahsinERP портал: код входа {1}. Действует {2} мин.
   <data name="Pnl_Upd_Action_RemoveInstance" xml:space="preserve">
     <value>Удаление инстанса (организация удалена)</value>
   </data>
+  <data name="Pnl_Ten_RestoreSlug" xml:space="preserve">
+    <value>Новое имя при восстановлении (пусто — то же имя)</value>
+  </data>
+  <data name="Pnl_Ten_RestoreHint" xml:space="preserve">
+    <value>Организация открывается снова из архивной базы. Если задано новое имя, «{0}» сразу освобождается: подключения Telegram-бота, сайт-каталог и отдельный сайт ERP под старым именем очищаются — подключите бота и сайт заново под новым именем. Доступ — по подписке (нет активной подписки — приостановлена).</value>
+  </data>
+  <data name="Pnl_Ten_RestoreBtn" xml:space="preserve">
+    <value>Восстановить из архива</value>
+  </data>
+  <data name="Pnl_Ten_RestoreQueued" xml:space="preserve">
+    <value>Восстановление из архива поставлено в очередь (задание #{0}), имя организации: {1}.</value>
+  </data>
+  <data name="Pnl_Prov_RestoreOnlyArchived" xml:space="preserve">
+    <value>Восстановить можно только архивированную организацию.</value>
+  </data>
+  <data name="Pnl_Prov_RestoreNoArchive" xml:space="preserve">
+    <value>Нет архивной копии — восстановить нельзя.</value>
+  </data>
+  <data name="Pnl_Prov_RestoreReasonRequired" xml:space="preserve">
+    <value>Укажите причину восстановления.</value>
+  </data>
+  <data name="Pnl_Prov_RestoreDbTaken" xml:space="preserve">
+    <value>Имя базы {0} занято другой организацией.</value>
+  </data>
+  <data name="Pnl_JobType_Restore" xml:space="preserve">
+    <value>Восстановление из архива</value>
+  </data>
 </root>

@@ -86,6 +86,12 @@
                         <a class="btn danger" href="/Tenants/Delete/@t.Id">@L.T("Pnl_Ten_DeleteForever")…</a>
                     }
                 </div>
+                @if (Model.IsOwner && t.Status == TenantStatus.Archived && t.ArchiveLocation != null)
+                {
+                    <div><label asp-for="RestoreSlug">@L.T("Pnl_Ten_RestoreSlug")</label><input asp-for="RestoreSlug" type="text" placeholder="@t.Slug" /></div>
+                    <div class="hint">@L.T("Pnl_Ten_RestoreHint", t.Slug)</div>
+                    <div class="actions"><button type="submit" class="secondary" asp-page-handler="Restore">@L.T("Pnl_Ten_RestoreBtn")</button></div>
+                }
             </form>
         }
         else if (Model.ActiveJob != null)

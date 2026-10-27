@@ -372,7 +372,7 @@ public class ApiNonce
     public DateTime ExpiresUtc { get; set; }
 }
 
-public enum ProvisioningJobType { Create = 1, Reset = 2, Suspend = 3, Resume = 4, Archive = 5, Delete = 6, EndTrial = 7, SiteDomain = 8 }
+public enum ProvisioningJobType { Create = 1, Reset = 2, Suspend = 3, Resume = 4, Archive = 5, Delete = 6, EndTrial = 7, SiteDomain = 8, Restore = 9 }
 
 /// <summary>
 /// O'z domeni holati: DNS kutilmoqda → (DNS server IP'ga qaradi) Binding — agent sertifikat va IIS binding qilmoqda → Active.
