@@ -3,11 +3,13 @@ using System.Collections.Generic;
 namespace tahsinERP.ViewModels
 {
     /// <summary>
-    /// User Manual page view model
+    /// Qo'llanma sahifasi: modullar ro'yxati va tanlangan modul kontenti
     /// </summary>
     public class UserManualPageViewModel
     {
-        public List<UserManualChapterViewModel> Chapters { get; set; }
-        public string InitialChapterId { get; set; }
+        public List<UserManualModuleViewModel> Modules { get; set; }
+        public UserManualModuleViewModel Current { get; set; }
+        public string ContentHtml { get; set; }
+        public string Language { get; set; }
     }
 }
