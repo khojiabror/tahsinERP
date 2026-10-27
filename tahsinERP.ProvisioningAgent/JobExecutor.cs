@@ -110,10 +110,10 @@ public sealed class JobExecutor(AgentOptions options, SqlOps sql, ScriptRunner s
             if (!string.IsNullOrWhiteSpace(options.Sql.User)) { args.Add("-SqlUser"); args.Add(options.Sql.User!); }
             // Sinov/pullik korxona: ixcham namuna (har tanlangan bo'limda bittadan yozuv, Database/Sample). Katta "Demo Plast"
             // ssenariysi (Database/Demo) — faqat ochiq demo tenant va uning shabloni (CreateDemoTemplateAsync) uchun.
-            if (p.SampleData) args.Add(p.Demo ? "-Demo" : "-Sample");
+            if (p.SampleData) args.Add(p.Demo || p.FullSample ? "-Demo" : "-Sample");
             var modules = SetupModules(p);
             if (modules.Count > 0) { args.Add("-Modules"); args.Add(string.Join(",", modules)); }
-            log.Info("New-TenantDb.ps1 ishga tushirildi" + (!p.SampleData ? "" : p.Demo ? " (demo ma'lumotlar: Database/Demo)" : " (ixcham namuna: Database/Sample)")
+            log.Info("New-TenantDb.ps1 ishga tushirildi" + (!p.SampleData ? "" : p.Demo || p.FullSample ? " (demo ma'lumotlar: Database/Demo)" : " (ixcham namuna: Database/Sample)")
                      + (modules.Count > 0 ? "; modullar: " + string.Join(", ", modules) : "; modullar: hammasi"));
             var r = await scripts.RunAsync("New-TenantDb.ps1", args, new Dictionary<string, string?> { ["TAHSINERP_ADMIN_PASSWORD"] = password }, ct);
             log.Raw(r.Log);

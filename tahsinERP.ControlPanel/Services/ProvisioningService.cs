@@ -53,7 +53,13 @@ public sealed class ProvisioningService(ControlDbContext db, AuditLogger audit, 
         return head + suffix;
     }
 
-    public bool IsDemo(Tenant t) => !string.IsNullOrWhiteSpace(O.DemoSlug) && string.Equals(t.Slug, O.DemoSlug, StringComparison.OrdinalIgnoreCase);
+    /// <summary>
+    /// Ochiq demo (ProvisioningOptions.DemoSlug): agent kechasi shablondan tiklaydi (Reset), ochiq "demo" foydalanuvchisi bor.
+    /// </summary>
+    public bool IsPublicDemo(Tenant t) => !string.IsNullOrWhiteSpace(O.DemoSlug) && string.Equals(t.Slug, O.DemoSlug, StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>Demo firma (to'lovsiz, ko'rsatuv uchun): <see cref="Tenant.IsDemo"/> yoki ochiq demo — statistika, eslatmalardan chiqariladi.</summary>
+    public bool IsDemo(Tenant t) => t.IsDemo || IsPublicDemo(t);
 
     /// <summary>12 belgili vaqtinchalik parol (o'xshash belgilarsiz) — New-TenantDb.ps1 bilan bir xil alifbo.</summary>
     public static string NewTempPassword()
@@ -115,7 +121,7 @@ public sealed class ProvisioningService(ControlDbContext db, AuditLogger audit, 
                 secrets.RegToken = await tenants.IssueRegTokenAsync(t, ct);
                 break;
             case ProvisioningJobType.Reset:
-                if (!IsDemo(t)) throw new DomainException(L.T("Pnl_Prov_ResetOnlyDemo", O.DemoSlug));
+                if (!IsPublicDemo(t)) throw new DomainException(L.T("Pnl_Prov_ResetOnlyDemo", O.DemoSlug));
                 if (t.Status == TenantStatus.Archived) throw new DomainException(L.T("Pnl_Prov_Archived"));
                 // Shablondan tiklangan bazada InstallationId yo'q — ERP yangisini yaratib, shu token bilan qayta bog'lanadi.
                 secrets.RegToken = await tenants.IssueRegTokenAsync(t, ct);
@@ -158,9 +164,9 @@ public sealed class ProvisioningService(ControlDbContext db, AuditLogger audit, 
         {
             Slug = t.Slug, DbName = t.DbName!, CompanyId = t.CompanyId, CompanyName = t.LegalName,
             AdminLogin = O.DefaultAdminLogin, AdminFullName = "Administrator", AdminEmail = t.Email,
-            Demo = IsDemo(t), SampleData = t.SampleData, Backup = backup, Reason = reason?.Trim(),
+            Demo = IsPublicDemo(t), SampleData = t.SampleData, FullSample = t.FullSampleData, Backup = backup, Reason = reason?.Trim(),
             // Create: faqat tanlangan modullar sozlamasi va namuna ma'lumoti (demo tenant — hammasi)
-            Modules = type == ProvisioningJobType.Create && !IsDemo(t) ? Licensing.LicenseIssuer.ParseModules(t.Modules)?.Select(m => m.ToString()).ToList() : null,
+            Modules = type == ProvisioningJobType.Create && !IsPublicDemo(t) ? Licensing.LicenseIssuer.ParseModules(t.Modules)?.Select(m => m.ToString()).ToList() : null,
         };
         payloadExtra?.Invoke(payload);
         var job = new ProvisioningJob

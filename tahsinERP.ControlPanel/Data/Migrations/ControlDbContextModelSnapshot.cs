@@ -1531,6 +1531,9 @@ namespace tahsinERP.ControlPanel.Data.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
+                    b.Property<bool>("FullSampleData")
+                        .HasColumnType("bit");
+
                     b.Property<string>("Inn")
                         .HasMaxLength(14)
                         .HasColumnType("nvarchar(14)");
@@ -1538,6 +1541,9 @@ namespace tahsinERP.ControlPanel.Data.Migrations
                     b.Property<string>("InstallationId")
                         .HasMaxLength(36)
                         .HasColumnType("nvarchar(36)");
+
+                    b.Property<bool>("IsDemo")
+                        .HasColumnType("bit");
 
                     b.Property<string>("LastHost")
                         .HasMaxLength(253)

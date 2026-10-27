@@ -4014,4 +4014,61 @@ tahsinERP портал: код входа {1}. Действует {2} мин.
   <data name="Pnl_JobType_Restore" xml:space="preserve">
     <value>Восстановление из архива</value>
   </data>
+  <data name="Pnl_Demo_Title" xml:space="preserve">
+    <value>Открыть демо</value>
+  </data>
+  <data name="Pnl_Demo_Intro" xml:space="preserve">
+    <value>Демо-организация — бесплатно: подписка на год, продлевается сама за 30 дней до окончания, до {0} пользователей; без счетов и напоминаний о сроке. Можно открыть несколько демо с разными модулями (например demodist — дистрибуция, demoprod — производство).</value>
+  </data>
+  <data name="Pnl_Demo_Name" xml:space="preserve">
+    <value>Название демо</value>
+  </data>
+  <data name="Pnl_Demo_NamePlaceholder" xml:space="preserve">
+    <value>Демо Дистрибуция</value>
+  </data>
+  <data name="Pnl_Demo_Data" xml:space="preserve">
+    <value>Данные</value>
+  </data>
+  <data name="Pnl_Demo_DataSample" xml:space="preserve">
+    <value>Компактный пример — по одной-две записи в каждом разделе</value>
+  </data>
+  <data name="Pnl_Demo_DataFull" xml:space="preserve">
+    <value>Полный пример (Demo Plast) — много записей, все разделы</value>
+  </data>
+  <data name="Pnl_Demo_DataNone" xml:space="preserve">
+    <value>Пустая база — только роли и настройки</value>
+  </data>
+  <data name="Pnl_Demo_Open" xml:space="preserve">
+    <value>Открыть демо</value>
+  </data>
+  <data name="Pnl_Demo_Opened" xml:space="preserve">
+    <value>Демо открыто: {0}</value>
+  </data>
+  <data name="Pnl_Demo_Badge" xml:space="preserve">
+    <value>Демо</value>
+  </data>
+  <data name="Pnl_Demo_MakeBtn" xml:space="preserve">
+    <value>Сделать демо (бесплатно)</value>
+  </data>
+  <data name="Pnl_Demo_MakeConfirm" xml:space="preserve">
+    <value>Организация станет бесплатным демо: подписка на год с автопродлением, до {0} пользователей. Продолжить?</value>
+  </data>
+  <data name="Pnl_Demo_Made" xml:space="preserve">
+    <value>Организация переведена в демо: подписка продлена на год, ключ обновлён.</value>
+  </data>
+  <data name="Pnl_Demo_ResumeQueued" xml:space="preserve">
+    <value>Возобновление поставлено в очередь (задание #{0}).</value>
+  </data>
+  <data name="Pnl_Demo_Reason" xml:space="preserve">
+    <value>Переведено в демо</value>
+  </data>
+  <data name="Pnl_Demo_OnlySaas" xml:space="preserve">
+    <value>Демо только для SaaS-организации.</value>
+  </data>
+  <data name="Pnl_Demo_AlreadyDemo" xml:space="preserve">
+    <value>Организация уже демо.</value>
+  </data>
+  <data name="Pnl_Demo_HasPaid" xml:space="preserve">
+    <value>У организации есть платная подписка — сделать демо нельзя.</value>
+  </data>
 </root>

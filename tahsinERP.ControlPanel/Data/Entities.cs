@@ -161,8 +161,15 @@ public class Tenant
     public string? ArchiveLocation { get; set; }
     /// <summary>Delete job tugagan vaqt: baza, zaxira va reestr yozuvi o'chirilgan. Moliyaviy tarix uchun qator qoladi.</summary>
     public DateTime? DeletedAtUtc { get; set; }
-    /// <summary>Baza namuna ma'lumotlar bilan yaratilgan/yaratiladi (Database/Demo skriptlari).</summary>
+    /// <summary>Baza namuna ma'lumotlar bilan yaratilgan/yaratiladi (ixcham — Database/Sample; FullSampleData — Database/Demo).</summary>
     public bool SampleData { get; set; }
+    /// <summary>SampleData bilan: katta "Demo Plast" ssenariysi (Database/Demo, ~3 oylik tarix) — ixcham namuna o'rniga. Demo firmalar uchun.</summary>
+    public bool FullSampleData { get; set; }
+    /// <summary>
+    /// Demo firma (sotuv ko'rsatuvi, to'lovsiz): sinov obunasi 1 yilga, o'zi uzayadi (SubscriptionService.RunLifecycleAsync), hisob-faktura,
+    /// muddat eslatmalari, sotuv voronkasi va faollik statistikasiga kirmaydi. DemoService.CreateAsync / MakeDemoAsync.
+    /// </summary>
+    public bool IsDemo { get; set; }
     /// <summary>
     /// Baza qaysi modullar uchun tayyorlangan/tayyorlanadi: ProductModule nomlari vergul bilan ("Srm,Crm,Tasks,Website"),
     /// EditionModules.NormalizeModules tartibida. Null — hamma modul (eski tenantlar, demo). Create job shu ro'yxat bo'yicha

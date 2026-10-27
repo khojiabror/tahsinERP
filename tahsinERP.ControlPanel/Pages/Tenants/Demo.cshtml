@@ -1,0 +1,42 @@
+@page
+@model tahsinERP.ControlPanel.Pages.Tenants.DemoModel
+@{ ViewData["Title"] = L.T("Pnl_Demo_Title"); }
+<h1>@L.T("Pnl_Demo_Title")</h1>
+@if (Model.Created is not null)
+{
+    <div class="secret">
+        <strong>@L.T("Pnl_Demo_Opened", Model.Created.LegalName) (job <a href="/Provisioning/Job/@Model.Job!.Id">#@Model.Job.Id</a>).</strong>
+        <div class="mono">@L.T("Pnl_Url"): @(Model.TenantUrl ?? Model.Created.Slug + ".<domen>")<br />@L.T("Username"): admin<br />@L.T("Pnl_Val_TempPassword"): @Model.TempPassword</div>
+        <div class="hint">@L.T("Pnl_Ten_TrialPasswordHint")</div>
+    </div>
+    <div class="actions"><a class="btn" href="/Tenants/Details/@Model.Created.Id">@L.T("Pnl_Ten_OrgPage")</a><a class="btn secondary" href="/Tenants/Demo">@L.T("Pnl_Ten_OneMore")</a></div>
+}
+else
+{
+    <p class="hint">@L.T("Pnl_Demo_Intro", tahsinERP.ControlPanel.Services.DemoService.Users)</p>
+    <form method="post" class="stack card">
+        <div asp-validation-summary="All"></div>
+        <div class="row">
+            <div><label asp-for="Input.Slug">@L.T("Pnl_Ten_SlugLabel")</label><input asp-for="Input.Slug" type="text" placeholder="demodist" /><div class="hint">a-z, 0-9, '-'. @L.T("Pnl_Url"): &lt;slug&gt;.&lt;domen&gt;.</div></div>
+            <div><label asp-for="Input.LegalName">@L.T("Pnl_Demo_Name")</label><input asp-for="Input.LegalName" type="text" placeholder="@L.T("Pnl_Demo_NamePlaceholder")" /></div>
+        </div>
+        <div><label asp-for="Input.ServerId">@L.T("Pnl_Server")</label>
+            <select asp-for="Input.ServerId">@foreach (var s in Model.Servers) { <option value="@s.Value">@(s.Value == "" ? "— " + L.T("Pnl_Ten_AutoServer") + " —" : s.Text)</option> }</select></div>
+        <fieldset class="modules">
+            <legend>@L.T("Pnl_Ten_TrialModules")</legend>
+            <span asp-validation-for="Input.Modules"></span>
+            @foreach (var m in tahsinERP.ControlPanel.Pages.Tenants.TrialModel.ModuleChoices)
+            {
+                string code = m.ToString();
+                <label class="check"><input type="checkbox" name="Input.Modules" value="@code" checked="@Model.Input.Modules.Contains(code, StringComparer.OrdinalIgnoreCase)" /> @L.T("Pnl_Module_" + code)</label>
+            }
+        </fieldset>
+        <fieldset>
+            <legend>@L.T("Pnl_Demo_Data")</legend>
+            <label class="check"><input type="radio" name="Input.Data" value="sample" checked="@(Model.Input.Data == "sample")" /> @L.T("Pnl_Demo_DataSample")</label>
+            <label class="check"><input type="radio" name="Input.Data" value="full" checked="@(Model.Input.Data == "full")" /> @L.T("Pnl_Demo_DataFull")</label>
+            <label class="check"><input type="radio" name="Input.Data" value="none" checked="@(Model.Input.Data == "none")" /> @L.T("Pnl_Demo_DataNone")</label>
+        </fieldset>
+        <div class="actions"><button type="submit">@L.T("Pnl_Demo_Open")</button><a class="btn secondary" href="/Tenants">@L.T("Pnl_CancelShort")</a></div>
+    </form>
+}

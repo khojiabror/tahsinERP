@@ -92,6 +92,7 @@ services.AddSingleton<InvoicePdfRenderer>();
 services.AddHttpClient<ITelegramSender, TelegramSender>(c => c.Timeout = TimeSpan.FromSeconds(15));
 services.AddHttpClient<IAppsClient, AppsHttpClient>(c => c.Timeout = TimeSpan.FromSeconds(30));
 services.AddScoped<TenantAppsService>();
+services.AddScoped<DemoService>();
 services.AddSingleton<IDnsResolver, SystemDnsResolver>();
 services.AddScoped<SiteDomainService>();
 // Avto-yangilash: GitHub relizlari (token faqat pool env'da), navbat, agent API (Docs/Deploy/03_AUTO_UPDATE.md)

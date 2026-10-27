@@ -4014,4 +4014,61 @@ Siz so'ramagan bo'lsangiz — bu xatga e'tibor bermang, parolingiz o'zgarmaydi.<
   <data name="Pnl_JobType_Restore" xml:space="preserve">
     <value>Arxivdan tiklash</value>
   </data>
+  <data name="Pnl_Demo_Title" xml:space="preserve">
+    <value>Demo ochish</value>
+  </data>
+  <data name="Pnl_Demo_Intro" xml:space="preserve">
+    <value>Demo firma — to'lovsiz: obuna bir yilga, tugashiga 30 kun qolganda o'zi uzayadi, {0} tagacha foydalanuvchi; hisob-faktura va muddat eslatmalari yo'q. Har xil modul bilan bir nechta demo ochish mumkin (masalan demodist — distributsiya, demoprod — ishlab chiqarish).</value>
+  </data>
+  <data name="Pnl_Demo_Name" xml:space="preserve">
+    <value>Demo nomi</value>
+  </data>
+  <data name="Pnl_Demo_NamePlaceholder" xml:space="preserve">
+    <value>Demo Distributsiya</value>
+  </data>
+  <data name="Pnl_Demo_Data" xml:space="preserve">
+    <value>Ma'lumotlar</value>
+  </data>
+  <data name="Pnl_Demo_DataSample" xml:space="preserve">
+    <value>Ixcham namuna — har bo'limda bitta-ikkita yozuv</value>
+  </data>
+  <data name="Pnl_Demo_DataFull" xml:space="preserve">
+    <value>To'liq namuna (Demo Plast) — ko'p yozuvli, barcha bo'limlar</value>
+  </data>
+  <data name="Pnl_Demo_DataNone" xml:space="preserve">
+    <value>Bo'sh baza — faqat rollar va sozlamalar</value>
+  </data>
+  <data name="Pnl_Demo_Open" xml:space="preserve">
+    <value>Demoni ochish</value>
+  </data>
+  <data name="Pnl_Demo_Opened" xml:space="preserve">
+    <value>Demo ochildi: {0}</value>
+  </data>
+  <data name="Pnl_Demo_Badge" xml:space="preserve">
+    <value>Demo</value>
+  </data>
+  <data name="Pnl_Demo_MakeBtn" xml:space="preserve">
+    <value>Demo qilish (to'lovsiz)</value>
+  </data>
+  <data name="Pnl_Demo_MakeConfirm" xml:space="preserve">
+    <value>Firma to'lovsiz demo bo'ladi: obuna bir yilga va o'zi uzayadi, {0} tagacha foydalanuvchi. Davom etasizmi?</value>
+  </data>
+  <data name="Pnl_Demo_Made" xml:space="preserve">
+    <value>Firma demo qilindi: obuna bir yilga uzaytirildi, kalit yangilandi.</value>
+  </data>
+  <data name="Pnl_Demo_ResumeQueued" xml:space="preserve">
+    <value>Qayta yoqish navbatga qo'yildi (job #{0}).</value>
+  </data>
+  <data name="Pnl_Demo_Reason" xml:space="preserve">
+    <value>Demo qilindi</value>
+  </data>
+  <data name="Pnl_Demo_OnlySaas" xml:space="preserve">
+    <value>Demo faqat SaaS firma uchun.</value>
+  </data>
+  <data name="Pnl_Demo_AlreadyDemo" xml:space="preserve">
+    <value>Firma allaqachon demo.</value>
+  </data>
+  <data name="Pnl_Demo_HasPaid" xml:space="preserve">
+    <value>Firmada pullik obuna bor — demo qilib bo'lmaydi.</value>
+  </data>
 </root>

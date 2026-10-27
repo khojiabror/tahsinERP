@@ -167,6 +167,7 @@ public sealed class SubscriptionService(ControlDbContext db, AuditLogger audit, 
         int changed = 0;
         foreach (var t in tenants)
         {
+            if (t.IsDemo) changed += DemoService.ExtendIfEnding(t, today, audit);
             foreach (var s in t.Subscriptions.Where(s => s.Status == SubscriptionStatus.Active && s.EndDate.AddDays(grace) < today))
             {
                 s.Status = SubscriptionStatus.Expired;

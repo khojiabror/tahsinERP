@@ -107,6 +107,8 @@ public sealed class JobPayload
     public bool Demo { get; set; }
     /// <summary>Create: namuna ma'lumotlar bilan (Database/Demo skriptlari; demo foydalanuvchi o'chirib qo'yiladi).</summary>
     public bool SampleData { get; set; }
+    /// <summary>SampleData bilan: katta "Demo Plast" ssenariysi (New-TenantDb -Demo) — ixcham namuna (-Sample) o'rniga.</summary>
+    public bool FullSample { get; set; }
     /// <summary>
     /// Create: baza qaysi modullar uchun tayyorlanadi — ProductModule nomlari ("Srm", "Crm", "Website"...). Null/bo'sh — hammasi
     /// (eski panel, demo). Agent New-TenantDb.ps1 -Modules ga beradi: rol/ombor profili va faqat shu modullarning namuna ma'lumoti.

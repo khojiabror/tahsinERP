@@ -16,6 +16,7 @@
     </div>
     <button type="submit" class="secondary">@L.T("Pnl_Show")</button>
     @if (Model.CanSell) { <a class="btn" href="/Tenants/Trial">+ @L.T("Pnl_Ten_OpenTrial")</a><a class="btn secondary" href="/Tenants/Create">+ @L.T("Pnl_Ten_New")</a> }
+    @if (Model.IsOwner) { <a class="btn secondary" href="/Tenants/Demo">+ @L.T("Pnl_Demo_Title")</a> }
 </form>
 <table>
     <tr><th>@L.T("Pnl_Organization")</th><th>Slug</th><th>@L.T("Pnl_Deployment")</th><th>@L.T("Status")</th><th>@L.T("Pnl_Package")</th><th>@L.T("Pnl_Dash_Ends")</th><th class="num">@L.T("Pnl_Dash_DebtSom")</th><th>ERP</th></tr>
@@ -23,7 +24,7 @@
     {
         var t = r.Tenant;
         <tr>
-            <td><a href="/Tenants/Details/@t.Id">@t.LegalName</a> <span class="hint">@t.Inn</span></td>
+            <td><a href="/Tenants/Details/@t.Id">@t.LegalName</a> @if (t.IsDemo) { <span class="badge info">@L.T("Pnl_Demo_Badge")</span> } <span class="hint">@t.Inn</span></td>
             <td><code>@t.Slug</code></td>
             <td>@(t.Deployment == DeploymentKind.SaaS ? "SaaS" : "On-prem")</td>
             <td><span class="badge @Labels.Badge(t.Status)">@Labels.Of(t.Status)</span></td>
