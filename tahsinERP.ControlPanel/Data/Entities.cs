@@ -800,6 +800,30 @@ public class ServerInventory
     public DateTime ReportedAtUtc { get; set; }
 }
 
+/// <summary>
+/// Server holatining kunlik jurnali (Toshkent kuni bo'yicha bitta qator): agent inventaridagi ServerHealth har kelganda
+/// yig'iladi — CPU/RAM o'rtacha va maksimum, disklar kun oxiridagi holati, qayta yuklashlar (uptime kamaygan).
+/// </summary>
+public class ServerHealthDay
+{
+    public long Id { get; set; }
+    public int ServerId { get; set; }
+    public DateOnly Day { get; set; }
+    public int Samples { get; set; }
+    public int CpuSamples { get; set; }
+    public double? CpuAvgPercent { get; set; }
+    public double? CpuMaxPercent { get; set; }
+    public long RamTotalBytes { get; set; }
+    public long RamUsedAvgBytes { get; set; }
+    public long RamUsedMaxBytes { get; set; }
+    /// <summary>Oxirgi o'lchovdagi disklar — List&lt;DiskHealth&gt; JSON.</summary>
+    public string DisksJson { get; set; } = "[]";
+    public long UptimeSeconds { get; set; }
+    public int Reboots { get; set; }
+    public DateTime FirstAtUtc { get; set; }
+    public DateTime LastAtUtc { get; set; }
+}
+
 // ── Ommaviy sayt (tahsinerp.uz) demo so'rovlari ───────────────────────────────────────────────────────────────────
 
 public enum DemoRequestStatus { New = 1, Contacted = 2, TrialOpened = 3, Rejected = 4 }
