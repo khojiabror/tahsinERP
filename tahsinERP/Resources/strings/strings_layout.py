@@ -6,6 +6,13 @@ STRINGS = {
     "Hdr_License": ("Litsenziya", "Лицензия"),
     "Hdr_Tasks": ("Topshiriqlar", "Поручения"),
     "Hdr_WarehouseIncome": ("Omborga kirim", "Приход на склад"),
+    # tasdiq/amal kutayotganlar (ruxsatga qarab chiqadi, LayoutBadges)
+    "Hdr_OrdersToConfirm": ("Tasdiq kutayotgan buyurtmalar", "Заказы на подтверждение"),
+    "Hdr_OrdersToShip": ("Jo'natish kutayotgan buyurtmalar", "Заказы к отгрузке"),
+    "Hdr_WriteOffsToApprove": ("Hisobdan chiqarish — tasdiq", "Списания на утверждение"),
+    "Hdr_CashHandovers": ("Kassaga topshirilgan naqd", "Сдача наличных в кассу"),
+    "Hdr_NewPoints": ("Yangi savdo nuqtalari", "Новые торговые точки"),
+    "Hdr_SiteLeads": ("Saytdan yangi arizalar", "Новые заявки с сайта"),
     "Hdr_Logout": ("Tizimdan chiqish", "Выйти из системы"),
 
     # --- menyu ---

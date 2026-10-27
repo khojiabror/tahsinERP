@@ -40,7 +40,7 @@
                         <div class="col-md-3 mb-50">
                             <select name="approval" class="form-control form-control-sm">
                                 <option value="">@DstLocalization.T("All")</option>
-                                <option value="pending">@DstLocalization.T("Customer_Pending") (@pending)</option>
+                                <option value="pending" @(Request.QueryString["approval"] == "pending" ? "selected" : "")>@DstLocalization.T("Customer_Pending") (@pending)</option>
                             </select>
                         </div>
                     </form>

@@ -14337,4 +14337,22 @@
   <data name="Core_PwdWarn_Admin" xml:space="preserve">
     <value>Xodimga murakkab kalit so'zi bering (kamida 8 belgi, harf, raqam va belgi) va uni ochiq guruh chatlarida yubormang. Xodimga kalit so'zini hech kimga bermasligini va birinchi kirishda almashtirishini ayting.</value>
   </data>
+  <data name="Hdr_OrdersToConfirm" xml:space="preserve">
+    <value>Tasdiq kutayotgan buyurtmalar</value>
+  </data>
+  <data name="Hdr_OrdersToShip" xml:space="preserve">
+    <value>Jo'natish kutayotgan buyurtmalar</value>
+  </data>
+  <data name="Hdr_WriteOffsToApprove" xml:space="preserve">
+    <value>Hisobdan chiqarish — tasdiq</value>
+  </data>
+  <data name="Hdr_CashHandovers" xml:space="preserve">
+    <value>Kassaga topshirilgan naqd</value>
+  </data>
+  <data name="Hdr_NewPoints" xml:space="preserve">
+    <value>Yangi savdo nuqtalari</value>
+  </data>
+  <data name="Hdr_SiteLeads" xml:space="preserve">
+    <value>Saytdan yangi arizalar</value>
+  </data>
 </root>
