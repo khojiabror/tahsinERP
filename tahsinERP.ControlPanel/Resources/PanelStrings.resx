@@ -3975,4 +3975,16 @@ Siz so'ramagan bo'lsangiz — bu xatga e'tibor bermang, parolingiz o'zgarmaydi.<
   <data name="Pnl_SDom_JobCancelled" xml:space="preserve">
     <value>Server amali bekor qilindi.</value>
   </data>
+  <data name="Pnl_Ten_DeleteInstanceQueued" xml:space="preserve">
+    <value>Alohida ERP sayti (instance) ham olib tashlanadi — yangilash job #{0}.</value>
+  </data>
+  <data name="Pnl_Ten_DeleteInstanceFailed" xml:space="preserve">
+    <value>Bazani o'chirish navbatda, lekin alohida ERP saytini olib tashlash qo'yilmadi: {0}. Yangilanishlar sahifasidan tekshiring.</value>
+  </data>
+  <data name="Pnl_Ten_DeleteFreesSlug" xml:space="preserve">
+    <value>Telegram bot ulanishlari, sayt-katalog va firmaning alohida ERP sayti ham tozalanadi. O'chirish tugagach «{0}» nomi bo'shaydi — shu nom bilan yangi firma ochish mumkin.</value>
+  </data>
+  <data name="Pnl_Upd_Action_RemoveInstance" xml:space="preserve">
+    <value>Instance'ni olib tashlash (firma o'chirildi)</value>
+  </data>
 </root>

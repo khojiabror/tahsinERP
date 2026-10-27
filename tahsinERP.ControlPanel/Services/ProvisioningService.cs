@@ -42,6 +42,17 @@ public sealed class ProvisioningService(ControlDbContext db, AuditLogger audit, 
 
     public string? TenantUrl(Tenant t) => string.IsNullOrWhiteSpace(O.BaseDomain) ? null : $"https://{t.Slug}.{O.BaseDomain.Trim().TrimStart('.')}";
 
+    /// <summary>
+    /// O'chirilgan firma yozuvining nomi: "smarttech" → "smarttech-o12" (Id yagona — to'qnashmaydi; 63 belgigacha, slug qoidasiga mos).
+    /// Asl nom yangi firmaga bo'shaydi; audit va tarixda yozuv Id bo'yicha topiladi.
+    /// </summary>
+    public static string ReleasedSlug(string slug, int id)
+    {
+        string suffix = "-o" + id;
+        string head = slug.Length + suffix.Length > 63 ? slug[..(63 - suffix.Length)].TrimEnd('-') : slug;
+        return head + suffix;
+    }
+
     public bool IsDemo(Tenant t) => !string.IsNullOrWhiteSpace(O.DemoSlug) && string.Equals(t.Slug, O.DemoSlug, StringComparison.OrdinalIgnoreCase);
 
     /// <summary>12 belgili vaqtinchalik parol (o'xshash belgilarsiz) — New-TenantDb.ps1 bilan bir xil alifbo.</summary>
@@ -368,6 +379,10 @@ public sealed class ProvisioningService(ControlDbContext db, AuditLogger audit, 
                     t.DeletedAtUtc = now;
                     t.RegistryEnabled = null;
                     t.ArchiveLocation = null;
+                    // nom va baza nomi bo'shaydi (ikkalasi UNIQUE): yozuv tarix uchun qoladi, shu nom bilan yangi firma ochiladi.
+                    // Bot/sayt yozuvlari va alohida ERP instance'i o'chirish sahifasida tozalanadi (DeleteModel).
+                    t.Slug = ReleasedSlug(t.Slug, t.Id);
+                    t.DbName = null;
                     break;
                 case ProvisioningJobType.EndTrial:
                     t.Status = TenantStatus.Archived;

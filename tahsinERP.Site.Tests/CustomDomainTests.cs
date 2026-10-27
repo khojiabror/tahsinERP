@@ -41,6 +41,36 @@ public class CustomDomainTests
         return (new SiteTenantAdmin(db, store), store, sp);
     }
 
+    /// <summary>Firma panelda o'chirilganda: tenant, katalog nusxasi va ariza navbati yo'qoladi, host endi topilmaydi; boshqa firma tegilmaydi.</summary>
+    [Fact]
+    public async Task Delete_RemovesTenantSnapshotAndLeads_Idempotent()
+    {
+        var (admin, store, sp) = Build();
+        using var _ = sp;
+        var db = sp.CreateScope().ServiceProvider.GetRequiredService<SiteDbContext>();
+        var firma = await db.Tenants.FirstAsync(t => t.Slug == "firma");
+        var boshqa = await db.Tenants.FirstAsync(t => t.Slug == "boshqa");
+        var now = DateTime.UtcNow;
+        foreach (var id in new[] { firma.Id, boshqa.Id })
+        {
+            db.Snapshots.Add(new SiteSnapshotRow { TenantId = id, ETag = "1", Json = "{}", FetchedAt = now });
+            db.LeadOutbox.Add(new LeadOutboxItem { TenantId = id, ClientRequestId = Guid.NewGuid(), Payload = "{}", CreatedAt = now, NextAt = now });
+        }
+        await db.SaveChangesAsync();
+        await store.RefreshTenantsAsync(default);
+        Assert.Equal("firma", store.TenantForHost("firma.sayt.tahsin.uz"));
+
+        Assert.True(await admin.DeleteAsync("Firma", default));
+        var check = sp.CreateScope().ServiceProvider.GetRequiredService<SiteDbContext>();
+        Assert.False(await check.Tenants.AnyAsync(t => t.Slug == "firma"));
+        Assert.False(await check.Snapshots.AnyAsync(s => s.TenantId == firma.Id));
+        Assert.False(await check.LeadOutbox.AnyAsync(l => l.TenantId == firma.Id));
+        Assert.Null(store.TenantForHost("firma.sayt.tahsin.uz"));
+        Assert.Equal(1, await check.Snapshots.CountAsync(s => s.TenantId == boshqa.Id));
+        Assert.Equal("boshqa", store.TenantForHost("boshqa.sayt.tahsin.uz"));
+        Assert.False(await admin.DeleteAsync("firma", default));
+    }
+
     [Fact]
     public async Task SetDomain_MapsHost_RejectsTakenAndReserved_AndClears()
     {

@@ -533,6 +533,13 @@ public partial class ProvisioningIntegrationTests(PanelFactory f) : IClassFixtur
         Assert.Null(t3.RegistryEnabled);
         Assert.False(File.Exists(bak));
         Assert.Null(new TenantsFile(opts.Paths.TenantsFile!, null).Get(slug));
+        // nom va baza nomi bo'shadi — shu nom bilan yangi firma ochiladi (eski yozuv tarix uchun "<slug>-o<Id>")
+        Assert.Equal(ProvisioningService.ReleasedSlug(slug, tenant.Id), t3.Slug);
+        Assert.Null(t3.DbName);
+        var again = await f.WithScopeAsync(async sp => await sp.GetRequiredService<TenantService>().CreateAsync(
+            new Tenant { Slug = slug, LegalName = "Yangi", Deployment = DeploymentKind.SaaS, ServerId = sid }, true));
+        Assert.Equal(slug, again.Slug);
+        Assert.Equal(dbName, again.DbName);
 
         var actions = await f.WithScopeAsync(sp => sp.GetRequiredService<ControlDbContext>().AuditLog
             .Where(a => a.Entity == "Tenant" && a.EntityId == tenant.Id.ToString()).Select(a => a.Action).ToListAsync());

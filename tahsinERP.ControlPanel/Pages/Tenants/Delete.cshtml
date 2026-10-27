@@ -8,6 +8,7 @@
     @if (Model.Step < 2)
     {
         <p>@L.T("Pnl_Ten_DeleteWarn1") <strong>@L.T("Pnl_Ten_DeleteIrreversible")</strong>: @L.T("Pnl_Ten_DeleteWarn2") (<span class="mono">@t.ArchiveLocation</span>) @L.T("Pnl_Ten_DeleteWarn3")</p>
+        <p class="hint">@L.T("Pnl_Ten_DeleteFreesSlug", t.Slug)</p>
         <div><label asp-for="ConfirmSlug">@L.T("Pnl_Ten_TypeSlug") <code>@t.Slug</code></label><input asp-for="ConfirmSlug" type="text" autocomplete="off" /></div>
         <div><label asp-for="Reason">@L.T("Pnl_Reason")</label><input asp-for="Reason" type="text" /></div>
         <label class="check"><input asp-for="Understand" /> @L.T("Pnl_Ten_Understand")</label>

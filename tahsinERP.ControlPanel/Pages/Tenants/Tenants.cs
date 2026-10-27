@@ -12,6 +12,7 @@ using tahsinERP.ControlPanel.Portal;
 using Microsoft.Extensions.Options;
 using tahsinERP.ControlPanel.I18n;
 using tahsinERP.Services.Editions;
+using tahsinERP.Provisioning.Contracts;
 
 namespace tahsinERP.ControlPanel.Pages.Tenants;
 
@@ -505,7 +506,7 @@ internal static class ServerList
 /// 2) yakuniy tasdiq sahifasi. Baza (agar qolgan bo'lsa), arxiv zaxirasi va tenants.json yozuvi o'chiriladi; moliyaviy tarix qoladi.
 /// </summary>
 [Authorize(Policy = Policies.Owner)]
-public class DeleteModel(ControlDbContext db, ProvisioningService provisioning) : PanelPageModel
+public class DeleteModel(ControlDbContext db, ProvisioningService provisioning, TenantAppsService apps, UpdatesService updates) : PanelPageModel
 {
     public Tenant Tenant { get; private set; } = null!;
     [BindProperty] public string? ConfirmSlug { get; set; }
@@ -546,9 +547,31 @@ public class DeleteModel(ControlDbContext db, ProvisioningService provisioning) 
             Step = 2; // birinchi tasdiq qabul qilindi — yakuniy sahifa
             return Page();
         }
+        // Tartib: baza o'chirish job'i (barcha shartlar shu yerda tekshiriladi) → bot va sayt ilovalaridan firma yozuvlari (aloqa
+        // xatosi — hali boshlanmagan job bekor qilinadi, nom bo'shamaydi) → firmaning alohida ERP instance'i bo'lsa, uni olib tashlash
+        // job'i. Delete job muvaffaqiyatli tugaganda nom va baza nomi bo'shatiladi (ProvisioningService).
         ProvisioningJob? job = null;
         if (!await TryAsync(async () => job = (await provisioning.EnqueueAsync(Tenant, ProvisioningJobType.Delete, Reason)).Job)) { Step = 1; return Page(); }
+        if (!await TryAsync(() => apps.PurgeAsync(Tenant)))
+        {
+            await TryAsync(() => provisioning.CancelAsync(job!));
+            Step = 1;
+            return Page();
+        }
         FlashOk = L.T("Pnl_Ten_DeleteQueued", job!.Id);
+        if (Tenant.ServerId is int serverId)
+        {
+            var (inv, _) = await updates.InventoryAsync(serverId);
+            if (inv?.Instances.Any(i => i.Slug == Tenant.Slug) == true)
+            {
+                try
+                {
+                    var uj = await updates.EnqueueAsync(serverId, UpdateAction.RemoveInstance, ReleaseApps.Erp, Tenant.Id, null, false);
+                    FlashOk += " " + L.T("Pnl_Ten_DeleteInstanceQueued", uj.Id);
+                }
+                catch (DomainException ex) { FlashError = L.T("Pnl_Ten_DeleteInstanceFailed", ex.Message); }
+            }
+        }
         return RedirectToPage("Details", new { id });
     }
 }

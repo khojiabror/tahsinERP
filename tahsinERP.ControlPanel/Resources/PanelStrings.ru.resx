@@ -3975,4 +3975,16 @@ tahsinERP портал: код входа {1}. Действует {2} мин.
   <data name="Pnl_SDom_JobCancelled" xml:space="preserve">
     <value>Задание сервера отменено.</value>
   </data>
+  <data name="Pnl_Ten_DeleteInstanceQueued" xml:space="preserve">
+    <value>Отдельный сайт ERP (инстанс) тоже будет удалён — задание обновления #{0}.</value>
+  </data>
+  <data name="Pnl_Ten_DeleteInstanceFailed" xml:space="preserve">
+    <value>Удаление базы в очереди, но удаление отдельного сайта ERP не поставлено: {0}. Проверьте на странице «Обновления».</value>
+  </data>
+  <data name="Pnl_Ten_DeleteFreesSlug" xml:space="preserve">
+    <value>Подключения Telegram-бота, сайт-каталог и отдельный сайт ERP организации тоже будут очищены. После удаления имя «{0}» освободится — можно открыть новую организацию с этим именем.</value>
+  </data>
+  <data name="Pnl_Upd_Action_RemoveInstance" xml:space="preserve">
+    <value>Удаление инстанса (организация удалена)</value>
+  </data>
 </root>
