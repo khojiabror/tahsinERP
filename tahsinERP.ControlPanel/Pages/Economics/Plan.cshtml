@@ -1,0 +1,147 @@
+@page
+@model tahsinERP.ControlPanel.Pages.Economics.PlanModel
+@using tahsinERP.ControlPanel.Pages.Economics
+@{
+    ViewData["Title"] = L.T("Pnl_Econ_TabPlan");
+    var p = Model.Plan;
+    var asm = Model.Calc.Assumptions;
+    var at = p.AtPlan;
+    decimal rate = Model.Settings.UsdRate;
+    var unit = new (string Label, string Basis, decimal Total, string Css)[]
+    {
+        (L.T("Pnl_Econ_Server"), L.T("Pnl_Econ_BasisServer", at.Servers), at.Server, ""),
+        (L.T("Pnl_Econ_PerFirmPlatform"), L.T("Pnl_Econ_BasisPerFirm"), at.PerFirmAndPlatform, ""),
+        (L.T("Pnl_Econ_Cat_Support"), L.T("Pnl_Econ_BasisSupport", at.SupportStaff), at.Support, ""),
+        (L.T("Pnl_Econ_CogsTotal"), L.T("Pnl_Econ_BasisCogs"), at.Cogs, "total"),
+        (L.T("Pnl_Econ_Cat_Development"), "", asm.OpexDevelopment, ""),
+        (L.T("Pnl_Econ_Cat_Sales"), "", asm.OpexSales, ""),
+        (L.T("Pnl_Econ_Cat_Admin"), "", asm.OpexAdmin, ""),
+        (L.T("Pnl_Econ_OpexTotal"), L.T("Pnl_Econ_BasisOpex"), asm.Opex, "total"),
+        (L.T("Pnl_Econ_FullCost"), L.T("Pnl_Econ_BasisFull"), at.Total, "key"),
+    };
+    decimal users = at.Users;
+}
+<h1>@L.T("Pnl_Econ_Title")</h1>
+<partial name="_EconNav" />
+
+<div class="card">
+    <h2>@L.T("Pnl_Econ_UnitTitle")</h2>
+    <p class="hint">@L.T("Pnl_Econ_UnitHint", p.PlannedFirms, p.AvgUsers.ToString("0.#"), users.ToString("0"))</p>
+    @if (p.PlannedFirms == 0) { <div class="flash info">@L.T("Pnl_Econ_NoPlanVolume") <a href="/Economics/Settings#packages">@L.T("Pnl_Econ_TabSettings")</a></div> }
+    <table class="econ">
+        <tr><th>@L.T("Pnl_Econ_CostItem")</th><th>@L.T("Pnl_Econ_Basis")</th><th class="num">@L.T("Pnl_Econ_PerMonth")</th><th class="num">@L.T("Pnl_Econ_PerFirm")</th><th class="num">@L.T("Pnl_Econ_PerUser")</th><th class="num">@L.T("Pnl_Econ_Share")</th></tr>
+        @foreach (var r in unit)
+        {
+            <tr class="@r.Css"><td class="lbl">@r.Label</td><td class="basis">@r.Basis</td><td class="num">@Econ.M(r.Total)</td>
+                <td class="num">@(at.Firms > 0 ? Econ.M(r.Total / at.Firms) : "—")</td>
+                <td class="num">@(users > 0 ? Econ.M(r.Total / users) : "—")</td>
+                <td class="num">@(at.Total > 0 ? Econ.Pct(r.Total / at.Total) : "—")</td></tr>
+        }
+    </table>
+    <p class="hint">@L.T("Pnl_Econ_UsdEquivalent", Econ.Usd(at.Total, rate), at.Firms > 0 ? Econ.Usd(at.PerFirm, rate) : "—", users > 0 ? Econ.Usd(at.PerUser, rate) : "—")</p>
+</div>
+
+<div class="card">
+    <h2>@L.T("Pnl_Econ_SimTitle")</h2>
+    <form method="get" class="toolbar">
+        <label for="sim">@L.T("Pnl_Econ_SimFirms")</label>
+        <input type="text" id="sim" name="sim" value="@Model.Sim" />
+        <button type="submit" class="secondary">@L.T("Pnl_Econ_Show")</button>
+        <span class="hint">@L.T("Pnl_Econ_SimHint")</span>
+    </form>
+    <div class="scroll">
+    <table class="econ">
+        <tr><th></th>@foreach (var s in p.Simulation) { <th class="num">@L.T("Pnl_Econ_NFirms", s.Firms)</th> }</tr>
+        <tr><td class="lbl">@L.T("Pnl_Users")</td>@foreach (var s in p.Simulation) { <td class="num">@s.Users.ToString("#,0")</td> }</tr>
+        <tr><td class="lbl">@L.T("Pnl_Econ_Servers")</td>@foreach (var s in p.Simulation) { <td class="num">@s.Servers</td> }</tr>
+        <tr><td class="lbl">@L.T("Pnl_Econ_SupportStaff")</td>@foreach (var s in p.Simulation) { <td class="num">@s.SupportStaff</td> }</tr>
+        <tr><td class="lbl">@L.T("Pnl_Econ_Server")</td>@foreach (var s in p.Simulation) { <td class="num">@Econ.M(s.Server)</td> }</tr>
+        <tr><td class="lbl">@L.T("Pnl_Econ_PerFirmPlatform")</td>@foreach (var s in p.Simulation) { <td class="num">@Econ.M(s.PerFirmAndPlatform)</td> }</tr>
+        <tr><td class="lbl">@L.T("Pnl_Econ_Cat_Support")</td>@foreach (var s in p.Simulation) { <td class="num">@Econ.M(s.Support)</td> }</tr>
+        <tr class="total"><td class="lbl">@L.T("Pnl_Econ_CogsTotal")</td>@foreach (var s in p.Simulation) { <td class="num">@Econ.M(s.Cogs)</td> }</tr>
+        <tr><td class="lbl">@L.T("Pnl_Econ_OpexTotal")</td>@foreach (var s in p.Simulation) { <td class="num">@Econ.M(s.Opex)</td> }</tr>
+        <tr class="total"><td class="lbl">@L.T("Pnl_Econ_TotalCost")</td>@foreach (var s in p.Simulation) { <td class="num">@Econ.M(s.Total)</td> }</tr>
+        <tr><td class="lbl">@L.T("Pnl_Econ_CogsPerFirm")</td>@foreach (var s in p.Simulation) { <td class="num">@Econ.M(s.CogsPerFirm)</td> }</tr>
+        <tr class="key"><td class="lbl">@L.T("Pnl_Econ_FullPerFirm")</td>@foreach (var s in p.Simulation) { <td class="num">@Econ.M(s.PerFirm)</td> }</tr>
+        <tr class="key"><td class="lbl">@L.T("Pnl_Econ_FullPerUser")</td>@foreach (var s in p.Simulation) { <td class="num">@Econ.M(s.PerUser)</td> }</tr>
+        <tr class="sub"><td colspan="@(p.Simulation.Count + 1)">@L.T("Pnl_Econ_SimProfitTitle", Econ.M(p.AvgNetPrice))</td></tr>
+        <tr><td class="lbl">@L.T("Pnl_Econ_RevenueMrr")</td>@foreach (var s in p.Simulation) { <td class="num">@Econ.M(s.Firms * p.AvgNetPrice)</td> }</tr>
+        <tr class="total"><td class="lbl">@L.T("Pnl_Econ_ProfitPretax")</td>@foreach (var s in p.Simulation)
+            {
+                decimal pr = Model.Calc.Profit(s.Firms, p.AvgUsers, p.AvgNetPrice);
+                <td class="num @(pr < 0 ? "var-bad" : "var-good")">@Econ.M(pr)</td>
+            }</tr>
+    </table>
+    </div>
+</div>
+
+<div class="card">
+    <h2>@L.T("Pnl_Econ_PackagesTitle")</h2>
+    <p class="hint">@L.T("Pnl_Econ_PackagesHint")</p>
+    <div class="scroll">
+    <table class="econ">
+        <tr><th></th>@foreach (var r in p.Packages) { <th class="num"><code>@r.Input.Code</code><br />@r.Input.Name</th> }</tr>
+        <tr><td class="lbl">@L.T("Pnl_Users")</td>@foreach (var r in p.Packages) { <td class="num">@r.Input.Users</td> }</tr>
+        <tr><td class="lbl">@L.T("Pnl_Econ_ModuleShare")</td>@foreach (var r in p.Packages) { <td class="num">@Econ.Pct(r.Input.ModuleShare)</td> }</tr>
+        <tr><td class="lbl">@L.T("Pnl_Econ_Load")</td>@foreach (var r in p.Packages) { <td class="num">@r.Input.Load.ToString("0.0")</td> }</tr>
+        <tr><td class="lbl">@L.T("Pnl_Econ_PlannedFirms")</td>@foreach (var r in p.Packages) { <td class="num">@r.Input.PlannedTenants</td> }</tr>
+        <tr class="sub"><td colspan="@(p.Packages.Count + 1)">@L.T("Pnl_Econ_CostSection")</td></tr>
+        <tr><td class="lbl">@L.T("Pnl_Econ_Infra")</td>@foreach (var r in p.Packages) { <td class="num">@Econ.M(r.Infra)</td> }</tr>
+        <tr><td class="lbl">@L.T("Pnl_Econ_SupportShare")</td>@foreach (var r in p.Packages) { <td class="num">@Econ.M(r.SupportShare)</td> }</tr>
+        <tr class="total"><td class="lbl">@L.T("Pnl_Econ_CogsTotal")</td>@foreach (var r in p.Packages) { <td class="num">@Econ.M(r.Cogs)</td> }</tr>
+        <tr><td class="lbl">@L.T("Pnl_Econ_OpexShare")</td>@foreach (var r in p.Packages) { <td class="num">@Econ.M(r.OpexShare)</td> }</tr>
+        <tr class="key"><td class="lbl">@L.T("Pnl_Econ_FullCost")</td>@foreach (var r in p.Packages) { <td class="num">@Econ.M(r.FullCost)</td> }</tr>
+        <tr><td class="lbl">@L.T("Pnl_Econ_FullPerUser")</td>@foreach (var r in p.Packages) { <td class="num">@Econ.M(r.FullCostPerUser)</td> }</tr>
+        <tr class="sub"><td colspan="@(p.Packages.Count + 1)">@L.T("Pnl_Econ_PriceSection")</td></tr>
+        <tr><td class="lbl">+ @L.T("Pnl_Econ_NetProfit") <span class="basis">(@L.T("Pnl_Econ_Markup"))</span></td>@foreach (var r in p.Packages) { <td class="num">@Econ.M(r.NetProfit) <span class="basis">@r.Input.MarkupPercent.ToString("0.#")%</span></td> }</tr>
+        <tr><td class="lbl">+ @L.T("Pnl_Econ_ProfitTax")</td>@foreach (var r in p.Packages) { <td class="num">@Econ.M(r.ProfitTax)</td> }</tr>
+        <tr><td class="lbl">+ @L.T("Pnl_Econ_Deductions")</td>@foreach (var r in p.Packages) { <td class="num">@Econ.M(r.Deductions)</td> }</tr>
+        <tr class="total"><td class="lbl">@L.T("Pnl_Econ_CalcNet")</td>@foreach (var r in p.Packages) { <td class="num">@Econ.M(r.CalcNet)</td> }</tr>
+        <tr><td class="lbl">+ @L.T("Pnl_Econ_Vat")</td>@foreach (var r in p.Packages) { <td class="num">@Econ.M(r.CalcVat)</td> }</tr>
+        <tr class="key"><td class="lbl">@L.T("Pnl_Econ_Recommended")</td>@foreach (var r in p.Packages) { <td class="num">@Money.Format(r.RecommendedGross)</td> }</tr>
+        <tr><td class="lbl">@L.T("Pnl_Econ_PerUserGross")</td>@foreach (var r in p.Packages) { <td class="num">@(r.Input.Users > 0 ? Econ.M(r.RecommendedGross / (decimal)r.Input.Users) : "—")</td> }</tr>
+        <tr class="sub"><td colspan="@(p.Packages.Count + 1)">@L.T("Pnl_Econ_CheckSection")</td></tr>
+        <tr><td class="lbl">@L.T("Pnl_Econ_CurrentPrice")</td>@foreach (var r in p.Packages) { <td class="num">@(r.Input.CurrentPriceGross is > 0 ? Money.Format(r.Input.CurrentPriceGross.Value) : L.T("Pnl_NotSet"))</td> }</tr>
+        <tr><td class="lbl">@L.T("Pnl_Econ_MarketPrice")</td>@foreach (var r in p.Packages) { <td class="num">@(r.MarketPrice > 0 ? Econ.M(r.MarketPrice) : "—")</td> }</tr>
+        <tr><td class="lbl">@L.T("Pnl_Econ_VsMarket")</td>@foreach (var r in p.Packages) { <td class="num @(r.MarketPrice > 0 ? Econ.VarClass(r.MarketDiff, false) : "")">@(r.MarketPrice > 0 ? (r.MarketDiff > 0 ? "+" : "") + Econ.Pct(r.MarketDiff) : "—")</td> }</tr>
+        <tr><td class="lbl">@L.T("Pnl_Econ_TargetGm")</td>@foreach (var r in p.Packages) { <td class="num">@r.Input.TargetGrossMarginPercent.ToString("0.#")%</td> }</tr>
+        <tr class="total"><td class="lbl">@L.T("Pnl_Econ_GrossMargin")</td>@foreach (var r in p.Packages) { <td class="num">@Econ.Pct(Model.Calc.GrossMargin(r, r.EffectiveNet))</td> }</tr>
+        <tr><td class="lbl">@L.T("Pnl_Econ_NetProfitPerFirm")</td>@foreach (var r in p.Packages)
+            {
+                decimal np = Model.Calc.NetProfitAfterTax(r, r.EffectiveNet);
+                <td class="num @(np < 0 ? "var-bad" : "")">@Econ.M(np)</td>
+            }</tr>
+        <tr><td class="lbl">@L.T("Status")</td>@foreach (var r in p.Packages) { var h = Model.Calc.Health(r); <td class="num"><span class="badge @Econ.Badge(h)">@Econ.Of(h)</span></td> }</tr>
+        <tr><td></td>@foreach (var r in p.Packages)
+            {
+                <td class="num">
+                    @if (r.RecommendedGross > 0 && r.RecommendedGross != r.Input.CurrentPriceGross)
+                    {
+                        <form method="post" asp-page-handler="ApplyPrice" class="inline" data-confirm="@L.T("Pnl_Econ_ApplyConfirm", r.Input.Name, Money.Format(r.RecommendedGross))">
+                            <input type="hidden" name="planId" value="@r.Input.PlanId" />
+                            <button type="submit" class="secondary">@L.T("Pnl_Econ_ApplyPrice")</button>
+                        </form>
+                    }
+                </td>
+            }</tr>
+    </table>
+    </div>
+    <p class="hint">@L.T("Pnl_Econ_PriceHint")</p>
+</div>
+
+<div class="card">
+    <h2>@L.T("Pnl_Econ_BreakEven")</h2>
+    <p>@(p.BreakEvenFirms is { } be ? L.T("Pnl_Econ_BreakEvenAt", be) + " — " + L.T("Pnl_Econ_BreakEvenMrr", Econ.M(be * p.AvgNetPrice)) : L.T("Pnl_Econ_BreakEvenNoneLong"))</p>
+    <p class="hint">@L.T("Pnl_Econ_BreakEvenBasis", Econ.M(p.AvgNetPrice), p.AvgUsers.ToString("0.#"))</p>
+</div>
+
+<div class="card">
+    <h2>@L.T("Pnl_Econ_MethodTitle")</h2>
+    <ol class="hint">
+        <li>@L.T("Pnl_Econ_Method1")</li>
+        <li>@L.T("Pnl_Econ_Method2")</li>
+        <li>@L.T("Pnl_Econ_Method3")</li>
+        <li>@L.T("Pnl_Econ_Method4")</li>
+        <li>@L.T("Pnl_Econ_Method5")</li>
+    </ol>
+</div>

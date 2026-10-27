@@ -1,0 +1,111 @@
+@page
+@model tahsinERP.ControlPanel.Pages.Economics.SettingsModel
+@using tahsinERP.ControlPanel.Pages.Economics
+@{
+    ViewData["Title"] = L.T("Pnl_Econ_TabSettings");
+    var planById = Model.Plans.ToDictionary(p => p.Id);
+}
+<h1>@L.T("Pnl_Econ_Title")</h1>
+<partial name="_EconNav" />
+<p class="hint">@L.T("Pnl_Econ_SettingsHint")</p>
+
+<form method="post" asp-page-handler="Assumptions" class="stack card">
+    <h2>@L.T("Pnl_Econ_AssumptionsTitle")</h2>
+    <div asp-validation-summary="All"></div>
+    <h3>@L.T("Pnl_Econ_InfraTitle")</h3>
+    <div class="row">
+        <div><label asp-for="ServerPrice">@L.T("Pnl_Econ_ServerPrice")</label><input asp-for="ServerPrice" /><span asp-validation-for="ServerPrice"></span></div>
+        <div class="row">
+            <div><label asp-for="FirmsPerServer">@L.T("Pnl_Econ_FirmsPerServer")</label><input asp-for="FirmsPerServer" type="number" /></div>
+            <div><label asp-for="MinServers">@L.T("Pnl_Econ_MinServers")</label><input asp-for="MinServers" type="number" /></div>
+        </div>
+    </div>
+    <div class="row">
+        <div><label asp-for="PerFirm">@L.T("Pnl_Econ_PerFirmCost")</label><input asp-for="PerFirm" /><div class="hint">@L.T("Pnl_Econ_PerFirmHint")</div></div>
+        <div><label asp-for="Platform">@L.T("Pnl_Econ_PlatformCost")</label><input asp-for="Platform" /><div class="hint">@L.T("Pnl_Econ_PlatformHint")</div></div>
+    </div>
+    <h3>@L.T("Pnl_Econ_SupportTitle")</h3>
+    <div class="row">
+        <div><label asp-for="SupportSalary">@L.T("Pnl_Econ_SupportSalary")</label><input asp-for="SupportSalary" /></div>
+        <div class="row">
+            <div><label asp-for="FirmsPerSupport">@L.T("Pnl_Econ_FirmsPerSupport")</label><input asp-for="FirmsPerSupport" type="number" /></div>
+            <div><label asp-for="MinSupport">@L.T("Pnl_Econ_MinSupport")</label><input asp-for="MinSupport" type="number" /></div>
+        </div>
+    </div>
+    <h3>@L.T("Pnl_Econ_TaxTitle")</h3>
+    <div class="row">
+        <div><label asp-for="PayrollTaxPercent">@L.T("Pnl_Econ_PayrollTax")</label><input asp-for="PayrollTaxPercent" type="number" step="0.01" /></div>
+        <div><label asp-for="ProfitTaxPercent">@L.T("Pnl_Econ_ProfitTaxPct")</label><input asp-for="ProfitTaxPercent" type="number" step="0.01" /><div class="hint">@L.T("Pnl_Econ_ProfitTaxHint")</div></div>
+    </div>
+    <div class="row">
+        <div><label asp-for="TurnoverTaxPercent">@L.T("Pnl_Econ_TurnoverTax")</label><input asp-for="TurnoverTaxPercent" type="number" step="0.01" /><div class="hint">@L.T("Pnl_Econ_TurnoverHint")</div></div>
+        <div><label asp-for="BankFeePercent">@L.T("Pnl_Econ_BankFee")</label><input asp-for="BankFeePercent" type="number" step="0.01" /><span asp-validation-for="BankFeePercent"></span></div>
+    </div>
+    <div class="row">
+        <div><label asp-for="UsdRate">@L.T("Pnl_Econ_UsdRate")</label><input asp-for="UsdRate" /><span asp-validation-for="UsdRate"></span></div>
+        <div class="hint">@L.T("Pnl_Econ_VatFromPlans")</div>
+    </div>
+    <div class="actions"><button type="submit">@L.T("Save")</button></div>
+</form>
+
+<form method="post" asp-page-handler="Costs" class="card" id="costs">
+    <h2>@L.T("Pnl_Econ_FixedCostsTitle")</h2>
+    <p class="hint">@L.T("Pnl_Econ_FixedCostsHint")</p>
+    <div class="scroll">
+    <table class="edit econ">
+        <tr><th>@L.T("Pnl_Econ_Kind")</th><th>@L.T("Name")</th><th class="num">@L.T("Pnl_Econ_Count")</th><th class="num">@L.T("Pnl_Econ_MonthlySom")</th><th>@L.T("Pnl_Econ_Category")</th><th>@L.T("Delete")</th></tr>
+        @for (int i = 0; i < Model.Costs.Count; i++)
+        {
+            var c = Model.Costs[i];
+            <tr>
+                <td><input type="hidden" name="Costs[@i].Id" value="@c.Id" />
+                    <select name="Costs[@i].Kind">
+                        <option value="Staff" selected="@(c.Kind == PlannedCostKind.Staff)">@L.T("Pnl_Econ_KindStaff")</option>
+                        <option value="Other" selected="@(c.Kind == PlannedCostKind.Other)">@L.T("Pnl_Econ_KindOther")</option>
+                    </select></td>
+                <td><input name="Costs[@i].Name" value="@c.Name" maxlength="200" placeholder="@(c.Id == 0 ? L.T("Pnl_Econ_NewRow") : "")" /></td>
+                <td class="num"><input class="w-sm" type="number" min="0" name="Costs[@i].Count" value="@c.Count" /></td>
+                <td class="num"><input class="w-money" name="Costs[@i].Amount" value="@c.Amount" inputmode="decimal" /></td>
+                <td><select name="Costs[@i].Category">
+                        @foreach (var cat in Econ.OpexCategories) { <option value="@cat" selected="@(cat == c.Category)">@Econ.Of(cat)</option> }
+                    </select></td>
+                <td>@if (c.Id != 0) { <input type="checkbox" name="Costs[@i].Delete" value="true" aria-label="@L.T("Delete")" /> }</td>
+            </tr>
+        }
+    </table>
+    </div>
+    <p class="hint">@L.T("Pnl_Econ_StaffTaxHint")</p>
+    <div class="actions"><button type="submit">@L.T("Save")</button></div>
+</form>
+
+<form method="post" asp-page-handler="Packages" class="card" id="packages">
+    <h2>@L.T("Pnl_Econ_PackagesSettingsTitle")</h2>
+    <p class="hint">@L.T("Pnl_Econ_PackagesSettingsHint")</p>
+    <table class="edit econ">
+        <tr><th>@L.T("Pnl_Package")</th><th>@L.T("Pnl_Modules")</th><th class="num">@L.T("Pnl_Users")</th><th class="num">@L.T("Pnl_Econ_PlannedFirms")</th><th class="num">@L.T("Pnl_Econ_MarkupPct")</th><th class="num">@L.T("Pnl_Econ_TargetGm")</th></tr>
+        @for (int i = 0; i < Model.Packages.Count; i++)
+        {
+            var r = Model.Packages[i];
+            var plan = planById[r.PlanId];
+            <tr>
+                <td><input type="hidden" name="Packages[@i].PlanId" value="@r.PlanId" /><code>@plan.Code</code> @plan.Name</td>
+                <td class="hint">@plan.Modules.Replace(",", ", ")</td>
+                <td class="num">@plan.MaxUsers</td>
+                <td class="num"><input class="w-sm" type="number" min="0" name="Packages[@i].PlannedTenants" value="@r.PlannedTenants" /></td>
+                <td class="num"><input class="w-sm" type="number" min="0" step="0.1" name="Packages[@i].MarkupPercent" value="@r.MarkupPercent.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)" /></td>
+                <td class="num"><input class="w-sm" type="number" min="0" max="99" step="0.1" name="Packages[@i].TargetGrossMarginPercent" value="@r.TargetGrossMarginPercent.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)" /></td>
+            </tr>
+        }
+    </table>
+    <p class="hint">@L.T("Pnl_Econ_PlanEditHint") <a href="/Plans">@L.T("Pnl_NavPlans")</a></p>
+    <h3>@L.T("Pnl_Econ_WeightsTitle")</h3>
+    <p class="hint">@L.T("Pnl_Econ_WeightsHint")</p>
+    <table class="edit econ">
+        <tr><th>@L.T("Pnl_Econ_Module")</th><th class="num">@L.T("Pnl_Econ_Weight")</th></tr>
+        @foreach (var (module, weight) in Model.Weights)
+        {
+            <tr><td>@module</td><td class="num"><input class="w-sm" type="number" min="0" max="100" name="Weights[@module]" value="@weight" /></td></tr>
+        }
+    </table>
+    <div class="actions"><button type="submit">@L.T("Save")</button></div>
+</form>

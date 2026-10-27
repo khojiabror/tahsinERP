@@ -1,0 +1,11 @@
+@{
+    var page = ViewContext.RouteData.Values["page"]?.ToString() ?? "";
+    string A(string p) => page == p || (p == "/Economics/Expenses" && page == "/Economics/ExpenseEdit") ? "active" : "";
+}
+<nav class="subnav">
+    <a class="@A("/Economics/Index")" href="/Economics">@L.T("Pnl_Econ_TabActual")</a>
+    <a class="@A("/Economics/Plan")" href="/Economics/Plan">@L.T("Pnl_Econ_TabPlan")</a>
+    <a class="@A("/Economics/Expenses")" href="/Economics/Expenses">@L.T("Pnl_Econ_TabExpenses")</a>
+    <a class="@A("/Economics/Competitors")" href="/Economics/Competitors">@L.T("Pnl_Econ_TabCompetitors")</a>
+    <a class="@A("/Economics/Settings")" href="/Economics/Settings">@L.T("Pnl_Econ_TabSettings")</a>
+</nav>

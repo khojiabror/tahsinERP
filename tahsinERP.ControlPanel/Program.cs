@@ -69,6 +69,7 @@ services.AddScoped<ExpiryReminderService>();
 services.AddScoped<ProvisioningService>();
 services.AddScoped<UsageService>();
 services.AddScoped<TractionService>();
+services.AddScoped<EconomicsService>();
 services.AddScoped<DemoRequestService>();
 services.AddScoped<tahsinERP.ControlPanel.Services.Bank.BankImportService>();
 // Didox e-hisob-faktura: PartnerToken/Password/MXIK berilmasa o'chiq (tugma ko'rinmaydi).
@@ -218,6 +219,7 @@ services.AddRazorPages(o =>
     o.Conventions.AuthorizeFolder("/Servers", Policies.Owner);
     o.Conventions.AuthorizeFolder("/Updates", Policies.Owner);
     o.Conventions.AuthorizeFolder("/Audit", Policies.Owner);
+    o.Conventions.AuthorizeFolder("/Economics", Policies.Owner); // moliyaviy reja va xarajatlar
     o.Conventions.AuthorizeFolder("/Bank", Policies.Sales); // to'lov belgilash huquqi (00_PLAN.md 5.2)
 });
 

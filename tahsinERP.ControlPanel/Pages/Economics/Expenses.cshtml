@@ -1,0 +1,84 @@
+@page
+@model tahsinERP.ControlPanel.Pages.Economics.ExpensesModel
+@using tahsinERP.ControlPanel.Pages.Economics
+@{
+    ViewData["Title"] = L.T("Pnl_Econ_TabExpenses");
+    var a = Model.Actual;
+    var f = Model.Flex;
+    var asm = Model.Calc.Assumptions;
+    decimal PlanOf(CostCategory c) => c switch
+    {
+        CostCategory.Infra => f.Cost.Infra, CostCategory.Support => f.Cost.Support,
+        CostCategory.Development => asm.OpexDevelopment, CostCategory.Sales => asm.OpexSales, _ => asm.OpexAdmin
+    };
+}
+<h1>@L.T("Pnl_Econ_Title")</h1>
+<partial name="_EconNav" />
+<div class="toolbar">
+    <form method="get" class="toolbar">
+        <label for="m">@L.T("Pnl_Month")</label>
+        <input type="month" id="m" name="m" value="@Model.Month" />
+        <button type="submit" class="secondary">@L.T("Pnl_Econ_Show")</button>
+    </form>
+    <form method="post" asp-page-handler="Copy" asp-route-m="@Model.Month" class="inline" data-confirm="@L.T("Pnl_Econ_CopyConfirm")">
+        <button type="submit" class="secondary">@L.T("Pnl_Econ_CopyPrev")</button>
+    </form>
+</div>
+
+<div class="cols">
+    <form method="post" asp-page-handler="Add" asp-route-m="@Model.Month" class="stack card">
+        <h2>@L.T("Pnl_Econ_AddExpense")</h2>
+        <div asp-validation-summary="All"></div>
+        <partial name="_ExpenseFields" model="Model.Form" />
+        <p class="hint">@L.T("Pnl_Econ_CategoryHint")</p>
+        <div class="actions"><button type="submit">@L.T("Pnl_Econ_AddExpense")</button></div>
+    </form>
+    <div class="card">
+        <h2>@L.T("Pnl_Econ_ByCategory")</h2>
+        <table class="econ">
+            <tr><th>@L.T("Pnl_Econ_Category")</th><th class="num">@L.T("Pnl_Econ_ColPlan")</th><th class="num">@L.T("Pnl_Econ_ColFact")</th><th class="num">@L.T("Pnl_Econ_ColDiff")</th></tr>
+            <tr class="sub"><td colspan="4">@L.T("Pnl_Econ_Cogs")</td></tr>
+            @foreach (var c in Econ.AllCategories)
+            {
+                if (c == CostCategory.Development)
+                {
+                    <tr class="total"><td>@L.T("Pnl_Econ_CogsTotal")</td><td class="num">@Econ.M(f.Cost.Cogs)</td><td class="num">@Econ.M(a.Cogs)</td><td class="num @Econ.VarClass(a.Cogs - f.Cost.Cogs, false)">@Econ.M(a.Cogs - f.Cost.Cogs)</td></tr>
+                    <tr class="sub"><td colspan="4">@L.T("Pnl_Econ_Opex")</td></tr>
+                }
+                decimal plan = PlanOf(c), fact = a.Exp(c);
+                <tr><td>@Econ.Of(c)</td><td class="num">@Econ.M(plan)</td><td class="num">@Econ.M(fact)</td><td class="num @Econ.VarClass(fact - plan, false)">@Econ.M(fact - plan)</td></tr>
+            }
+            <tr class="total"><td>@L.T("Pnl_Econ_OpexTotal")</td><td class="num">@Econ.M(asm.Opex)</td><td class="num">@Econ.M(a.Opex)</td><td class="num @Econ.VarClass(a.Opex - asm.Opex, false)">@Econ.M(a.Opex - asm.Opex)</td></tr>
+            <tr class="key"><td>@L.T("Pnl_Econ_TotalCost")</td><td class="num">@Econ.M(f.Cost.Total)</td><td class="num">@Econ.M(a.Total)</td><td class="num @Econ.VarClass(a.Total - f.Cost.Total, false)">@Econ.M(a.Total - f.Cost.Total)</td></tr>
+        </table>
+        <p class="hint">@L.T("Pnl_Econ_FlexHint", a.Tenants) · @Econ.Usd(a.Total, Model.UsdRate)</p>
+    </div>
+</div>
+
+<div class="card">
+    <h2>@L.T("Pnl_Econ_ExpenseList", Model.Items.Count)</h2>
+    @if (Model.Items.Count == 0) { <div class="empty">@L.T("Pnl_Econ_NoExpensesMonth")</div> }
+    else
+    {
+        <table class="econ">
+            <tr><th>@L.T("Pnl_Econ_Date")</th><th>@L.T("Pnl_Econ_Category")</th><th>@L.T("Pnl_Econ_Description")</th><th class="num">@L.T("Pnl_Econ_Amount")</th><th class="num">@L.T("Pnl_Econ_AmountSom")</th><th></th></tr>
+            @foreach (var e in Model.Items)
+            {
+                <tr>
+                    <td>@e.Date.ToString("dd.MM.yyyy")</td>
+                    <td><span class="badge @(EconomicsCalculator.IsCogs(e.Category) ? "info" : "muted")">@Econ.Of(e.Category)</span></td>
+                    <td>@e.Description @if (e.Reference is not null) { <span class="hint">· @e.Reference</span> }</td>
+                    <td class="num">@(e.Currency == "UZS" ? "" : e.AmountOriginal.ToString("#,0.##") + " " + e.Currency)</td>
+                    <td class="num">@Money.Format(e.AmountTiyin)</td>
+                    <td class="num">
+                        <a href="/Economics/ExpenseEdit/@e.Id">@L.T("Edit")</a>
+                        <form method="post" asp-page-handler="Delete" asp-route-id="@e.Id" asp-route-m="@Model.Month" class="inline" data-confirm="@L.T("Pnl_Econ_DeleteConfirm", e.Description)">
+                            <button type="submit" class="secondary">@L.T("Delete")</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+            <tr class="total"><td colspan="4">@L.T("Pnl_Econ_TotalCost")</td><td class="num">@Econ.M(a.Total)</td><td></td></tr>
+        </table>
+    }
+</div>

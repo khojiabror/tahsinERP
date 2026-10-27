@@ -4053,7 +4053,6 @@ tahsinERP портал: код входа {1}. Действует {2} мин.
   <data name="Pnl_Hlt_HistoryHint" xml:space="preserve">
     <value>Дни по ташкентскому времени; выше 85% — жёлтым, выше 95% — красным. Журнал хранится 400 дней.</value>
   </data>
-||||||| 34f3faf5
   <data name="Pnl_Ten_DeleteInstanceQueued" xml:space="preserve">
     <value>Отдельный сайт ERP (инстанс) тоже будет удалён — задание обновления #{0}.</value>
   </data>
@@ -4149,5 +4148,653 @@ tahsinERP портал: код входа {1}. Действует {2} мин.
   </data>
   <data name="Pnl_Demo_HasPaid" xml:space="preserve">
     <value>У организации есть платная подписка — сделать демо нельзя.</value>
+  </data>
+  <data name="Pnl_NavEconomics" xml:space="preserve">
+    <value>Экономика</value>
+  </data>
+  <data name="Pnl_Econ_Title" xml:space="preserve">
+    <value>Экономика</value>
+  </data>
+  <data name="Pnl_Econ_TabActual" xml:space="preserve">
+    <value>План и факт</value>
+  </data>
+  <data name="Pnl_Econ_TabPlan" xml:space="preserve">
+    <value>Себестоимость и цена</value>
+  </data>
+  <data name="Pnl_Econ_TabExpenses" xml:space="preserve">
+    <value>Расходы</value>
+  </data>
+  <data name="Pnl_Econ_TabCompetitors" xml:space="preserve">
+    <value>Конкуренты</value>
+  </data>
+  <data name="Pnl_Econ_TabSettings" xml:space="preserve">
+    <value>Настройки плана</value>
+  </data>
+  <data name="Pnl_Econ_Show" xml:space="preserve">
+    <value>Показать</value>
+  </data>
+  <data name="Pnl_Econ_IndexHint" xml:space="preserve">
+    <value>Факт из системы: платные подписки, оплаты и внесённые расходы. Суммы без НДС.</value>
+  </data>
+  <data name="Pnl_Econ_PayingFirms" xml:space="preserve">
+    <value>Платящие компании</value>
+  </data>
+  <data name="Pnl_Econ_RevenueMrr" xml:space="preserve">
+    <value>Выручка (MRR)</value>
+  </data>
+  <data name="Pnl_Econ_TotalCost" xml:space="preserve">
+    <value>Всего расходов</value>
+  </data>
+  <data name="Pnl_Econ_Profit" xml:space="preserve">
+    <value>Прибыль (до налога)</value>
+  </data>
+  <data name="Pnl_Econ_ProfitPretax" xml:space="preserve">
+    <value>Прибыль / убыток (до налога)</value>
+  </data>
+  <data name="Pnl_Econ_CostPerFirm" xml:space="preserve">
+    <value>Себестоимость 1 компании</value>
+  </data>
+  <data name="Pnl_Econ_CostPerUser" xml:space="preserve">
+    <value>Себестоимость 1 пользователя</value>
+  </data>
+  <data name="Pnl_Econ_PlanValue" xml:space="preserve">
+    <value>план: {0}</value>
+  </data>
+  <data name="Pnl_Econ_PlanAtVolume" xml:space="preserve">
+    <value>план: {0} (при {1} компаниях)</value>
+  </data>
+  <data name="Pnl_Econ_NoExpenses" xml:space="preserve">
+    <value>За этот месяц расходы не внесены — факт неполный.</value>
+  </data>
+  <data name="Pnl_Econ_AddExpenses" xml:space="preserve">
+    <value>Внести расходы</value>
+  </data>
+  <data name="Pnl_Econ_PlanVsFact" xml:space="preserve">
+    <value>План и факт</value>
+  </data>
+  <data name="Pnl_Econ_FlexHint" xml:space="preserve">
+    <value>План пересчитан на фактическое число компаний ({0}) — честное сравнение (гибкий бюджет).</value>
+  </data>
+  <data name="Pnl_Econ_ColPlan" xml:space="preserve">
+    <value>План</value>
+  </data>
+  <data name="Pnl_Econ_ColFact" xml:space="preserve">
+    <value>Факт</value>
+  </data>
+  <data name="Pnl_Econ_ColDiff" xml:space="preserve">
+    <value>Отклонение</value>
+  </data>
+  <data name="Pnl_Econ_Firms" xml:space="preserve">
+    <value>Компании</value>
+  </data>
+  <data name="Pnl_Econ_Deductions" xml:space="preserve">
+    <value>Отчисления с выручки (налог с оборота, банк)</value>
+  </data>
+  <data name="Pnl_Econ_CogsTotal" xml:space="preserve">
+    <value>Прямая себестоимость (COGS)</value>
+  </data>
+  <data name="Pnl_Econ_OpexTotal" xml:space="preserve">
+    <value>Операционные расходы (OPEX)</value>
+  </data>
+  <data name="Pnl_Econ_GrossMargin" xml:space="preserve">
+    <value>Валовая маржа</value>
+  </data>
+  <data name="Pnl_Econ_CashBasis" xml:space="preserve">
+    <value>Кассовый метод</value>
+  </data>
+  <data name="Pnl_Econ_CashIn" xml:space="preserve">
+    <value>Поступило в кассу (без НДС)</value>
+  </data>
+  <data name="Pnl_Econ_CashFlow" xml:space="preserve">
+    <value>Денежный поток (поступления − расходы)</value>
+  </data>
+  <data name="Pnl_Econ_BreakEven" xml:space="preserve">
+    <value>Точка безубыточности</value>
+  </data>
+  <data name="Pnl_Econ_BreakEvenAt" xml:space="preserve">
+    <value>{0} компаний</value>
+  </data>
+  <data name="Pnl_Econ_BreakEvenNone" xml:space="preserve">
+    <value>безубыточность: цены не заданы</value>
+  </data>
+  <data name="Pnl_Econ_BreakEvenNoneLong" xml:space="preserve">
+    <value>До 1 000 компаний безубыточность не достигается или цены не заданы — пересмотрите цену или расходы.</value>
+  </data>
+  <data name="Pnl_Econ_BreakEvenMrr" xml:space="preserve">
+    <value>ежемесячная выручка {0} сум (без НДС)</value>
+  </data>
+  <data name="Pnl_Econ_BreakEvenReached" xml:space="preserve">
+    <value>Точка безубыточности пройдена.</value>
+  </data>
+  <data name="Pnl_Econ_BreakEvenLeft" xml:space="preserve">
+    <value>Нужно ещё компаний: {0}.</value>
+  </data>
+  <data name="Pnl_Econ_BreakEvenBasis" xml:space="preserve">
+    <value>Расчёт: средняя цена по плановому миксу {0} сум/компания (без НДС), в среднем {1} пользователей; серверы и поддержка растут ступенчато.</value>
+  </data>
+  <data name="Pnl_Econ_ByPackage" xml:space="preserve">
+    <value>Факт по пакетам</value>
+  </data>
+  <data name="Pnl_Econ_NoPaying" xml:space="preserve">
+    <value>В этом месяце нет платящих компаний.</value>
+  </data>
+  <data name="Pnl_Econ_MrrHint" xml:space="preserve">
+    <value>MRR — платные подписки, действовавшие в месяце, по текущей цене тарифа (годовая ÷ 12), без НДС. Пробные и доп. услуги не входят.</value>
+  </data>
+  <data name="Pnl_Econ_Trend" xml:space="preserve">
+    <value>Последние 6 месяцев</value>
+  </data>
+  <data name="Pnl_Econ_UnitTitle" xml:space="preserve">
+    <value>Себестоимость 1 компании и 1 пользователя — при плановом объёме</value>
+  </data>
+  <data name="Pnl_Econ_UnitHint" xml:space="preserve">
+    <value>План: {0} компаний, в среднем {1} пользователей/компания, всего {2} пользователей. Суммы в сумах, в месяц.</value>
+  </data>
+  <data name="Pnl_Econ_NoPlanVolume" xml:space="preserve">
+    <value>План продаж не задан — себестоимость рассчитана на 0 компаний.</value>
+  </data>
+  <data name="Pnl_Econ_CostItem" xml:space="preserve">
+    <value>Статья расходов</value>
+  </data>
+  <data name="Pnl_Econ_Basis" xml:space="preserve">
+    <value>База расчёта</value>
+  </data>
+  <data name="Pnl_Econ_PerMonth" xml:space="preserve">
+    <value>Всего / мес</value>
+  </data>
+  <data name="Pnl_Econ_PerFirm" xml:space="preserve">
+    <value>1 компания</value>
+  </data>
+  <data name="Pnl_Econ_PerUser" xml:space="preserve">
+    <value>1 пользователь</value>
+  </data>
+  <data name="Pnl_Econ_Share" xml:space="preserve">
+    <value>Доля</value>
+  </data>
+  <data name="Pnl_Econ_Server" xml:space="preserve">
+    <value>Сервер (AWS)</value>
+  </data>
+  <data name="Pnl_Econ_PerFirmPlatform" xml:space="preserve">
+    <value>Бэкап, бот, платформа</value>
+  </data>
+  <data name="Pnl_Econ_BasisServer" xml:space="preserve">
+    <value>{0} серв. × цена (+1 при заполнении)</value>
+  </data>
+  <data name="Pnl_Econ_BasisPerFirm" xml:space="preserve">
+    <value>компании × переменные + платформа</value>
+  </data>
+  <data name="Pnl_Econ_BasisSupport" xml:space="preserve">
+    <value>{0} сотр. × зарплата × (1 + соц. налог)</value>
+  </data>
+  <data name="Pnl_Econ_BasisCogs" xml:space="preserve">
+    <value>обслуживание клиентов — от этого валовая маржа</value>
+  </data>
+  <data name="Pnl_Econ_BasisOpex" xml:space="preserve">
+    <value>не зависит от числа компаний</value>
+  </data>
+  <data name="Pnl_Econ_BasisFull" xml:space="preserve">
+    <value>покрываются все расходы</value>
+  </data>
+  <data name="Pnl_Econ_FullCost" xml:space="preserve">
+    <value>Полная себестоимость</value>
+  </data>
+  <data name="Pnl_Econ_UsdEquivalent" xml:space="preserve">
+    <value>В долларах: всего {0}, 1 компания {1}, 1 пользователь {2}.</value>
+  </data>
+  <data name="Pnl_Econ_SimTitle" xml:space="preserve">
+    <value>Симуляция — себестоимость при разном числе компаний</value>
+  </data>
+  <data name="Pnl_Econ_SimFirms" xml:space="preserve">
+    <value>Число компаний</value>
+  </data>
+  <data name="Pnl_Econ_SimHint" xml:space="preserve">
+    <value>через запятую, не больше 8</value>
+  </data>
+  <data name="Pnl_Econ_NFirms" xml:space="preserve">
+    <value>{0} комп.</value>
+  </data>
+  <data name="Pnl_Econ_Servers" xml:space="preserve">
+    <value>Серверов</value>
+  </data>
+  <data name="Pnl_Econ_SupportStaff" xml:space="preserve">
+    <value>Сотрудники поддержки</value>
+  </data>
+  <data name="Pnl_Econ_CogsPerFirm" xml:space="preserve">
+    <value>1 компания — COGS</value>
+  </data>
+  <data name="Pnl_Econ_FullPerFirm" xml:space="preserve">
+    <value>1 компания — полная себестоимость</value>
+  </data>
+  <data name="Pnl_Econ_FullPerUser" xml:space="preserve">
+    <value>1 пользователь — полная себестоимость</value>
+  </data>
+  <data name="Pnl_Econ_SimProfitTitle" xml:space="preserve">
+    <value>Есть ли прибыль при средней цене ({0} сум/компания, без НДС)?</value>
+  </data>
+  <data name="Pnl_Econ_PackagesTitle" xml:space="preserve">
+    <value>Пакеты: себестоимость → цена</value>
+  </data>
+  <data name="Pnl_Econ_PackagesHint" xml:space="preserve">
+    <value>Цена = полная себестоимость + чистая прибыль + налог на прибыль + отчисления с выручки, сверху НДС. Расходы распределяются по нагрузке пакета (доля модулей × пользователи).</value>
+  </data>
+  <data name="Pnl_Econ_ModuleShare" xml:space="preserve">
+    <value>Доля модулей</value>
+  </data>
+  <data name="Pnl_Econ_Load" xml:space="preserve">
+    <value>Коэффициент нагрузки</value>
+  </data>
+  <data name="Pnl_Econ_PlannedFirms" xml:space="preserve">
+    <value>Плановые компании</value>
+  </data>
+  <data name="Pnl_Econ_CostSection" xml:space="preserve">
+    <value>Себестоимость (1 компания, в месяц)</value>
+  </data>
+  <data name="Pnl_Econ_Infra" xml:space="preserve">
+    <value>Инфраструктура (сервер, бэкап, платформа)</value>
+  </data>
+  <data name="Pnl_Econ_SupportShare" xml:space="preserve">
+    <value>Доля поддержки</value>
+  </data>
+  <data name="Pnl_Econ_OpexShare" xml:space="preserve">
+    <value>Доля операционных расходов</value>
+  </data>
+  <data name="Pnl_Econ_PriceSection" xml:space="preserve">
+    <value>Структура цены</value>
+  </data>
+  <data name="Pnl_Econ_NetProfit" xml:space="preserve">
+    <value>Чистая прибыль</value>
+  </data>
+  <data name="Pnl_Econ_Markup" xml:space="preserve">
+    <value>наценка</value>
+  </data>
+  <data name="Pnl_Econ_ProfitTax" xml:space="preserve">
+    <value>Налог на прибыль</value>
+  </data>
+  <data name="Pnl_Econ_Vat" xml:space="preserve">
+    <value>НДС</value>
+  </data>
+  <data name="Pnl_Econ_CalcNet" xml:space="preserve">
+    <value>Расчётная цена (без НДС)</value>
+  </data>
+  <data name="Pnl_Econ_Recommended" xml:space="preserve">
+    <value>РЕКОМЕНДУЕМАЯ ЦЕНА (с НДС)</value>
+  </data>
+  <data name="Pnl_Econ_PerUserGross" xml:space="preserve">
+    <value>За 1 пользователя (с НДС)</value>
+  </data>
+  <data name="Pnl_Econ_CheckSection" xml:space="preserve">
+    <value>Проверка (по цене тарифа, иначе рекомендуемой)</value>
+  </data>
+  <data name="Pnl_Econ_CurrentPrice" xml:space="preserve">
+    <value>Цена в тарифе (с НДС)</value>
+  </data>
+  <data name="Pnl_Econ_MarketPrice" xml:space="preserve">
+    <value>У конкурентов такой пакет (без НДС)</value>
+  </data>
+  <data name="Pnl_Econ_VsMarket" xml:space="preserve">
+    <value>К рынку</value>
+  </data>
+  <data name="Pnl_Econ_TargetGm" xml:space="preserve">
+    <value>Целевая валовая маржа</value>
+  </data>
+  <data name="Pnl_Econ_NetProfitPerFirm" xml:space="preserve">
+    <value>Чистая прибыль с 1 компании (после налога)</value>
+  </data>
+  <data name="Pnl_Econ_ApplyPrice" xml:space="preserve">
+    <value>Применить к тарифу</value>
+  </data>
+  <data name="Pnl_Econ_ApplyConfirm" xml:space="preserve">
+    <value>Месячная цена тарифа «{0}» станет {1} сум (с НДС), годовая — за 10 месяцев. Продолжить?</value>
+  </data>
+  <data name="Pnl_Econ_PriceApplied" xml:space="preserve">
+    <value>Цена «{0}» обновлена: {1}/мес.</value>
+  </data>
+  <data name="Pnl_Econ_PriceHint" xml:space="preserve">
+    <value>Рекомендуемая цена округляется вверх до 10 000 сум. «Применить к тарифу» меняет цену на странице Тарифов (новые счета по этой цене).</value>
+  </data>
+  <data name="Pnl_Econ_Health_Ok" xml:space="preserve">
+    <value>Хорошо</value>
+  </data>
+  <data name="Pnl_Econ_Health_LowMargin" xml:space="preserve">
+    <value>Низкая валовая маржа</value>
+  </data>
+  <data name="Pnl_Econ_Health_AboveMarket" xml:space="preserve">
+    <value>Дороже рынка</value>
+  </data>
+  <data name="Pnl_Econ_Health_Loss" xml:space="preserve">
+    <value>Убыток</value>
+  </data>
+  <data name="Pnl_Econ_Health_NoPrice" xml:space="preserve">
+    <value>Нет цены</value>
+  </data>
+  <data name="Pnl_Econ_MethodTitle" xml:space="preserve">
+    <value>Методика расчёта</value>
+  </data>
+  <data name="Pnl_Econ_Method1" xml:space="preserve">
+    <value>COGS (прямая себестоимость) — только обслуживание клиентов: сервер, бэкап, платформа, поддержка. Валовая маржа SaaS считается от неё (мировой стандарт 60–80%, стартовый 40–55%).</value>
+  </data>
+  <data name="Pnl_Econ_Method2" xml:space="preserve">
+    <value>OPEX — разработка (R&amp;D), продажи и маркетинг (S&amp;M), управление (G&amp;A). Не зависит от числа компаний: чем больше компаний, тем меньше доля на одну.</value>
+  </data>
+  <data name="Pnl_Econ_Method3" xml:space="preserve">
+    <value>Ступенчатые расходы — сервер и сотрудник поддержки добавляются при заполнении (например, до 8 компаний 1 сервер, на 9-й — второй).</value>
+  </data>
+  <data name="Pnl_Econ_Method4" xml:space="preserve">
+    <value>Распределение по пакетам — метод ABC: крупный пакет (много модулей × пользователей) получает большую долю поддержки и OPEX; инфраструктура делится поровну.</value>
+  </data>
+  <data name="Pnl_Econ_Method5" xml:space="preserve">
+    <value>Сравнение с фактом — гибкий бюджет: план пересчитывается на фактическое число компаний, отклонение показывает только эффективность.</value>
+  </data>
+  <data name="Pnl_Econ_Cat_Infra" xml:space="preserve">
+    <value>Инфраструктура (сервер, бэкап, домен)</value>
+  </data>
+  <data name="Pnl_Econ_Cat_Support" xml:space="preserve">
+    <value>Поддержка клиентов</value>
+  </data>
+  <data name="Pnl_Econ_Cat_Development" xml:space="preserve">
+    <value>Разработка (R&amp;D)</value>
+  </data>
+  <data name="Pnl_Econ_Cat_Sales" xml:space="preserve">
+    <value>Продажи и маркетинг</value>
+  </data>
+  <data name="Pnl_Econ_Cat_Admin" xml:space="preserve">
+    <value>Управление (офис, бухгалтер, связь)</value>
+  </data>
+  <data name="Pnl_Econ_Cogs" xml:space="preserve">
+    <value>Себестоимость (COGS)</value>
+  </data>
+  <data name="Pnl_Econ_Opex" xml:space="preserve">
+    <value>Операционные (OPEX)</value>
+  </data>
+  <data name="Pnl_Econ_CopyPrev" xml:space="preserve">
+    <value>Скопировать расходы прошлого месяца</value>
+  </data>
+  <data name="Pnl_Econ_CopyConfirm" xml:space="preserve">
+    <value>Все расходы прошлого месяца будут скопированы в этот (для повторяющихся: зарплата, сервер, аренда). Продолжить?</value>
+  </data>
+  <data name="Pnl_Econ_Copied" xml:space="preserve">
+    <value>Скопировано расходов: {0} — проверьте суммы.</value>
+  </data>
+  <data name="Pnl_Econ_NothingToCopy" xml:space="preserve">
+    <value>В прошлом месяце расходов нет.</value>
+  </data>
+  <data name="Pnl_Econ_AddExpense" xml:space="preserve">
+    <value>Добавить расход</value>
+  </data>
+  <data name="Pnl_Econ_EditExpense" xml:space="preserve">
+    <value>Редактирование расхода</value>
+  </data>
+  <data name="Pnl_Econ_CategoryHint" xml:space="preserve">
+    <value>Сервер, бэкап, домен → Инфраструктура; зарплата поддержки → Поддержка; разработчики, AI-инструменты → Разработка; продавец, реклама → Продажи; руководитель, офис, бухгалтер, банк → Управление.</value>
+  </data>
+  <data name="Pnl_Econ_ByCategory" xml:space="preserve">
+    <value>По категориям: план и факт</value>
+  </data>
+  <data name="Pnl_Econ_ExpenseList" xml:space="preserve">
+    <value>Расходы месяца ({0})</value>
+  </data>
+  <data name="Pnl_Econ_NoExpensesMonth" xml:space="preserve">
+    <value>В этом месяце расходов нет.</value>
+  </data>
+  <data name="Pnl_Econ_Date" xml:space="preserve">
+    <value>Дата</value>
+  </data>
+  <data name="Pnl_Econ_Category" xml:space="preserve">
+    <value>Категория</value>
+  </data>
+  <data name="Pnl_Econ_Description" xml:space="preserve">
+    <value>Назначение</value>
+  </data>
+  <data name="Pnl_Econ_DescriptionPh" xml:space="preserve">
+    <value>например: AWS Lightsail октябрь</value>
+  </data>
+  <data name="Pnl_Econ_Amount" xml:space="preserve">
+    <value>Сумма</value>
+  </data>
+  <data name="Pnl_Econ_AmountSom" xml:space="preserve">
+    <value>В сумах</value>
+  </data>
+  <data name="Pnl_Econ_Currency" xml:space="preserve">
+    <value>Валюта</value>
+  </data>
+  <data name="Pnl_Econ_Rate" xml:space="preserve">
+    <value>Курс (сум / $)</value>
+  </data>
+  <data name="Pnl_Econ_RateHint" xml:space="preserve">
+    <value>только для USD</value>
+  </data>
+  <data name="Pnl_Econ_Reference" xml:space="preserve">
+    <value>Документ / контрагент (необязательно)</value>
+  </data>
+  <data name="Pnl_Econ_ExpenseAdded" xml:space="preserve">
+    <value>Расход добавлен: {0}</value>
+  </data>
+  <data name="Pnl_Econ_ExpenseDeleted" xml:space="preserve">
+    <value>Расход удалён.</value>
+  </data>
+  <data name="Pnl_Econ_DeleteConfirm" xml:space="preserve">
+    <value>Удалить расход «{0}»?</value>
+  </data>
+  <data name="Pnl_Econ_ErrDescription" xml:space="preserve">
+    <value>Укажите назначение расхода.</value>
+  </data>
+  <data name="Pnl_Econ_ErrAmount" xml:space="preserve">
+    <value>Сумма должна быть положительным числом.</value>
+  </data>
+  <data name="Pnl_Econ_ErrCurrency" xml:space="preserve">
+    <value>Валюта: UZS или USD.</value>
+  </data>
+  <data name="Pnl_Econ_ErrRate" xml:space="preserve">
+    <value>Курс должен быть положительным числом.</value>
+  </data>
+  <data name="Pnl_Econ_ErrCategory" xml:space="preserve">
+    <value>Неверная категория.</value>
+  </data>
+  <data name="Pnl_Econ_ErrNotFound" xml:space="preserve">
+    <value>Запись не найдена.</value>
+  </data>
+  <data name="Pnl_Econ_ErrCostAmount" xml:space="preserve">
+    <value>«{0}»: неверная сумма.</value>
+  </data>
+  <data name="Pnl_Econ_SettingsHint" xml:space="preserve">
+    <value>Эти допущения рассчитывают «Себестоимость и цену» и плановую колонку «План и факт». Суммы в сумах (в месяц).</value>
+  </data>
+  <data name="Pnl_Econ_Saved" xml:space="preserve">
+    <value>Сохранено.</value>
+  </data>
+  <data name="Pnl_Econ_AssumptionsTitle" xml:space="preserve">
+    <value>Допущения модели</value>
+  </data>
+  <data name="Pnl_Econ_InfraTitle" xml:space="preserve">
+    <value>Сервер и платформа</value>
+  </data>
+  <data name="Pnl_Econ_ServerPrice" xml:space="preserve">
+    <value>Цена 1 сервера (сум / мес)</value>
+  </data>
+  <data name="Pnl_Econ_FirmsPerServer" xml:space="preserve">
+    <value>Компаний на 1 сервер</value>
+  </data>
+  <data name="Pnl_Econ_MinServers" xml:space="preserve">
+    <value>Минимум серверов</value>
+  </data>
+  <data name="Pnl_Econ_PerFirmCost" xml:space="preserve">
+    <value>Переменные расходы на 1 компанию (сум / мес)</value>
+  </data>
+  <data name="Pnl_Econ_PerFirmHint" xml:space="preserve">
+    <value>объём бэкапа, Telegram-бот, email/SMS</value>
+  </data>
+  <data name="Pnl_Econ_PlatformCost" xml:space="preserve">
+    <value>Постоянные расходы платформы (сум / мес)</value>
+  </data>
+  <data name="Pnl_Econ_PlatformHint" xml:space="preserve">
+    <value>домен, SSL, ключ KMS</value>
+  </data>
+  <data name="Pnl_Econ_SupportTitle" xml:space="preserve">
+    <value>Поддержка клиентов</value>
+  </data>
+  <data name="Pnl_Econ_SupportSalary" xml:space="preserve">
+    <value>Зарплата сотрудника поддержки (сум / мес)</value>
+  </data>
+  <data name="Pnl_Econ_FirmsPerSupport" xml:space="preserve">
+    <value>Компаний на 1 сотрудника</value>
+  </data>
+  <data name="Pnl_Econ_MinSupport" xml:space="preserve">
+    <value>Минимум сотрудников</value>
+  </data>
+  <data name="Pnl_Econ_TaxTitle" xml:space="preserve">
+    <value>Налоги и курс</value>
+  </data>
+  <data name="Pnl_Econ_PayrollTax" xml:space="preserve">
+    <value>Социальный налог, % (сверх зарплаты)</value>
+  </data>
+  <data name="Pnl_Econ_ProfitTaxPct" xml:space="preserve">
+    <value>Налог на прибыль, %</value>
+  </data>
+  <data name="Pnl_Econ_ProfitTaxHint" xml:space="preserve">
+    <value>общий режим 15; IT Park или налог с оборота — 0</value>
+  </data>
+  <data name="Pnl_Econ_TurnoverTax" xml:space="preserve">
+    <value>Налог с оборота / отчисление IT Park, % (с выручки)</value>
+  </data>
+  <data name="Pnl_Econ_TurnoverHint" xml:space="preserve">
+    <value>плательщик НДС — 0; налог с оборота — 4; IT Park — 1</value>
+  </data>
+  <data name="Pnl_Econ_BankFee" xml:space="preserve">
+    <value>Комиссия банка / платежей, % (с выручки)</value>
+  </data>
+  <data name="Pnl_Econ_UsdRate" xml:space="preserve">
+    <value>Курс доллара (сум)</value>
+  </data>
+  <data name="Pnl_Econ_VatFromPlans" xml:space="preserve">
+    <value>Ставка НДС берётся из каждого тарифа (Тарифы).</value>
+  </data>
+  <data name="Pnl_Econ_FixedCostsTitle" xml:space="preserve">
+    <value>План постоянных расходов (команда и прочее)</value>
+  </data>
+  <data name="Pnl_Econ_FixedCostsHint" xml:space="preserve">
+    <value>Ежемесячные расходы, не зависящие от числа клиентов. Сервер и поддержка не здесь — они выше и считаются от числа компаний. Чтобы удалить строку, очистите название или отметьте её.</value>
+  </data>
+  <data name="Pnl_Econ_Kind" xml:space="preserve">
+    <value>Тип</value>
+  </data>
+  <data name="Pnl_Econ_KindStaff" xml:space="preserve">
+    <value>Сотрудник</value>
+  </data>
+  <data name="Pnl_Econ_KindOther" xml:space="preserve">
+    <value>Прочее</value>
+  </data>
+  <data name="Pnl_Econ_Count" xml:space="preserve">
+    <value>Кол-во</value>
+  </data>
+  <data name="Pnl_Econ_MonthlySom" xml:space="preserve">
+    <value>Сум / мес (1 чел.)</value>
+  </data>
+  <data name="Pnl_Econ_NewRow" xml:space="preserve">
+    <value>новая строка</value>
+  </data>
+  <data name="Pnl_Econ_StaffTaxHint" xml:space="preserve">
+    <value>В строке сотрудника сумма — зарплата 1 человека; сверху добавляется соц. налог. Если зарплата 0, себестоимость занижена — ставьте рыночную зарплату, даже если работаете сами.</value>
+  </data>
+  <data name="Pnl_Econ_PackagesSettingsTitle" xml:space="preserve">
+    <value>Пакеты: план продаж и прибыль</value>
+  </data>
+  <data name="Pnl_Econ_PackagesSettingsHint" xml:space="preserve">
+    <value>Плановые компании — план продаж на 12 месяцев; постоянные расходы делятся на этот объём. Наценка — чистая прибыль к полной себестоимости.</value>
+  </data>
+  <data name="Pnl_Econ_MarkupPct" xml:space="preserve">
+    <value>Наценка, %</value>
+  </data>
+  <data name="Pnl_Econ_PlanEditHint" xml:space="preserve">
+    <value>Пользователи, модули и НДС — в самом тарифе:</value>
+  </data>
+  <data name="Pnl_Econ_WeightsTitle" xml:space="preserve">
+    <value>Веса модулей (баллы)</value>
+  </data>
+  <data name="Pnl_Econ_WeightsHint" xml:space="preserve">
+    <value>Насколько модуль сложен и ресурсоёмок. Доля модулей пакета = баллы модулей пакета ÷ все баллы.</value>
+  </data>
+  <data name="Pnl_Econ_Module" xml:space="preserve">
+    <value>Модуль</value>
+  </data>
+  <data name="Pnl_Econ_Weight" xml:space="preserve">
+    <value>Балл</value>
+  </data>
+  <data name="Pnl_Econ_MarketTitle" xml:space="preserve">
+    <value>Сводка по рынку</value>
+  </data>
+  <data name="Pnl_Econ_MarketHint" xml:space="preserve">
+    <value>Цена за 1 пользователя в месяц: только тарифы с отметкой «Учитывать» и известным числом пользователей.</value>
+  </data>
+  <data name="Pnl_Econ_Compared" xml:space="preserve">
+    <value>Сравнено</value>
+  </data>
+  <data name="Pnl_Econ_MarketPerUser" xml:space="preserve">
+    <value>Рынок: 1 польз.</value>
+  </data>
+  <data name="Pnl_Econ_MinMax" xml:space="preserve">
+    <value>Мин – макс</value>
+  </data>
+  <data name="Pnl_Econ_OurPerUser" xml:space="preserve">
+    <value>У нас: 1 польз. (без НДС)</value>
+  </data>
+  <data name="Pnl_Econ_MarketFootnote" xml:space="preserve">
+    <value>* подходящих конкурентов нет — взято среднее по всем.</value>
+  </data>
+  <data name="Pnl_Econ_CompetitorsTitle" xml:space="preserve">
+    <value>Тарифы конкурентов</value>
+  </data>
+  <data name="Pnl_Econ_CompetitorsHint" xml:space="preserve">
+    <value>Укажите цену в сумах или долларах (разовую лицензию — разделив на месяцы). Новый конкурент — в пустые строки внизу.</value>
+  </data>
+  <data name="Pnl_Econ_Company" xml:space="preserve">
+    <value>Компания</value>
+  </data>
+  <data name="Pnl_Econ_Tariff" xml:space="preserve">
+    <value>Тариф</value>
+  </data>
+  <data name="Pnl_Econ_PriceSom" xml:space="preserve">
+    <value>Сум / мес</value>
+  </data>
+  <data name="Pnl_Econ_PriceUsd" xml:space="preserve">
+    <value>$ / мес</value>
+  </data>
+  <data name="Pnl_Econ_PerUserSom" xml:space="preserve">
+    <value>1 польз., сум</value>
+  </data>
+  <data name="Pnl_Econ_MatchPlan" xml:space="preserve">
+    <value>Похожий пакет</value>
+  </data>
+  <data name="Pnl_Econ_Include" xml:space="preserve">
+    <value>Учитывать</value>
+  </data>
+  <data name="Pnl_Econ_Note" xml:space="preserve">
+    <value>Источник / заметка</value>
+  </data>
+  <data name="Pnl_Econ_FeatureLegend" xml:space="preserve">
+    <value>✓ — есть, ± — частично, — — нет. Тариф без отметки «Учитывать» не входит в среднее по рынку.</value>
+  </data>
+  <data name="Pnl_Econ_Feat_Warehouse" xml:space="preserve">
+    <value>Склад</value>
+  </data>
+  <data name="Pnl_Econ_Feat_Sales" xml:space="preserve">
+    <value>Продажи</value>
+  </data>
+  <data name="Pnl_Econ_Feat_Finance" xml:space="preserve">
+    <value>Финансы</value>
+  </data>
+  <data name="Pnl_Econ_Feat_Production" xml:space="preserve">
+    <value>Произв.</value>
+  </data>
+  <data name="Pnl_Econ_Feat_Hr" xml:space="preserve">
+    <value>HR</value>
+  </data>
+  <data name="Pnl_Econ_Feat_Distribution" xml:space="preserve">
+    <value>Дистр.</value>
+  </data>
+  <data name="Pnl_Econ_Feat_Bot" xml:space="preserve">
+    <value>Бот</value>
+  </data>
+  <data name="Pnl_Econ_Feat_Pos" xml:space="preserve">
+    <value>POS</value>
   </data>
 </root>
