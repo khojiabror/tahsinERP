@@ -1,0 +1,116 @@
+{
+ "modules": [
+  {
+   "id": "01-umumiy",
+   "num": "01",
+   "titles": {
+    "uz": "01. Tizimga kirish, umumiy interfeys va Administrator bo'limi",
+    "ru": "01. Вход в систему, общий интерфейс и раздел администратора"
+   }
+  },
+  {
+   "id": "02-sozlamalar",
+   "num": "02",
+   "titles": {
+    "uz": "02. Sozlamalar va ma'lumotnomalar",
+    "ru": "02. Настройки и справочники"
+   }
+  },
+  {
+   "id": "03-muhandislik-tannarx",
+   "num": "03",
+   "titles": {
+    "uz": "03. Muhandislik: mahsulotlar, BOM, normalar va tannarx",
+    "ru": "03. Инжиниринг: продукция, BOM, нормы и себестоимость"
+   }
+  },
+  {
+   "id": "04-taminot-srm",
+   "num": "04",
+   "titles": {
+    "uz": "04. Ta'minot va xaridlar (SRM)",
+    "ru": "04. Снабжение и закупки (SRM)"
+   }
+  },
+  {
+   "id": "05-ombor",
+   "num": "05",
+   "titles": {
+    "uz": "05. Ombor hisobi: kirim, chiqim, partiyalar (LOT/DLOC), FIFO va zaxira hisobotlari",
+    "ru": "05. Складской учёт: приход, расход, партии (LOT/DLOC), FIFO и отчёты по запасам"
+   }
+  },
+  {
+   "id": "06-ishlab-chiqarish-mes",
+   "num": "06",
+   "titles": {
+    "uz": "06. Ishlab chiqarish (MES): rejalashtirish, bajarish va sifat nazorati",
+    "ru": "06. Производство (MES): планирование, выполнение и контроль качества"
+   }
+  },
+  {
+   "id": "07-sotuv-crm",
+   "num": "07",
+   "titles": {
+    "uz": "07. Sotuv va mijozlar bilan ishlash (CRM, Order-to-Cash)",
+    "ru": "07. Продажи и работа с клиентами (CRM, Order-to-Cash)"
+   }
+  },
+  {
+   "id": "08-moliya",
+   "num": "08",
+   "titles": {
+    "uz": "08. Moliya",
+    "ru": "08. Финансы"
+   }
+  },
+  {
+   "id": "09-hr",
+   "num": "09",
+   "titles": {
+    "uz": "09. Kadrlar, tabel va ish haqi (HR)",
+    "ru": "09. Кадры, табель и заработная плата (HR)"
+   }
+  },
+  {
+   "id": "10-logistika",
+   "num": "10",
+   "titles": {
+    "uz": "10. Logistika",
+    "ru": "10. Логистика"
+   }
+  },
+  {
+   "id": "11-topshiriqlar-hujjatlar",
+   "num": "11",
+   "titles": {
+    "uz": "11. Topshiriqlar boshqaruvi va hujjat aylanishi",
+    "ru": "11. Управление задачами и документооборот"
+   }
+  },
+  {
+   "id": "12-distributsiya",
+   "num": "12",
+   "titles": {
+    "uz": "12. Distributsiya (ulgurji savdo) va agent Mini App",
+    "ru": "12. Дистрибуция (оптовая торговля) и Mini App агента"
+   }
+  },
+  {
+   "id": "13-sayt-katalog",
+   "num": "13",
+   "titles": {
+    "uz": "13. Firma sayti va mahsulot katalogi (Sayt-katalog, SITE xizmati)",
+    "ru": "13. Сайт компании и каталог товаров (услуга «Сайт-каталог», SITE)"
+   }
+  },
+  {
+   "id": "14-hisobotlar-ceo",
+   "num": "14",
+   "titles": {
+    "uz": "14. Hisobotlar metodikasi, KPI lug'ati va rahbar (CEO) uchun qo'llanma",
+    "ru": "14. Методика отчётов, словарь KPI и руководство для CEO"
+   }
+  }
+ ]
+}

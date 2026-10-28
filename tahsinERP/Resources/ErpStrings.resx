@@ -14355,4 +14355,19 @@
   <data name="Hdr_SiteLeads" xml:space="preserve">
     <value>Saytdan yangi arizalar</value>
   </data>
+  <data name="Core_ManualModules" xml:space="preserve">
+    <value>Modullar</value>
+  </data>
+  <data name="Core_ManualContents" xml:space="preserve">
+    <value>Mundarija</value>
+  </data>
+  <data name="Core_ManualSearchContents" xml:space="preserve">
+    <value>Mundarijadan qidirish...</value>
+  </data>
+  <data name="Core_ManualPrint" xml:space="preserve">
+    <value>Chop etish</value>
+  </data>
+  <data name="Core_ManualNotBuilt" xml:space="preserve">
+    <value>Qo'llanma hali yaratilmagan (tools/manual/convert_docx.py).</value>
+  </data>
 </root>

@@ -3,8 +3,10 @@
     ViewBag.Title = L.T("Core_UserManual");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
+@* Kontent: tools/manual/convert_docx.py (Word qo'llanmalardan). Sahifa Word bilan 1:1 bo'lishi uchun o'lchamlar pt da,
+   ranglar esa kontent ichidagi --f-/--b-/--l- o'zgaruvchilar orqali (tungi rejim qiymatlari ham o'sha yerda). *@
 
-<div class="app-content content">
+<div class="app-content content wm-app">
     <div class="content-overlay"></div>
     <div class="content-wrapper">
         <div class="content-header row">
@@ -27,44 +29,49 @@
         </div>
         <div class="content-body">
             <div class="row">
-                <!-- Left Sidebar: Chapters List -->
-                <div class="col-md-3 col-12">
-                    <div class="card">
-                        <div class="card-header">
-                            <h4 class="card-title">@L.T("Core_Sections")</h4>
-                        </div>
+                <div class="col-lg-3 col-12 wm-side-col">
+                    <div class="card wm-side">
                         <div class="card-body">
-                            <!-- Search Box -->
-                            <div class="form-group">
-                                <input type="text" id="chapterSearch" class="form-control" placeholder="@L.T("Core_SearchSections")" />
-                            </div>
-                            <!-- Chapters List -->
-                            <ul class="list-group list-group-flush" id="chaptersList">
-                                @foreach (var chapter in Model.Chapters)
+                            <h6 class="wm-side-title">@L.T("Core_ManualModules")</h6>
+                            <ul class="wm-modules" id="wmModules">
+                                @foreach (var m in Model.Modules)
                                 {
-                                    <li class="list-group-item chapter-item @(chapter.Id == Model.InitialChapterId ? "active" : "")" 
-                                        data-chapter-id="@chapter.Id" 
-                                        style="cursor: pointer;">
-                                        <i class="bx bx-book-open mr-1"></i>
-                                        <span class="chapter-title">@chapter.Title</span>
+                                    <li>
+                                        <a href="@Url.Action("Index", new { m = m.Id })" class="@(Model.Current != null && m.Id == Model.Current.Id ? "active" : "")" title="@m.Title">@m.Title</a>
                                     </li>
                                 }
                             </ul>
+                            @if (Model.Current != null)
+                            {
+                                <h6 class="wm-side-title mt-2">@L.T("Core_ManualContents")</h6>
+                                <input type="search" id="wmTocSearch" class="form-control form-control-sm mb-1" placeholder="@L.T("Core_ManualSearchContents")" autocomplete="off" />
+                                <ul class="wm-toc" id="wmToc"></ul>
+                                <div class="wm-toc-empty text-muted small" id="wmTocEmpty" style="display:none">@L.T("Core_SectionNotFound")</div>
+                            }
                         </div>
                     </div>
                 </div>
 
-                <!-- Right Panel: Chapter Content -->
-                <div class="col-md-9 col-12">
+                <div class="col-lg-9 col-12 wm-main-col">
                     <div class="card">
-                        <div class="card-header">
-                            <h4 class="card-title" id="chapterTitle">@Model.Chapters.FirstOrDefault(c => c.Id == Model.InitialChapterId)?.Title</h4>
-                        </div>
-                        <div class="card-body">
-                            <div id="chapterContent" class="user-manual-content">
-                                @Html.Raw(Model.Chapters.FirstOrDefault(c => c.Id == Model.InitialChapterId)?.ContentHtml)
+                        @if (Model.Current == null)
+                        {
+                            <div class="card-body text-muted">@L.T("Core_ManualNotBuilt")</div>
+                        }
+                        else
+                        {
+                            <div class="card-header d-flex align-items-center justify-content-between wm-head">
+                                <h4 class="card-title mb-0">@Model.Current.Title</h4>
+                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="window.print()">
+                                    <i class="bx bx-printer"></i> @L.T("Core_ManualPrint")
+                                </button>
                             </div>
-                        </div>
+                            <div class="card-body wm-canvas">
+                                <div class="wm-page" lang="@Model.Language">
+                                    @Html.Raw(Model.ContentHtml)
+                                </div>
+                            </div>
+                        }
                     </div>
                 </div>
             </div>
@@ -72,160 +79,190 @@
     </div>
 </div>
 
-<!-- Store chapters data for JavaScript -->
-<script type="text/javascript">
-    var chaptersData = @Html.Raw(Json.Encode(Model.Chapters.ToDictionary(c => c.Id, c => new { id = c.Id, title = c.Title, content = c.ContentHtml })));
-    var initialChapterId = "@Model.InitialChapterId";
-</script>
+<div class="wm-lightbox" id="wmLightbox" role="dialog" aria-modal="true" hidden>
+    <img alt="" />
+    <div class="wm-lightbox-caption"></div>
+</div>
 
 @section scripts
 {
-    <script type="text/javascript">
-        $(document).ready(function () {
-            // Chapter switching
-            $('.chapter-item').on('click', function () {
-                var chapterId = $(this).data('chapter-id');
-                loadChapter(chapterId);
-            });
-
-            // Search functionality
-            $('#chapterSearch').on('input', function () {
-                var searchText = $(this).val().toLowerCase();
-                filterChapters(searchText);
-            });
-
-            function loadChapter(chapterId) {
-                if (!chaptersData[chapterId]) {
-                    return;
-                }
-
-                var chapter = chaptersData[chapterId];
-
-                // Update active state
-                $('.chapter-item').removeClass('active');
-                $('.chapter-item[data-chapter-id="' + chapterId + '"]').addClass('active');
-
-                // Update content
-                $('#chapterTitle').text(chapter.title);
-                $('#chapterContent').html(chapter.content);
-
-                // Scroll to top
-                $('html, body').animate({
-                    scrollTop: $('.content-body').offset().top
-                }, 300);
-            }
-
-            function filterChapters(searchText) {
-                if (!searchText || searchText.trim() === '') {
-                    // Show all chapters
-                    $('.chapter-item').show();
-                } else {
-                    // Filter chapters
-                    $('.chapter-item').each(function () {
-                        var title = $(this).find('.chapter-title').text().toLowerCase();
-                        if (title.indexOf(searchText) !== -1) {
-                            $(this).show();
-                        } else {
-                            $(this).hide();
-                        }
-                    });
-                }
-            }
-
-            // Initialize with initial chapter
-            if (initialChapterId) {
-                loadChapter(initialChapterId);
-            }
-        });
-    </script>
-
     <style>
-        .user-manual-content {
-            line-height: 1.8;
+        /* ---- yon panel (sticky: .app-content'ning overflow:hidden'i uni buzadi -> clip) ---- */
+        html body .content.app-content.wm-app { overflow: clip; }
+        .wm-head .card-title { text-transform: none; }
+        .wm-side { position: sticky; top: 5.5rem; max-height: calc(100vh - 7rem); overflow: auto; }
+        .wm-side-title { font-size: .8rem; text-transform: uppercase; letter-spacing: .04em; color: #828d99; margin-bottom: .5rem; }
+        .wm-modules, .wm-toc { list-style: none; margin: 0; padding: 0; }
+        .wm-modules a { display: block; padding: .3rem .5rem; border-radius: .3rem; font-size: .84rem; line-height: 1.3; color: inherit; }
+        .wm-modules a:hover { background: rgba(0, 0, 0, .05); }
+        #wmModules a.active, #wmModules a.active:hover { background: var(--accent, #3B5BFD); color: var(--accent-contrast, #fff) !important; }
+        .wm-toc a { display: block; padding: .2rem .5rem; border-left: 2px solid transparent; font-size: .82rem; line-height: 1.3; color: inherit; }
+        .wm-toc a.l1 { font-weight: 600; margin-top: .35rem; }
+        .wm-toc a.l2 { padding-left: 1.2rem; }
+        .wm-toc a:hover { background: rgba(0, 0, 0, .04); }
+        .wm-side .wm-toc a.active { border-left-color: var(--accent, #3B5BFD); background: var(--accent-soft, rgba(59, 91, 253, .08)); }
+        .wm-toc mark { padding: 0; background: #ffe58f; }
+        html[data-theme="dark"] .wm-modules a:hover, html[data-theme="dark"] .wm-toc a:hover { background: rgba(255, 255, 255, .06); }
+        html[data-theme="dark"] .wm-toc mark { background: #7a5d00; color: #fff; }
+
+        /* ---- Word sahifasi ---- */
+        .wm-canvas { background: #eef1f4; padding: 16px; border-radius: 0 0 .5rem .5rem; }
+        .wm-page { --wm-text: #000; --wm-paper: #fff; background: var(--wm-paper); color: var(--wm-text); margin: 0 auto; padding: 48pt 56pt; box-shadow: 0 1px 4px rgba(0, 0, 0, .12); }
+        html[data-theme="dark"] .wm-canvas { background: #1a233a; }
+        html[data-theme="dark"] .wm-page { --wm-text: #dfe5ee; --wm-paper: #272e48; box-shadow: none; }
+        @@media (max-width: 767.98px) {
+            .wm-canvas { padding: 0; }
+            .wm-page { padding: 14px; box-shadow: none; }
+            .wm-side { position: static; max-height: none; }
         }
 
-        .user-manual-content h2 {
-            color: #5e50ee;
-            margin-top: 2rem;
-            margin-bottom: 1rem;
-            font-size: 1.75rem;
-            font-weight: 600;
-        }
+        /* Word (compat 14/15) paragraflar oralig'i = max(oldingi after, keyingi before) — CSS margin collapse bilan bir xil */
+        .wm-page .wm-doc { display: flow-root; margin: 0 auto; line-height: 1.4; overflow-wrap: break-word; color: var(--wm-text); text-align: left; }
+        .wm-page .wm-doc p, .wm-page .wm-doc h1, .wm-page .wm-doc h2, .wm-page .wm-doc h3,
+        .wm-page .wm-doc span, .wm-page .wm-doc td { margin: 0; padding: 0; font: inherit; color: inherit; letter-spacing: normal; text-transform: none; }
+        .wm-page .wm-doc h1, .wm-page .wm-doc h2, .wm-page .wm-doc h3 { scroll-margin-top: 6rem; }
+        .wm-page .wm-doc a { color: inherit; text-decoration: none; }
+        .wm-page .wm-doc a[href]:hover { text-decoration: underline; }
+        .wm-page .wm-doc .wm-num { display: inline-block; text-indent: 0; white-space: nowrap; }
+        .wm-page .wm-doc .wm-tab { display: inline-block; width: 36pt; }
+        .wm-page .wm-doc .wm-img { max-width: 100%; height: auto; cursor: zoom-in; vertical-align: bottom; }
+        .wm-page .wm-doc .wm-tw { max-width: 100%; overflow-x: auto; }
+        .wm-page .wm-doc .wm-table { border-collapse: collapse; table-layout: fixed; max-width: 100%; }
+        .wm-page .wm-doc .wm-cell { display: flow-root; }
+        .wm-page .wm-doc .wm-cell .wm-tw { margin: 0; }
 
-        .user-manual-content h3 {
-            color: #6c757d;
-            margin-top: 1.5rem;
-            margin-bottom: 0.75rem;
-            font-size: 1.5rem;
-            font-weight: 500;
-        }
+        /* ---- rasmni kattalashtirish ---- */
+        .wm-lightbox { position: fixed; inset: 0; z-index: 2000; background: rgba(10, 14, 25, .88); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem; cursor: zoom-out; }
+        .wm-lightbox[hidden] { display: none; }
+        .wm-lightbox img { max-width: 100%; max-height: calc(100vh - 6rem); background: #fff; box-shadow: 0 6px 30px rgba(0, 0, 0, .5); }
+        .wm-lightbox-caption { color: #e8ecf2; margin-top: .75rem; font-size: .9rem; text-align: center; max-width: 60rem; }
 
-        .user-manual-content h4 {
-            color: #6c757d;
-            margin-top: 1.25rem;
-            margin-bottom: 0.5rem;
-            font-size: 1.25rem;
-            font-weight: 500;
-        }
-
-        .user-manual-content ul, .user-manual-content ol {
-            margin-left: 2rem;
-            margin-bottom: 1rem;
-        }
-
-        .user-manual-content li {
-            margin-bottom: 0.5rem;
-        }
-
-        .user-manual-content p {
-            margin-bottom: 1rem;
-            text-align: justify;
-        }
-
-        .user-manual-content code {
-            background-color: #f4f4f4;
-            padding: 2px 6px;
-            border-radius: 3px;
-            font-family: 'Courier New', monospace;
-            font-size: 0.9em;
-        }
-
-        .user-manual-content pre {
-            background-color: #f4f4f4;
-            padding: 1rem;
-            border-radius: 5px;
-            overflow-x: auto;
-            margin-bottom: 1rem;
-        }
-
-        .user-manual-content pre code {
-            background-color: transparent;
-            padding: 0;
-        }
-
-        .chapter-item {
-            transition: all 0.2s ease;
-        }
-
-        .chapter-item:hover {
-            background-color: #f8f9fa;
-        }
-
-        .chapter-item.active {
-            background-color: #5e50ee;
-            color: white;
-        }
-
-        .chapter-item.active .chapter-title {
-            color: white;
-        }
-
-        .chapter-item.active i {
-            color: white;
-        }
-
-        #chapterSearch {
-            border-radius: 5px;
+        /* ---- chop etish: faqat Word sahifasi ---- */
+        @@media print {
+            .main-menu, .header-navbar, .content-header, .footer, .wm-side-col, .wm-head .btn, .customizer, .scroll-top, .buy-now { display: none !important; }
+            .app-content, .content-wrapper { margin: 0 !important; padding: 0 !important; }
+            .wm-main-col { flex: 0 0 100%; max-width: 100%; }
+            .card { box-shadow: none !important; border: 0 !important; }
+            .wm-canvas { background: none !important; padding: 0 !important; }
+            .wm-page { --wm-text: #000 !important; --wm-paper: #fff !important; box-shadow: none; padding: 0; max-width: none; }
+            .wm-page .wm-doc { display: block; }
+            .wm-page .wm-doc .wm-pb { break-before: page; }
+            .wm-page .wm-doc h1:first-of-type { break-before: auto; }
+            .wm-page .wm-doc h1, .wm-page .wm-doc h2, .wm-page .wm-doc h3 { break-after: avoid; }
+            .wm-page .wm-doc .wm-img, .wm-page .wm-doc tr { break-inside: avoid; }
+            .wm-page .wm-doc .wm-tw { overflow: visible; }
+            .wm-page .wm-doc thead { display: table-header-group; }
         }
     </style>
+    <script type="text/javascript">
+        (function () {
+            var doc = document.querySelector('.wm-page .wm-doc');
+            if (!doc) return;
+            @* Chop etishda tungi rejim ranglari emas, Word ranglari kerak *@
+            var root = document.documentElement, printTheme = null;
+            window.addEventListener('beforeprint', function () { printTheme = root.getAttribute('data-theme'); if (printTheme === 'dark') root.setAttribute('data-theme', 'light'); });
+            window.addEventListener('afterprint', function () { if (printTheme === 'dark') root.setAttribute('data-theme', 'dark'); printTheme = null; });
+
+            // ---- Word kabi "sahifa kengligiga moslash": joy yetmasa sahifa kichraytiriladi (satrlar Word'dagidek bo'linadi),
+            //      juda tor ekranda (telefon) esa matn oddiy oqim bilan qayta joylashadi
+            var page = doc.parentElement, canvas = page.parentElement;
+            function fit() {
+                page.style.zoom = '';
+                page.style.width = '';
+                var ps = getComputedStyle(page), cs = getComputedStyle(canvas);
+                var natural = parseFloat(getComputedStyle(doc).maxWidth) + parseFloat(ps.paddingLeft) + parseFloat(ps.paddingRight);
+                var avail = canvas.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+                if (!(natural > 0) || avail >= natural) { page.style.width = natural > 0 ? natural + 'px' : ''; return; }
+                var z = avail / natural;
+                if (z < 0.72) return;
+                page.style.width = natural + 'px';
+                page.style.zoom = z.toFixed(4);
+            }
+            fit();
+            window.addEventListener('resize', fit);
+            window.addEventListener('beforeprint', function () { page.style.zoom = ''; page.style.width = ''; });
+            window.addEventListener('afterprint', fit);
+
+            // ---- mundarija (H1/H2)
+            var toc = document.getElementById('wmToc'), links = [];
+            doc.querySelectorAll('h1[id], h2[id]').forEach(function (h) {
+                var a = document.createElement('a');
+                a.href = '#' + h.id;
+                a.className = h.tagName === 'H1' ? 'l1' : 'l2';
+                a.textContent = h.textContent.trim();
+                a.dataset.text = a.textContent;
+                var li = document.createElement('li');
+                li.appendChild(a);
+                toc.appendChild(li);
+                links.push({ a: a, li: li, h: h, level: h.tagName === 'H1' ? 1 : 2 });
+            });
+
+            // ---- qidiruv: mos kelgan bo'lim va uning H1 ota-bo'limi ko'rsatiladi
+            var search = document.getElementById('wmTocSearch'), empty = document.getElementById('wmTocEmpty');
+            function esc(s) { return s.replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+            search.addEventListener('input', function () {
+                var qv = search.value.trim().toLowerCase(), parent = null, shown = 0, keepParent = {};
+                links.forEach(function (x, i) {
+                    if (x.level === 1) parent = i;
+                    x.match = !qv || x.a.dataset.text.toLowerCase().indexOf(qv) >= 0;
+                    if (x.match && x.level === 2 && parent !== null) keepParent[parent] = true;
+                });
+                links.forEach(function (x, i) {
+                    var show = x.match || keepParent[i];
+                    x.li.style.display = show ? '' : 'none';
+                    if (show) shown++;
+                    var t = x.a.dataset.text, k = qv ? t.toLowerCase().indexOf(qv) : -1;
+                    x.a.innerHTML = k >= 0 ? esc(t.slice(0, k)) + '<mark>' + esc(t.slice(k, k + qv.length)) + '</mark>' + esc(t.slice(k + qv.length)) : esc(t);
+                });
+                empty.style.display = shown ? 'none' : '';
+            });
+            search.addEventListener('keydown', function (e) {
+                if (e.key !== 'Enter') return;
+                var first = links.filter(function (x) { return x.li.style.display !== 'none'; })[0];
+                if (first) { e.preventDefault(); first.a.click(); }
+            });
+
+            // ---- joriy bo'limni belgilash
+            var active = null;
+            function setActive(x) {
+                if (active === x) return;
+                if (active) active.a.classList.remove('active');
+                active = x;
+                if (!x) return;
+                x.a.classList.add('active');
+                var side = document.querySelector('.wm-side'), r = x.a.getBoundingClientRect(), sr = side.getBoundingClientRect();
+                if (r.top < sr.top || r.bottom > sr.bottom) side.scrollTop += r.top - sr.top - sr.height / 3;
+            }
+            var ticking = false;
+            window.addEventListener('scroll', function () {
+                if (ticking) return;
+                ticking = true;
+                requestAnimationFrame(function () {
+                    ticking = false;
+                    var cur = null;
+                    for (var i = 0; i < links.length; i++) {
+                        if (links[i].h.getBoundingClientRect().top - 120 > 0) break;
+                        cur = links[i];
+                    }
+                    setActive(cur || links[0]);
+                });
+            }, { passive: true });
+            setActive(links[0]);
+
+            // ---- rasmni kattalashtirish (rasm ostidagi "Rasm N." izohi bilan)
+            var box = document.getElementById('wmLightbox'), boxImg = box.querySelector('img'), boxCap = box.querySelector('.wm-lightbox-caption');
+            doc.addEventListener('click', function (e) {
+                var img = e.target.closest('.wm-img');
+                if (!img) return;
+                var p = img.closest('p'), next = p && p.nextElementSibling;
+                boxImg.src = img.src;
+                boxImg.alt = img.alt;
+                boxCap.textContent = next && next.tagName === 'P' && !next.querySelector('img') ? next.textContent.trim() : img.alt;
+                box.hidden = false;
+            });
+            function closeBox() { box.hidden = true; boxImg.removeAttribute('src'); }
+            box.addEventListener('click', closeBox);
+            document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !box.hidden) closeBox(); });
+        })();
+    </script>
 }

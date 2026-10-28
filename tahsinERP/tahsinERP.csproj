@@ -1175,7 +1175,7 @@
     <Compile Include="ViewModels\TaskViewModel.cs" />
     <Compile Include="ViewModels\TransportLoadResult.cs" />
     <Compile Include="ViewModels\TransportSelectItem.cs" />
-    <Compile Include="ViewModels\UserManualChapterViewModel.cs" />
+    <Compile Include="ViewModels\UserManualModuleViewModel.cs" />
     <Compile Include="ViewModels\UserManualPageViewModel.cs" />
     <Compile Include="ViewModels\LogisticsMonthlyReportViewModel.cs" />
     <Compile Include="ViewModels\WarehouseMonthlyReportViewModel.cs" />
@@ -3453,6 +3453,7 @@
     <Content Include="Views\QualityInspection\Index.cshtml" />
     <Content Include="Views\Tender\Index.cshtml" />
     <Content Include="Views\UserManual\Index.cshtml" />
+    <Content Include="ManualData\**\*" />
     <Content Include="Views\DocTemplates\Index.cshtml" />
     <Content Include="Views\DocTemplates\_QuillToolbar.cshtml" />
     <Content Include="Views\Tasks\Create.cshtml" />
