@@ -24,6 +24,9 @@ public class IndexModel(ControlDbContext db, UpdatesService updates, IReleaseSou
     public List<AppRow> Apps { get; private set; } = [];
     public List<TenantRow> Tenants { get; private set; } = [];
     public List<UpdateJob> Jobs { get; private set; } = [];
+    public PageInfo TenantsPager { get; private set; } = new(1, PageInfo.DefaultSize, 0, "t");
+    public PageInfo JobsPager { get; private set; } = new(1, PageInfo.DefaultSize, 0, "j");
+    public PageInfo ReleasesPager { get; private set; } = new(1, PageInfo.DefaultSize, 0, "r");
     public DateTime UtcNow => clock.UtcNow;
 
     public async Task<IActionResult> OnGetAsync()
@@ -38,22 +41,25 @@ public class IndexModel(ControlDbContext db, UpdatesService updates, IReleaseSou
         Servers = await db.Servers.AsNoTracking().Where(s => s.AgentSecretProtected != null).OrderBy(s => s.Name).ToListAsync();
         Server = Servers.FirstOrDefault(s => s.Id == ServerId) ?? Servers.FirstOrDefault();
         ServerId = Server?.Id;
-        Releases = (await db.AppReleases.AsNoTracking().ToListAsync())
-            .OrderByDescending(r => ReleaseVerifier.ParseVersion(r.Version)).Take(20).ToList();
+        (Releases, ReleasesPager) = (await db.AppReleases.AsNoTracking().ToListAsync())
+            .OrderByDescending(r => ReleaseVerifier.ParseVersion(r.Version)).ToList().ToPage(HttpContext, "r");
         if (Server is null) return;
         (Inventory, InventoryAtUtc) = await updates.InventoryAsync(Server.Id);
         var valid = await updates.ValidReleasesAsync();
-        Jobs = await db.UpdateJobs.AsNoTracking().Where(j => j.ServerId == Server.Id).OrderByDescending(j => j.Id).Take(30).ToListAsync();
-        var active = Jobs.Where(j => j.IsActive).ToList();
+        (Jobs, JobsPager) = await db.UpdateJobs.AsNoTracking().Where(j => j.ServerId == Server.Id).OrderByDescending(j => j.Id).ToPageAsync(HttpContext, "j");
+        // Faol ishlar sahifadan qat'i nazar (ilova/firma qatoridagi holat va avto-yangilanish uchun).
+        var active = await db.UpdateJobs.AsNoTracking()
+            .Where(j => j.ServerId == Server.Id && (j.Status == UpdateJobStatus.Pending || j.Status == UpdateJobStatus.Running)).ToListAsync();
         foreach (var app in ReleaseApps.ServerApps)
         {
             var inst = Inventory?.Apps.FirstOrDefault(a => a.App == app);
             Apps.Add(new AppRow(app, inst, UpdatesService.Offer(valid, app, inst?.Version), UpdatesService.NewerThan(valid, app, inst?.Version),
                 active.FirstOrDefault(j => j.App == app)));
         }
-        var tenants = await db.Tenants.AsNoTracking()
+        var (tenants, tenantsPager) = await db.Tenants.AsNoTracking()
             .Where(t => t.ServerId == Server.Id && t.DbName != null && t.DeletedAtUtc == null && t.Status != TenantStatus.Archived)
-            .OrderBy(t => t.Slug).ToListAsync();
+            .OrderBy(t => t.Slug).ToPageAsync(HttpContext, "t");
+        TenantsPager = tenantsPager;
         foreach (var t in tenants)
         {
             var inst = Inventory?.Instances.FirstOrDefault(i => i.Slug == t.Slug);

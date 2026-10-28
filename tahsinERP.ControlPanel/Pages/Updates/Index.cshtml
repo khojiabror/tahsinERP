@@ -178,6 +178,7 @@
         </tr>
     }
 </table>
+<partial name="_Pager" model="Model.TenantsPager" />
 @if (Model.Tenants.Count == 0) { <div class="empty">@L.T("Pnl_Upd_NoTenants")</div> }
 
 <h2>@L.T("Pnl_Upd_RecentJobs")</h2>
@@ -196,6 +197,7 @@
         </tr>
     }
 </table>
+<partial name="_Pager" model="Model.JobsPager" />
 @if (Model.Jobs.Count == 0) { <div class="empty">@L.T("Pnl_Upd_NoJobs")</div> }
 
 <h2>@L.T("Pnl_Upd_Releases")</h2>
@@ -212,4 +214,5 @@
         </tr>
     }
 </table>
+<partial name="_Pager" model="Model.ReleasesPager" />
 @if (Model.Releases.Count == 0) { <div class="empty">@L.T("Pnl_Upd_NoReleases")</div> }

@@ -1,23 +1,27 @@
 @* Jadval ostidagi sahifalash: qatorlar soni (10/25/50/100), "1–25 / 340" va sahifa raqamlari. Model — Paging.ToPageAsync natijasi.
-   Boshqa so'rov parametrlari (filtrlar) saqlanadi; qatorlar soni o'zgarsa — 1-sahifaga. *@
+   Boshqa so'rov parametrlari (filtrlar, sahifadagi boshqa jadvallarning sahifasi) saqlanadi; qatorlar soni o'zgarsa — 1-sahifaga.
+   Prefiksli jadval (bitta sahifada bir nechta) — havola shu jadval pager'iga qaytaradi (#{prefix}pager). *@
 @model PageInfo
 @{
     var keep = Context.Request.Query
-        .Where(kv => kv.Key is not ("page" or "size" or "handler"))
+        .Where(kv => kv.Key != Model.PageParam && kv.Key != Model.SizeParam && kv.Key != "handler")
         .SelectMany(kv => kv.Value.Select(v => new KeyValuePair<string, string?>(kv.Key, v)))
         .ToList();
-    string Href(int page) => Context.Request.Path + QueryString.Create(keep.Append(new("page", page.ToString())).Append(new("size", Model.Size.ToString())));
+    string anchor = Model.Prefix.Length > 0 ? "#" + Model.Prefix + "pager" : "";
+    string Href(int page) => Context.Request.Path
+        + QueryString.Create(keep.Append(new(Model.PageParam, page.ToString())).Append(new(Model.SizeParam, Model.Size.ToString()))) + anchor;
     // Ko'rsatiladigan sahifa raqamlari: 1, joriy ±2, oxirgi; oraliqlar "…" bilan.
     var nums = new SortedSet<int> { 1, Model.Pages };
     for (int i = Model.Page - 2; i <= Model.Page + 2; i++) if (i >= 1 && i <= Model.Pages) nums.Add(i);
+    string selectId = Model.Prefix + "pager-size";
 }
 @if (Model.Total > PageInfo.Sizes[0])
 {
-    <div class="pager">
-        <form method="get" class="pager-size">
+    <div class="pager" id="@(Model.Prefix)pager">
+        <form method="get" class="pager-size" action="@(Context.Request.Path + anchor)">
             @foreach (var kv in keep) { <input type="hidden" name="@kv.Key" value="@kv.Value" /> }
-            <label for="pager-size">@L.T("Pnl_Pager_Rows")</label>
-            <select id="pager-size" name="size" data-autosubmit>
+            <label for="@selectId">@L.T("Pnl_Pager_Rows")</label>
+            <select id="@selectId" name="@Model.SizeParam" data-autosubmit>
                 @foreach (int s in PageInfo.Sizes) { <option value="@s" selected="@(s == Model.Size)">@s</option> }
             </select>
             <noscript><button type="submit" class="secondary">OK</button></noscript>

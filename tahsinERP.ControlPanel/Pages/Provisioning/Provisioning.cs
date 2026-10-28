@@ -20,7 +20,8 @@ public class IndexModel(ControlDbContext db) : PanelPageModel
         if (Status is not null) q = q.Where(j => j.Status == Status);
         (Jobs, Pager) = await q.OrderByDescending(j => j.Id).ToPageAsync(HttpContext);
         Servers = await db.Servers.AsNoTracking().OrderBy(s => s.Name).ToListAsync();
-        if (Jobs.Any(j => j.IsActive)) ViewData["AutoRefresh"] = 10;
+        // Sahifadan qat'i nazar: navbatda faol job bo'lsa avto-yangilanish.
+        if (await db.ProvisioningJobs.AnyAsync(j => j.Status == ProvisioningJobStatus.Pending || j.Status == ProvisioningJobStatus.Running)) ViewData["AutoRefresh"] = 10;
     }
 }
 

@@ -1,5 +1,6 @@
 using System.Text.RegularExpressions;
 using tahsinERP.ControlPanel.Data;
+using tahsinERP.ControlPanel.Services;
 using static tahsinERP.ControlPanel.Tests.PortalTestKit;
 
 namespace tahsinERP.ControlPanel.Tests;
@@ -33,5 +34,25 @@ public class PagingTests(PanelFactory f) : IClassFixture<PanelFactory>
         string all = Html(await staff.GetAsync("/Tenants?Q=pg-&size=50"));
         Assert.Equal(23, RowCount(all));
         Assert.DoesNotContain("class=\"pager-pages\"", all); // bitta sahifa — raqamlar ko'rsatilmaydi
+    }
+    [Fact]
+    public void Prefixed_Pagers_AreIndependent_InMemory()
+    {
+        var http = new Microsoft.AspNetCore.Http.DefaultHttpContext();
+        http.Request.QueryString = new Microsoft.AspNetCore.Http.QueryString("?jpage=2&jsize=10&rpage=3&rsize=10");
+        var items = Enumerable.Range(1, 23).ToList();
+
+        var (jobs, j) = items.ToPage(http, "j");
+        Assert.Equal(new[] { 11, 12, 13, 14, 15, 16, 17, 18, 19, 20 }, jobs);
+        Assert.Equal(("jpage", "jsize", 2, 3), (j.PageParam, j.SizeParam, j.Page, j.Pages));
+
+        var (rels, r) = items.ToPage(http, "r");
+        Assert.Equal(new[] { 21, 22, 23 }, rels);
+        Assert.Equal(3, r.Page);
+
+        var (tenants, t) = items.ToPage(http, "t"); // o'z parametri yo'q — 1-sahifa, qatorlar soni cookie/standart
+        Assert.Equal(1, t.Page);
+        Assert.Equal(PageInfo.DefaultSize, t.Size);
+        Assert.Equal(23, tenants.Count);
     }
 }
