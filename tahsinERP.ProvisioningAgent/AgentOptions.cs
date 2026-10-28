@@ -91,6 +91,8 @@ public sealed class AgentOptions
         /// Bo'sh — huquq berilmaydi (ERP sysadmin bilan ishlasa yoki qo'lda beriladi).
         /// </summary>
         public string? AppLogin { get; set; }
+        /// <summary>Updater firma instance pool'i prefiksi (Updater Erp:PoolPrefix bilan bir xil) — tiklangan bazaga shu pool hisobi ham ulanadi.</summary>
+        public string InstancePoolPrefix { get; set; } = "erp-";
     }
 
     public sealed class PathsSection

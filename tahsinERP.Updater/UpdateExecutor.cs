@@ -190,6 +190,7 @@ public sealed class UpdateExecutor(UpdaterOptions o, ISystemOps sys, StateStore 
             {
                 migrating = true;
                 await MigrateAsync(releaseDir, db, rep, ct);
+                await EnsureDbAccessAsync(slug, db, rep, ct);
             }
             rep.Stage("Ishga tushirish");
             await sys.StartAsync(target, ct);
@@ -208,6 +209,7 @@ public sealed class UpdateExecutor(UpdaterOptions o, ISystemOps sys, StateStore 
                     rep.Line($"Baza {db} zaxiradan tiklanmoqda");
                     await sys.RestoreDbAsync(db, backup.DbBackupFile, ct);
                 }
+                if (db != null) await EnsureDbAccessAsync(slug, db, rep, ct);
                 await sys.StartAsync(target, ct);
                 await WaitHealthyAsync(ErpHealthUrl(slug), target, s => s < 500, rep, ct);
             });
@@ -335,6 +337,7 @@ public sealed class UpdateExecutor(UpdaterOptions o, ISystemOps sys, StateStore 
             rep.Line($"Baza {inst.DbName} {backup.CreatedAtUtc:yyyy-MM-dd HH:mm} UTC holatiga tiklanmoqda (keyingi ma'lumotlar yo'qoladi)");
             await sys.RestoreDbAsync(inst.DbName!, backup.DbBackupFile!, ct);
         }
+        if (inst.DbName != null) await EnsureDbAccessAsync(slug, inst.DbName, rep, ct);
         await sys.StartAsync(target, ct);
         rep.Stage("Health");
         if (!await WaitHealthyAsync(ErpHealthUrl(slug), target, s => s < 500, rep, ct))
@@ -385,6 +388,7 @@ public sealed class UpdateExecutor(UpdaterOptions o, ISystemOps sys, StateStore 
         try
         {
             await MigrateAsync(releaseDir, inst.DbName, rep, ct);
+            await EnsureDbAccessAsync(slug, inst.DbName, rep, ct);
             await sys.StartAsync(target, ct);
             if (!await WaitHealthyAsync(ErpHealthUrl(slug), target, s => s == 200, rep, ct))
                 throw new InvalidOperationException("Health tekshiruvi o'tmadi.");
@@ -395,6 +399,7 @@ public sealed class UpdateExecutor(UpdaterOptions o, ISystemOps sys, StateStore 
             {
                 await sys.StopAsync(target, ct);
                 await sys.RestoreDbAsync(inst.DbName, bak, ct);
+                await EnsureDbAccessAsync(slug, inst.DbName, rep, ct);
                 await sys.StartAsync(target, ct);
             });
         }
@@ -432,6 +437,18 @@ public sealed class UpdateExecutor(UpdaterOptions o, ISystemOps sys, StateStore 
         if (!Directory.Exists(src)) return;
         await sys.CopyAsync(src, o.Paths.DatabaseRoot, true, null, null, ct);
         rep.Line($"Database papkasi {version} ga yangilandi ({o.Paths.DatabaseRoot})");
+    }
+
+    /// <summary>
+    /// Instance pool hisobiga (IIS APPPOOL\erp-&lt;slug&gt;) bazada db_owner — har ishga tushirishdan oldin, idempotent.
+    /// Agent bazani shablondan qayta tiklasa yoki zaxira huquqsiz holatda olingan bo'lsa ham ERP bazaga ulanadi
+    /// (aks holda /health 503 → har yangilash rollback bo'ladi, rollback ham tuzatmaydi).
+    /// </summary>
+    private async Task EnsureDbAccessAsync(string slug, string db, JobReporter rep, CancellationToken ct)
+    {
+        string pool = o.InstancePool(slug);
+        await sys.GrantDbAccessAsync(pool, db, ct);
+        rep.Line($"SQL huquqi: IIS APPPOOL\\{pool} → {db} db_owner");
     }
 
     private string ErpHealthUrl(string slug) => $"https://{o.InstanceHost(slug)}{o.Erp.HealthPath}";

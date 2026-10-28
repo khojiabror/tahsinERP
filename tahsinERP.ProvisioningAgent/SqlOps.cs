@@ -205,6 +205,27 @@ public sealed class SqlOps(AgentOptions options)
         return $"ERP login '{login}' → {db}: db_owner";
     }
 
+    /// <summary>
+    /// Firma ERP instance'i (Updater: alohida pool <c>IIS APPPOOL\erp-&lt;slug&gt;</c>) bazaga ulana olsin — shablon/arxivdan tiklangan
+    /// bazada bu foydalanuvchi bo'lmaydi va ERP /health 503 beradi. Login faqat instance yaratilgandan keyin bor — yo'q bo'lsa o'tkazib yuboriladi.
+    /// </summary>
+    public async Task<string> GrantInstancePoolAsync(string db, string slug, CancellationToken ct)
+    {
+        string login = @"IIS APPPOOL\" + options.Sql.InstancePoolPrefix + slug;
+        await using var c = await OpenAsync(db, ct);
+        var r = await ScalarAsync(c, """
+            IF SUSER_ID(@l) IS NULL BEGIN SELECT 0; RETURN; END
+            DECLARE @q sysname = QUOTENAME(@l);
+            IF USER_ID(@l) IS NULL
+                EXEC(N'CREATE USER ' + @q + N' FOR LOGIN ' + @q);
+            ELSE
+                EXEC(N'ALTER USER ' + @q + N' WITH LOGIN = ' + @q);
+            EXEC(N'ALTER ROLE db_owner ADD MEMBER ' + @q);
+            SELECT 1;
+            """, ct, ("@l", login));
+        return Convert.ToInt32(r) == 1 ? $"instance login '{login}' → {db}: db_owner" : $"instance login '{login}' yo'q — o'tkazildi";
+    }
+
     /// <summary>Bazaning oxirgi qo'llangan migratsiyasi (SCHEMA_VERSIONS). Ruxsat/baza yo'q — null.</summary>
     public async Task<string?> SchemaVersionAsync(string db, CancellationToken ct)
     {

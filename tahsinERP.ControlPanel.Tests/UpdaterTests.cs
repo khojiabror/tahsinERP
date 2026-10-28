@@ -321,6 +321,9 @@ public sealed class UpdaterTests : IDisposable
         Assert.Equal("dll 2026.10.22.1", File.ReadAllText(Path.Combine(ipack, "bin", "tahsinERP.dll")));
         Assert.Equal("keep", File.ReadAllText(Path.Combine(ipack, "App_Data", "user-upload.txt")));
         Assert.Contains(_sys.Calls, c => c == "restore-db DB_ipack");
+        // tiklangan bazada ham pool huquqi qayta beriladi, keyin ishga tushiriladi
+        Assert.True(_sys.Calls.FindLastIndex(c => c == "restore-db DB_ipack") < _sys.Calls.FindLastIndex(c => c == "grant erp-ipack DB_ipack"), string.Join(" | ", _sys.Calls));
+        Assert.True(_sys.Calls.FindLastIndex(c => c == "grant erp-ipack DB_ipack") < _sys.Calls.FindLastIndex(c => c == "start erp-ipack"), string.Join(" | ", _sys.Calls));
         Assert.DoesNotContain(_sys.Calls, c => c.Contains("firma2"));
         Assert.Equal("2026.10.22.1", _store.Load().Instances["ipack"].Version);
     }
@@ -329,9 +332,12 @@ public sealed class UpdaterTests : IDisposable
     public async Task InstallTenant_Succeeds_PreservesMachineKey_ThenRollbackWithDatabase()
     {
         string ipack = await CreateInstanceAsync("ipack", "2026.10.22.1");
+        _sys.Calls.Clear();
         var r = await RunAsync(new InboxRequest { JobId = 13, Action = UpdateAction.InstallTenant, App = "erp", Slug = "ipack", Version = "2026.10.23.1" },
             Job("2026.10.23.1", new() { ["erp"] = TestReleaseKit.ErpFiles("v2") }));
         Assert.True(r.Outcome == UpdateOutcome.Succeeded, r.Error);
+        // bazada pool foydalanuvchisi yo'qolgan bo'lsa ham (agent shablondan tiklagan) — ishga tushirishdan oldin qayta beriladi
+        Assert.True(_sys.IndexOf("grant erp-ipack DB_ipack") >= 0 && _sys.IndexOf("grant erp-ipack DB_ipack") < _sys.IndexOf("start erp-ipack"), string.Join(" | ", _sys.Calls));
         Assert.Equal("dll v2", File.ReadAllText(Path.Combine(ipack, "bin", "tahsinERP.dll")));
         Assert.Contains("SERVERVK", File.ReadAllText(Path.Combine(ipack, "Web.config")));
         var inv = UpdaterFiles.ToInventory(_store.Load(), "1.0.0");
@@ -343,6 +349,7 @@ public sealed class UpdaterTests : IDisposable
         Assert.True(r.Outcome == UpdateOutcome.Succeeded, r.Error);
         Assert.Equal("dll 2026.10.22.1", File.ReadAllText(Path.Combine(ipack, "bin", "tahsinERP.dll")));
         Assert.Contains(_sys.Calls, c => c == "restore-db DB_ipack");
+        Assert.True(_sys.IndexOf("restore-db DB_ipack") < _sys.IndexOf("grant erp-ipack DB_ipack") && _sys.IndexOf("grant erp-ipack DB_ipack") < _sys.IndexOf("start erp-ipack"), string.Join(" | ", _sys.Calls));
         Assert.Equal("2026.10.22.1", _store.Load().Instances["ipack"].Version);
     }
 
