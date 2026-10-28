@@ -42,6 +42,7 @@ NS = {'w': W, 'r': R, 'a': A, 'wp': WP}
 MAX_IMG_WIDTH = 1400
 WEBP_QUALITY = 80               # 1300px screenshot matni aniq o'qiladi, ~40 KB/rasm
 IMG_TOKEN = '@@IMG@@/'          # kontroller beradigan URL bilan almashtiriladi
+TAB_MARK = '\x00TAB\x00'        # osma chekinishdagi birinchi tab (paragraph() uni markerga aylantiradi)
 LANGS = ('uz', 'ru')
 
 
@@ -410,6 +411,10 @@ class Palette:
 
 # ---------------------------------------------------------------- shriftlar
 
+# Word'dagi bitta satr balandligi / shrift o'lchami (shrift metrikasidan): Calibri 1.22, qolganlari ~1.17
+LINE_FACTOR = {'calibri': 1.22, 'calibri light': 1.22, 'cambria math': 1.17, 'cambria': 1.17, 'consolas': 1.17,
+               'courier new': 1.13, 'times new roman': 1.15, 'arial': 1.15, 'segoe ui': 1.33}
+
 MONO = ('consolas', 'courier new', 'courier', 'lucida console', 'cascadia code', 'cascadia mono', 'menlo', 'monaco')
 
 
@@ -600,7 +605,7 @@ class Converter:
                     fmt(hang), ms, html.escape(text))
         # Word satr balandligini ishlatilgan shriftdan oladi: hamma run bir o'lchamda bo'lsa (masalan katakda 10pt),
         # paragrafga ham shu o'lcham beriladi — aks holda CSS 11pt "strut" qatorni balandlashtiradi
-        sizes = set()
+        sizes, fonts = set(), set()
         for r in p.iter(q('w:r')):
             if r.find(q('w:t')) is None:
                 continue
@@ -611,12 +616,18 @@ class Converter:
                 rr.update(self.styles.char(wval(rs)))
             rr.update(parse_rpr(rpr_el))
             sizes.add(rr.get('sz', self.base_size))
+            fonts.add((rr.get('font') or self.base_font).lower())
         if len(sizes) == 1:
             pr['sz'] = sizes.pop()
         elif not sizes and mark_r.get('sz'):
             pr['sz'] = mark_r['sz']
-        # matn
-        inner = self.runs(p, pr)
+        # matn; osma chekinishli "Qadam 1.<tab>matn" — tabgacha bo'lgan qism raqam markeri kabi chekinish kengligida
+        hang_tab = not marker_html and (twip(pp.get('ind_hanging')) or 0) > 0
+        inner = self.runs(p, pr, hang_tab)
+        if hang_tab and TAB_MARK in inner:
+            label, rest = inner.split(TAB_MARK, 1)
+            marker_html = '<span class="wm-num" style="min-width:%spt">%s</span>' % (fmt(twip(pp['ind_hanging'])), label)
+            inner = rest
         is_empty = not inner.strip() and not marker_html
         # uslub
         css = []
@@ -634,7 +645,7 @@ class Converter:
         if 'sp_line' in pp:
             rule = pp.get('sp_rule', 'auto')
             if rule == 'auto':
-                css.append('line-height:%s' % fmt(pp['sp_line'] / 240.0 * 1.22))
+                css.append('line-height:%s' % fmt(pp['sp_line'] / 240.0 * LINE_FACTOR.get(fonts.pop() if len(fonts) == 1 else '', 1.22)))
             elif rule == 'exact':
                 css.append('line-height:%spt' % fmt(pp['sp_line'] / 20.0))
             else:
@@ -716,10 +727,10 @@ class Converter:
             css.append('vertical-align:%s;font-size:%spt' % ('super' if r['va'] == 'superscript' else 'sub', fmt(r.get('sz', self.base_size) * 0.65)))
         return ';'.join(css) + (';' if css else '')
 
-    def runs(self, p, pr):
+    def runs(self, p, pr, hang_tab=False):
         """Paragraf ichidagi run'lar -> HTML (bir xil formatdagi qo'shni bo'laklar bitta span'ga)."""
         segs = []          # (css, html, link)
-        state = {'fld': []}
+        state = {'fld': [], 'hang_tab': hang_tab}
 
         def walk(parent, link=None):
             for ch in parent:
@@ -793,9 +804,15 @@ class Converter:
                 continue
             if t == q('w:t'):
                 if ch.text:
-                    segs.append((css, html.escape(ch.text, False), link))
+                    # Word ketma-ket probellarni saqlaydi, HTML esa yig'adi
+                    txt = re.sub(r'  +', lambda m: ' ' + '\u00a0' * (len(m.group(0)) - 1), ch.text)
+                    segs.append((css, html.escape(txt, False), link))
             elif t == q('w:tab'):
-                segs.append((css, '<span class="wm-tab"></span>', link))
+                if state.get('hang_tab'):
+                    state['hang_tab'] = False
+                    segs.append((None, TAB_MARK, None))
+                else:
+                    segs.append((css, '<span class="wm-tab"></span>', link))
             elif t in (q('w:br'), q('w:cr')):
                 if ch.get(q('w:type')) != 'page':
                     segs.append((css, '<br>', link))
