@@ -30,7 +30,11 @@ else
                     @if (r.StaffNote is not null) { <div class="hint">@L.T("Pnl_Lead_Note", r.StaffNote)</div> }
                 </td>
                 <td><span class="badge @tahsinERP.ControlPanel.Pages.Leads.IndexModel.Badge(r.Status)">@tahsinERP.ControlPanel.Pages.Leads.IndexModel.Of(r.Status)</span>
-                    @if (r.HandledByStaffId is int sid) { <div class="hint">@Model.StaffNames.GetValueOrDefault(sid)</div> }</td>
+                    @if (r.HandledByStaffId is int sid) { <div class="hint">@Model.StaffNames.GetValueOrDefault(sid)</div> }
+                    @if (r.StaffNotifiedAtUtc is null && r.StaffNotifyAttempts > 0)
+                    {
+                        <div><span class="badge bad" title="@r.StaffNotifyError">@L.T("Pnl_Lead_TgNotSent", r.StaffNotifyAttempts)</span></div>
+                    }</td>
                 <td>
                     @if (r.Status == DemoRequestStatus.TrialOpened && r.TenantId is int tid)
                     {

@@ -30,6 +30,7 @@ STRINGS = {
     "Pnl_Lead_Ind_trade": ("Savdo", "Торговля"),
     "Pnl_Lead_Ind_services": ("Xizmatlar", "Услуги"),
     "Pnl_Lead_Ind_other": ("Boshqa", "Другое"),
+    "Pnl_Lead_TgNotSent": ("Telegram'ga yuborilmadi ({0} urinish)", "Не отправлено в Telegram (попыток: {0})"),
     "Pnl_Lead_TrialPrefilled": ("Demo so'rovi {0} dan to'ldirildi — slug va nomni tekshiring.", "Заполнено из демо-заявки {0} — проверьте slug и название."),
 
     "Pnl_Bak_NoData": ("ma'lumot yo'q", "нет данных"),

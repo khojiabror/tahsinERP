@@ -144,9 +144,12 @@ public sealed class FakeTelegram : ITelegramSender
     public bool Enabled { get; set; }
     public System.Collections.Concurrent.ConcurrentQueue<(string Chat, string Text)> Sent { get; } = new();
     public bool IsConfigured => Enabled;
+    /// <summary>O'rnatilgan bo'lsa SendAsync shu xatoni tashlaydi (tarmoq uzilishi / timeout).</summary>
+    public Exception? Fail { get; set; }
 
     public Task SendAsync(string chatId, string text, CancellationToken ct = default)
     {
+        if (Fail is not null) return Task.FromException(Fail);
         Sent.Enqueue((chatId, text));
         return Task.CompletedTask;
     }

@@ -687,6 +687,19 @@ namespace tahsinERP.ControlPanel.Data.Migrations
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
 
+                    b.Property<DateTime?>("StaffNotifiedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("StaffNotifyAttempts")
+                        .HasColumnType("int");
+
+                    b.Property<string>("StaffNotifyError")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime?>("StaffNotifyLastAtUtc")
+                        .HasColumnType("datetime2");
+
                     b.Property<int>("Status")
                         .HasColumnType("int");
 

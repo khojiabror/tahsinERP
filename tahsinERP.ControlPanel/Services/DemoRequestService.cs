@@ -89,21 +89,77 @@ public sealed partial class DemoRequestService(ControlDbContext db, ITelegramSen
     {
         string text = BuildStaffText(r, "https://" + hosts.Value.EffectiveAdminHost);
         await EmailStaffAsync(r, text, ct);
-        string? chat = tgOptions.Value.StaffChatId;
-        if (string.IsNullOrWhiteSpace(chat) || !telegram.IsConfigured)
+        if (!TelegramReady(out _))
         {
             log.LogInformation("Demo so'rovi #{Id} (Telegram sozlanmagan): {Text}", r.Id, text);
             return;
         }
+        await TrySendTelegramAsync(r, text, ct);
+    }
+
+    /// <summary>Qayta urinishlar shu muddat ichida (so'rov yaratilganidan) — undan keyin xabar eskirgan, faqat panelda.</summary>
+    public static readonly TimeSpan RetryWindow = TimeSpan.FromHours(24);
+
+    /// <summary>N-urinishdan keyingi kutish: 1, 2, 4, ... daqiqa, ko'pi bilan 30 daqiqa.</summary>
+    public static TimeSpan RetryDelay(int attempts) => TimeSpan.FromMinutes(Math.Min(30, 1 << Math.Clamp(attempts - 1, 0, 5)));
+
+    /// <summary>
+    /// Telegram'ga yetib bormagan so'rovlarni qayta yuboradi (fon ishi har daqiqada chaqiradi). Yuborilganlar soni.
+    /// Faqat kamida bir marta urinilganlar — Telegram umuman sozlanmagan bo'lsa so'rovlar faqat panelda.
+    /// </summary>
+    public async Task<int> RetryPendingAsync(CancellationToken ct = default)
+    {
+        if (!TelegramReady(out _))
+            return 0;
+        DateTime now = clock.UtcNow;
+        var pending = await db.DemoRequests
+            .Where(r => r.StaffNotifiedAtUtc == null && r.StaffNotifyAttempts > 0 && r.CreatedAtUtc > now - RetryWindow)
+            .OrderBy(r => r.Id).Take(20).ToListAsync(ct);
+        string adminBase = "https://" + hosts.Value.EffectiveAdminHost;
+        int sent = 0;
+        foreach (var r in pending)
+        {
+            if (r.StaffNotifyLastAtUtc is DateTime last && now < last + RetryDelay(r.StaffNotifyAttempts))
+                continue;
+            string text = BuildStaffText(r, adminBase) + "\n" +
+                          $"⏱ Kechikib yuborildi — so'rov vaqti {clock.ToLocal(r.CreatedAtUtc):dd.MM.yyyy HH:mm}";
+            if (await TrySendTelegramAsync(r, text, ct))
+                sent++;
+            else
+                break; // Telegram hali ishlamayapti — qolganlarini keyingi aylanishda
+        }
+        return sent;
+    }
+
+    private bool TelegramReady(out string chat)
+    {
+        chat = tgOptions.Value.StaffChatId ?? "";
+        return !string.IsNullOrWhiteSpace(chat) && telegram.IsConfigured;
+    }
+
+    /// <summary>Bitta urinish; natija so'rovga yoziladi (yuborilgan vaqt yoki urinishlar soni + xato).</summary>
+    private async Task<bool> TrySendTelegramAsync(DemoRequest r, string text, CancellationToken ct)
+    {
+        TelegramReady(out string chat);
+        bool ok;
         try
         {
             await telegram.SendAsync(chat, text, ct);
+            r.StaffNotifiedAtUtc = clock.UtcNow;
+            r.StaffNotifyError = null;
+            ok = true;
         }
-        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
+        catch (Exception ex) when (ex is HttpRequestException || (ex is TaskCanceledException && !ct.IsCancellationRequested))
         {
-            // So'rov bazada saqlangan — panelda ko'rinadi; xabar yuborilmagani mijozga ta'sir qilmaydi.
-            log.LogWarning(ex, "Demo so'rovi #{Id} Telegram xabari yuborilmadi", r.Id);
+            // So'rov bazada saqlangan — panelda ko'rinadi; fon ishi qayta yuboradi, mijozga ta'sir qilmaydi.
+            r.StaffNotifyAttempts++;
+            r.StaffNotifyLastAtUtc = clock.UtcNow;
+            r.StaffNotifyError = Truncate(ex.Message, 500);
+            log.LogWarning(ex, "Demo so'rovi #{Id} Telegram xabari yuborilmadi ({Attempts}-urinish)", r.Id, r.StaffNotifyAttempts);
+            ok = false;
         }
+        await db.SaveChangesAsync(CancellationToken.None);
+        return ok;
     }
 
     private async Task EmailStaffAsync(DemoRequest r, string text, CancellationToken ct)
@@ -173,4 +229,26 @@ public sealed partial class DemoRequestService(ControlDbContext db, ITelegramSen
 
     [GeneratedRegex(@"\D")]
     private static partial Regex NonDigits();
+}
+
+/// <summary>Har daqiqada Telegram'ga yetib bormagan demo so'rovlarini qayta yuboradi (DemoRequestService.RetryPendingAsync).</summary>
+public sealed class DemoNotifyRetryHostedService(IServiceScopeFactory scopes, ILogger<DemoNotifyRetryHostedService> log) : BackgroundService
+{
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    {
+        while (!stoppingToken.IsCancellationRequested)
+        {
+            try { await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken); } catch (OperationCanceledException) { return; }
+            try
+            {
+                using var scope = scopes.CreateScope();
+                int n = await scope.ServiceProvider.GetRequiredService<DemoRequestService>().RetryPendingAsync(stoppingToken);
+                if (n > 0) log.LogInformation("Demo so'rovlari: {Count} ta kechikkan Telegram xabari yuborildi", n);
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                log.LogWarning("Demo so'rovlarini qayta yuborish xatosi: {Message}", ex.Message);
+            }
+        }
+    }
 }
