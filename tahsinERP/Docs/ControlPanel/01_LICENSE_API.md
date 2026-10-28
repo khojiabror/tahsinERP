@@ -105,7 +105,11 @@ string_to_sign = "POST" + "\n" + "/api/license/{INSTALLATION_ID}/dev-login" + "\
 | 423 | `{ "error": "locked" }` | 5 xato urinishdan keyin 15 daqiqa blok |
 
 - Firmaning o'z foydalanuvchisi (IsPanelDeveloper = 0) hech qachon panelga so'ralmaydi — bir xil nom bo'lsa firma ustun.
-- Parol ERP bazasida saqlanmaydi; panelda dasturchi o'chirilsa — keyingi kirish rad etiladi. Kutish 10 s.
+- Parol ERP bazasida saqlanmaydi; panelda dasturchi o'chirilsa — keyingi kirish rad etiladi. Kutish 15 s.
+- ERP hali ro'yxatdan o'tmagan (tenant_secret yo'q), lekin `RegToken` bor bo'lsa (yangi firma) — dasturchi kirishida
+  avval shu yerning o'zida `register` qilinadi (taymer yoki admin "Hozir tekshirish"ini kutmaydi), keyin dev-login.
+- Panel URL ham, `RegToken` ham yo'q (on-prem offline) — noma'lum login "foydalanuvchi yo'q"; panel ulangan, lekin
+  javob bermasa yoki ro'yxatdan o'tish xato bo'lsa — "Panelga ulanib bo'lmadi" (sabab Trace logida).
 - Panel: `ErpDevelopers` jadvali, audit `erpdev.*`. ERP: `Services/LicenseSync/PanelDeveloperLogin.cs`, migratsiya 031.
 
 ## 3. ERP tomoni

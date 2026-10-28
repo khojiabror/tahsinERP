@@ -75,7 +75,7 @@ namespace tahsinERP.Controllers
                 {
                     // Firmada bunday foydalanuvchi yo'q (yoki u panel dasturchisining nusxasi) — boshqaruv panelidagi
                     // ERP dasturchisimi? Parol panelda tekshiriladi, muvaffaqiyatli bo'lsa DEVELOPER roli bilan nusxa.
-                    var dev = Services.LicenseSync.PanelDeveloperLogin.Verify(loginName, user.Password);
+                    var dev = Services.LicenseSync.PanelDeveloperLogin.Verify(loginName, user.Password, Request.Url.Host);
                     if (dev.Status == Services.LicenseSync.LicensePanelClient.DevLoginStatus.Ok)
                     {
                         getUser = Services.LicenseSync.PanelDeveloperLogin.EnsureLocalUser(db, getUser, loginName, dev.FullName);
@@ -83,8 +83,15 @@ namespace tahsinERP.Controllers
                     else
                     {
                         bool nowLocked = LoginThrottle.Default.RegisterFailure(user.UName, clientIp);
+                        if (dev.Status == Services.LicenseSync.LicensePanelClient.DevLoginStatus.Unavailable)
+                            System.Diagnostics.Trace.TraceWarning("[PanelDeveloperLogin] " + loginName + ": " + dev.Error);
+
                         if (dev.Status == Services.LicenseSync.LicensePanelClient.DevLoginStatus.Locked)
                             ModelState.AddModelError("", L.T("Core_TooManyAttempts", 15));
+                        // Panel ulangan, lekin javob bermadi / ro'yxatdan o'tib bo'lmadi — "foydalanuvchi yo'q" deb chalg'itmaymiz
+                        else if (dev.Status == Services.LicenseSync.LicensePanelClient.DevLoginStatus.Unavailable
+                                 && !Services.LicenseSync.PanelDeveloperLogin.IsPanelNotConnected(dev))
+                            ModelState.AddModelError("", L.T("Core_DevPanelUnavailable"));
                         else if (getUser == null)
                             ModelState.AddModelError("", L.T("Core_UserNotExists"));
                         else if (dev.Status == Services.LicenseSync.LicensePanelClient.DevLoginStatus.Unavailable)

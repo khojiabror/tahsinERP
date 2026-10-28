@@ -23,13 +23,24 @@ namespace tahsinERP.Services.LicenseSync
             return local == null || local.IsPanelDeveloper;
         }
 
+        /// <summary>
+        /// Panel umuman ulanmagan (on-prem offline: URL yoki RegToken yo'q) — bu holatda noma'lum login oddiy
+        /// "foydalanuvchi yo'q" bo'lib qoladi; qolgan Unavailable'lar (tarmoq, ro'yxatdan o'tish xatosi) alohida xabar.
+        /// </summary>
+        public static bool IsPanelNotConnected(LicensePanelClient.DevLoginResult r)
+        {
+            return r.Status == LicensePanelClient.DevLoginStatus.Unavailable
+                && (r.Error == "panel_disabled" || r.Error == "not_registered");
+        }
+
         /// <summary>Panelda tekshirish (sinxron controller'dan).</summary>
-        public static LicensePanelClient.DevLoginResult Verify(string login, string password)
+        public static LicensePanelClient.DevLoginResult Verify(string login, string password, string host)
         {
             try
             {
-                // Login sahifasi uzoq kutmasin (noma'lum foydalanuvchi nomi ham shu yerdan o'tadi)
-                return LicenseSyncService.VerifyDeveloper(login, password, TimeSpan.FromSeconds(10));
+                // Login sahifasi uzoq kutmasin (noma'lum foydalanuvchi nomi ham shu yerdan o'tadi);
+                // yangi firmada birinchi marta ro'yxatdan o'tish ham shu muddatga kiradi
+                return LicenseSyncService.VerifyDeveloper(login, password, host, TimeSpan.FromSeconds(15));
             }
             catch (Exception ex)
             {

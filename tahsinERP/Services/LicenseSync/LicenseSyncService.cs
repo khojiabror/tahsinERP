@@ -74,25 +74,45 @@ namespace tahsinERP.Services.LicenseSync
         /// <summary>
         /// Panel ERP dasturchisining login/parolini panelda tekshirish (<see cref="PanelDeveloperLogin"/>).
         /// Baza joriy (so'rov) potokida o'qiladi — tenant HttpContext'dan; HTTP chaqiruv kontekstsiz potokda (deadlock bo'lmasin).
-        /// Panel ulanmagan (URL yoki tenant_secret yo'q) bo'lsa — Unavailable.
+        /// Yangi firma hali ro'yxatdan o'tmagan (secret yo'q, RegToken bor) bo'lsa — shu yerda ro'yxatdan o'tadi:
+        /// taymerni (6 soatgacha) yoki adminning "Hozir tekshirish"ini kutmasin.
+        /// Panel ulanmagan (URL yo'q — "panel_disabled", RegToken ham yo'q — "not_registered") bo'lsa — Unavailable.
         /// </summary>
-        public static LicensePanelClient.DevLoginResult VerifyDeveloper(string login, string password, TimeSpan timeout)
+        public static LicensePanelClient.DevLoginResult VerifyDeveloper(string login, string password, string host, TimeSpan timeout)
         {
             if (!IsEnabled)
                 return new LicensePanelClient.DevLoginResult { Status = LicensePanelClient.DevLoginStatus.Unavailable, Error = "panel_disabled" };
 
-            string installationId, secret;
+            string installationId, secret, regToken;
             using (var db = new DBTHSNEntities())
             {
                 installationId = LicenseService.GetOrCreateInstallationId(db);
                 secret = LicenseService.ReadSyncState(db, LicenseService.STATE_PANEL_SECRET);
+                regToken = LicenseService.ReadSyncState(db, LicenseService.STATE_REG_TOKEN);
             }
-            if (!LicensePanelClient.IsValidSecret(secret))
-                return new LicensePanelClient.DevLoginResult { Status = LicensePanelClient.DevLoginStatus.Unavailable, Error = "not_registered" };
 
-            var client = Client;
             using (var cts = new CancellationTokenSource(timeout))
+            {
+                if (!LicensePanelClient.IsValidSecret(secret))
+                {
+                    if (string.IsNullOrWhiteSpace(regToken))
+                        return new LicensePanelClient.DevLoginResult { Status = LicensePanelClient.DevLoginStatus.Unavailable, Error = "not_registered" };
+
+                    // Tenant AsyncLocal doirada Task.Run potokiga o'tadi (HttpContext u yerda yo'q)
+                    SyncResult sync;
+                    using (TenantContext.Use(TenantContext.CurrentOrNull))
+                        sync = Task.Run(() => SyncNowAsync(host, cts.Token)).GetAwaiter().GetResult();
+
+                    // Taymer parallel ro'yxatdan o'tkazgan bo'lishi ham mumkin — natijadan qat'i nazar qayta o'qiymiz
+                    using (var db = new DBTHSNEntities())
+                        secret = LicenseService.ReadSyncState(db, LicenseService.STATE_PANEL_SECRET);
+                    if (!LicensePanelClient.IsValidSecret(secret))
+                        return new LicensePanelClient.DevLoginResult { Status = LicensePanelClient.DevLoginStatus.Unavailable, Error = "register_failed: " + sync.Message };
+                }
+
+                var client = Client;
                 return Task.Run(() => client.DevLoginAsync(installationId, secret, login, password, cts.Token)).GetAwaiter().GetResult();
+            }
         }
 
         public class SyncResult
