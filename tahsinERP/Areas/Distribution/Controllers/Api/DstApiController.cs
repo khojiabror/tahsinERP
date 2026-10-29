@@ -123,6 +123,21 @@ namespace tahsinERP.Areas.Distribution.Controllers.Api
             });
         }
 
+        /// <summary>Bot firmadan uzildi — barcha Telegram bog'lanishlari, kodlar, kutayotgan xabarlar va bot sozlamalari tozalanadi.</summary>
+        [HttpPost]
+        public ActionResult Disconnect()
+        {
+            return RunSystem(() =>
+            {
+                using (var db = Db())
+                {
+                    var result = TelegramLinkService.DisconnectAll(db, DateTime.Now);
+                    db.SaveChanges();
+                    return result;
+                }
+            });
+        }
+
         /// <summary>Bot o'z bazasini yo'qotsa — bog'lanishni ERP'dan tiklash.</summary>
         [HttpGet]
         /// <param name="language">Mijozning hozirgi Telegram tili — o'zgargan bo'lsa yangilanadi (xodim tili — ERP sozlamasida).</param>

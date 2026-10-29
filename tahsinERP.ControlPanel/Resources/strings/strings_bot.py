@@ -81,4 +81,10 @@ STRINGS = {
     "Pnl_Tk_ReplyFailed": ("Javob yetkazilmadi (mijoz botni bloklagan yoki Telegram xatosi).", "Ответ не доставлен (клиент заблокировал бота или ошибка Telegram)."),
     "Pnl_Tk_NoteLabel": ("Yechim izohi (ixtiyoriy)", "Комментарий к решению (необязательно)"),
     "Pnl_Tk_NotifyUser": ("Mijozga «hal qilindi» xabari va baho so'rovini yuborish", "Отправить клиенту сообщение «решено» и запрос оценки"),
+    "Pnl_Ten_BotDisconnect": ("Botni uzish va tozalash", "Отвязать бота и очистить"),
+    "Pnl_Ten_BotDisconnectHint": ("Bot ma'lumotlari (Telegram bog'lanishlari, navbatlar) o'chiriladi — bot keyin boshqa firmaga toza ulanadi.",
+                                  "Данные бота (привязки Telegram, очереди) удаляются — затем бота можно чисто подключить к другой фирме."),
+    "Pnl_Ten_BotDisconnectConfirm": ("Botni firmadan uzish? Xodim va mijozlarning Telegram bog'lanishlari, kutayotgan xabarlar o'chiriladi. Qayta ulansa — hamma qayta bog'lanadi.",
+                                     "Отвязать бота от фирмы? Привязки Telegram сотрудников и клиентов и ожидающие сообщения будут удалены. При повторном подключении всем нужно привязаться заново."),
+    "Pnl_Ten_BotDisconnected": ("Bot firmadan uzildi va tozalandi.", "Бот отвязан от фирмы и очищен."),
 }

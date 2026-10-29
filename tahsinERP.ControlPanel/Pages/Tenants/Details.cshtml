@@ -145,9 +145,15 @@
                         @(Model.Bot?.Exists == true ? L.T("Pnl_Ten_BotNoTokenHint") : "")</p>
                     <div class="actions">
                         <button type="submit" asp-page-handler="BotConnect">@(Model.Bot?.Exists == true ? L.T("Refresh") : L.T("Pnl_Ten_BotConnect"))</button>
-                        @if (Model.Bot?.Active == true) { <button type="submit" class="secondary" asp-page-handler="BotDisable">@L.T("Pnl_Ten_BotDisable")</button> }
                     </div>
                 </form>
+                @if (Model.Bot?.Exists == true)
+                {
+                    <form method="post" asp-page-handler="BotDisconnect" class="actions" data-confirm="@L.T("Pnl_Ten_BotDisconnectConfirm")">
+                        <button type="submit" class="secondary">@L.T("Pnl_Ten_BotDisconnect")</button>
+                        <span class="hint">@L.T("Pnl_Ten_BotDisconnectHint")</span>
+                    </form>
+                }
             }
         </div>
         <div class="card">

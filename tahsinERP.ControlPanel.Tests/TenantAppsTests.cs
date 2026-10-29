@@ -119,14 +119,16 @@ public class TenantAppsTests(PanelFactory f) : IClassFixture<PanelFactory>
         // matnlar resx'dan @L.T orqali — apostrof HTML-kodlanadi
         page = WebUtility.HtmlDecode(await (await c.GetAsync(details)).Content.ReadAsStringAsync());
         Assert.Contains("@firma_bot", page);
-        Assert.Contains("Botni o'chirish", page);
+        Assert.Contains("Botni uzish va tozalash", page);
 
         Assert.Equal(HttpStatusCode.Redirect, (await PostAsync(c, details + "?handler=SiteEnable", [], tokenFrom: details)).StatusCode);
         Assert.Contains(fake.Calls, x => x.Op == "site" && x.Erp == $"https://apps-firma.{PanelFactory.BaseDomain}/");
         page = await (await c.GetAsync(details)).Content.ReadAsStringAsync();
         Assert.Contains("https://apps-firma.sayt.x.uz", page);
 
-        Assert.Equal(HttpStatusCode.Redirect, (await PostAsync(c, details + "?handler=BotDisable", [], tokenFrom: details)).StatusCode);
+        Assert.Equal(HttpStatusCode.Redirect, (await PostAsync(c, details + "?handler=BotDisconnect", [], tokenFrom: details)).StatusCode);
+        Assert.Contains(fake.Calls, x => x.Op == "bot-delete" && x.Slug == "apps-firma");   // uzish = to'liq tozalash, o'chirib qo'yish emas
+        Assert.DoesNotContain("@firma_bot", WebUtility.HtmlDecode(await (await c.GetAsync(details)).Content.ReadAsStringAsync()));
 
         await f.WithScopeAsync(async sp =>
         {
@@ -134,7 +136,7 @@ public class TenantAppsTests(PanelFactory f) : IClassFixture<PanelFactory>
             var actions = await db.AuditLog.Where(a => a.Action.StartsWith("tenant.bot") || a.Action.StartsWith("tenant.site")).Select(a => a.Action + " " + a.After).ToListAsync();
             Assert.Contains(actions, a => a.StartsWith("tenant.bot-connect"));
             Assert.Contains(actions, a => a.StartsWith("tenant.site-enable"));
-            Assert.Contains(actions, a => a.StartsWith("tenant.bot-disable"));
+            Assert.Contains(actions, a => a.StartsWith("tenant.bot-disconnect"));
             Assert.DoesNotContain(actions, a => a.Contains("secret-token"));
             return 0;
         });
