@@ -468,6 +468,13 @@ namespace tahsinERP.ControlPanel.Data.Migrations
                     b.Property<int?>("Rating")
                         .HasColumnType("int");
 
+                    b.Property<string>("Resolution")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<int?>("ResolvedByStaffId")
+                        .HasColumnType("int");
+
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
@@ -478,6 +485,8 @@ namespace tahsinERP.ControlPanel.Data.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("DemoRequestId");
+
+                    b.HasIndex("ResolvedByStaffId");
 
                     b.HasIndex("ChatId", "Status");
 
@@ -3037,6 +3046,11 @@ namespace tahsinERP.ControlPanel.Data.Migrations
                     b.HasOne("tahsinERP.ControlPanel.Data.DemoRequest", null)
                         .WithMany()
                         .HasForeignKey("DemoRequestId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("tahsinERP.ControlPanel.Data.StaffUser", null)
+                        .WithMany()
+                        .HasForeignKey("ResolvedByStaffId")
                         .OnDelete(DeleteBehavior.SetNull);
                 });
 

@@ -4974,4 +4974,118 @@ tahsinERP портал: код входа {1}. Действует {2} мин.
   <data name="Pnl_Lead_KindConsult" xml:space="preserve">
     <value>Консультация</value>
   </data>
+  <data name="Pnl_Tk_Nav" xml:space="preserve">
+    <value>Обращения</value>
+  </data>
+  <data name="Pnl_Tk_Title" xml:space="preserve">
+    <value>Обращения и заявки</value>
+  </data>
+  <data name="Pnl_Tk_Hint" xml:space="preserve">
+    <value>Баги (техподдержка) и заявки на демо/консультацию из Telegram-бота. Решив проблему, нажмите «Решено» — можно оставить комментарий; по обращению в техподдержку клиент получит уведомление и запрос оценки. /close в группе меняет тот же статус.</value>
+  </data>
+  <data name="Pnl_Tk_OpenBugs" xml:space="preserve">
+    <value>Открытые баги</value>
+  </data>
+  <data name="Pnl_Tk_OpenRequests" xml:space="preserve">
+    <value>Открытые заявки</value>
+  </data>
+  <data name="Pnl_Tk_FilterOpen" xml:space="preserve">
+    <value>Открытые</value>
+  </data>
+  <data name="Pnl_Tk_FilterResolved" xml:space="preserve">
+    <value>Решённые</value>
+  </data>
+  <data name="Pnl_Tk_KindBug" xml:space="preserve">
+    <value>Баг / техподдержка</value>
+  </data>
+  <data name="Pnl_Tk_KindRequests" xml:space="preserve">
+    <value>Демо и консультации</value>
+  </data>
+  <data name="Pnl_Tk_Search" xml:space="preserve">
+    <value>Поиск</value>
+  </data>
+  <data name="Pnl_Tk_SearchHint" xml:space="preserve">
+    <value>№, компания, имя, @username, телефон, текст</value>
+  </data>
+  <data name="Pnl_Tk_Empty" xml:space="preserve">
+    <value>Обращений нет.</value>
+  </data>
+  <data name="Pnl_Tk_ColFrom" xml:space="preserve">
+    <value>От кого</value>
+  </data>
+  <data name="Pnl_Tk_ColMessage" xml:space="preserve">
+    <value>Обращение</value>
+  </data>
+  <data name="Pnl_Tk_ColActivity" xml:space="preserve">
+    <value>Последняя активность</value>
+  </data>
+  <data name="Pnl_Tk_MessagesCount" xml:space="preserve">
+    <value>сообщений: {0}</value>
+  </data>
+  <data name="Pnl_Tk_StOpen" xml:space="preserve">
+    <value>Открыто</value>
+  </data>
+  <data name="Pnl_Tk_StResolved" xml:space="preserve">
+    <value>Решено</value>
+  </data>
+  <data name="Pnl_Tk_NotePlaceholder" xml:space="preserve">
+    <value>Комментарий к решению (необязательно)</value>
+  </data>
+  <data name="Pnl_Tk_Resolve" xml:space="preserve">
+    <value>Решено</value>
+  </data>
+  <data name="Pnl_Tk_Reopen" xml:space="preserve">
+    <value>Открыть снова</value>
+  </data>
+  <data name="Pnl_Tk_Resolved" xml:space="preserve">
+    <value>№{0} отмечено как решённое.</value>
+  </data>
+  <data name="Pnl_Tk_Reopened" xml:space="preserve">
+    <value>№{0} открыто снова.</value>
+  </data>
+  <data name="Pnl_Tk_Ticket" xml:space="preserve">
+    <value>Обращение №{0}</value>
+  </data>
+  <data name="Pnl_Tk_Blocked" xml:space="preserve">
+    <value>заблокировал бота</value>
+  </data>
+  <data name="Pnl_Tk_ResolvedBy" xml:space="preserve">
+    <value>Решил</value>
+  </data>
+  <data name="Pnl_Tk_Rating" xml:space="preserve">
+    <value>Оценка клиента:</value>
+  </data>
+  <data name="Pnl_Tk_Conversation" xml:space="preserve">
+    <value>Переписка</value>
+  </data>
+  <data name="Pnl_Tk_NoMessages" xml:space="preserve">
+    <value>Сообщений нет.</value>
+  </data>
+  <data name="Pnl_Tk_ReplyTitle" xml:space="preserve">
+    <value>Ответ клиенту</value>
+  </data>
+  <data name="Pnl_Tk_ReplyPlaceholder" xml:space="preserve">
+    <value>Текст ответа — будет отправлен клиенту через бота</value>
+  </data>
+  <data name="Pnl_Tk_ReplySend" xml:space="preserve">
+    <value>Отправить</value>
+  </data>
+  <data name="Pnl_Tk_ReplyHint" xml:space="preserve">
+    <value>Копия попадёт и в Telegram-группу.</value>
+  </data>
+  <data name="Pnl_Tk_ReplyEmpty" xml:space="preserve">
+    <value>Текст ответа пуст.</value>
+  </data>
+  <data name="Pnl_Tk_ReplySent" xml:space="preserve">
+    <value>Ответ отправлен клиенту.</value>
+  </data>
+  <data name="Pnl_Tk_ReplyFailed" xml:space="preserve">
+    <value>Ответ не доставлен (клиент заблокировал бота или ошибка Telegram).</value>
+  </data>
+  <data name="Pnl_Tk_NoteLabel" xml:space="preserve">
+    <value>Комментарий к решению (необязательно)</value>
+  </data>
+  <data name="Pnl_Tk_NotifyUser" xml:space="preserve">
+    <value>Отправить клиенту сообщение «решено» и запрос оценки</value>
+  </data>
 </root>

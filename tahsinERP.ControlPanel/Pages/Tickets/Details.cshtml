@@ -1,0 +1,74 @@
+@page "{id:int}"
+@model tahsinERP.ControlPanel.Pages.Tickets.DetailsModel
+@inject Clock Clock
+@using tahsinERP.ControlPanel.Pages.Tickets
+@{
+    var t = Model.Thread;
+    var c = Model.Chat;
+    ViewData["Title"] = L.T("Pnl_Tk_Ticket", t.Id);
+}
+<h1>@L.T("Pnl_Tk_Ticket", t.Id) <span class="badge @IndexModel.KindBadge(t.Kind)">@IndexModel.KindLabel(t.Kind)</span>
+    @if (t.Status == BotThreadStatus.Open) { <span class="badge warn">@L.T("Pnl_Tk_StOpen")</span> } else { <span class="badge ok">@L.T("Pnl_Tk_StResolved")</span> }</h1>
+<p><a href="/Tickets">← @L.T("Pnl_Tk_Title")</a></p>
+
+<div class="card">
+    <table>
+        <tr><th>@L.T("Pnl_Tk_ColFrom")</th><td>@IndexModel.Who(c)
+            @if (c?.Username is not null) { <span> · <a href="https://t.me/@c.Username" target="_blank" rel="noopener">@@@c.Username</a></span> }
+            @if (c?.Phone is not null) { <span> · <a href="tel:@c.Phone">@c.Phone</a></span> }
+            @if (c?.BlockedAtUtc is not null) { <span class="badge bad">@L.T("Pnl_Tk_Blocked")</span> }</td></tr>
+        <tr><th>@L.T("Pnl_Lead_ColCompany")</th><td>@(t.Company ?? "—")</td></tr>
+        <tr><th>@L.T("Date")</th><td>@Clock.ToLocal(t.CreatedAtUtc).ToString("dd.MM.yyyy HH:mm") · @L.T("Pnl_Tk_ColActivity"): @Clock.ToLocal(t.LastActivityUtc).ToString("dd.MM.yyyy HH:mm")</td></tr>
+        @if (Model.Request is { } r)
+        {
+            <tr><th>@L.T("Pnl_Auth2_NavLeads")</th><td><a href="/Leads?all=true">#@r.Id</a> · @r.FullName · @r.Phone @(r.Industry is null ? "" : " · " + tahsinERP.ControlPanel.Pages.Leads.IndexModel.Industry(r.Industry))</td></tr>
+        }
+        @if (t.Status == BotThreadStatus.Closed)
+        {
+            <tr><th>@L.T("Pnl_Tk_ResolvedBy")</th><td>@Model.ResolvedBy@(t.ClosedAtUtc is DateTime cl ? ", " + Clock.ToLocal(cl).ToString("dd.MM.yyyy HH:mm") : "")
+                @if (t.Resolution is not null) { <div>@t.Resolution</div> }
+                @if (t.Rating is int stars) { <div class="hint">@L.T("Pnl_Tk_Rating") @string.Concat(Enumerable.Repeat("★", stars))</div> }</td></tr>
+        }
+    </table>
+</div>
+
+<div class="card">
+    <h2>@L.T("Pnl_Tk_Conversation")</h2>
+    @if (Model.Messages.Count == 0) { <div class="empty">@L.T("Pnl_Tk_NoMessages")</div> }
+    <div class="tk-thread">
+        @foreach (var m in Model.Messages)
+        {
+            <div class="tk-msg @(m.FromStaff ? "staff" : "")"><span class="tk-meta">@(m.FromStaff ? (m.Author ?? L.T("Pnl_Employee")) : IndexModel.Who(c)) · @Clock.ToLocal(m.CreatedAtUtc).ToString("dd.MM.yyyy HH:mm")@(m.Media is null ? "" : " · 📎 " + m.Media)</span>@(m.Text ?? (m.Media is null ? "" : "[" + m.Media + "]"))</div>
+        }
+    </div>
+</div>
+
+<div class="card">
+    <h2>@L.T("Pnl_Tk_ReplyTitle")</h2>
+    <form method="post" action="@Url.Page(null)" asp-antiforgery="true" class="stack">
+        <div><textarea name="ReplyText" maxlength="3500" placeholder="@L.T("Pnl_Tk_ReplyPlaceholder")"></textarea></div>
+        <div class="actions"><button type="submit" asp-page-handler="Reply" class="secondary">@L.T("Pnl_Tk_ReplySend")</button><span class="hint">@L.T("Pnl_Tk_ReplyHint")</span></div>
+    </form>
+</div>
+
+<div class="card">
+    @if (t.Status == BotThreadStatus.Open)
+    {
+        <h2>@L.T("Pnl_Tk_Resolve")</h2>
+        <form method="post" action="@Url.Page(null)" asp-antiforgery="true" class="stack">
+            <div><label for="Note">@L.T("Pnl_Tk_NoteLabel")</label><textarea id="Note" name="Note" maxlength="1000"></textarea></div>
+            @if (t.Kind == BotThreadKind.Support)
+            {
+                <label class="check"><input type="checkbox" name="NotifyUser" value="true" checked /> @L.T("Pnl_Tk_NotifyUser")</label>
+                <input type="hidden" name="NotifyUser" value="false" />
+            }
+            <div class="actions"><button type="submit" asp-page-handler="Resolve">@L.T("Pnl_Tk_Resolve")</button></div>
+        </form>
+    }
+    else
+    {
+        <form method="post" action="@Url.Page(null)" asp-antiforgery="true" class="actions">
+            <button type="submit" asp-page-handler="Reopen" class="secondary">@L.T("Pnl_Tk_Reopen")</button>
+        </form>
+    }
+</div>

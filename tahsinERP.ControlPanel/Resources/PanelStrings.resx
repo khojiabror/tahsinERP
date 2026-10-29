@@ -4974,4 +4974,118 @@ Siz so'ramagan bo'lsangiz — bu xatga e'tibor bermang, parolingiz o'zgarmaydi.<
   <data name="Pnl_Lead_KindConsult" xml:space="preserve">
     <value>Konsultatsiya</value>
   </data>
+  <data name="Pnl_Tk_Nav" xml:space="preserve">
+    <value>Murojaatlar</value>
+  </data>
+  <data name="Pnl_Tk_Title" xml:space="preserve">
+    <value>Murojaatlar va so'rovlar</value>
+  </data>
+  <data name="Pnl_Tk_Hint" xml:space="preserve">
+    <value>Telegram bot orqali kelgan buglar (texnik yordam) va demo/konsultatsiya so'rovlari. Muammoni hal qilgach «Hal qilindi» bosing — izoh yozishingiz mumkin, texnik yordam murojaatida mijozga xabar va baho so'rovi boradi. Guruhdagi /close ham shu holatni o'zgartiradi.</value>
+  </data>
+  <data name="Pnl_Tk_OpenBugs" xml:space="preserve">
+    <value>Ochiq buglar</value>
+  </data>
+  <data name="Pnl_Tk_OpenRequests" xml:space="preserve">
+    <value>Ochiq so'rovlar</value>
+  </data>
+  <data name="Pnl_Tk_FilterOpen" xml:space="preserve">
+    <value>Ochiq</value>
+  </data>
+  <data name="Pnl_Tk_FilterResolved" xml:space="preserve">
+    <value>Hal qilingan</value>
+  </data>
+  <data name="Pnl_Tk_KindBug" xml:space="preserve">
+    <value>Bug / texnik yordam</value>
+  </data>
+  <data name="Pnl_Tk_KindRequests" xml:space="preserve">
+    <value>Demo va konsultatsiya</value>
+  </data>
+  <data name="Pnl_Tk_Search" xml:space="preserve">
+    <value>Qidiruv</value>
+  </data>
+  <data name="Pnl_Tk_SearchHint" xml:space="preserve">
+    <value>№, firma, ism, @username, telefon, matn</value>
+  </data>
+  <data name="Pnl_Tk_Empty" xml:space="preserve">
+    <value>Murojaat yo'q.</value>
+  </data>
+  <data name="Pnl_Tk_ColFrom" xml:space="preserve">
+    <value>Kimdan</value>
+  </data>
+  <data name="Pnl_Tk_ColMessage" xml:space="preserve">
+    <value>Murojaat</value>
+  </data>
+  <data name="Pnl_Tk_ColActivity" xml:space="preserve">
+    <value>Oxirgi faollik</value>
+  </data>
+  <data name="Pnl_Tk_MessagesCount" xml:space="preserve">
+    <value>{0} ta xabar</value>
+  </data>
+  <data name="Pnl_Tk_StOpen" xml:space="preserve">
+    <value>Ochiq</value>
+  </data>
+  <data name="Pnl_Tk_StResolved" xml:space="preserve">
+    <value>Hal qilindi</value>
+  </data>
+  <data name="Pnl_Tk_NotePlaceholder" xml:space="preserve">
+    <value>Yechim izohi (ixtiyoriy)</value>
+  </data>
+  <data name="Pnl_Tk_Resolve" xml:space="preserve">
+    <value>Hal qilindi</value>
+  </data>
+  <data name="Pnl_Tk_Reopen" xml:space="preserve">
+    <value>Qayta ochish</value>
+  </data>
+  <data name="Pnl_Tk_Resolved" xml:space="preserve">
+    <value>№{0} hal qilindi deb belgilandi.</value>
+  </data>
+  <data name="Pnl_Tk_Reopened" xml:space="preserve">
+    <value>№{0} qayta ochildi.</value>
+  </data>
+  <data name="Pnl_Tk_Ticket" xml:space="preserve">
+    <value>Murojaat №{0}</value>
+  </data>
+  <data name="Pnl_Tk_Blocked" xml:space="preserve">
+    <value>botni bloklagan</value>
+  </data>
+  <data name="Pnl_Tk_ResolvedBy" xml:space="preserve">
+    <value>Hal qildi</value>
+  </data>
+  <data name="Pnl_Tk_Rating" xml:space="preserve">
+    <value>Mijoz bahosi:</value>
+  </data>
+  <data name="Pnl_Tk_Conversation" xml:space="preserve">
+    <value>Yozishma</value>
+  </data>
+  <data name="Pnl_Tk_NoMessages" xml:space="preserve">
+    <value>Xabarlar yo'q.</value>
+  </data>
+  <data name="Pnl_Tk_ReplyTitle" xml:space="preserve">
+    <value>Mijozga javob</value>
+  </data>
+  <data name="Pnl_Tk_ReplyPlaceholder" xml:space="preserve">
+    <value>Javob matni — bot orqali mijozga yuboriladi</value>
+  </data>
+  <data name="Pnl_Tk_ReplySend" xml:space="preserve">
+    <value>Yuborish</value>
+  </data>
+  <data name="Pnl_Tk_ReplyHint" xml:space="preserve">
+    <value>Nusxasi Telegram guruhiga ham tushadi.</value>
+  </data>
+  <data name="Pnl_Tk_ReplyEmpty" xml:space="preserve">
+    <value>Javob matni bo'sh.</value>
+  </data>
+  <data name="Pnl_Tk_ReplySent" xml:space="preserve">
+    <value>Javob mijozga yuborildi.</value>
+  </data>
+  <data name="Pnl_Tk_ReplyFailed" xml:space="preserve">
+    <value>Javob yetkazilmadi (mijoz botni bloklagan yoki Telegram xatosi).</value>
+  </data>
+  <data name="Pnl_Tk_NoteLabel" xml:space="preserve">
+    <value>Yechim izohi (ixtiyoriy)</value>
+  </data>
+  <data name="Pnl_Tk_NotifyUser" xml:space="preserve">
+    <value>Mijozga «hal qilindi» xabari va baho so'rovini yuborish</value>
+  </data>
 </root>

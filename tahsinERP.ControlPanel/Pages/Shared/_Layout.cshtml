@@ -8,6 +8,7 @@
     var flashPage = Model as PanelPageModel;
     int openRequests = signedIn ? await LayoutDb.PortalRequests.CountAsync(r => r.Status == PortalRequestStatus.Pending) : 0;
     int newLeads = signedIn ? await LayoutDb.DemoRequests.CountAsync(r => r.Status == DemoRequestStatus.New) : 0;
+    int openTickets = signedIn ? await LayoutDb.BotThreads.CountAsync(t => t.Status == BotThreadStatus.Open && t.Kind == BotThreadKind.Support) : 0;
     string userName = User.Identity?.Name ?? "";
     string initials = string.Concat(userName.Split(' ', '.', '@').Where(s => s.Length > 0).Take(2).Select(s => char.ToUpperInvariant(s[0])));
     string role = User.IsInRole(nameof(StaffRole.Owner)) ? "Owner" : User.IsInRole(nameof(StaffRole.Sales)) ? L.T("Pnl_RoleSales") : L.T("Pnl_RoleSupport");
@@ -50,6 +51,7 @@ else
         <a class="@Nav("/Tenants")" href="/Tenants"><svg class="i"><use href="#i-building" /></svg>@L.T("Pnl_NavTenants")</a>
         <a class="@Nav("/Requests")" href="/Requests"><svg class="i"><use href="#i-inbox" /></svg><span>@L.T("Pnl_NavRequests")</span>@if (openRequests > 0) { <span class="sb-count">@openRequests</span> }</a>
         <a class="@Nav("/Leads")" href="/Leads"><svg class="i"><use href="#i-send" /></svg><span>@L.T("Pnl_Auth2_NavLeads")</span>@if (newLeads > 0) { <span class="sb-count">@newLeads</span> }</a>
+        <a class="@Nav("/Tickets")" href="/Tickets"><svg class="i"><use href="#i-alert" /></svg><span>@L.T("Pnl_Tk_Nav")</span>@if (openTickets > 0) { <span class="sb-count">@openTickets</span> }</a>
         @if (owner || User.IsInRole(nameof(StaffRole.Sales)))
         {
             <a class="@Nav("/Bot")" href="/Bot"><svg class="i"><use href="#i-bell" /></svg>@L.T("Pnl_Bot_Nav")</a>
