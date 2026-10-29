@@ -867,7 +867,7 @@ public sealed class SalesBot(ControlDbContext db, IBotApi api, BotConfig config,
 
     private static JsonObject MenuButton(string lang) => Kb.Inline(Kb.Row(Kb.Btn(T(lang, "btn.home"), "menu")));
 
-    private static JsonObject ThreadButtons(string lang, int threadId, bool support) => support
+    public static JsonObject ThreadButtons(string lang, int threadId, bool support) => support
         ? Kb.Inline(Kb.Row(Kb.Btn(T(lang, "btn.reply"), $"thr:{threadId}"), Kb.Btn(T(lang, "btn.resolved"), $"res:{threadId}")))
         : Kb.Inline(Kb.Row(Kb.Btn(T(lang, "btn.reply"), $"thr:{threadId}")));
 
@@ -1147,7 +1147,7 @@ public sealed class SalesBot(ControlDbContext db, IBotApi api, BotConfig config,
         return (string.IsNullOrWhiteSpace(text) ? null : text.Trim(), media);
     }
 
-    private static string UserLink(BotChat chat)
+    public static string UserLink(BotChat chat)
     {
         string name = Esc(Join(chat.FirstName, chat.LastName) ?? chat.FullName ?? "Foydalanuvchi");
         return $"<a href=\"tg://user?id={chat.Id}\">{name}</a>" + (chat.Username is null ? "" : " @" + Esc(chat.Username));

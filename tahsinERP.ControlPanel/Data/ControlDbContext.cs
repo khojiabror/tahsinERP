@@ -464,6 +464,8 @@ public class ControlDbContext(DbContextOptions<ControlDbContext> options) : DbCo
             e.Property(x => x.Company).HasMaxLength(300);
             e.Property(x => x.Subject).HasMaxLength(500);
             e.Property(x => x.ClosedBy).HasMaxLength(100);
+            e.Property(x => x.Resolution).HasMaxLength(1000);
+            e.HasOne<StaffUser>().WithMany().HasForeignKey(x => x.ResolvedByStaffId).OnDelete(DeleteBehavior.SetNull);
             e.HasIndex(x => new { x.ChatId, x.Status });
             e.HasIndex(x => new { x.Status, x.Id });
             e.HasOne<BotChat>().WithMany().HasForeignKey(x => x.ChatId).OnDelete(DeleteBehavior.Cascade);

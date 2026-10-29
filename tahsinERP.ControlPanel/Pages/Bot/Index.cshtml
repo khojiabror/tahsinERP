@@ -72,7 +72,7 @@
             {
                 var c = Model.ChatsById.GetValueOrDefault(t.ChatId);
                 <tr>
-                    <td>@t.Id</td>
+                    <td><a href="/Tickets/Details/@t.Id">@t.Id</a></td>
                     <td>@Clock.ToLocal(t.CreatedAtUtc).ToString("dd.MM.yyyy HH:mm")<div class="hint">@c?.Lang?.ToUpperInvariant()</div></td>
                     <td><span class="badge @(t.Kind == BotThreadKind.Support ? "warn" : "info")">@tahsinERP.ControlPanel.Pages.Bot.IndexModel.KindLabel(t.Kind)</span>@if (t.DemoRequestId is int rid) { <div class="hint"><a href="/Leads?all=true">#@rid</a></div> }</td>
                     <td>@(c?.FullName ?? c?.FirstName)@if (c?.Username is not null) { <div class="hint"><a href="https://t.me/@c.Username" target="_blank" rel="noopener">@@@c.Username</a></div> }@if (c?.Phone is not null) { <div><a href="tel:@c.Phone">@c.Phone</a></div> }</td>

@@ -272,6 +272,73 @@ public class SalesBotFlowTests : IClassFixture<PanelFactory>
         Assert.Equal("Xodim", closed.ClosedBy);
     }
 
+    private static async Task<HttpResponseMessage> FormAsync(HttpClient c, string url, Dictionary<string, string> form, string? tokenFrom = null)
+    {
+        string html = await (await c.GetAsync(tokenFrom ?? url)).Content.ReadAsStringAsync();
+        var m = System.Text.RegularExpressions.Regex.Match(html, "name=\"__RequestVerificationToken\" type=\"hidden\" value=\"([^\"]+)\"");
+        form["__RequestVerificationToken"] = WebUtility.HtmlDecode(m.Groups[1].Value);
+        return await c.PostAsync(url, new FormUrlEncodedContent(form));
+    }
+
+    [Fact]
+    public async Task Panel_TicketsPage_ShowsBug_ReplyAndResolve()
+    {
+        const long chat = 7004;
+        await f.EnsureStaffAsync("support@bot-test.uz", StaffRole.Support);
+        using var app = f.WithWebHostBuilder(b =>
+        {
+            b.UseSetting("ControlPanel:Telegram:StaffChatId", SalesGroup.ToString());
+            b.UseSetting("ControlPanel:Security:RequireStaffTotp", "false");
+        });
+        await f.WithScopeAsync(async sp =>
+        {
+            var db = sp.GetRequiredService<ControlDbContext>();
+            (await db.BotSettings.SingleAsync()).SupportChatId = SupportGroup;
+            await db.SaveChangesAsync();
+        });
+        app.Services.GetRequiredService<BotConfig>().Invalidate();
+
+        await TextAsync(app, chat, "/start");
+        await ButtonAsync(app, chat, "lang:uz");
+        await ButtonAsync(app, chat, "support");
+        await TextAsync(app, chat, "Panel Test MChJ");
+        await TextAsync(app, chat, "Hisobot ochilmayapti, 500 xato");
+        var thread = await Db(db => db.BotThreads.AsNoTracking().SingleAsync(t => t.ChatId == chat));
+
+        // Support xodimi (Owner/Sales emas) — ro'yxatda ko'radi.
+        using var c = app.CreateClient(new WebApplicationFactoryClientOptions { BaseAddress = new Uri("https://localhost"), AllowAutoRedirect = false });
+        var login = await FormAsync(c, "/Account/Login", new() { ["Email"] = "support@bot-test.uz", ["Password"] = "TestParol-2026xx" });
+        Assert.Equal(HttpStatusCode.Redirect, login.StatusCode);
+        string list = await (await c.GetAsync("/Tickets?Kind=support")).Content.ReadAsStringAsync();
+        Assert.Contains("Hisobot ochilmayapti", list);
+        Assert.Contains("Panel Test MChJ", list);
+        Assert.Contains("@ali_v", list);
+        string details = "/Tickets/Details/" + thread.Id;
+        Assert.Contains("Hisobot ochilmayapti", await (await c.GetAsync(details)).Content.ReadAsStringAsync());
+
+        // Paneldan javob — mijozga va guruhga.
+        var reply = await FormAsync(c, details + "?handler=Reply", new() { ["ReplyText"] = "Tekshiryapmiz, 10 daqiqa" }, tokenFrom: details);
+        Assert.Equal(HttpStatusCode.Redirect, reply.StatusCode);
+        Assert.Contains(f.Bot.To(chat), m => m.Text.Contains("Tekshiryapmiz, 10 daqiqa"));
+        Assert.Contains(f.Bot.To(SupportGroup), m => m.Text.Contains("Tekshiryapmiz, 10 daqiqa") && m.Text.Contains("(panel)"));
+
+        // Ro'yxatdan «Hal qilindi» izoh bilan.
+        var resolve = await FormAsync(c, "/Tickets?handler=Resolve", new() { ["ThreadId"] = thread.Id.ToString(), ["Note"] = "Indeks qayta qurildi" }, tokenFrom: "/Tickets");
+        Assert.Equal(HttpStatusCode.Redirect, resolve.StatusCode);
+        var done = await Db(db => db.BotThreads.AsNoTracking().SingleAsync(t => t.Id == thread.Id));
+        Assert.Equal(BotThreadStatus.Closed, done.Status);
+        Assert.Equal("Indeks qayta qurildi", done.Resolution);
+        Assert.NotNull(done.ResolvedByStaffId);
+        Assert.Contains(f.Bot.To(chat), m => m.Text.Contains("hal qilindi") && m.Text.Contains("Indeks qayta qurildi"));
+        Assert.Contains(f.Bot.To(SupportGroup), m => m.Text.Contains($"№{thread.Id} hal qilindi"));
+        Assert.Contains("Indeks qayta qurildi", await (await c.GetAsync("/Tickets?Status=closed")).Content.ReadAsStringAsync());
+
+        // Qayta ochish.
+        var reopen = await FormAsync(c, details + "?handler=Reopen", [], tokenFrom: details);
+        Assert.Equal(HttpStatusCode.Redirect, reopen.StatusCode);
+        Assert.Equal(BotThreadStatus.Open, (await Db(db => db.BotThreads.AsNoTracking().SingleAsync(t => t.Id == thread.Id))).Status);
+    }
+
     [Fact]
     public async Task FreeText_SearchesManual_AndMenusRender()
     {
