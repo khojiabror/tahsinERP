@@ -4765,7 +4765,7 @@ tahsinERP портал: код входа {1}. Действует {2} мин.
     <value>1 польз., сум</value>
   </data>
   <data name="Pnl_Econ_MatchPlan" xml:space="preserve">
-    <value>Похожий пакет</value>
+    <value>Похожие пакеты</value>
   </data>
   <data name="Pnl_Econ_Include" xml:space="preserve">
     <value>Учитывать</value>
@@ -4774,7 +4774,7 @@ tahsinERP портал: код входа {1}. Действует {2} мин.
     <value>Источник / заметка</value>
   </data>
   <data name="Pnl_Econ_FeatureLegend" xml:space="preserve">
-    <value>✓ — есть, ± — частично, — — нет. Тариф без отметки «Учитывать» не входит в среднее по рынку.</value>
+    <value>✓ — есть, ± — частично, — — нет. «Похожие пакеты» — один тариф может соответствовать нескольким нашим пакетам; новый пакет появится здесь сам. Тариф без отметки «Учитывать» не входит в среднее по рынку.</value>
   </data>
   <data name="Pnl_Econ_Feat_Warehouse" xml:space="preserve">
     <value>Склад</value>
@@ -4853,5 +4853,8 @@ tahsinERP портал: код входа {1}. Действует {2} мин.
   </data>
   <data name="Pnl_Module_Commerce" xml:space="preserve">
     <value>Торговля (заказы, склад, долги, бот)</value>
+  </data>
+  <data name="Pnl_Econ_NewModule" xml:space="preserve">
+    <value>новый — вес по умолчанию</value>
   </data>
 </root>

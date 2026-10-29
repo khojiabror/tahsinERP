@@ -220,6 +220,7 @@ STRINGS = {
                              "Насколько модуль сложен и ресурсоёмок. Доля модулей пакета = баллы модулей пакета ÷ все баллы."),
     "Pnl_Econ_Module": ("Modul", "Модуль"),
     "Pnl_Econ_Weight": ("Ball", "Балл"),
+    "Pnl_Econ_NewModule": ("yangi — standart og'irlik", "новый — вес по умолчанию"),
 
     # Raqobatchilar
     "Pnl_Econ_MarketTitle": ("Bozor xulosasi", "Сводка по рынку"),
@@ -238,11 +239,11 @@ STRINGS = {
     "Pnl_Econ_PriceSom": ("So'm / oy", "Сум / мес"),
     "Pnl_Econ_PriceUsd": ("$ / oy", "$ / мес"),
     "Pnl_Econ_PerUserSom": ("1 user, so'm", "1 польз., сум"),
-    "Pnl_Econ_MatchPlan": ("Mos paket", "Похожий пакет"),
+    "Pnl_Econ_MatchPlan": ("Mos paketlar", "Похожие пакеты"),
     "Pnl_Econ_Include": ("Hisobga", "Учитывать"),
     "Pnl_Econ_Note": ("Manba / izoh", "Источник / заметка"),
-    "Pnl_Econ_FeatureLegend": ("✓ — bor, ± — qisman, — — yo'q. «Hisobga» belgisiz tarif bozor o'rtachasiga kirmaydi.",
-                               "✓ — есть, ± — частично, — — нет. Тариф без отметки «Учитывать» не входит в среднее по рынку."),
+    "Pnl_Econ_FeatureLegend": ("✓ — bor, ± — qisman, — — yo'q. «Mos paketlar» — bitta tarif bir nechta paketimizga mos bo'lishi mumkin; yangi paket qo'shilsa bu yerda o'zi chiqadi. «Hisobga» belgisiz tarif bozor o'rtachasiga kirmaydi.",
+                               "✓ — есть, ± — частично, — — нет. «Похожие пакеты» — один тариф может соответствовать нескольким нашим пакетам; новый пакет появится здесь сам. Тариф без отметки «Учитывать» не входит в среднее по рынку."),
     "Pnl_Econ_Feat_Warehouse": ("Ombor", "Склад"),
     "Pnl_Econ_Feat_Sales": ("Sotuv", "Продажи"),
     "Pnl_Econ_Feat_Finance": ("Moliya", "Финансы"),

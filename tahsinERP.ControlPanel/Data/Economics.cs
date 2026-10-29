@@ -94,8 +94,8 @@ public class Competitor
     public decimal? PriceMonthUsd { get; set; }
     /// <summary>Tarifga kirgan foydalanuvchilar. Null — noma'lum: 1 foydalanuvchi narxi hisoblanmaydi.</summary>
     public int? Users { get; set; }
-    /// <summary>Qaysi paketimizga o'xshaydi (Plan.Code).</summary>
-    public string? MatchPlanCode { get; set; }
+    /// <summary>Qaysi paketlarimizga o'xshaydi: Plan.Code'lar vergul bilan ("DIST,SAVDO"). Bitta tarif bir nechta paketga mos kelishi mumkin.</summary>
+    public string? MatchPlanCodes { get; set; }
     /// <summary>Bozor o'rtachasiga kiradimi (narxi noma'lum yoki xalqaro mo'ljal — yo'q).</summary>
     public bool Include { get; set; } = true;
     /// <summary>Imkoniyatlar: kalitlar vergul bilan, "~" — qisman (Warehouse,Sales,~Finance).</summary>

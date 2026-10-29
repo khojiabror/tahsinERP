@@ -107,6 +107,31 @@ public class EconomicsCalculatorTests
     }
 
     [Fact]
+    public void MarketPerUser_CompetitorMatchesSeveralPackages()
+    {
+        var comps = new List<Competitor>
+        {
+            new() { Company = "A", PriceMonthTiyin = 500_000_00, Users = 5, MatchPlanCodes = "DIST, SAVDO", Include = true },
+            new() { Company = "B", PriceMonthTiyin = 300_000_00, Users = 1, MatchPlanCodes = "SAVDO", Include = true },
+            new() { Company = "C", PriceMonthUsd = 10m, Users = 1, MatchPlanCodes = "START", Include = false },
+        };
+        var m = EconomicsService.MarketPerUser(comps, 12_700m, ["DIST", "SAVDO", "KORP"]);
+        Assert.Equal(100_000_00m, m["DIST"]);
+        Assert.Equal(200_000_00m, m["SAVDO"]);          // (100 000 + 300 000) / 2
+        Assert.Equal(200_000_00m, m["KORP"]);           // mos yo'q — umumiy o'rtacha
+        Assert.True(EconomicsService.Matches(comps[0], "savdo"));
+    }
+
+    [Fact]
+    public void AllModules_CoveredWithoutAddOns()
+    {
+        var all = EconomicsService.AllModules().ToList();
+        Assert.Contains("Core", all);
+        Assert.Contains("Distribution", all);
+        Assert.DoesNotContain("Website", all);
+    }
+
+    [Fact]
     public void ExpenseConversion_UsdToTiyin()
     {
         Assert.Equal(508_000_00, EconomicsService.ToTiyin(40m, "USD", 12_700m));
@@ -180,6 +205,34 @@ public class EconomicsWebTests(PanelFactory f) : IClassFixture<PanelFactory>
         Assert.True(save.StatusCode == HttpStatusCode.Redirect, Html(save));
         var s = await f.WithScopeAsync(sp => sp.GetRequiredService<EconomicsService>().SettingsAsync());
         Assert.Equal((7_000_000_00L, 10, 12800m), (s.SupportSalaryTiyin, s.FirmsPerServer, s.UsdRate));
+
+        // Yangi paket va modul og'irligi bazada yo'q bo'lsa ham avtomatik ko'rinadi.
+        await f.WithScopeAsync(async sp =>
+        {
+            var db = sp.GetRequiredService<ControlDbContext>();
+            db.Plans.Add(new Plan { Code = "TESTPKG", Name = "Test paket", MaxUsers = 10, Modules = "Srm,Crm,Docs", VatRatePercent = 12m, SortOrder = 50 });
+            db.ModuleWeights.Remove(await db.ModuleWeights.SingleAsync(w => w.Module == "Docs"));
+            var bito = await db.Competitors.SingleAsync(c => c.Company == "Bito ERP" && c.Tariff == "Business");
+            Assert.Equal("DIST,SAVDO", bito.MatchPlanCodes);
+            await db.SaveChangesAsync();
+        });
+        var (_, withNew, _) = await f.WithScopeAsync(sp => sp.GetRequiredService<EconomicsService>().PlanAsync());
+        var testPkg = Assert.Single(withNew.Packages, p => p.Input.Code == "TESTPKG");
+        Assert.True(testPkg.Input.ModuleShare > 0);
+        Assert.Equal(EconomicsService.DefaultModuleWeight, (await f.WithScopeAsync(sp => sp.GetRequiredService<EconomicsService>().WeightsAsync()))["Docs"]);
+        Assert.Contains("TESTPKG", await (await c.GetAsync("/Economics/Plan")).Content.ReadAsStringAsync());
+        string comp = await (await c.GetAsync("/Economics/Competitors")).Content.ReadAsStringAsync();
+        Assert.Contains("value=\"TESTPKG\"", comp);
+        string settings = await (await c.GetAsync("/Economics/Settings")).Content.ReadAsStringAsync();
+        Assert.Contains("name=\"Weights[Docs]\"", settings);
+
+        // Raqobatchini ikki paketga bog'lab saqlash (forma: Rows[0] — Bito Start).
+        var compPost = await PostAsync(c, "/Economics/Competitors", new()
+        {
+            ["Rows[0].Id"] = "1", ["Rows[0].Company"] = "Bito ERP", ["Rows[0].Tariff"] = "Start", ["Rows[0].PriceSom"] = "290 000",
+            ["Rows[0].Users"] = "3", ["Rows[0].MatchPlanCodes"] = "START", ["Rows[0].Include"] = "true",
+        }, "/Economics/Competitors");
+        Assert.Equal(HttpStatusCode.Redirect, compPost.StatusCode);
 
         // Sales xodimi — kirmaydi.
         var (sales, _) = await StaffLoginAsync(f, "econ-sales@test.uz", StaffRole.Sales);
