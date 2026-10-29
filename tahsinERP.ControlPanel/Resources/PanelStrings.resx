@@ -4765,7 +4765,7 @@ Siz so'ramagan bo'lsangiz — bu xatga e'tibor bermang, parolingiz o'zgarmaydi.<
     <value>1 user, so'm</value>
   </data>
   <data name="Pnl_Econ_MatchPlan" xml:space="preserve">
-    <value>Mos paket</value>
+    <value>Mos paketlar</value>
   </data>
   <data name="Pnl_Econ_Include" xml:space="preserve">
     <value>Hisobga</value>
@@ -4774,7 +4774,7 @@ Siz so'ramagan bo'lsangiz — bu xatga e'tibor bermang, parolingiz o'zgarmaydi.<
     <value>Manba / izoh</value>
   </data>
   <data name="Pnl_Econ_FeatureLegend" xml:space="preserve">
-    <value>✓ — bor, ± — qisman, — — yo'q. «Hisobga» belgisiz tarif bozor o'rtachasiga kirmaydi.</value>
+    <value>✓ — bor, ± — qisman, — — yo'q. «Mos paketlar» — bitta tarif bir nechta paketimizga mos bo'lishi mumkin; yangi paket qo'shilsa bu yerda o'zi chiqadi. «Hisobga» belgisiz tarif bozor o'rtachasiga kirmaydi.</value>
   </data>
   <data name="Pnl_Econ_Feat_Warehouse" xml:space="preserve">
     <value>Ombor</value>
@@ -4850,5 +4850,8 @@ Siz so'ramagan bo'lsangiz — bu xatga e'tibor bermang, parolingiz o'zgarmaydi.<
   </data>
   <data name="Pnl_Pager_Next" xml:space="preserve">
     <value>Keyingi sahifa</value>
+  </data>
+  <data name="Pnl_Econ_NewModule" xml:space="preserve">
+    <value>yangi — standart og'irlik</value>
   </data>
 </root>

@@ -22,6 +22,15 @@ faktni tizim obunalar, to'lovlar va kiritilgan xarajatlardan o'zi hisoblaydi.
 5. **Narx** = to'liq tannarx + sof foyda (ustama) + foyda solig'i + tushumdan ajratmalar (aylanma soliq, bank), ustiga QQS (tarifdan). Tavsiya QQS bilan, 10 000 so'mga yuqoriga yaxlitlanadi.
 6. **Zararsizlik**: reja aralashmasi bo'yicha o'rtacha narxda foyda ≥ 0 bo'ladigan eng kichik N (pog'onali xarajat bilan), 1 000 gacha.
 
+## Yangi paket yoki modul
+
+- **Paket** (Tariflar'da yangi, sinov va qo'shimcha xizmat bo'lmagan tarif) barcha sahifalarda o'zi chiqadi: reja, tannarx/narx, fakt,
+  raqobatchilar «Mos paketlar» ustuni, sozlamalar. Reja qiymatlari bo'lmasa: 0 firma, ustama 40%, maqsadli margin 60% — Sozlamalarda o'zgartiriladi.
+- **Modul** (yangi `ProductModule`) og'irligi bazada bo'lmasa standart 2 ball bilan hisobga kiradi, Sozlamalarda «yangi» belgisi bilan
+  ko'rinadi va saqlanganda bazaga yoziladi. Qo'shimcha xizmatlar (Website) og'irliksiz.
+- **Raqobatchi** bir nechta paketga mos kelishi mumkin (`MatchPlanCodes` = "DIST,SAVDO"). SAVDO (online do'kon / ulgurji, agentlarsiz)
+  uchun: Bito Business, Linko Pro, Hippo Ombor Medium, MoySklad Prof, Smartup, 1C Savdoni boshqarish.
+
 ## Fakt
 
 - **Firmalar / MRR**: oy ichida amalda bo'lgan pullik paket obunalari (TRIAL va qo'shimcha xizmatlarsiz), tarifning joriy narxi bo'yicha (yillik ÷ 12), QQSsiz.
@@ -31,6 +40,6 @@ faktni tizim obunalar, to'lovlar va kiritilgan xarajatlardan o'zi hisoblaydi.
 
 ## Ma'lumotlar
 
-Jadvallar: `EconomicsSettings` (1 qator), `PlannedCosts`, `ModuleWeights`, `PlanEconomics`, `Competitors`, `Expenses` (migratsiya `Economics`).
+Jadvallar: `EconomicsSettings` (1 qator), `PlannedCosts`, `ModuleWeights`, `PlanEconomics`, `Competitors`, `Expenses` (migratsiyalar `Economics`, `CompetitorMultiPackage`).
 Boshlang'ich qiymatlar Excel modelidan ($ × 12 700). Pul — tiyin. O'zgarishlar audit jurnaliga yoziladi.
 Kod: `Services/EconomicsCalculator.cs` (sof hisob, testlar: `EconomicsTests.cs`), `Services/EconomicsService.cs`, `Pages/Economics/`.
