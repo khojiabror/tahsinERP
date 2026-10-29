@@ -297,6 +297,7 @@ public sealed class ProvisioningService(ControlDbContext db, AuditLogger audit, 
             t.TrialEndedAtUtc = clock.UtcNow;
             audit.Add("tenant.status", "Tenant", t.Id, new { Status = before }, new { t.Status, Reason = "Sinov yakunlandi (baza yo'q): " + reason });
             await db.SaveChangesAsync(ct);
+            await DisableAppsAsync(t, ct);
             return null;
         }
         var job = (await EnqueueAsync(t, ProvisioningJobType.EndTrial, reason, ct: ct, backup: backup)).Job;
@@ -490,6 +491,9 @@ public sealed class ProvisioningService(ControlDbContext db, AuditLogger audit, 
         try { await db.SaveChangesAsync(ct); }
         catch (Exception ex) when (BillingService.IsConcurrencyConflict(ex)) { return CompleteStatus.LeaseLost; }
 
+        if (c.Outcome == JobOutcome.Succeeded && job.Type is ProvisioningJobType.Archive or ProvisioningJobType.EndTrial)
+            await DisableAppsAsync(t, ct);
+
         if (sitePush is { } sp && apps is { SiteConfigured: true })
         {
             // sertifikat tayyor — sayt ilovasida yo'naltirish yoqiladi; xato bo'lsa firma sahifasidagi «Saqlash» qayta yuboradi
@@ -500,6 +504,44 @@ public sealed class ProvisioningService(ControlDbContext db, AuditLogger audit, 
         if (welcomePassword != null)
             await SendWelcomeAsync(t, job, welcomePassword, ct);
         return CompleteStatus.Ok;
+    }
+
+    /// <summary>
+    /// Firma arxivga o'tdi: sayt-katalog va Telegram bot ilovalarida o'chirib qo'yiladi (yozuvlar qoladi — tiklashda firma sahifasidan
+    /// qayta yoqiladi, butunlay o'chirishda DeleteModel tozalaydi). Aks holda arxivlangan firmaning sayti eski katalog nusxasi bilan
+    /// ochiqligicha qoladi. Ilova xatosi arxivlashni to'xtatmaydi — logga va auditga yoziladi.
+    /// </summary>
+    private async Task DisableAppsAsync(Tenant t, CancellationToken ct)
+    {
+        if (apps is null) return;
+        string? site = null, bot = null;
+        if (apps.SiteConfigured)
+            site = await TryAppAsync("sayt", async () =>
+            {
+                if (await apps.GetSiteAsync(t.Slug, ct) is not { Exists: true, Active: true }) return "-";
+                await apps.DisableSiteAsync(t.Slug, ct);
+                return "disabled";
+            });
+        if (apps.BotConfigured)
+            bot = await TryAppAsync("bot", async () =>
+            {
+                if (await apps.GetBotAsync(t.Slug, ct) is not { Exists: true, Active: true }) return "-";
+                await apps.DisableBotAsync(t.Slug, ct);
+                return "disabled";
+            });
+        if (site is null or "-" && bot is null or "-") return;
+        audit.Add("tenant.apps-disable", "Tenant", t.Id, after: new { Site = site, Bot = bot }, staffIdOverride: null);
+        await db.SaveChangesAsync(ct);
+
+        async Task<string> TryAppAsync(string app, Func<Task<string>> action)
+        {
+            try { return await action(); }
+            catch (DomainException ex)
+            {
+                log.LogWarning("Arxivlangan firma {App} ilovasida o'chirilmadi ({Slug}): {Error}", app, t.Slug, ex.Message);
+                return "error: " + ex.Message;
+            }
+        }
     }
 
     private void FinishFailed(ProvisioningJob job, string error, int? exitCode)
