@@ -314,6 +314,225 @@ namespace tahsinERP.ControlPanel.Data.Migrations
                     b.ToTable("BankImportLines");
                 });
 
+            modelBuilder.Entity("tahsinERP.ControlPanel.Data.BotChat", b =>
+                {
+                    b.Property<long>("Id")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("BlockedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Company")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("FirstName")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("FullName")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Lang")
+                        .HasMaxLength(5)
+                        .HasColumnType("nvarchar(5)");
+
+                    b.Property<string>("LastName")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("LastSeenUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("MessageCount")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Phone")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("StartParam")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<string>("State")
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<string>("StateData")
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
+
+                    b.Property<string>("Username")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LastSeenUtc");
+
+                    b.ToTable("BotChats");
+                });
+
+            modelBuilder.Entity("tahsinERP.ControlPanel.Data.BotGroup", b =>
+                {
+                    b.Property<long>("Id")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("IsMember")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTime>("UpdatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("BotGroups");
+                });
+
+            modelBuilder.Entity("tahsinERP.ControlPanel.Data.BotSettings", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("int");
+
+                    b.Property<long?>("SupportChatId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("WebhookSecret")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime?>("WebhookSetAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("BotSettings");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1
+                        });
+                });
+
+            modelBuilder.Entity("tahsinERP.ControlPanel.Data.BotThread", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<long>("ChatId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("ClosedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ClosedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Company")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("DemoRequestId")
+                        .HasColumnType("int");
+
+                    b.Property<long?>("GroupChatId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("GroupMessageId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("Kind")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("LastActivityUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("Rating")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Subject")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DemoRequestId");
+
+                    b.HasIndex("ChatId", "Status");
+
+                    b.HasIndex("Status", "Id");
+
+                    b.ToTable("BotThreads");
+                });
+
+            modelBuilder.Entity("tahsinERP.ControlPanel.Data.BotThreadMessage", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Author")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("FromStaff")
+                        .HasColumnType("bit");
+
+                    b.Property<long?>("GroupChatId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("GroupMessageId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Media")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("Text")
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
+
+                    b.Property<int>("ThreadId")
+                        .HasColumnType("int");
+
+                    b.Property<long?>("UserMessageId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ThreadId");
+
+                    b.HasIndex("GroupChatId", "GroupMessageId");
+
+                    b.ToTable("BotThreadMessages");
+                });
+
             modelBuilder.Entity("tahsinERP.ControlPanel.Data.Competitor", b =>
                 {
                     b.Property<int>("Id")
@@ -335,9 +554,9 @@ namespace tahsinERP.ControlPanel.Data.Migrations
                     b.Property<bool>("Include")
                         .HasColumnType("bit");
 
-                    b.Property<string>("MatchPlanCode")
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                    b.Property<string>("MatchPlanCodes")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("Note")
                         .HasMaxLength(500)
@@ -372,7 +591,7 @@ namespace tahsinERP.ControlPanel.Data.Migrations
                             Company = "Bito ERP",
                             Features = "Warehouse,Sales,~Finance,~Bot,Pos",
                             Include = true,
-                            MatchPlanCode = "START",
+                            MatchPlanCodes = "START",
                             Note = "bito.uz/tarif (2026-10): +1 user 90 000 so'm, 3 filial, 14 kun bepul",
                             PriceMonthTiyin = 29000000L,
                             SortOrder = 1,
@@ -385,7 +604,7 @@ namespace tahsinERP.ControlPanel.Data.Migrations
                             Company = "Bito ERP",
                             Features = "Warehouse,Sales,Finance,~Production,Distribution,Bot,Pos",
                             Include = true,
-                            MatchPlanCode = "DIST",
+                            MatchPlanCodes = "DIST,SAVDO",
                             Note = "bito.uz/tarif: distributsiya, mijoz boti, cash-flow, oddiy ishlab chiqarish",
                             PriceMonthTiyin = 49000000L,
                             SortOrder = 2,
@@ -398,7 +617,7 @@ namespace tahsinERP.ControlPanel.Data.Migrations
                             Company = "Bito ERP",
                             Features = "Warehouse,Sales,Finance,Production,Distribution,Bot,Pos",
                             Include = true,
-                            MatchPlanCode = "BIZNES",
+                            MatchPlanCodes = "BIZNES",
                             Note = "bito.uz/tarif: pro ishlab chiqarish, shaxsiy menejer",
                             PriceMonthTiyin = 99000000L,
                             SortOrder = 3,
@@ -411,7 +630,7 @@ namespace tahsinERP.ControlPanel.Data.Migrations
                             Company = "Linko",
                             Features = "Warehouse,Sales,~Finance,Pos",
                             Include = true,
-                            MatchPlanCode = "START",
+                            MatchPlanCodes = "START",
                             Note = "linko.uz/pos: do'kon/POS, foydalanuvchi soni ko'rsatilmagan",
                             PriceMonthTiyin = 15000000L,
                             SortOrder = 4,
@@ -423,7 +642,7 @@ namespace tahsinERP.ControlPanel.Data.Migrations
                             Company = "Linko",
                             Features = "Warehouse,Sales,Finance,~Hr,Pos",
                             Include = true,
-                            MatchPlanCode = "START",
+                            MatchPlanCodes = "START",
                             Note = "linko.uz/pos: 58/73 funksiya, aksiya 150 000",
                             PriceMonthTiyin = 25000000L,
                             SortOrder = 5,
@@ -435,7 +654,7 @@ namespace tahsinERP.ControlPanel.Data.Migrations
                             Company = "Linko",
                             Features = "Warehouse,Sales,Finance,~Hr,Pos",
                             Include = true,
-                            MatchPlanCode = "START",
+                            MatchPlanCodes = "START,SAVDO",
                             Note = "linko.uz/pos: barcha 73 funksiya",
                             PriceMonthTiyin = 50000000L,
                             SortOrder = 6,
@@ -447,7 +666,7 @@ namespace tahsinERP.ControlPanel.Data.Migrations
                             Company = "Hippo",
                             Features = "Warehouse,Sales,Pos",
                             Include = true,
-                            MatchPlanCode = "START",
+                            MatchPlanCodes = "START",
                             Note = "hippo.uz/pos: 1 ombor, CRM + kassa",
                             PriceMonthTiyin = 24720000L,
                             SortOrder = 7,
@@ -459,7 +678,7 @@ namespace tahsinERP.ControlPanel.Data.Migrations
                             Company = "Hippo",
                             Features = "Warehouse,Sales,Pos",
                             Include = true,
-                            MatchPlanCode = "START",
+                            MatchPlanCodes = "START,SAVDO",
                             Note = "hippo.uz/pos: 3 ombor",
                             PriceMonthTiyin = 41200000L,
                             SortOrder = 8,
@@ -471,7 +690,7 @@ namespace tahsinERP.ControlPanel.Data.Migrations
                             Company = "Hippo",
                             Features = "Warehouse,Sales,Pos",
                             Include = true,
-                            MatchPlanCode = "START",
+                            MatchPlanCodes = "START",
                             Note = "hippo.uz/pos: 7 ombor. Hippo ERP narxi — so'rov bo'yicha",
                             PriceMonthTiyin = 61800000L,
                             SortOrder = 9,
@@ -483,7 +702,7 @@ namespace tahsinERP.ControlPanel.Data.Migrations
                             Company = "MoySklad",
                             Features = "Warehouse,Sales,~Finance,Pos",
                             Include = true,
-                            MatchPlanCode = "START",
+                            MatchPlanCodes = "START",
                             Note = "moysklad.uz (2026-05): 2 yur. shaxs, 0.5 GB",
                             PriceMonthTiyin = 15680000L,
                             SortOrder = 10,
@@ -495,7 +714,7 @@ namespace tahsinERP.ControlPanel.Data.Migrations
                             Company = "MoySklad",
                             Features = "Warehouse,Sales,Finance,~Production,Pos",
                             Include = true,
-                            MatchPlanCode = "BIZNES",
+                            MatchPlanCodes = "BIZNES,SAVDO",
                             Note = "moysklad.uz: 10 yur. shaxs, oddiy ishlab chiqarish",
                             PriceMonthTiyin = 45920000L,
                             SortOrder = 11,
@@ -507,7 +726,7 @@ namespace tahsinERP.ControlPanel.Data.Migrations
                             Company = "Smartup",
                             Features = "Warehouse,Sales,Finance,Distribution,Bot",
                             Include = false,
-                            MatchPlanCode = "DIST",
+                            MatchPlanCodes = "DIST,SAVDO",
                             Note = "smartup24.com: narx ochiq emas",
                             SortOrder = 12,
                             Tariff = "So'rov bo'yicha"
@@ -518,7 +737,7 @@ namespace tahsinERP.ControlPanel.Data.Migrations
                             Company = "Sales Doctor",
                             Features = "Warehouse,Sales,~Finance,Distribution,Bot",
                             Include = true,
-                            MatchPlanCode = "DIST",
+                            MatchPlanCodes = "DIST",
                             Note = "CEO LinkedIn: $15/oy (1 agent uchunligini aniqlashtiring)",
                             PriceMonthUsd = 15m,
                             SortOrder = 13,
@@ -531,7 +750,7 @@ namespace tahsinERP.ControlPanel.Data.Migrations
                             Company = "1C",
                             Features = "Warehouse,Sales,Finance,~Production,~Hr,~Pos",
                             Include = true,
-                            MatchPlanCode = "START",
+                            MatchPlanCodes = "START",
                             Note = "4 814 000 so'm bir martalik ÷ 36 oy (1cba.uz); joriy qilish alohida",
                             PriceMonthTiyin = 13372200L,
                             SortOrder = 14,
@@ -544,7 +763,7 @@ namespace tahsinERP.ControlPanel.Data.Migrations
                             Company = "1C",
                             Features = "Warehouse,Sales,Finance,~Production,~Hr,~Pos",
                             Include = true,
-                            MatchPlanCode = "BIZNES",
+                            MatchPlanCodes = "BIZNES",
                             Note = "8 855 000 so'm ÷ 36 oy (1cba.uz)",
                             PriceMonthTiyin = 24597200L,
                             SortOrder = 15,
@@ -557,7 +776,7 @@ namespace tahsinERP.ControlPanel.Data.Migrations
                             Company = "1C",
                             Features = "Warehouse,Sales,~Finance,~Distribution,~Pos",
                             Include = true,
-                            MatchPlanCode = "DIST",
+                            MatchPlanCodes = "DIST,SAVDO",
                             Note = "6 018 000 so'm ÷ 36 oy (1cba.uz)",
                             PriceMonthTiyin = 16716700L,
                             SortOrder = 16,
@@ -570,7 +789,7 @@ namespace tahsinERP.ControlPanel.Data.Migrations
                             Company = "Odoo",
                             Features = "Warehouse,Sales,Finance,Production,Hr,~Distribution,Pos",
                             Include = true,
-                            MatchPlanCode = "KORP",
+                            MatchPlanCodes = "KORP",
                             Note = "1-yil aksiya $7.25; hosting kiritilgan, joriy qilish hamkor orqali",
                             PriceMonthUsd = 8.95m,
                             SortOrder = 17,
@@ -583,7 +802,7 @@ namespace tahsinERP.ControlPanel.Data.Migrations
                             Company = "Odoo",
                             Features = "Warehouse,Sales,Finance,Production,Hr,~Distribution,Pos",
                             Include = true,
-                            MatchPlanCode = "KORP",
+                            MatchPlanCodes = "KORP",
                             Note = "1-yil aksiya $10.90; Studio, API, o'z serveri",
                             PriceMonthUsd = 13.60m,
                             SortOrder = 18,
@@ -596,7 +815,7 @@ namespace tahsinERP.ControlPanel.Data.Migrations
                             Company = "SAP Business One",
                             Features = "Warehouse,Sales,Finance",
                             Include = false,
-                            MatchPlanCode = "START",
+                            MatchPlanCodes = "START",
                             Note = "Hamkorlar: ~$38/user (≤5 user); xalqaro mo'ljal",
                             PriceMonthUsd = 38m,
                             SortOrder = 19,
@@ -609,7 +828,7 @@ namespace tahsinERP.ControlPanel.Data.Migrations
                             Company = "SAP Business One",
                             Features = "Warehouse,Sales,Finance,Production,~Hr",
                             Include = false,
-                            MatchPlanCode = "KORP",
+                            MatchPlanCodes = "KORP",
                             Note = "Hamkorlar: $95–185/user, joriy qilish $15 000+",
                             PriceMonthUsd = 95m,
                             SortOrder = 20,
@@ -661,6 +880,9 @@ namespace tahsinERP.ControlPanel.Data.Migrations
                         .HasMaxLength(64)
                         .HasColumnType("nvarchar(64)");
 
+                    b.Property<int>("Kind")
+                        .HasColumnType("int");
+
                     b.Property<string>("Lang")
                         .IsRequired()
                         .HasMaxLength(5)
@@ -683,6 +905,13 @@ namespace tahsinERP.ControlPanel.Data.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
+                    b.Property<string>("Source")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
+                        .HasDefaultValue("web");
+
                     b.Property<string>("StaffNote")
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
@@ -703,6 +932,13 @@ namespace tahsinERP.ControlPanel.Data.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
+                    b.Property<long?>("TelegramChatId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("TelegramUsername")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
                     b.Property<int?>("TenantId")
                         .HasColumnType("int");
 
@@ -713,6 +949,8 @@ namespace tahsinERP.ControlPanel.Data.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("Phone");
+
+                    b.HasIndex("TelegramChatId");
 
                     b.HasIndex("TenantId");
 
@@ -2786,6 +3024,29 @@ namespace tahsinERP.ControlPanel.Data.Migrations
                         .WithMany()
                         .HasForeignKey("PaymentId")
                         .OnDelete(DeleteBehavior.Restrict);
+                });
+
+            modelBuilder.Entity("tahsinERP.ControlPanel.Data.BotThread", b =>
+                {
+                    b.HasOne("tahsinERP.ControlPanel.Data.BotChat", null)
+                        .WithMany()
+                        .HasForeignKey("ChatId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("tahsinERP.ControlPanel.Data.DemoRequest", null)
+                        .WithMany()
+                        .HasForeignKey("DemoRequestId")
+                        .OnDelete(DeleteBehavior.SetNull);
+                });
+
+            modelBuilder.Entity("tahsinERP.ControlPanel.Data.BotThreadMessage", b =>
+                {
+                    b.HasOne("tahsinERP.ControlPanel.Data.BotThread", null)
+                        .WithMany()
+                        .HasForeignKey("ThreadId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("tahsinERP.ControlPanel.Data.DemoRequest", b =>

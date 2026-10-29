@@ -873,4 +873,113 @@ public class DemoRequest
     public int StaffNotifyAttempts { get; set; }
     public DateTime? StaffNotifyLastAtUtc { get; set; }
     public string? StaffNotifyError { get; set; }
+    /// <summary>Demo yoki konsultatsiya (sotib olish) so'rovi.</summary>
+    public DemoRequestKind Kind { get; set; } = DemoRequestKind.Demo;
+    /// <summary>Qayerdan: <see cref="DemoRequestSources.Web"/> (tahsinerp.uz formasi) yoki <see cref="DemoRequestSources.Telegram"/> (bot).</summary>
+    public string Source { get; set; } = DemoRequestSources.Web;
+    /// <summary>Bot orqali kelgan bo'lsa — foydalanuvchi chati (xodim javobi shu chatga yetkaziladi).</summary>
+    public long? TelegramChatId { get; set; }
+    public string? TelegramUsername { get; set; }
+}
+
+public enum DemoRequestKind { Demo = 0, Consultation = 1 }
+
+public static class DemoRequestSources
+{
+    public const string Web = "web";
+    public const string Telegram = "telegram";
+}
+
+// ── Telegram sotuv boti (Bot/SalesBot.cs) ───────────────────────────────────────────────────────────────────────────
+
+/// <summary>Bot bilan yozishgan shaxsiy chat: til, joriy qadam (oqim holati) va avval kiritilgan kontaktlar.</summary>
+public class BotChat
+{
+    /// <summary>Telegram chat ID (shaxsiy chatda = foydalanuvchi ID).</summary>
+    public long Id { get; set; }
+    /// <summary>uz / oz / ru; null — hali tanlanmagan.</summary>
+    public string? Lang { get; set; }
+    /// <summary>Oqim qadami (masalan "demo.phone"); null — erkin rejim (yozilgan matn — qidiruv).</summary>
+    public string? State { get; set; }
+    /// <summary>Oqimda yig'ilayotgan javoblar (JSON).</summary>
+    public string? StateData { get; set; }
+    public string? FirstName { get; set; }
+    public string? LastName { get; set; }
+    public string? Username { get; set; }
+    /// <summary>Foydalanuvchi oqimda kiritgan ism / kompaniya / telefon — keyingi safar tayyor tugma sifatida taklif qilinadi.</summary>
+    public string? FullName { get; set; }
+    public string? Company { get; set; }
+    public string? Phone { get; set; }
+    /// <summary>/start parametri (birinchi kirish manbai, masalan "site").</summary>
+    public string? StartParam { get; set; }
+    public int MessageCount { get; set; }
+    public DateTime CreatedAtUtc { get; set; }
+    public DateTime LastSeenUtc { get; set; }
+    /// <summary>Foydalanuvchi botni bloklagan (Telegram 403).</summary>
+    public DateTime? BlockedAtUtc { get; set; }
+}
+
+public enum BotThreadKind { Demo = 0, Consultation = 1, Support = 2 }
+
+public enum BotThreadStatus { Open = 0, Closed = 1 }
+
+/// <summary>
+/// Foydalanuvchi va xodimlar guruhi yozishmasi: demo/konsultatsiya (savdo guruhi, DemoRequest bilan bog'liq) yoki
+/// texnik yordam murojaati (support guruhi). Guruhdagi bot xabariga reply — foydalanuvchiga yetkaziladi.
+/// </summary>
+public class BotThread
+{
+    public int Id { get; set; }
+    public long ChatId { get; set; }
+    public BotThreadKind Kind { get; set; }
+    public BotThreadStatus Status { get; set; }
+    public int? DemoRequestId { get; set; }
+    public string? Company { get; set; }
+    /// <summary>Birinchi xabar (qisqa) — panel ro'yxati uchun.</summary>
+    public string? Subject { get; set; }
+    public long? GroupChatId { get; set; }
+    /// <summary>Guruhdagi sarlavha xabari.</summary>
+    public long? GroupMessageId { get; set; }
+    /// <summary>Foydalanuvchi bahosi 1–5 (yopilgandan keyin).</summary>
+    public int? Rating { get; set; }
+    public DateTime CreatedAtUtc { get; set; }
+    public DateTime LastActivityUtc { get; set; }
+    public DateTime? ClosedAtUtc { get; set; }
+    public string? ClosedBy { get; set; }
+}
+
+/// <summary>Yozishma xabari: guruhdagi nusxasi (reply'ni topish uchun) va foydalanuvchi chatidagi nusxasi.</summary>
+public class BotThreadMessage
+{
+    public long Id { get; set; }
+    public int ThreadId { get; set; }
+    public bool FromStaff { get; set; }
+    public string? Author { get; set; }
+    public string? Text { get; set; }
+    /// <summary>photo / document / voice / video ... (matn bo'lmasa).</summary>
+    public string? Media { get; set; }
+    public long? GroupChatId { get; set; }
+    public long? GroupMessageId { get; set; }
+    public long? UserMessageId { get; set; }
+    public DateTime CreatedAtUtc { get; set; }
+}
+
+/// <summary>Bot a'zo bo'lgan guruhlar (panelda support guruhini tanlash uchun; my_chat_member yangilanishidan).</summary>
+public class BotGroup
+{
+    public long Id { get; set; }
+    public string Title { get; set; } = "";
+    public bool IsMember { get; set; }
+    public DateTime UpdatedAtUtc { get; set; }
+}
+
+/// <summary>Bot sozlamalari (bitta qator, Id = 1) — panel «Telegram bot» sahifasida o'zgartiriladi.</summary>
+public class BotSettings
+{
+    public int Id { get; set; }
+    /// <summary>Texnik yordam guruhi (masalan "tahsinERP: Bugs"). Bo'sh — ControlPanel:Telegram:SupportChatId.</summary>
+    public long? SupportChatId { get; set; }
+    /// <summary>Webhook secret_token (panel o'zi yaratadi; env WebhookSecret berilgan bo'lsa u ustun).</summary>
+    public string? WebhookSecret { get; set; }
+    public DateTime? WebhookSetAtUtc { get; set; }
 }

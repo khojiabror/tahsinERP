@@ -162,7 +162,26 @@ public sealed partial class DemoRequestService(ControlDbContext db, ITelegramSen
         return ok;
     }
 
-    private async Task EmailStaffAsync(DemoRequest r, string text, CancellationToken ct)
+    /// <summary>
+    /// Telegram bot so'rovi (Bot/SalesBot.cs): faqat saqlaydi — guruhga xabarni bot o'zi yuboradi (reply bog'lanishi uchun
+    /// xabar ID'si kerak), yetib bormasa <see cref="RetryPendingAsync"/> oddiy matn bilan qayta yuboradi.
+    /// </summary>
+    public async Task<DemoRequest> SaveFromBotAsync(DemoRequest r, CancellationToken ct = default)
+    {
+        r.FullName = Truncate(r.FullName.Trim(), 200);
+        r.Company = Truncate(r.Company.Trim(), 300);
+        r.Phone = NormalizePhone(r.Phone);
+        r.Industry = Industries.Contains(r.Industry) ? r.Industry : null;
+        r.Message = string.IsNullOrWhiteSpace(r.Message) ? null : Truncate(r.Message.Trim(), 2000);
+        r.Source = DemoRequestSources.Telegram;
+        r.Status = DemoRequestStatus.New;
+        r.CreatedAtUtc = clock.UtcNow;
+        db.DemoRequests.Add(r);
+        await db.SaveChangesAsync(ct);
+        return r;
+    }
+
+    public async Task EmailStaffAsync(DemoRequest r, string text, CancellationToken ct)
     {
         var to = (leads.Value.NotifyEmail ?? "").Split(',', ';').Select(x => x.Trim()).Where(x => x.Length > 0).ToList();
         if (to.Count == 0)
@@ -190,7 +209,8 @@ public sealed partial class DemoRequestService(ControlDbContext db, ITelegramSen
     {
         var lines = new List<string>
         {
-            $"🆕 Demo so'rovi #{r.Id} (tahsinerp.uz, {r.Lang.ToUpperInvariant()})",
+            $"{(r.Kind == DemoRequestKind.Consultation ? "💼 Konsultatsiya / sotib olish" : "🆕 Demo so'rovi")} #{r.Id} " +
+            $"({(r.Source == DemoRequestSources.Telegram ? "Telegram bot" : "tahsinerp.uz")}, {r.Lang.ToUpperInvariant()})",
             $"Kompaniya: {r.Company}",
             $"Ism: {r.FullName}",
             $"Telefon: {r.Phone}",
@@ -201,6 +221,7 @@ public sealed partial class DemoRequestService(ControlDbContext db, ITelegramSen
         if (r.Modules is not null) lines.Add($"Modullar: {r.Modules}");
         if (r.Plan is not null) lines.Add($"Paket: {r.Plan}");
         if (r.Message is not null) lines.Add($"Izoh: {r.Message}");
+        if (r.TelegramUsername is not null) lines.Add($"Telegram: @{r.TelegramUsername}");
         lines.Add($"{adminBaseUrl}/Leads");
         return string.Join("\n", lines);
     }

@@ -35,6 +35,11 @@ public class ControlDbContext(DbContextOptions<ControlDbContext> options) : DbCo
     public DbSet<ServerInventory> ServerInventories => Set<ServerInventory>();
     public DbSet<ServerHealthDay> ServerHealthDays => Set<ServerHealthDay>();
     public DbSet<DemoRequest> DemoRequests => Set<DemoRequest>();
+    public DbSet<BotChat> BotChats => Set<BotChat>();
+    public DbSet<BotThread> BotThreads => Set<BotThread>();
+    public DbSet<BotThreadMessage> BotThreadMessages => Set<BotThreadMessage>();
+    public DbSet<BotGroup> BotGroups => Set<BotGroup>();
+    public DbSet<BotSettings> BotSettings => Set<BotSettings>();
     public DbSet<ErpDeveloper> ErpDevelopers => Set<ErpDeveloper>();
     public DbSet<TenantSiteDomain> SiteDomains => Set<TenantSiteDomain>();
     public DbSet<EconomicsSettings> EconomicsSettings => Set<EconomicsSettings>();
@@ -433,7 +438,56 @@ public class ControlDbContext(DbContextOptions<ControlDbContext> options) : DbCo
             e.Property(x => x.UserAgent).HasMaxLength(400);
             e.Property(x => x.StaffNotifyError).HasMaxLength(500);
             e.Property(x => x.StaffNote).HasMaxLength(1000);
+            e.Property(x => x.Source).HasMaxLength(20).HasDefaultValue(DemoRequestSources.Web);
+            e.Property(x => x.TelegramUsername).HasMaxLength(64);
+            e.HasIndex(x => x.TelegramChatId);
             e.HasOne<Tenant>().WithMany().HasForeignKey(x => x.TenantId).OnDelete(DeleteBehavior.SetNull);
+        });
+
+        b.Entity<BotChat>(e =>
+        {
+            e.Property(x => x.Id).ValueGeneratedNever();
+            e.Property(x => x.Lang).HasMaxLength(5);
+            e.Property(x => x.State).HasMaxLength(40);
+            e.Property(x => x.StateData).HasMaxLength(4000);
+            e.Property(x => x.FirstName).HasMaxLength(100);
+            e.Property(x => x.LastName).HasMaxLength(100);
+            e.Property(x => x.Username).HasMaxLength(64);
+            e.Property(x => x.FullName).HasMaxLength(200);
+            e.Property(x => x.Company).HasMaxLength(300);
+            e.Property(x => x.Phone).HasMaxLength(50);
+            e.Property(x => x.StartParam).HasMaxLength(64);
+            e.HasIndex(x => x.LastSeenUtc);
+        });
+        b.Entity<BotThread>(e =>
+        {
+            e.Property(x => x.Company).HasMaxLength(300);
+            e.Property(x => x.Subject).HasMaxLength(500);
+            e.Property(x => x.ClosedBy).HasMaxLength(100);
+            e.HasIndex(x => new { x.ChatId, x.Status });
+            e.HasIndex(x => new { x.Status, x.Id });
+            e.HasOne<BotChat>().WithMany().HasForeignKey(x => x.ChatId).OnDelete(DeleteBehavior.Cascade);
+            e.HasOne<DemoRequest>().WithMany().HasForeignKey(x => x.DemoRequestId).OnDelete(DeleteBehavior.SetNull);
+        });
+        b.Entity<BotThreadMessage>(e =>
+        {
+            e.Property(x => x.Author).HasMaxLength(100);
+            e.Property(x => x.Text).HasMaxLength(4000);
+            e.Property(x => x.Media).HasMaxLength(20);
+            e.HasIndex(x => new { x.GroupChatId, x.GroupMessageId });
+            e.HasIndex(x => x.ThreadId);
+            e.HasOne<BotThread>().WithMany().HasForeignKey(x => x.ThreadId).OnDelete(DeleteBehavior.Cascade);
+        });
+        b.Entity<BotGroup>(e =>
+        {
+            e.Property(x => x.Id).ValueGeneratedNever();
+            e.Property(x => x.Title).HasMaxLength(200);
+        });
+        b.Entity<BotSettings>(e =>
+        {
+            e.Property(x => x.Id).ValueGeneratedNever();
+            e.Property(x => x.WebhookSecret).HasMaxLength(500);
+            e.HasData(new BotSettings { Id = 1 });
         });
 
         b.Entity<InvoiceSequence>(e =>
@@ -516,30 +570,32 @@ public class ControlDbContext(DbContextOptions<ControlDbContext> options) : DbCo
             e.Property(x => x.Company).HasMaxLength(100);
             e.Property(x => x.Tariff).HasMaxLength(100);
             e.Property(x => x.PriceMonthUsd).HasPrecision(18, 2);
-            e.Property(x => x.MatchPlanCode).HasMaxLength(20);
+            e.Property(x => x.MatchPlanCodes).HasMaxLength(200);
             e.Property(x => x.Features).HasMaxLength(200);
             e.Property(x => x.Note).HasMaxLength(500);
             const string all = "Warehouse,Sales,Finance,Production,Hr,~Distribution,Pos";
+            // SAVDO paketi (feature/commerce-module) — kod hali main'da bo'lmasa ham satr sifatida bog'lanadi.
+            const string Savdo = "SAVDO";
             int i = 0;
             Competitor C(string co, string tf, long? som, decimal? usd, int? users, string? plan, bool inc, string f, string note) =>
-                new() { Id = ++i, Company = co, Tariff = tf, PriceMonthTiyin = som * Som, PriceMonthUsd = usd, Users = users, MatchPlanCode = plan, Include = inc, Features = f, Note = note, SortOrder = i };
+                new() { Id = ++i, Company = co, Tariff = tf, PriceMonthTiyin = som * Som, PriceMonthUsd = usd, Users = users, MatchPlanCodes = plan, Include = inc, Features = f, Note = note, SortOrder = i };
             e.HasData(
                 C("Bito ERP", "Start", 290_000, null, 3, PlanCodes.Start, true, "Warehouse,Sales,~Finance,~Bot,Pos", "bito.uz/tarif (2026-10): +1 user 90 000 so'm, 3 filial, 14 kun bepul"),
-                C("Bito ERP", "Business", 490_000, null, 5, PlanCodes.Dist, true, "Warehouse,Sales,Finance,~Production,Distribution,Bot,Pos", "bito.uz/tarif: distributsiya, mijoz boti, cash-flow, oddiy ishlab chiqarish"),
+                C("Bito ERP", "Business", 490_000, null, 5, PlanCodes.Dist + "," + Savdo, true, "Warehouse,Sales,Finance,~Production,Distribution,Bot,Pos", "bito.uz/tarif: distributsiya, mijoz boti, cash-flow, oddiy ishlab chiqarish"),
                 C("Bito ERP", "Pro", 990_000, null, 10, PlanCodes.Biznes, true, "Warehouse,Sales,Finance,Production,Distribution,Bot,Pos", "bito.uz/tarif: pro ishlab chiqarish, shaxsiy menejer"),
                 C("Linko", "Start", 150_000, null, null, PlanCodes.Start, true, "Warehouse,Sales,~Finance,Pos", "linko.uz/pos: do'kon/POS, foydalanuvchi soni ko'rsatilmagan"),
                 C("Linko", "Standard", 250_000, null, null, PlanCodes.Start, true, "Warehouse,Sales,Finance,~Hr,Pos", "linko.uz/pos: 58/73 funksiya, aksiya 150 000"),
-                C("Linko", "Pro", 500_000, null, null, PlanCodes.Start, true, "Warehouse,Sales,Finance,~Hr,Pos", "linko.uz/pos: barcha 73 funksiya"),
+                C("Linko", "Pro", 500_000, null, null, PlanCodes.Start + "," + Savdo, true, "Warehouse,Sales,Finance,~Hr,Pos", "linko.uz/pos: barcha 73 funksiya"),
                 C("Hippo", "Ombor Base", 247_200, null, null, PlanCodes.Start, true, "Warehouse,Sales,Pos", "hippo.uz/pos: 1 ombor, CRM + kassa"),
-                C("Hippo", "Ombor Medium", 412_000, null, null, PlanCodes.Start, true, "Warehouse,Sales,Pos", "hippo.uz/pos: 3 ombor"),
+                C("Hippo", "Ombor Medium", 412_000, null, null, PlanCodes.Start + "," + Savdo, true, "Warehouse,Sales,Pos", "hippo.uz/pos: 3 ombor"),
                 C("Hippo", "Ombor Pro", 618_000, null, null, PlanCodes.Start, true, "Warehouse,Sales,Pos", "hippo.uz/pos: 7 ombor. Hippo ERP narxi — so'rov bo'yicha"),
                 C("MoySklad", "Bazaviy", 156_800, null, null, PlanCodes.Start, true, "Warehouse,Sales,~Finance,Pos", "moysklad.uz (2026-05): 2 yur. shaxs, 0.5 GB"),
-                C("MoySklad", "Prof", 459_200, null, null, PlanCodes.Biznes, true, "Warehouse,Sales,Finance,~Production,Pos", "moysklad.uz: 10 yur. shaxs, oddiy ishlab chiqarish"),
-                C("Smartup", "So'rov bo'yicha", null, null, null, PlanCodes.Dist, false, "Warehouse,Sales,Finance,Distribution,Bot", "smartup24.com: narx ochiq emas"),
+                C("MoySklad", "Prof", 459_200, null, null, PlanCodes.Biznes + "," + Savdo, true, "Warehouse,Sales,Finance,~Production,Pos", "moysklad.uz: 10 yur. shaxs, oddiy ishlab chiqarish"),
+                C("Smartup", "So'rov bo'yicha", null, null, null, PlanCodes.Dist + "," + Savdo, false, "Warehouse,Sales,Finance,Distribution,Bot", "smartup24.com: narx ochiq emas"),
                 C("Sales Doctor", "Obuna", null, 15m, 1, PlanCodes.Dist, true, "Warehouse,Sales,~Finance,Distribution,Bot", "CEO LinkedIn: $15/oy (1 agent uchunligini aniqlashtiring)"),
                 C("1C", "UNF, 1 o'rin", 133_722, null, 1, PlanCodes.Start, true, "Warehouse,Sales,Finance,~Production,~Hr,~Pos", "4 814 000 so'm bir martalik ÷ 36 oy (1cba.uz); joriy qilish alohida"),
                 C("1C", "UNF, 5 user", 245_972, null, 5, PlanCodes.Biznes, true, "Warehouse,Sales,Finance,~Production,~Hr,~Pos", "8 855 000 so'm ÷ 36 oy (1cba.uz)"),
-                C("1C", "Savdoni boshqarish, 1 o'rin", 167_167, null, 1, PlanCodes.Dist, true, "Warehouse,Sales,~Finance,~Distribution,~Pos", "6 018 000 so'm ÷ 36 oy (1cba.uz)"),
+                C("1C", "Savdoni boshqarish, 1 o'rin", 167_167, null, 1, PlanCodes.Dist + "," + Savdo, true, "Warehouse,Sales,~Finance,~Distribution,~Pos", "6 018 000 so'm ÷ 36 oy (1cba.uz)"),
                 C("Odoo", "Standard (Online)", null, 8.95m, 1, PlanCodes.Korp, true, all, "1-yil aksiya $7.25; hosting kiritilgan, joriy qilish hamkor orqali"),
                 C("Odoo", "Custom", null, 13.60m, 1, PlanCodes.Korp, true, all, "1-yil aksiya $10.90; Studio, API, o'z serveri"),
                 C("SAP Business One", "Starter", null, 38m, 1, PlanCodes.Start, false, "Warehouse,Sales,Finance", "Hamkorlar: ~$38/user (≤5 user); xalqaro mo'ljal"),

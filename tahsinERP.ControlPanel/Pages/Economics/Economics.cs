@@ -283,7 +283,7 @@ public class PackageRow
     public decimal TargetGrossMarginPercent { get; set; }
 }
 
-public class SettingsModel(ControlDbContext db, AuditLogger audit, Clock clock) : PanelPageModel
+public class SettingsModel(ControlDbContext db, EconomicsService econ, AuditLogger audit, Clock clock) : PanelPageModel
 {
     public List<Plan> Plans { get; private set; } = [];
     public EconomicsSettings Current { get; private set; } = null!;
@@ -307,6 +307,8 @@ public class SettingsModel(ControlDbContext db, AuditLogger audit, Clock clock) 
     public List<CostRow> Costs { get; set; } = [];
     public List<PackageRow> Packages { get; set; } = [];
     public Dictionary<string, int> Weights { get; set; } = [];
+    /// <summary>Bazada og'irligi hali yo'q modullar (yangi qo'shilgan) — standart og'irlik bilan ko'rsatiladi.</summary>
+    public HashSet<string> NewModules { get; private set; } = [];
 
     private async Task LoadAsync(bool fillForms)
     {
@@ -326,11 +328,13 @@ public class SettingsModel(ControlDbContext db, AuditLogger audit, Clock clock) 
         Costs.Add(new CostRow { Kind = PlannedCostKind.Staff, Category = CostCategory.Development });
         Costs.Add(new CostRow { Kind = PlannedCostKind.Other, Category = CostCategory.Admin });
 
-        var econ = await db.PlanEconomics.AsNoTracking().ToDictionaryAsync(e => e.PlanId);
-        Packages = Plans.Select(p => econ.TryGetValue(p.Id, out var e)
+        var planEcon = await db.PlanEconomics.AsNoTracking().ToDictionaryAsync(e => e.PlanId);
+        Packages = Plans.Select(p => planEcon.TryGetValue(p.Id, out var e)
             ? new PackageRow { PlanId = p.Id, PlannedTenants = e.PlannedTenants, MarkupPercent = e.MarkupPercent, TargetGrossMarginPercent = e.TargetGrossMarginPercent }
             : new PackageRow { PlanId = p.Id, MarkupPercent = 40m, TargetGrossMarginPercent = 60m }).ToList();
-        Weights = await db.ModuleWeights.AsNoTracking().OrderByDescending(w => w.Module == "Core").ThenBy(w => w.Module).ToDictionaryAsync(w => w.Module, w => w.Weight);
+        var stored = await db.ModuleWeights.AsNoTracking().Select(w => w.Module).ToListAsync();
+        Weights = (await econ.WeightsAsync()).OrderByDescending(w => w.Key == "Core").ThenBy(w => w.Key).ToDictionary(w => w.Key, w => w.Value);
+        NewModules = Weights.Keys.Where(k => !stored.Contains(k, StringComparer.OrdinalIgnoreCase)).ToHashSet(StringComparer.OrdinalIgnoreCase);
     }
 
     public async Task OnGetAsync() => await LoadAsync(true);
@@ -418,17 +422,21 @@ public class SettingsModel(ControlDbContext db, AuditLogger audit, Clock clock) 
         Packages = packages;
         Weights = weights;
         var plans = await db.Plans.Where(p => !p.IsAddOn && p.Code != PlanCodes.Trial).Select(p => p.Id).ToListAsync();
-        var econ = await db.PlanEconomics.ToDictionaryAsync(e => e.PlanId);
+        var planEcon = await db.PlanEconomics.ToDictionaryAsync(e => e.PlanId);
         foreach (var row in Packages.Where(r => plans.Contains(r.PlanId)))
         {
-            if (!econ.TryGetValue(row.PlanId, out var e)) { e = new PlanEconomics { PlanId = row.PlanId }; db.PlanEconomics.Add(e); }
+            if (!planEcon.TryGetValue(row.PlanId, out var e)) { e = new PlanEconomics { PlanId = row.PlanId }; db.PlanEconomics.Add(e); }
             e.PlannedTenants = Math.Clamp(row.PlannedTenants, 0, 100_000);
             e.MarkupPercent = Math.Clamp(row.MarkupPercent, 0, 1000);
             e.TargetGrossMarginPercent = Math.Clamp(row.TargetGrossMarginPercent, 0, 99);
         }
-        var stored = await db.ModuleWeights.ToDictionaryAsync(w => w.Module);
+        var stored = await db.ModuleWeights.ToDictionaryAsync(w => w.Module, StringComparer.OrdinalIgnoreCase);
+        var known = EconomicsService.AllModules().ToHashSet(StringComparer.OrdinalIgnoreCase);
         foreach (var (module, weight) in Weights)
+        {
             if (stored.TryGetValue(module, out var w)) w.Weight = Math.Clamp(weight, 0, 100);
+            else if (known.Contains(module)) db.ModuleWeights.Add(new ModuleWeight { Module = module, Weight = Math.Clamp(weight, 0, 100) });
+        }
         audit.Add("economics.packages", "PlanEconomics", null, null, new { Packages, Weights });
         await db.SaveChangesAsync();
         FlashOk = L.T("Pnl_Econ_Saved");
@@ -446,7 +454,7 @@ public class CompetitorRow
     public string? PriceSom { get; set; }
     public string? PriceUsd { get; set; }
     public int? Users { get; set; }
-    public string? MatchPlanCode { get; set; }
+    public List<string> MatchPlanCodes { get; set; } = [];
     public bool Include { get; set; } = true;
     public Dictionary<string, string> Features { get; set; } = [];
     public string? Note { get; set; }
@@ -470,7 +478,7 @@ public class CompetitorsModel(ControlDbContext db, EconomicsService econ, AuditL
         Rows = Items.Select(c => new CompetitorRow
         {
             Id = c.Id, Company = c.Company, Tariff = c.Tariff, PriceSom = Money.Format(c.PriceMonthTiyin),
-            PriceUsd = c.PriceMonthUsd?.ToString("0.##", CultureInfo.InvariantCulture), Users = c.Users, MatchPlanCode = c.MatchPlanCode,
+            PriceUsd = c.PriceMonthUsd?.ToString("0.##", CultureInfo.InvariantCulture), Users = c.Users, MatchPlanCodes = [.. EconomicsService.MatchCodes(c.MatchPlanCodes)],
             Include = c.Include, Features = Econ.ParseFeatures(c.Features), Note = c.Note
         }).ToList();
         for (int i = 0; i < 3; i++) Rows.Add(new CompetitorRow());
@@ -501,7 +509,8 @@ public class CompetitorsModel(ControlDbContext db, EconomicsService econ, AuditL
             decimal? usd = string.IsNullOrWhiteSpace(row.PriceUsd) ? null : Econ.ParseDecimal(row.PriceUsd);
             if (c is null) { c = new Competitor(); db.Competitors.Add(c); }
             c.Company = row.Company!.Trim(); c.Tariff = (row.Tariff ?? "").Trim(); c.PriceMonthTiyin = som; c.PriceMonthUsd = usd;
-            c.Users = row.Users is > 0 ? row.Users : null; c.MatchPlanCode = string.IsNullOrWhiteSpace(row.MatchPlanCode) ? null : row.MatchPlanCode;
+            c.Users = row.Users is > 0 ? row.Users : null; var match = string.Join(",", row.MatchPlanCodes.Where(x => !string.IsNullOrWhiteSpace(x)).Select(x => x.Trim()).Distinct(StringComparer.OrdinalIgnoreCase));
+            c.MatchPlanCodes = match.Length == 0 ? null : match;
             c.Include = row.Include; c.Note = string.IsNullOrWhiteSpace(row.Note) ? null : row.Note.Trim(); c.SortOrder = order;
             c.Features = string.Join(",", Econ.FeatureKeys.Where(k => row.Features.TryGetValue(k, out var v) && v is "1" or "~")
                 .Select(k => row.Features[k] == "~" ? "~" + k : k));

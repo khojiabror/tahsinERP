@@ -541,3 +541,5 @@ svg .trend-rev { fill: var(--accent); }
 svg .trend-exp { fill: var(--warn); opacity: .8; }
 .legend { display: inline-block; width: 10px; height: 10px; border-radius: 3px; vertical-align: middle; }
 .legend.rev { background: var(--accent); } .legend.exp { background: var(--warn); }
+table.edit td.match { white-space: nowrap; }
+table.edit td.match label.check { display: inline-flex; gap: 3px; margin-right: 8px; font-size: 12px; }

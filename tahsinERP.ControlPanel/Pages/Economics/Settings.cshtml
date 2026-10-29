@@ -104,7 +104,7 @@
         <tr><th>@L.T("Pnl_Econ_Module")</th><th class="num">@L.T("Pnl_Econ_Weight")</th></tr>
         @foreach (var (module, weight) in Model.Weights)
         {
-            <tr><td>@module</td><td class="num"><input class="w-sm" type="number" min="0" max="100" name="Weights[@module]" value="@weight" /></td></tr>
+            <tr><td>@module @if (Model.NewModules.Contains(module)) { <span class="badge info">@L.T("Pnl_Econ_NewModule")</span> }</td><td class="num"><input class="w-sm" type="number" min="0" max="100" name="Weights[@module]" value="@weight" /></td></tr>
         }
     </table>
     <div class="actions"><button type="submit">@L.T("Save")</button></div>

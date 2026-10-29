@@ -15,7 +15,7 @@
         <tr><th>@L.T("Pnl_Package")</th><th class="num">@L.T("Pnl_Econ_Compared")</th><th class="num">@L.T("Pnl_Econ_MarketPerUser")</th><th class="num">@L.T("Pnl_Econ_MinMax")</th><th class="num">@L.T("Pnl_Econ_OurPerUser")</th><th class="num">@L.T("Pnl_Econ_VsMarket")</th></tr>
         @foreach (var r in Model.Plan.Packages)
         {
-            var perUser = Model.Items.Where(c => c.Include && c.Users is > 0 && string.Equals(c.MatchPlanCode, r.Input.Code, StringComparison.OrdinalIgnoreCase))
+            var perUser = Model.Items.Where(c => c.Include && c.Users is > 0 && EconomicsService.Matches(c, r.Input.Code))
                 .Select(c => EconomicsService.CompetitorPrice(c, Model.UsdRate) / c.Users!.Value).Where(v => v is > 0).Select(v => v!.Value).ToList();
             decimal ours = r.Input.Users > 0 ? r.EffectiveNet / r.Input.Users : 0;
             decimal? market = r.Input.MarketPerUser;
@@ -64,10 +64,12 @@
                             <option value="~" selected="@(v == "~")">±</option>
                         </select></td>
                 }
-                <td><select name="Rows[@i].MatchPlanCode">
-                        <option value="">—</option>
-                        @foreach (var p in Model.Plans) { <option value="@p.Code" selected="@(string.Equals(p.Code, r.MatchPlanCode, StringComparison.OrdinalIgnoreCase))">@p.Code</option> }
-                    </select></td>
+                <td class="match">
+                    @foreach (var p in Model.Plans)
+                    {
+                        <label class="check"><input type="checkbox" name="Rows[@i].MatchPlanCodes" value="@p.Code" checked="@r.MatchPlanCodes.Contains(p.Code, StringComparer.OrdinalIgnoreCase)" /> @p.Code</label>
+                    }
+                </td>
                 <td><input type="checkbox" name="Rows[@i].Include" value="true" checked="@r.Include" /><input type="hidden" name="Rows[@i].Include" value="false" /></td>
                 <td><input name="Rows[@i].Note" value="@r.Note" maxlength="500" /></td>
                 <td>@if (r.Id != 0) { <input type="checkbox" name="Rows[@i].Delete" value="true" aria-label="@L.T("Delete")" /> }</td>

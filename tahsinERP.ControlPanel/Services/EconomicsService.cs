@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using tahsinERP.ControlPanel.Data;
 using tahsinERP.ControlPanel.I18n;
+using tahsinERP.Services.Editions;
 
 namespace tahsinERP.ControlPanel.Services;
 
@@ -76,26 +77,53 @@ public sealed class EconomicsService(ControlDbContext db, Clock clock, AuditLogg
     public static decimal? CompetitorPrice(Competitor c, decimal usdRate) =>
         c.PriceMonthTiyin is { } som ? som : c.PriceMonthUsd is { } usd ? usd * usdRate * 100m : null;
 
+    /// <summary>"DIST,SAVDO" → [DIST, SAVDO].</summary>
+    public static string[] MatchCodes(string? codes) =>
+        (codes ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+    public static bool Matches(Competitor c, string planCode) =>
+        MatchCodes(c.MatchPlanCodes).Contains(planCode, StringComparer.OrdinalIgnoreCase);
+
     /// <summary>Paket bo'yicha raqobatchilar 1 foydalanuvchi o'rtacha narxi; mos raqobatchi bo'lmasa — umumiy o'rtacha.</summary>
     public static Dictionary<string, decimal?> MarketPerUser(IReadOnlyList<Competitor> competitors, decimal usdRate, IEnumerable<string> planCodes)
     {
         var priced = competitors.Where(c => c.Include && c.Users is > 0)
-            .Select(c => new { c.MatchPlanCode, PerUser = CompetitorPrice(c, usdRate) / c.Users!.Value })
+            .Select(c => new { Competitor = c, PerUser = CompetitorPrice(c, usdRate) / c.Users!.Value })
             .Where(x => x.PerUser is > 0).ToList();
         decimal? all = priced.Count > 0 ? priced.Average(x => x.PerUser!.Value) : null;
         return planCodes.ToDictionary(code => code, code =>
         {
-            var m = priced.Where(x => string.Equals(x.MatchPlanCode, code, StringComparison.OrdinalIgnoreCase)).ToList();
+            var m = priced.Where(x => Matches(x.Competitor, code)).ToList();
             return m.Count > 0 ? m.Average(x => x.PerUser!.Value) : all;
         }, StringComparer.OrdinalIgnoreCase);
     }
+
+    /// <summary>Yangi modul uchun og'irlik (Sozlamalarda o'zgartirilguncha).</summary>
+    public const int DefaultModuleWeight = 2;
+
+    /// <summary>
+    /// Modul og'irliklari: bazadagilar + mahsulotga keyin qo'shilgan modullar (ProductModule) standart og'irlik bilan.
+    /// Yangi paket yoki modul qo'shilsa reja o'zi qamrab oladi; bazaga faqat Sozlamalarda saqlanganda yoziladi.
+    /// Qo'shimcha xizmatlar (Website) paketga kirmaydi — og'irliksiz.
+    /// </summary>
+    public async Task<Dictionary<string, int>> WeightsAsync(CancellationToken ct = default)
+    {
+        var weights = await db.ModuleWeights.AsNoTracking().ToDictionaryAsync(w => w.Module, w => w.Weight, StringComparer.OrdinalIgnoreCase, ct);
+        foreach (var m in AllModules())
+            weights.TryAdd(m, DefaultModuleWeight);
+        return weights;
+    }
+
+    /// <summary>"Core" + paketga kiradigan barcha ProductModule nomlari.</summary>
+    public static IEnumerable<string> AllModules() =>
+        Enum.GetValues<ProductModule>().Where(m => !EditionModules.IsAddOn(m)).Select(m => m.ToString());
 
     public async Task<(EconomicsCalculator Calc, EconPlanResult Plan, EconomicsSettings Settings)> PlanAsync(IReadOnlyList<int>? simulation = null, CancellationToken ct = default)
     {
         var settings = await SettingsAsync(ct);
         var costs = await db.PlannedCosts.AsNoTracking().ToListAsync(ct);
         var calc = new EconomicsCalculator(Assumptions(settings, costs));
-        var weights = await db.ModuleWeights.AsNoTracking().ToDictionaryAsync(w => w.Module, w => w.Weight, ct);
+        var weights = await WeightsAsync(ct);
         var plans = await SellablePlansAsync(ct);
         var econ = await db.PlanEconomics.AsNoTracking().ToDictionaryAsync(e => e.PlanId, ct);
         var competitors = await db.Competitors.AsNoTracking().ToListAsync(ct);

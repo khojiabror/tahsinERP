@@ -4765,7 +4765,7 @@ tahsinERP портал: код входа {1}. Действует {2} мин.
     <value>1 польз., сум</value>
   </data>
   <data name="Pnl_Econ_MatchPlan" xml:space="preserve">
-    <value>Похожий пакет</value>
+    <value>Похожие пакеты</value>
   </data>
   <data name="Pnl_Econ_Include" xml:space="preserve">
     <value>Учитывать</value>
@@ -4774,7 +4774,7 @@ tahsinERP портал: код входа {1}. Действует {2} мин.
     <value>Источник / заметка</value>
   </data>
   <data name="Pnl_Econ_FeatureLegend" xml:space="preserve">
-    <value>✓ — есть, ± — частично, — — нет. Тариф без отметки «Учитывать» не входит в среднее по рынку.</value>
+    <value>✓ — есть, ± — частично, — — нет. «Похожие пакеты» — один тариф может соответствовать нескольким нашим пакетам; новый пакет появится здесь сам. Тариф без отметки «Учитывать» не входит в среднее по рынку.</value>
   </data>
   <data name="Pnl_Econ_Feat_Warehouse" xml:space="preserve">
     <value>Склад</value>
@@ -4853,5 +4853,125 @@ tahsinERP портал: код входа {1}. Действует {2} мин.
   </data>
   <data name="Pnl_Module_Commerce" xml:space="preserve">
     <value>Торговля (заказы, склад, долги, бот)</value>
+  </data>
+  <data name="Pnl_Econ_NewModule" xml:space="preserve">
+    <value>новый — вес по умолчанию</value>
+  </data>
+  <data name="Pnl_Bot_Nav" xml:space="preserve">
+    <value>Telegram-бот</value>
+  </data>
+  <data name="Pnl_Bot_Title" xml:space="preserve">
+    <value>Telegram-бот</value>
+  </data>
+  <data name="Pnl_Bot_Hint" xml:space="preserve">
+    <value>Бот продаж: информация о системе (поиск по руководству), заявки на 14-дневное демо и консультацию (в группу продаж + «Демо-заявки»), обращения в техподдержку (в группу поддержки). Ответ (reply) на сообщение бота в группе доставляется клиенту, /close — закрывает обращение.</value>
+  </data>
+  <data name="Pnl_Bot_Chats" xml:space="preserve">
+    <value>Пользователи</value>
+  </data>
+  <data name="Pnl_Bot_Active7" xml:space="preserve">
+    <value>активны за 7 дней: {0}</value>
+  </data>
+  <data name="Pnl_Bot_Blocked" xml:space="preserve">
+    <value>заблокировали: {0}</value>
+  </data>
+  <data name="Pnl_Bot_Leads" xml:space="preserve">
+    <value>Заявки через бота</value>
+  </data>
+  <data name="Pnl_Bot_OpenSupport" xml:space="preserve">
+    <value>Открытые обращения</value>
+  </data>
+  <data name="Pnl_Bot_AvgRating" xml:space="preserve">
+    <value>Средняя оценка: {0}/5</value>
+  </data>
+  <data name="Pnl_Bot_Status" xml:space="preserve">
+    <value>Состояние и настройка</value>
+  </data>
+  <data name="Pnl_Bot_NoToken" xml:space="preserve">
+    <value>Токен бота не задан (ControlPanel__Telegram__BotToken).</value>
+  </data>
+  <data name="Pnl_Bot_Webhook" xml:space="preserve">
+    <value>Webhook</value>
+  </data>
+  <data name="Pnl_Bot_WebhookNone" xml:space="preserve">
+    <value>Не установлен — бот не отвечает на сообщения</value>
+  </data>
+  <data name="Pnl_Bot_WebhookOk" xml:space="preserve">
+    <value>Работает</value>
+  </data>
+  <data name="Pnl_Bot_WebhookOther" xml:space="preserve">
+    <value>Установлен на другой адрес</value>
+  </data>
+  <data name="Pnl_Bot_Pending" xml:space="preserve">
+    <value>В очереди: {0} обновлений</value>
+  </data>
+  <data name="Pnl_Bot_LastError" xml:space="preserve">
+    <value>Последняя ошибка ({0}): {1}</value>
+  </data>
+  <data name="Pnl_Bot_SalesGroup" xml:space="preserve">
+    <value>Группа продаж (демо, консультации)</value>
+  </data>
+  <data name="Pnl_Bot_SupportGroup" xml:space="preserve">
+    <value>Группа техподдержки</value>
+  </data>
+  <data name="Pnl_Bot_SupportNone" xml:space="preserve">
+    <value>Не выбрана — кнопка «Техподдержка» не работает</value>
+  </data>
+  <data name="Pnl_Bot_SetWebhook" xml:space="preserve">
+    <value>Установить / обновить webhook</value>
+  </data>
+  <data name="Pnl_Bot_SetWebhookHint" xml:space="preserve">
+    <value>{0} — также обновятся меню команд и описание бота (uz/ru).</value>
+  </data>
+  <data name="Pnl_Bot_SupportPick" xml:space="preserve">
+    <value>группа поддержки</value>
+  </data>
+  <data name="Pnl_Bot_SupportHint" xml:space="preserve">
+    <value>В списке группы, куда добавлен бот. Добавьте бота в группу (например «tahsinERP: Bugs») — она появится здесь.</value>
+  </data>
+  <data name="Pnl_Bot_WebhookSet" xml:space="preserve">
+    <value>Webhook установлен: {0}</value>
+  </data>
+  <data name="Pnl_Bot_WebhookFailed" xml:space="preserve">
+    <value>Webhook не установлен: {0}</value>
+  </data>
+  <data name="Pnl_Bot_SupportSet" xml:space="preserve">
+    <value>Группа техподдержки: {0}</value>
+  </data>
+  <data name="Pnl_Bot_SupportCleared" xml:space="preserve">
+    <value>Группа техподдержки снята.</value>
+  </data>
+  <data name="Pnl_Bot_Threads" xml:space="preserve">
+    <value>Переписки</value>
+  </data>
+  <data name="Pnl_Bot_ThreadsEmpty" xml:space="preserve">
+    <value>Переписок пока нет.</value>
+  </data>
+  <data name="Pnl_Bot_ColKind" xml:space="preserve">
+    <value>Тип</value>
+  </data>
+  <data name="Pnl_Bot_ColSubject" xml:space="preserve">
+    <value>Тема</value>
+  </data>
+  <data name="Pnl_Bot_KindDemo" xml:space="preserve">
+    <value>Демо</value>
+  </data>
+  <data name="Pnl_Bot_KindConsult" xml:space="preserve">
+    <value>Консультация</value>
+  </data>
+  <data name="Pnl_Bot_KindSupport" xml:space="preserve">
+    <value>Техподдержка</value>
+  </data>
+  <data name="Pnl_Bot_StOpen" xml:space="preserve">
+    <value>Открыто</value>
+  </data>
+  <data name="Pnl_Bot_StClosed" xml:space="preserve">
+    <value>Закрыто</value>
+  </data>
+  <data name="Pnl_Lead_SrcTelegram" xml:space="preserve">
+    <value>Telegram-бот</value>
+  </data>
+  <data name="Pnl_Lead_KindConsult" xml:space="preserve">
+    <value>Консультация</value>
   </data>
 </root>

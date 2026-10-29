@@ -28,6 +28,9 @@
   <ItemGroup>
     <Content Remove="Pages\Public\Content\*.json" />
     <EmbeddedResource Include="Pages\Public\Content\*.json" />
+    <!-- Telegram sotuv boti matnlari va qo'llanma bilim bazasi; bot.uz.json nomidagi til satellite assembly'ga ajratmasin. -->
+    <Content Remove="Bot\Content\*.json" />
+    <EmbeddedResource Include="Bot\Content\*.json" WithCulture="false" />
   </ItemGroup>
 
   <ItemGroup>
