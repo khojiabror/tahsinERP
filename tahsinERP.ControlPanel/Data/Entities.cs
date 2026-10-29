@@ -946,6 +946,10 @@ public class BotThread
     public DateTime LastActivityUtc { get; set; }
     public DateTime? ClosedAtUtc { get; set; }
     public string? ClosedBy { get; set; }
+    /// <summary>Panelda «Hal qilindi» deb belgilagan xodim (guruhdagi /close'da — null, ism ClosedBy'da).</summary>
+    public int? ResolvedByStaffId { get; set; }
+    /// <summary>Yechim izohi (panelda yoziladi; mijozga ham yuborilishi mumkin).</summary>
+    public string? Resolution { get; set; }
 }
 
 /// <summary>Yozishma xabari: guruhdagi nusxasi (reply'ni topish uchun) va foydalanuvchi chatidagi nusxasi.</summary>

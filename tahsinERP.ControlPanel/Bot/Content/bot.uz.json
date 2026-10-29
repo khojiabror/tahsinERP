@@ -73,6 +73,8 @@
   "thread.sent": "📨 Yuborildi. Javobni shu yerda olasiz.",
   "thread.closed": "✅ №{0} murojaat yopildi. Xizmatimizni baholang:",
   "thread.closedNoRate": "ℹ️ №{0} murojaat yopilgan. Yangi murojaat uchun menyudan «🛠 Texnik yordam» ni tanlang.",
+  "thread.resolved": "✅ №{0} murojaatingiz hal qilindi.{1}\n\nXizmatimizni baholang:",
+  "thread.resolvedNote": "\n\n💬 Mutaxassis izohi: {0}",
   "thread.rated": "Rahmat bahoyingiz uchun! 🙏",
   "limit.leads": "Bugun juda ko'p so'rov yubordingiz. Iltimos, ertaga urinib ko'ring yoki mutaxassis javobini kuting.",
   "limit.messages": "Juda tez yozyapsiz — biroz kutib, qayta yuboring.",

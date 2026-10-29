@@ -1,0 +1,78 @@
+@page
+@model tahsinERP.ControlPanel.Pages.Tickets.IndexModel
+@inject Clock Clock
+@using tahsinERP.ControlPanel.Pages.Tickets
+@{ ViewData["Title"] = L.T("Pnl_Tk_Title"); }
+<h1>@L.T("Pnl_Tk_Title")</h1>
+<p class="hint">@L.T("Pnl_Tk_Hint")</p>
+<div class="grid">
+    <div class="stat"><span class="stat-ic bad"><svg class="i"><use href="#i-alert" /></svg></span><div class="l">@L.T("Pnl_Tk_OpenBugs")</div><div class="v">@Model.OpenSupport</div></div>
+    <div class="stat"><span class="stat-ic violet"><svg class="i"><use href="#i-send" /></svg></span><div class="l">@L.T("Pnl_Tk_OpenRequests")</div><div class="v">@Model.OpenRequests</div></div>
+</div>
+<form method="get" class="toolbar tk-filters">
+    <div><label for="Status">@L.T("Status")</label>
+        <select id="Status" name="Status">
+            <option value="open" selected="@(Model.EffectiveStatus == "open")">@L.T("Pnl_Tk_FilterOpen")</option>
+            <option value="closed" selected="@(Model.EffectiveStatus == "closed")">@L.T("Pnl_Tk_FilterResolved")</option>
+            <option value="all" selected="@(Model.EffectiveStatus == "all")">@L.T("All")</option>
+        </select></div>
+    <div><label for="Kind">@L.T("Pnl_Bot_ColKind")</label>
+        <select id="Kind" name="Kind">
+            <option value="">@L.T("All")</option>
+            <option value="support" selected="@(Model.Kind == "support")">@L.T("Pnl_Tk_KindBug")</option>
+            <option value="request" selected="@(Model.Kind == "request")">@L.T("Pnl_Tk_KindRequests")</option>
+        </select></div>
+    <div><label for="Q">@L.T("Pnl_Tk_Search")</label><input id="Q" name="Q" value="@Model.Q" type="search" placeholder="@L.T("Pnl_Tk_SearchHint")" /></div>
+    <button type="submit" class="secondary">@L.T("Pnl_Show")</button>
+</form>
+@if (Model.Rows.Count == 0)
+{
+    <div class="empty">@L.T("Pnl_Tk_Empty")</div>
+}
+else
+{
+    <table>
+        <tr><th>№</th><th>@L.T("Date")</th><th>@L.T("Pnl_Bot_ColKind")</th><th>@L.T("Pnl_Tk_ColFrom")</th><th>@L.T("Pnl_Lead_ColCompany")</th><th>@L.T("Pnl_Tk_ColMessage")</th><th>@L.T("Pnl_Tk_ColActivity")</th><th>@L.T("Status")</th><th>@L.T("Pnl_Lead_ColAction")</th></tr>
+        @foreach (var r in Model.Rows)
+        {
+            var t = r.Thread;
+            <tr>
+                <td><a href="/Tickets/Details/@t.Id"><b>@t.Id</b></a></td>
+                <td>@Clock.ToLocal(t.CreatedAtUtc).ToString("dd.MM.yyyy HH:mm")<div class="hint">@r.Chat?.Lang?.ToUpperInvariant()</div></td>
+                <td><span class="badge @IndexModel.KindBadge(t.Kind)">@IndexModel.KindLabel(t.Kind)</span></td>
+                <td>@IndexModel.Who(r.Chat)
+                    @if (r.Chat?.Username is not null) { <div class="hint"><a href="https://t.me/@r.Chat.Username" target="_blank" rel="noopener">@@@r.Chat.Username</a></div> }
+                    @if (r.Chat?.Phone is not null) { <div><a href="tel:@r.Chat.Phone">@r.Chat.Phone</a></div> }</td>
+                <td>@t.Company</td>
+                <td class="tk-subject"><a href="/Tickets/Details/@t.Id">@t.Subject</a><div class="hint">@L.T("Pnl_Tk_MessagesCount", r.Messages)</div></td>
+                <td>@Clock.ToLocal(t.LastActivityUtc).ToString("dd.MM HH:mm")</td>
+                <td>
+                    @if (t.Status == BotThreadStatus.Open) { <span class="badge warn">@L.T("Pnl_Tk_StOpen")</span> }
+                    else
+                    {
+                        <span class="badge ok">@L.T("Pnl_Tk_StResolved")</span>
+                        <div class="hint">@r.ResolvedBy@(t.ClosedAtUtc is DateTime c ? ", " + Clock.ToLocal(c).ToString("dd.MM HH:mm") : "")</div>
+                        @if (t.Resolution is not null) { <div class="hint">@t.Resolution</div> }
+                        @if (t.Rating is int stars) { <div class="hint">@string.Concat(Enumerable.Repeat("★", stars))</div> }
+                    }
+                </td>
+                <td>
+                    <form method="post" class="inline">
+                        <input type="hidden" name="ThreadId" value="@t.Id" />
+                        <input type="hidden" name="Status" value="@Model.Status" /><input type="hidden" name="Kind" value="@Model.Kind" /><input type="hidden" name="Q" value="@Model.Q" />
+                        @if (t.Status == BotThreadStatus.Open)
+                        {
+                            <input type="text" name="Note" placeholder="@L.T("Pnl_Tk_NotePlaceholder")" maxlength="1000" />
+                            <button type="submit" asp-page-handler="Resolve">@L.T("Pnl_Tk_Resolve")</button>
+                        }
+                        else
+                        {
+                            <button type="submit" class="secondary" asp-page-handler="Reopen">@L.T("Pnl_Tk_Reopen")</button>
+                        }
+                    </form>
+                </td>
+            </tr>
+        }
+    </table>
+    <partial name="_Pager" model="Model.Pager" />
+}

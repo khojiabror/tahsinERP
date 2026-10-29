@@ -108,7 +108,7 @@ public partial class WebUiTests(PanelFactory f) : IClassFixture<PanelFactory>
     public async Task Owner_FullFlow_PagesRender_And_SecondLoginUsesTotp()
     {
         using var c = await LoginAsync("ui-owner@test.uz", StaffRole.Owner);
-        foreach (var url in new[] { "/", "/Tenants", "/Tenants/Create", "/Invoices", "/Licenses", "/Plans", "/Plans/Edit/2", "/Servers", "/Servers/Edit", "/Updates", "/Staff", "/Staff/Create", "/Audit", "/Notifications", "/Leads", "/Bot", "/Account/ChangePassword" })
+        foreach (var url in new[] { "/", "/Tenants", "/Tenants/Create", "/Invoices", "/Licenses", "/Plans", "/Plans/Edit/2", "/Servers", "/Servers/Edit", "/Updates", "/Staff", "/Staff/Create", "/Audit", "/Notifications", "/Leads", "/Bot", "/Tickets", "/Tickets?Status=all&Kind=support&Q=test", "/Account/ChangePassword" })
         {
             var r = await c.GetAsync(url);
             Assert.True(r.StatusCode == HttpStatusCode.OK, $"{url}: {(int)r.StatusCode}");

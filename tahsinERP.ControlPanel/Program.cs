@@ -96,6 +96,7 @@ services.AddHttpClient<tahsinERP.ControlPanel.Bot.IBotApi, tahsinERP.ControlPane
 services.AddSingleton<tahsinERP.ControlPanel.Bot.BotConfig>();
 services.AddSingleton<tahsinERP.ControlPanel.Bot.BotQueue>();
 services.AddScoped<tahsinERP.ControlPanel.Bot.SalesBot>();
+services.AddScoped<tahsinERP.ControlPanel.Bot.BotTicketService>();
 services.AddHostedService<tahsinERP.ControlPanel.Bot.BotWorker>();
 services.AddHttpClient<IAppsClient, AppsHttpClient>(c => c.Timeout = TimeSpan.FromSeconds(30));
 services.AddScoped<TenantAppsService>();
