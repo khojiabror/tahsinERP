@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using tahsinERP.ControlPanel.Data;
 using tahsinERP.ControlPanel.Security;
 using tahsinERP.ControlPanel.Services;
+using tahsinERP.Provisioning.Contracts;
 
 namespace tahsinERP.ControlPanel.Tests;
 
@@ -157,6 +158,45 @@ public class TenantAppsTests(PanelFactory f) : IClassFixture<PanelFactory>
         Assert.Contains(fake.Calls, x => x.Op == "site-delete" && x.Slug == "apps-firma");
         Assert.Equal(1, await f.WithScopeAsync(sp => sp.GetRequiredService<ControlDbContext>().ProvisioningJobs
             .CountAsync(j => j.TenantId == tenantId && j.Type == ProvisioningJobType.Delete)));
+    }
+
+    [Fact]
+    public async Task ArchiveJobSucceeded_DisablesSiteAndBot()
+    {
+        // Arxivlangan firmaning sayti eski katalog nusxasi bilan ochiq qolmasligi kerak (demodist.sayt holati)
+        var fake = new FakeApps();
+        using var app = f.WithWebHostBuilder(b =>
+            b.ConfigureTestServices(s => { s.RemoveAll<IAppsClient>(); s.AddSingleton<IAppsClient>(fake); }));
+        var (serverId, _) = await ProvisioningQueueTests.CreateServerAsync(f, "apps-srv-arch");
+        await fake.EnableSiteAsync("apps-arch", "https://apps-arch.x.uz/", "apps-arch");
+        await fake.ConnectBotAsync("apps-arch", "https://apps-arch.x.uz/", "apps-arch", "1:t");
+
+        using var scope = app.Services.CreateScope();
+        var sp = scope.ServiceProvider;
+        var db = sp.GetRequiredService<ControlDbContext>();
+        var t = await sp.GetRequiredService<TenantService>().CreateAsync(
+            new Tenant { Slug = "apps-arch", LegalName = "Apps Arch", Deployment = DeploymentKind.SaaS, ServerId = serverId }, true);
+        t = await db.Tenants.FirstAsync(x => x.Id == t.Id);
+        t.ProvisionedAtUtc = DateTime.UtcNow.AddDays(-30);
+        var job = new ProvisioningJob
+        {
+            TenantId = t.Id, Type = ProvisioningJobType.Archive, Status = ProvisioningJobStatus.Running, Attempts = 1,
+            LeaseToken = "lease-arch", LeasedByServerId = serverId, LeaseUntilUtc = DateTime.UtcNow.AddMinutes(5),
+            NotBeforeUtc = DateTime.UtcNow, CreatedAtUtc = DateTime.UtcNow,
+        };
+        db.ProvisioningJobs.Add(job);
+        await db.SaveChangesAsync();
+
+        var server = await db.Servers.FirstAsync(s => s.Id == serverId);
+        var r = await sp.GetRequiredService<ProvisioningService>().CompleteAsync(server, job.Id,
+            new JobCompletion { LeaseToken = "lease-arch", Outcome = JobOutcome.Succeeded, ArchiveLocation = @"D:\arch\apps-arch.bak" });
+
+        Assert.Equal(ProvisioningService.CompleteStatus.Ok, r);
+        Assert.Equal(TenantStatus.Archived, (await db.Tenants.AsNoTracking().FirstAsync(x => x.Id == t.Id)).Status);
+        Assert.False((await fake.GetSiteAsync("apps-arch")).Active);
+        Assert.False((await fake.GetBotAsync("apps-arch")).Active);
+        Assert.True((await fake.GetSiteAsync("apps-arch")).Exists); // yozuv qoladi — tiklashda qayta yoqiladi
+        Assert.True(await db.AuditLog.AnyAsync(a => a.Action == "tenant.apps-disable" && a.EntityId == t.Id.ToString()));
     }
 
     [Fact]

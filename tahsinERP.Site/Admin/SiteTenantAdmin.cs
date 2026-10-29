@@ -88,6 +88,7 @@ public sealed partial class SiteTenantAdmin(SiteDbContext db, CatalogStore store
         var t = await db.Tenants.FirstOrDefaultAsync(x => x.Slug == slug, ct) ?? throw new InvalidOperationException("Topilmadi: " + slug);
         t.IsActive = false;
         await db.SaveChangesAsync(ct);
+        await store.RefreshTenantsAsync(ct); // sayt darhol yopiladi (keyingi sinxron siklini kutmasdan)
     }
 
     /// <summary>

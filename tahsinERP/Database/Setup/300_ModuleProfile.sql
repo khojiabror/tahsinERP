@@ -201,6 +201,13 @@ IF EXISTS (SELECT 1 FROM #sel WHERE Module = 'Commerce')
     JOIN dbo.PERMISSIONMODULES pm ON pm.Controller = 'Dst' AND pm.Module IN ('DstSeeCost', 'DstOverrideCredit', 'DstWriteOffApprove')
     WHERE r.Code = 'Director' AND NOT EXISTS (SELECT 1 FROM #grant g WHERE g.RoleID = r.ID AND g.PermissionModuleID = pm.ID);
 
+-- Asosiy menyu (sidebar, navbar) — PERMISSIONMODULES.Module = 'Layout', Controller'i yo'q, shuning uchun yuqoridagi controller
+-- bo'yicha bog'lanishga tushmaydi. Usiz rol egasi tizimga kirganda bo'sh sahifani ko'radi (_Layout.cshtml) — har rolga ko'rish.
+INSERT INTO #grant (RoleID, PermissionModuleID, Chg)
+SELECT r.ID, pm.ID, 0 FROM #roles r
+JOIN dbo.PERMISSIONMODULES pm ON pm.Module = 'Layout'
+WHERE r.ID IS NOT NULL AND NOT EXISTS (SELECT 1 FROM #grant g WHERE g.RoleID = r.ID AND g.PermissionModuleID = pm.ID);
+
 -- mavjud yozuv bo'lsa ham matritsaga tenglanadi (profil qayta ishlasa ham natija bir xil)
 UPDATE p SET ViewPermit = 1, ChangePermit = g.Chg, DeletePermit = 0
 FROM dbo.PERMISSIONS p JOIN #grant g ON g.RoleID = p.RoleID AND g.PermissionModuleID = p.PermissionModuleID;
