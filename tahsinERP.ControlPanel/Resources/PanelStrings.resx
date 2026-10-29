@@ -3732,6 +3732,9 @@ Siz so'ramagan bo'lsangiz — bu xatga e'tibor bermang, parolingiz o'zgarmaydi.<
   <data name="Pnl_Lead_Ind_other" xml:space="preserve">
     <value>Boshqa</value>
   </data>
+  <data name="Pnl_Lead_TgNotSent" xml:space="preserve">
+    <value>Telegram'ga yuborilmadi ({0} urinish)</value>
+  </data>
   <data name="Pnl_Lead_TrialPrefilled" xml:space="preserve">
     <value>Demo so'rovi {0} dan to'ldirildi — slug va nomni tekshiring.</value>
   </data>

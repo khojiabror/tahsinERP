@@ -867,4 +867,10 @@ public class DemoRequest
     public DateTime? HandledAtUtc { get; set; }
     public int? TenantId { get; set; }
     public DateTime CreatedAtUtc { get; set; }
+    /// <summary>Xodimlar Telegram guruhiga xabar yetib borgan vaqt; null — hali yuborilmagan (yoki Telegram sozlanmagan).</summary>
+    public DateTime? StaffNotifiedAtUtc { get; set; }
+    /// <summary>Muvaffaqiyatsiz Telegram urinishlari soni — fon ishi (DemoNotifyRetryHostedService) qayta yuboradi.</summary>
+    public int StaffNotifyAttempts { get; set; }
+    public DateTime? StaffNotifyLastAtUtc { get; set; }
+    public string? StaffNotifyError { get; set; }
 }

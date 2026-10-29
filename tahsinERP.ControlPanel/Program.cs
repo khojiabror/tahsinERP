@@ -107,6 +107,7 @@ if (config.GetValue("ControlPanel:Panel:EnableDailyJob", true))
     services.AddHostedService<DailyJobHostedService>();
     services.AddHostedService<DidoxRefreshHostedService>();
     services.AddHostedService<ReleaseRefreshHostedService>();
+    services.AddHostedService<DemoNotifyRetryHostedService>();
 }
 
 // Cookie/antiforgery kalitlari: serverda doimiy papkada (aks holda IIS qayta ishga tushganda xodimlar qayta kiradi).

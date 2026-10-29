@@ -103,6 +103,62 @@ public class LandingTests : IClassFixture<PanelFactory>
     }
 
     [Fact]
+    public async Task DemoRequest_TelegramFailure_IsRetriedWithBackoff()
+    {
+        const string staffChat = "-100777";
+        var tg = new FakeTelegram { Enabled = true, Fail = new TaskCanceledException("timeout") };
+        Task<T> WithService<T>(Func<DemoRequestService, ControlDbContext, Task<T>> action) => f.WithScopeAsync(sp =>
+        {
+            var svc = ActivatorUtilities.CreateInstance<DemoRequestService>(sp, (ITelegramSender)tg,
+                Microsoft.Extensions.Options.Options.Create(new TelegramOptions { StaffChatId = staffChat }));
+            return action(svc, sp.GetRequiredService<ControlDbContext>());
+        });
+        Task<DemoRequest> Reload(int id) => f.WithScopeAsync(sp => sp.GetRequiredService<ControlDbContext>().DemoRequests.AsNoTracking().SingleAsync(r => r.Id == id));
+
+        var (outcome, req) = await WithService((svc, _) => svc.SubmitAsync(new DemoRequestInput
+        {
+            FullName = "Retry Test", Company = "Retry Co", Phone = "+998 94 " + Random.Shared.Next(100, 999) + " 55 66",
+        }, "uz", null, null));
+        Assert.Equal(DemoRequestService.Outcome.Saved, outcome);
+        int id = req!.Id;
+        var r = await Reload(id);
+        Assert.Null(r.StaffNotifiedAtUtc);
+        Assert.Equal(1, r.StaffNotifyAttempts);
+        Assert.NotNull(r.StaffNotifyError);
+
+        // Kutish muddati (1 daqiqa) o'tmagan — urinilmaydi.
+        Assert.Equal(0, await WithService((svc, _) => svc.RetryPendingAsync()));
+        Assert.Equal(1, (await Reload(id)).StaffNotifyAttempts);
+
+        // Muddat o'tdi, Telegram hali ishlamaydi — urinishlar ortadi.
+        f.Time.Advance(TimeSpan.FromMinutes(1));
+        Assert.Equal(0, await WithService((svc, _) => svc.RetryPendingAsync()));
+        Assert.Equal(2, (await Reload(id)).StaffNotifyAttempts);
+
+        // Telegram tiklandi — keyingi muddatda (2 daqiqa) yuboriladi, bir martagina.
+        tg.Fail = null;
+        f.Time.Advance(TimeSpan.FromMinutes(2));
+        Assert.Equal(1, await WithService((svc, _) => svc.RetryPendingAsync()));
+        var msg = Assert.Single(tg.To(staffChat));
+        Assert.Contains("Retry Co", msg.Text);
+        Assert.Contains("Kechikib yuborildi", msg.Text);
+        Assert.NotNull((await Reload(id)).StaffNotifiedAtUtc);
+        f.Time.Advance(TimeSpan.FromMinutes(5));
+        Assert.Equal(0, await WithService((svc, _) => svc.RetryPendingAsync()));
+        Assert.Single(tg.To(staffChat));
+    }
+
+    [Fact]
+    public void RetryDelay_GrowsAndCaps()
+    {
+        Assert.Equal(TimeSpan.FromMinutes(1), DemoRequestService.RetryDelay(1));
+        Assert.Equal(TimeSpan.FromMinutes(2), DemoRequestService.RetryDelay(2));
+        Assert.Equal(TimeSpan.FromMinutes(16), DemoRequestService.RetryDelay(5));
+        Assert.Equal(TimeSpan.FromMinutes(30), DemoRequestService.RetryDelay(6));
+        Assert.Equal(TimeSpan.FromMinutes(30), DemoRequestService.RetryDelay(40));
+    }
+
+    [Fact]
     public void PublicHosts_DefaultToApexAndWww()
     {
         Assert.Equal(["tahsinerp.uz", "www.tahsinerp.uz"], new PanelHostOptions { Domain = "tahsinerp.uz" }.EffectivePublicHosts);

@@ -431,6 +431,7 @@ public class ControlDbContext(DbContextOptions<ControlDbContext> options) : DbCo
             e.Property(x => x.Lang).HasMaxLength(5);
             e.Property(x => x.Ip).HasMaxLength(64);
             e.Property(x => x.UserAgent).HasMaxLength(400);
+            e.Property(x => x.StaffNotifyError).HasMaxLength(500);
             e.Property(x => x.StaffNote).HasMaxLength(1000);
             e.HasOne<Tenant>().WithMany().HasForeignKey(x => x.TenantId).OnDelete(DeleteBehavior.SetNull);
         });
