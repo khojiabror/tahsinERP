@@ -182,7 +182,7 @@ public class ControlDbContext(DbContextOptions<ControlDbContext> options) : DbCo
             e.Property(x => x.KeyId).HasMaxLength(20);
             e.Property(x => x.LicenseKey).HasMaxLength(2000);
             e.Property(x => x.ETag).HasMaxLength(64);
-            e.Property(x => x.Edition).HasMaxLength(20);
+            e.Property(x => x.Edition).HasMaxLength(200);   // "TRIAL:Srm,Crm,...+SITE" — tanlangan modullar bilan uzun bo'ladi
             e.Property(x => x.Reason).HasMaxLength(1000);
             e.Property(x => x.RevokeReason).HasMaxLength(1000);
             e.HasOne(x => x.Tenant).WithMany().HasForeignKey(x => x.TenantId).OnDelete(DeleteBehavior.Restrict);

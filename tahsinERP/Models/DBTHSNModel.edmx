@@ -148,7 +148,7 @@
           <Property Name="MaxUsers" Type="int" Nullable="false" />
           <Property Name="StartDate" Type="datetime" />
           <Property Name="ExpiryDate" Type="datetime" />
-          <Property Name="Edition" Type="nvarchar" MaxLength="50" />
+          <Property Name="Edition" Type="nvarchar" MaxLength="200" />
           <Property Name="IsActive" Type="bit" Nullable="false" />
           <Property Name="CreatedAt" Type="datetime" Nullable="false" />
           <Property Name="CreatedBy" Type="nvarchar" MaxLength="100" />
@@ -6595,7 +6595,7 @@ warning 6002: The table/view 'DBTHSN-IPACK.dbo.V_FIN_PL_FACT_MONTHLY' does not h
           <Property Name="MaxUsers" Type="Int32" Nullable="false" />
           <Property Name="StartDate" Type="DateTime" Precision="3" />
           <Property Name="ExpiryDate" Type="DateTime" Precision="3" />
-          <Property Name="Edition" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="Edition" Type="String" MaxLength="200" FixedLength="false" Unicode="true" />
           <Property Name="IsActive" Type="Boolean" Nullable="false" />
           <Property Name="CreatedAt" Type="DateTime" Nullable="false" Precision="3" />
           <Property Name="CreatedBy" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />

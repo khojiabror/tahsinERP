@@ -1306,8 +1306,8 @@ namespace tahsinERP.ControlPanel.Data.Migrations
 
                     b.Property<string>("Edition")
                         .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<DateOnly>("ExpiryDate")
                         .HasColumnType("date");
