@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="uz">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+    <title>Do'kon</title>
+    <link rel="stylesheet" href="app.css">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+<header class="top">
+    <div class="customer">
+        <div id="custName" class="cust-name">…</div>
+        <div id="custNote" class="cust-debt"></div>
+    </div>
+    <div class="tabs">
+        <button type="button" class="tab active" data-view="catalog" id="tabCatalog"></button>
+        <button type="button" class="tab" data-view="cart" id="tabCart"></button>
+        <button type="button" class="tab" data-view="orders" id="tabOrders"></button>
+    </div>
+</header>
+
+<main>
+    <section id="viewCatalog">
+        <input id="search" class="search" type="search" autocomplete="off">
+        <div id="cats" class="chips"></div>
+        <div id="products" class="list"></div>
+        <div id="empty" class="muted center hidden"></div>
+    </section>
+
+    <section id="viewCart" class="hidden">
+        <div id="cartLines" class="list"></div>
+        <div id="cartEmpty" class="muted center hidden"></div>
+        <div id="cartForm" class="form">
+            <div class="seg">
+                <label><input type="radio" name="how" value="delivery" checked> <span id="lblDelivery"></span></label>
+                <label><input type="radio" name="how" value="pickup"> <span id="lblPickup"></span></label>
+            </div>
+            <label id="addressWrap"><span id="lblAddress"></span><textarea id="address" rows="2" maxlength="200"></textarea></label>
+            <label><span id="lblComment"></span><textarea id="comment" rows="2" maxlength="300"></textarea></label>
+            <div class="total"><span id="lblTotal"></span><b id="cartTotal">0</b></div>
+            <div id="minNote" class="muted hidden"></div>
+            <div id="promoNote" class="muted hidden"></div>
+            <div class="pay-note">
+                <b id="lblPay"></b>
+                <div id="payNote"></div>
+            </div>
+        </div>
+    </section>
+
+    <section id="viewOrders" class="hidden">
+        <div id="orderList" class="list"></div>
+        <div id="ordersEmpty" class="muted center hidden"></div>
+    </section>
+</main>
+
+<div id="toast" class="toast hidden"></div>
+<script src="uzcyrl.js"></script>
+<script src="shop.js"></script>
+</body>
+</html>

@@ -353,8 +353,8 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .step p { color: var(--muted); font-size: 15px; }
 
 /* Plans */
-.plans { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; align-items: stretch; }
-.plan { position: relative; display: flex; flex-direction: column; padding: 30px 26px 26px; border-radius: 22px; background: #fff; border: 1px solid var(--line); transition: transform .3s, box-shadow .3s; }
+.plans { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; align-items: stretch; }
+.plan { position: relative; display: flex; flex-direction: column; padding: 28px 20px 22px; border-radius: 22px; background: #fff; border: 1px solid var(--line); transition: transform .3s, box-shadow .3s; }
 .plan:hover { transform: translateY(-4px); box-shadow: var(--sh-2); }
 .plan.pop { background: linear-gradient(180deg, #0b1530, #13204a); color: #fff; border-color: transparent; box-shadow: 0 30px 60px -20px rgba(11, 21, 48, .6); }
 .pop-b { position: absolute; top: -13px; left: 26px; font-size: 12px; font-weight: 700; color: #fff; background: linear-gradient(135deg, #10b981, #0ea5e9); padding: 5px 12px; border-radius: 999px; box-shadow: 0 6px 16px rgba(16, 185, 129, .4); }
@@ -363,7 +363,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .plan h3 { font-size: 26px; margin: 6px 0 8px; }
 .for { font-size: 14.5px; color: var(--muted); min-height: 44px; }
 .pop .for { color: rgba(203, 213, 225, .78); }
-.users { display: flex; align-items: center; gap: 8px; margin: 18px 0; padding: 12px 14px; border-radius: 12px; background: var(--bg-alt); font-size: 14px; color: var(--muted); }
+.users { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; margin: 18px 0; padding: 12px 14px; border-radius: 12px; background: var(--bg-alt); font-size: 13.5px; color: var(--muted); }
 .users b { color: var(--ink); font-size: 16px; }
 .users .i { width: 18px; height: 18px; color: var(--pri); }
 .pop .users { background: rgba(255, 255, 255, .07); color: rgba(203, 213, 225, .8); }
@@ -474,7 +474,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
     .nav a { padding: 8px 9px; font-size: 14.5px; }
     .lnk-login { display: none; }
     .mods { grid-template-columns: repeat(3, 1fr); }
-    .plans { grid-template-columns: repeat(2, 1fr); }
+    .plans { grid-template-columns: repeat(3, 1fr); }
     .f1 { left: -10px; }
 }
 @media (max-width: 960px) {

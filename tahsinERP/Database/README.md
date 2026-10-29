@@ -134,7 +134,7 @@ hamma faylni beradi, qaysi biri ishlashini baza hal qiladi (test: `TrialModulesU
 | `260_Tasks_Projects.sql` | Tasks | 3 loyiha, 12 topshiriq |
 | `270_Logistics_Waybills.sql` | Logistics | ekspeditor, shartnoma/tarif, yo'l varaqalari (mavjud xarid/sotuv invoyslariga), to'lovlar |
 | `280_Docs_Letters.sql` | Docs | rasmiy xatlar (kiruvchi/chiquvchi), buyruqlar |
-| `290_Distribution_Orders.sql` | Distribution | hududlar, savdo nuqtalari, agentlar (parolsiz), narxlar, 14 buyurtma (barcha holatlar), jo'natish, qarz daftari, to'lovlar |
+| `290_Commerce_Orders.sql` | Commerce (Savdo) | hududlar, savdo nuqtalari, agentlar (parolsiz), narxlar, 14 buyurtma (barcha holatlar), jo'natish, qarz daftari, to'lovlar |
 | `295_Website_Catalog.sql` | Website | sayt sozlamalari, 6 mahsulot, 3 sahifa, 4 so'rov |
 | `299_Core_Finish.sql` | Core (har doim) | `PRODUCT_STOCKS` barcha harakatlardan (manfiy qoldiq — THROW), `demo_tmp` o'chiriladi |
 
@@ -160,7 +160,7 @@ to'lov) yaratilmaydi: o'chirib bo'lmaydigan iz qolmaydi.
 | `430_Hr_Structure.sql` | Hr | korxona bo'linmasi va "Direktor" lavozimi |
 | `440_Tasks_Project.sql` | Tasks | "ERP" loyihasi, admin'ga topshiriq "Xodimlarni qo'shing va rollarni biriktiring" |
 | `450_Logistics_Forwarder.sql` | Logistics | bitta tashuvchi |
-| `460_Distribution_Point.sql` | Distribution | hudud (Toshkent shahri → Chilonzor), bitta savdo nuqtasi (standart narx turi, limit 10 mln, 7 kun), mahsulot distributsiya kartasi va narxi |
+| `460_Commerce_Point.sql` | Commerce (Savdo) | hudud (Toshkent shahri → Chilonzor), bitta savdo nuqtasi (standart narx turi, limit 10 mln, 7 kun), mahsulot distributsiya kartasi va narxi |
 | `470_Website_Page.sql` | Website | sayt nomi = korxona nomi, "Biz haqimizda" sahifasi, namuna tovar katalogda (sayt o'chiq qoladi) |
 
 Namunasiz ham har yangi bazada: distributsiyaning "agent naqdi topshiriladigan kassa" sozlamasi standart kassaga bog'lanadi (New-TenantDb, admin bosqichi).

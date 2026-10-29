@@ -21,5 +21,8 @@ public static class Kb
 
     public static object Location(string text) => new { text, request_location = true };
 
+    /// <summary>O'z telefon raqamini yuborish tugmasi (Telegram kontakt — raqam foydalanuvchiniki ekani kafolatlangan).</summary>
+    public static object Contact(string text) => new { text, request_contact = true };
+
     public static object Remove() => new { remove_keyboard = true };
 }

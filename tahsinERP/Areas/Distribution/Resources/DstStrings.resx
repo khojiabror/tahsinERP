@@ -3668,4 +3668,76 @@ Kamomad: {4} qator, ortiqcha: {5} qator</value>
   <data name="Channels_StockMode_HIDDEN" xml:space="preserve">
     <value>yashirin</value>
   </data>
+  <data name="Shop_Disabled" xml:space="preserve">
+    <value>Telegram do'kon hozircha yopiq.</value>
+  </data>
+  <data name="Shop_SignupDisabled" xml:space="preserve">
+    <value>Ro'yxatdan o'tish yopiq — firmadan ulash kodini so'rang.</value>
+  </data>
+  <data name="Shop_CommentPickup" xml:space="preserve">
+    <value>o'zi olib ketadi</value>
+  </data>
+  <data name="Shop_CommentDelivery" xml:space="preserve">
+    <value>yetkazib berish</value>
+  </data>
+  <data name="Notify_ShopOrder" xml:space="preserve">
+    <value>🛒 Telegram do'kon: yangi buyurtma {0} — {1}, {2} so'm. Savdo → Buyurtmalar'da tasdiqlang.</value>
+  </data>
+  <data name="Notify_ShopNewCustomer" xml:space="preserve">
+    <value>🛒 Telegram do'kon: yangi mijoz ro'yxatdan o'tdi — {0}, {1}. Mijoz kartasida tasdiqlang.</value>
+  </data>
+  <data name="Notify_ShopLinkedCustomer" xml:space="preserve">
+    <value>🛒 Telegram do'kon: mijoz botga ulandi — {0}, {1}.</value>
+  </data>
+  <data name="Notify_ShopOrderReceived" xml:space="preserve">
+    <value>✅ Buyurtmangiz {0} qabul qilindi ({1} so'm). Operator tasdiqlagach xabar beramiz.</value>
+  </data>
+  <data name="Notify_ShopOrderConfirmed" xml:space="preserve">
+    <value>👍 Buyurtma {0} tasdiqlandi ({1} so'm) va tayyorlanmoqda.</value>
+  </data>
+  <data name="Notify_ShopOrderCancelled" xml:space="preserve">
+    <value>❌ Buyurtma {0} bekor qilindi: {1}</value>
+  </data>
+  <data name="Channels_Shop" xml:space="preserve">
+    <value>Telegram do'kon (mijoz o'zi buyurtma beradi)</value>
+  </data>
+  <data name="Channels_ShopHint" xml:space="preserve">
+    <value>Mijoz botda «Do'kon» tugmasini bosadi: katalog, savat, buyurtma. Buyurtma Savdo → Buyurtmalar'ga qoralama bo'lib tushadi — operator tasdiqlaydi, rezerv va qarz odatdagidek.</value>
+  </data>
+  <data name="Channels_ShopNoPayment" xml:space="preserve">
+    <value>Onlayn to'lov yo'q: tizim pul qabul qilmaydi va to'lovga aralashmaydi. Mijoz firmaning o'ziga to'laydi — qanday to'lashini quyidagi matnda yozing.</value>
+  </data>
+  <data name="Channels_ShopEnabled" xml:space="preserve">
+    <value>Do'konni yoqish</value>
+  </data>
+  <data name="Channels_ShopSignup" xml:space="preserve">
+    <value>Yangi mijoz telefon raqami bilan o'zi ro'yxatdan o'ta oladi (operator tasdiqlaydi)</value>
+  </data>
+  <data name="Channels_ShopShowStock" xml:space="preserve">
+    <value>Qoldiq holatini ko'rsatish (bor / kam); «mavjud emas» doim ko'rinadi</value>
+  </data>
+  <data name="Channels_ShopUser" xml:space="preserve">
+    <value>Mas'ul xodim</value>
+  </data>
+  <data name="Channels_ShopUserHint" xml:space="preserve">
+    <value>Buyurtmalar shu xodim nomidan yaratiladi; yangi buyurtma va mijoz haqida xabar unga Telegram'da boradi (botga ulangan bo'lishi kerak).</value>
+  </data>
+  <data name="Channels_ShopUserRequired" xml:space="preserve">
+    <value>Do'konni yoqish uchun mas'ul xodimni tanlang.</value>
+  </data>
+  <data name="Channels_ShopPaymentNote" xml:space="preserve">
+    <value>To'lov tartibi (mijozga savatda ko'rsatiladi)</value>
+  </data>
+  <data name="Channels_ShopPaymentNotePh" xml:space="preserve">
+    <value>Masalan: naqd yoki karta orqali yetkazib berilganda; korxonalar — bank o'tkazmasi.</value>
+  </data>
+  <data name="Channels_ShopNoteTooLong" xml:space="preserve">
+    <value>To'lov tartibi matni 400 belgidan oshmasin.</value>
+  </data>
+  <data name="Channels_ShopOrders30" xml:space="preserve">
+    <value>So'nggi 30 kunda: {0} ta buyurtma</value>
+  </data>
+  <data name="Channels_RoleCustomerShop" xml:space="preserve">
+    <value>Do'kon: katalog, savat, buyurtma.</value>
+  </data>
 </root>

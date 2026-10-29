@@ -9,7 +9,7 @@ SET XACT_ABORT ON;
 
 DECLARE @admin int = (SELECT TOP 1 u.ID FROM dbo.USERS u JOIN dbo.USERROLES ur ON ur.UserID = u.ID
                       JOIN dbo.ROLES r ON r.ID = ur.RoleID AND r.SystemCode = 'ADMIN' WHERE ISNULL(u.IsDeleted, 0) = 0 ORDER BY u.ID);
-IF dbo.fn_SetupHasModule('Distribution') = 0 OR @admin IS NULL OR EXISTS (SELECT 1 FROM dst.TERRITORIES)
+IF dbo.fn_SetupHasModule('Commerce') = 0 OR @admin IS NULL OR EXISTS (SELECT 1 FROM dst.TERRITORIES)
 BEGIN
     PRINT 'Namuna distributsiya: modul tanlanmagan, admin yo''q yoki ma''lumot bor — o''tkazib yuborildi';
     RETURN;

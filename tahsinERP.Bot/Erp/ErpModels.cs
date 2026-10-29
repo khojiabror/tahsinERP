@@ -6,6 +6,9 @@ namespace tahsinERP.Bot.Erp;
 
 public sealed record ErpAccount(int? UserId, int? CustomerId, string Role, string? Name, string? Language);
 
+/// <summary>Telegram do'kon holati (bog'lanmagan foydalanuvchi uchun ham): yoqilganmi, telefon bilan ro'yxatdan o'tish ochiqmi.</summary>
+public sealed record ErpShopPublic(bool Enabled, bool Signup);
+
 public sealed record ErpDay(DateTime? StartAt, DateTime? EndAt, int Planned, int Visited, int Orders, decimal OrdersTotal,
     decimal Collected, decimal CashOnHand, int NoOrder);
 

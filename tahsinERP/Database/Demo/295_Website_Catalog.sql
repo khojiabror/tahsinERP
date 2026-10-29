@@ -1,5 +1,5 @@
 /* =====================================================================
-   tahsinERP — DEMO: Sayt-katalog (Website, "+SITE") — sozlamalar, katalog, sahifalar, so'rovlar (290_Distribution_Orders.sql dan keyin).
+   tahsinERP — DEMO: Sayt-katalog (Website, "+SITE") — sozlamalar, katalog, sahifalar, so'rovlar (290_Commerce_Orders.sql dan keyin).
 
    Areas/Site shaklida: site.SETTINGS (Enabled = 1, kompaniya rekvizitlari; Distributsiya narxlari bo'lsa PriceMode SHOW, aks holda
    ASK — "narxini so'rang"), tayyor mahsulot kategoriyalari va 6 mahsulot nashr qilingan (slug [a-z0-9-], tavsif oddiy matn),

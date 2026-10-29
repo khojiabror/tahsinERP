@@ -1,0 +1,89 @@
+@page
+@model tahsinERP.ControlPanel.Pages.Bot.IndexModel
+@inject Clock Clock
+@{ ViewData["Title"] = L.T("Pnl_Bot_Title"); }
+<h1>@L.T("Pnl_Bot_Title")@if (Model.BotUsername is not null) { <span class="hint"> · <a href="https://t.me/@Model.BotUsername" target="_blank" rel="noopener">@@@Model.BotUsername</a></span> }</h1>
+<p class="hint">@L.T("Pnl_Bot_Hint")</p>
+<div class="grid">
+    <div class="stat"><span class="stat-ic"><svg class="i"><use href="#i-send" /></svg></span><div class="l">@L.T("Pnl_Bot_Chats")</div><div class="v">@Model.Chats</div><div class="hint">@L.T("Pnl_Bot_Active7", Model.Active7) · @L.T("Pnl_Bot_Blocked", Model.Blocked)</div></div>
+    <div class="stat"><span class="stat-ic violet"><svg class="i"><use href="#i-clock" /></svg></span><div class="l">@L.T("Pnl_Bot_Leads")</div><div class="v">@Model.BotLeads</div><div class="hint"><a href="/Leads">@L.T("Pnl_Auth2_NavLeads")</a></div></div>
+    <div class="stat"><span class="stat-ic warn"><svg class="i"><use href="#i-pause" /></svg></span><div class="l">@L.T("Pnl_Bot_OpenSupport")</div><div class="v">@Model.OpenSupport</div><div class="hint">@(Model.AvgRating is double r ? L.T("Pnl_Bot_AvgRating", r.ToString("0.0")) : "")</div></div>
+</div>
+
+<div class="card">
+    <h2>@L.T("Pnl_Bot_Status")</h2>
+    @if (!Model.TokenConfigured)
+    {
+        <div class="flash bad">@L.T("Pnl_Bot_NoToken")</div>
+    }
+    else
+    {
+        @if (Model.ApiError is not null) { <div class="flash bad">@Model.ApiError</div> }
+        <table>
+            <tr><th>@L.T("Pnl_Bot_Webhook")</th><td>
+                @if (string.IsNullOrEmpty(Model.WebhookUrl)) { <span class="badge bad">@L.T("Pnl_Bot_WebhookNone")</span> }
+                else if (Model.WebhookUrl == Model.ExpectedUrl && Model.Effective.WebhookSecret is not null) { <span class="badge ok">@L.T("Pnl_Bot_WebhookOk")</span> <code>@Model.WebhookUrl</code> }
+                else { <span class="badge warn">@L.T("Pnl_Bot_WebhookOther")</span> <code>@Model.WebhookUrl</code> }
+                @if (Model.PendingUpdates > 0) { <div class="hint">@L.T("Pnl_Bot_Pending", Model.PendingUpdates)</div> }
+                @if (Model.WebhookError is not null) { <div class="hint">@L.T("Pnl_Bot_LastError", Model.WebhookErrorAt is DateTime d ? Clock.ToLocal(d).ToString("dd.MM.yyyy HH:mm") : "", Model.WebhookError)</div> }
+            </td></tr>
+            <tr><th>@L.T("Pnl_Bot_SalesGroup")</th><td>@(Model.Effective.SalesChatId?.ToString() ?? "—") <span class="hint">ControlPanel__Telegram__StaffChatId</span></td></tr>
+            <tr><th>@L.T("Pnl_Bot_SupportGroup")</th><td>
+                @if (Model.Effective.SupportChatId is long sc)
+                {
+                    @(Model.Groups.FirstOrDefault(g => g.Id == sc)?.Title ?? sc.ToString())
+                    @if (Model.SupportFromEnv) { <span class="hint"> (ControlPanel__Telegram__SupportChatId)</span> }
+                }
+                else { <span class="badge warn">@L.T("Pnl_Bot_SupportNone")</span> }
+            </td></tr>
+        </table>
+        @if (Model.IsOwner)
+        {
+            <form method="post" asp-page-handler="Webhook" class="actions">
+                <button type="submit">@L.T("Pnl_Bot_SetWebhook")</button>
+                <span class="hint">@L.T("Pnl_Bot_SetWebhookHint", Model.ExpectedUrl)</span>
+            </form>
+            <form method="post" asp-page-handler="Support" class="actions">
+                <select name="SupportChatId">
+                    <option value="">— @L.T("Pnl_Bot_SupportPick") —</option>
+                    @foreach (var g in Model.Groups)
+                    {
+                        <option value="@g.Id" selected="@(Model.Settings.SupportChatId == g.Id)">@g.Title (@g.Id)</option>
+                    }
+                </select>
+                <button type="submit" class="secondary">@L.T("Save")</button>
+                <span class="hint">@L.T("Pnl_Bot_SupportHint")</span>
+            </form>
+        }
+    }
+</div>
+
+<div class="card">
+    <h2>@L.T("Pnl_Bot_Threads")</h2>
+    @if (Model.Rows.Count == 0)
+    {
+        <div class="empty">@L.T("Pnl_Bot_ThreadsEmpty")</div>
+    }
+    else
+    {
+        <table>
+            <tr><th>№</th><th>@L.T("Date")</th><th>@L.T("Pnl_Bot_ColKind")</th><th>@L.T("Pnl_Lead_ColContact")</th><th>@L.T("Pnl_Lead_ColCompany")</th><th>@L.T("Pnl_Bot_ColSubject")</th><th>@L.T("Status")</th></tr>
+            @foreach (var t in Model.Rows)
+            {
+                var c = Model.ChatsById.GetValueOrDefault(t.ChatId);
+                <tr>
+                    <td>@t.Id</td>
+                    <td>@Clock.ToLocal(t.CreatedAtUtc).ToString("dd.MM.yyyy HH:mm")<div class="hint">@c?.Lang?.ToUpperInvariant()</div></td>
+                    <td><span class="badge @(t.Kind == BotThreadKind.Support ? "warn" : "info")">@tahsinERP.ControlPanel.Pages.Bot.IndexModel.KindLabel(t.Kind)</span>@if (t.DemoRequestId is int rid) { <div class="hint"><a href="/Leads?all=true">#@rid</a></div> }</td>
+                    <td>@(c?.FullName ?? c?.FirstName)@if (c?.Username is not null) { <div class="hint"><a href="https://t.me/@c.Username" target="_blank" rel="noopener">@@@c.Username</a></div> }@if (c?.Phone is not null) { <div><a href="tel:@c.Phone">@c.Phone</a></div> }</td>
+                    <td>@t.Company</td>
+                    <td>@t.Subject</td>
+                    <td><span class="badge @(t.Status == BotThreadStatus.Open ? "ok" : "muted")">@(t.Status == BotThreadStatus.Open ? L.T("Pnl_Bot_StOpen") : L.T("Pnl_Bot_StClosed"))</span>
+                        @if (t.Rating is int stars) { <div class="hint">@string.Concat(Enumerable.Repeat("★", stars))</div> }
+                        @if (t.ClosedBy is not null) { <div class="hint">@t.ClosedBy</div> }</td>
+                </tr>
+            }
+        </table>
+        <partial name="_Pager" model="Model.Pager" />
+    }
+</div>

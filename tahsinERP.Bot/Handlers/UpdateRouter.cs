@@ -97,12 +97,13 @@ public sealed partial class UpdateRouter(BotDbContext db, Outbox outbox, Session
             var code = text.Length > 7 ? text[7..].Trim() : "";
             if (code.Length > 0) await LinkAsync(ctx, code, ct);
             else if (await RefreshLinkAsync(ctx, ct)) await SendMenuAsync(ctx, ctx.T("Menu"), ct);
-            else outbox.Send(ctx.Tenant.Id, ctx.ChatId, Texts.Get(LangOf(ctx.From), "Welcome_Unlinked"));
+            else await WelcomeUnlinkedAsync(ctx, ct);
             return;
         }
         if (!await EnsureLinkAsync(ctx, ct))
         {
-            outbox.Send(ctx.Tenant.Id, ctx.ChatId, Texts.Get(LangOf(ctx.From), "Welcome_Unlinked"));
+            if (msg.Contact is { } signup) await ShopSignupAsync(ctx, signup, ct);   // do'konda telefon bilan ro'yxatdan o'tish
+            else await WelcomeUnlinkedAsync(ctx, ct);
             return;
         }
         if (text == "/stop")
@@ -156,8 +157,12 @@ public sealed partial class UpdateRouter(BotDbContext db, Outbox outbox, Session
         }
 
         switch (Texts.KeyOf(text, "Btn_DayStart", "Btn_Route", "Btn_Search", "Btn_Cash", "Btn_DayEnd", "Btn_Summary",
-                    "Btn_NewPoint", "Btn_Live", "Btn_MyDebt", "Btn_Statement", "Btn_Store", "Btn_Trip", "Btn_TripClose"))
+                    "Btn_NewPoint", "Btn_Live", "Btn_MyDebt", "Btn_Statement", "Btn_Store", "Btn_Trip", "Btn_TripClose", "Btn_Shop"))
         {
+            case "Btn_Shop":
+                if (ctx.Link?.CustomerId == null) { outbox.Send(ctx.Tenant.Id, ctx.ChatId, ctx.T("NotAllowed")); return; }
+                SendShopButton(ctx);
+                return;
             case "Btn_Trip": await SendTripAsync(ctx, null, ct); return;
             case "Btn_TripClose": await AskTripCloseAsync(ctx, ct); return;
             case "Btn_Store":
@@ -303,7 +308,7 @@ public sealed partial class UpdateRouter(BotDbContext db, Outbox outbox, Session
 
     // ---------- menyu ----------
 
-    private Task SendMenuAsync(Ctx ctx, string text, CancellationToken ct)
+    private async Task SendMenuAsync(Ctx ctx, string text, CancellationToken ct)
     {
         object? keyboard;
         if (ctx.IsExpeditor)
@@ -328,8 +333,11 @@ public sealed partial class UpdateRouter(BotDbContext db, Outbox outbox, Session
         }
         else if (ctx.Link?.CustomerId != null)
         {
-            keyboard = Kb.Reply([[Kb.Text(ctx.T("Btn_MyDebt")), Kb.Text(ctx.T("Btn_Statement"))]]);
-            text += "\n" + ctx.T("Customer_Menu");
+            bool shop = (await ShopStateAsync(ctx, ct)).Enabled;
+            keyboard = shop
+                ? Kb.Reply([[Kb.Text(ctx.T("Btn_Shop"))], [Kb.Text(ctx.T("Btn_MyDebt")), Kb.Text(ctx.T("Btn_Statement"))]])
+                : Kb.Reply([[Kb.Text(ctx.T("Btn_MyDebt")), Kb.Text(ctx.T("Btn_Statement"))]]);
+            text += "\n" + ctx.T(shop ? "Customer_MenuShop" : "Customer_Menu");
         }
         else if (ctx.Link?.UserId != null)
         {
@@ -342,7 +350,6 @@ public sealed partial class UpdateRouter(BotDbContext db, Outbox outbox, Session
             text += "\n" + ctx.T("Staff_Menu");
         }
         outbox.Send(ctx.Tenant.Id, ctx.ChatId, text, keyboard);
-        return Task.CompletedTask;
     }
 
     private object CancelKeyboard(Ctx ctx) => Kb.Reply([[Kb.Text(ctx.T("Btn_Cancel"))]], oneTime: true);

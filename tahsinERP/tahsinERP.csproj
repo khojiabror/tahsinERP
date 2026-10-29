@@ -969,6 +969,7 @@
     <Compile Include="Areas\Distribution\Controllers\Api\DstApiAuthAttribute.cs" />
     <Compile Include="Areas\Distribution\Controllers\Api\DstApiModuleAttribute.cs" />
     <Compile Include="Areas\Distribution\Controllers\Api\DstApiController.cs" />
+    <Compile Include="Areas\Distribution\Controllers\Api\DstApiController.Shop.cs" />
     <Compile Include="Areas\Distribution\Data\Entities\BotEntities.cs" />
     <Compile Include="Areas\Distribution\Services\Bot\BotServices.cs" />
     <Compile Include="Areas\Distribution\Services\Bot\DailySummaryService.cs" />

@@ -266,6 +266,7 @@
     "cta": "Get a quote",
     "items": [
       { "code": "START", "name": "Start", "for": "Small business: order in purchasing, inventory and sales", "users": "up to 5", "modules": ["Procurement & inventory (SRM)", "Sales (CRM)", "Tasks"] },
+      { "code": "SAVDO", "name": "Commerce", "for": "Online shop and wholesale — no field agents", "users": "up to 20", "modules": ["Warehouse & sales (CRM)", "Orders, stock, customer debt", "Telegram shop (Mini App)", "Finance; website catalog — add-on"] },
       { "code": "DIST", "name": "Distribution", "for": "Distributors and wholesale companies", "users": "up to 20", "modules": ["Everything in Start", "Distribution + Telegram bot", "Finance & analytics"] },
       { "code": "BIZNES", "name": "Business", "for": "Manufacturers: planning, costing, finance", "users": "up to 20", "popular": true, "modules": ["Everything in Start", "Production (MES)", "BOM, norms & costing", "Finance & analytics"] },
       { "code": "KORP", "name": "Enterprise", "for": "Large companies: every module in one system", "users": "up to 50", "modules": ["Everything in Business", "HR & payroll", "Logistics, documents", "Distribution + Telegram bot"] }

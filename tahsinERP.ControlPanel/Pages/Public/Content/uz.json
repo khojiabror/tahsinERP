@@ -266,6 +266,7 @@
     "cta": "Taklif olish",
     "items": [
       { "code": "START", "name": "Start", "for": "Kichik korxona: xarid, ombor va savdoni tartibga solish", "users": "5", "modules": ["Xarid va ombor (SRM)", "Savdo (CRM)", "Vazifalar"] },
+      { "code": "SAVDO", "name": "Savdo", "for": "Online do'kon va ulgurji savdo — agentlarsiz", "users": "20", "modules": ["Ombor va savdo (CRM)", "Buyurtma, qoldiq, mijoz qarzi", "Telegram do'kon (Mini App)", "Moliya; sayt-katalog — qo'shimcha"] },
       { "code": "DIST", "name": "Distributsiya", "for": "Distribyutor va ulgurji savdo kompaniyalari", "users": "20", "modules": ["Start'dagi hammasi", "Distributsiya + Telegram bot", "Moliya va analitika"] },
       { "code": "BIZNES", "name": "Biznes", "for": "Ishlab chiqarish korxonasi: reja, tannarx, moliya", "users": "20", "popular": true, "modules": ["Start'dagi hammasi", "Ishlab chiqarish (MES)", "BOM, norma va tannarx", "Moliya va analitika"] },
       { "code": "KORP", "name": "Korporativ", "for": "Katta korxona: barcha modullar bitta konturda", "users": "50", "modules": ["Biznes'dagi hammasi", "Kadrlar va ish haqi", "Logistika, hujjatlar", "Distributsiya + Telegram bot"] }

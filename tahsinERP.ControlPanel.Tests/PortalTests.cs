@@ -141,7 +141,7 @@ public class PortalLoginTests : IClassFixture<PanelFactory>
         Assert.Contains("kamida 12", Html(weak));
 
         await AcceptInviteAsync(f, token, linkChat: "5001");
-        Assert.Contains(f.Telegram.To("5001"), m => m.Text.Contains("bog'landi"));
+        Assert.Contains(f.Bot.To(5001), m => m.Text.Contains("bog'landi"));
         // Havola bir martalik.
         Assert.Contains("yaroqsiz", Html(await c.GetAsync(url)));
 
@@ -237,10 +237,13 @@ public class PortalLoginTests : IClassFixture<PanelFactory>
     [Fact]
     public async Task Webhook_StartWithoutCode_RepliesChatId_BadCodeRejected()
     {
+        // /start — sotuv boti (til tanlash), chat ID — /id buyrug'i.
         Assert.Equal(HttpStatusCode.OK, (await WebhookAsync(f, "8001", "/start")).StatusCode);
-        Assert.Contains(f.Telegram.To("8001"), m => m.Text.Contains("chat ID: 8001"));
+        Assert.Contains(f.Bot.To(8001), m => m.Text.Contains("Tilni tanlang"));
+        Assert.Equal(HttpStatusCode.OK, (await WebhookAsync(f, "8001", "/id")).StatusCode);
+        Assert.Contains(f.Bot.To(8001), m => m.Text.Contains("chat ID: 8001"));
         Assert.Equal(HttpStatusCode.OK, (await WebhookAsync(f, "8001", "/start LAAAAAAAAAAAAAAAAAAAAAAAA")).StatusCode);
-        Assert.Contains(f.Telegram.To("8001"), m => m.Text.Contains("yaroqsiz"));
+        Assert.Contains(f.Bot.To(8001), m => m.Text.Contains("yaroqsiz"));
     }
 }
 

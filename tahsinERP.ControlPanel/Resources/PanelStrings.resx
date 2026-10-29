@@ -4857,4 +4857,121 @@ Siz so'ramagan bo'lsangiz — bu xatga e'tibor bermang, parolingiz o'zgarmaydi.<
   <data name="Pnl_Econ_NewModule" xml:space="preserve">
     <value>yangi — standart og'irlik</value>
   </data>
+  <data name="Pnl_Bot_Nav" xml:space="preserve">
+    <value>Telegram bot</value>
+  </data>
+  <data name="Pnl_Bot_Title" xml:space="preserve">
+    <value>Telegram bot</value>
+  </data>
+  <data name="Pnl_Bot_Hint" xml:space="preserve">
+    <value>Sotuv boti: tizim haqida ma'lumot (qo'llanmadan qidiruv), 14 kunlik demo va konsultatsiya so'rovlari (savdo guruhiga + «Demo so'rovlar»), texnik yordam murojaatlari (support guruhiga). Guruhda bot xabariga reply qilsangiz — javob mijozga yetkaziladi, /close — murojaatni yopadi.</value>
+  </data>
+  <data name="Pnl_Bot_Chats" xml:space="preserve">
+    <value>Foydalanuvchilar</value>
+  </data>
+  <data name="Pnl_Bot_Active7" xml:space="preserve">
+    <value>7 kunda faol: {0}</value>
+  </data>
+  <data name="Pnl_Bot_Blocked" xml:space="preserve">
+    <value>bloklagan: {0}</value>
+  </data>
+  <data name="Pnl_Bot_Leads" xml:space="preserve">
+    <value>Bot orqali so'rovlar</value>
+  </data>
+  <data name="Pnl_Bot_OpenSupport" xml:space="preserve">
+    <value>Ochiq murojaatlar</value>
+  </data>
+  <data name="Pnl_Bot_AvgRating" xml:space="preserve">
+    <value>O'rtacha baho: {0}/5</value>
+  </data>
+  <data name="Pnl_Bot_Status" xml:space="preserve">
+    <value>Holat va sozlash</value>
+  </data>
+  <data name="Pnl_Bot_NoToken" xml:space="preserve">
+    <value>Bot tokeni sozlanmagan (ControlPanel__Telegram__BotToken).</value>
+  </data>
+  <data name="Pnl_Bot_Webhook" xml:space="preserve">
+    <value>Webhook</value>
+  </data>
+  <data name="Pnl_Bot_WebhookNone" xml:space="preserve">
+    <value>O'rnatilmagan — bot xabarlarga javob bermaydi</value>
+  </data>
+  <data name="Pnl_Bot_WebhookOk" xml:space="preserve">
+    <value>Ishlayapti</value>
+  </data>
+  <data name="Pnl_Bot_WebhookOther" xml:space="preserve">
+    <value>Boshqa manzilga o'rnatilgan</value>
+  </data>
+  <data name="Pnl_Bot_Pending" xml:space="preserve">
+    <value>Navbatda: {0} ta yangilanish</value>
+  </data>
+  <data name="Pnl_Bot_LastError" xml:space="preserve">
+    <value>Oxirgi xato ({0}): {1}</value>
+  </data>
+  <data name="Pnl_Bot_SalesGroup" xml:space="preserve">
+    <value>Savdo guruhi (demo, konsultatsiya)</value>
+  </data>
+  <data name="Pnl_Bot_SupportGroup" xml:space="preserve">
+    <value>Texnik yordam guruhi</value>
+  </data>
+  <data name="Pnl_Bot_SupportNone" xml:space="preserve">
+    <value>Tanlanmagan — «Texnik yordam» tugmasi ishlamaydi</value>
+  </data>
+  <data name="Pnl_Bot_SetWebhook" xml:space="preserve">
+    <value>Webhook'ni o'rnatish / yangilash</value>
+  </data>
+  <data name="Pnl_Bot_SetWebhookHint" xml:space="preserve">
+    <value>{0} — buyruqlar menyusi va bot tavsifi (uz/ru) ham yangilanadi.</value>
+  </data>
+  <data name="Pnl_Bot_SupportPick" xml:space="preserve">
+    <value>support guruhi</value>
+  </data>
+  <data name="Pnl_Bot_SupportHint" xml:space="preserve">
+    <value>Ro'yxatda bot qo'shilgan guruhlar. Botni guruhga qo'shing (masalan «tahsinERP: Bugs») — u shu yerda paydo bo'ladi.</value>
+  </data>
+  <data name="Pnl_Bot_WebhookSet" xml:space="preserve">
+    <value>Webhook o'rnatildi: {0}</value>
+  </data>
+  <data name="Pnl_Bot_WebhookFailed" xml:space="preserve">
+    <value>Webhook o'rnatilmadi: {0}</value>
+  </data>
+  <data name="Pnl_Bot_SupportSet" xml:space="preserve">
+    <value>Texnik yordam guruhi: {0}</value>
+  </data>
+  <data name="Pnl_Bot_SupportCleared" xml:space="preserve">
+    <value>Texnik yordam guruhi olib tashlandi.</value>
+  </data>
+  <data name="Pnl_Bot_Threads" xml:space="preserve">
+    <value>Yozishmalar</value>
+  </data>
+  <data name="Pnl_Bot_ThreadsEmpty" xml:space="preserve">
+    <value>Hali yozishma yo'q.</value>
+  </data>
+  <data name="Pnl_Bot_ColKind" xml:space="preserve">
+    <value>Turi</value>
+  </data>
+  <data name="Pnl_Bot_ColSubject" xml:space="preserve">
+    <value>Mavzu</value>
+  </data>
+  <data name="Pnl_Bot_KindDemo" xml:space="preserve">
+    <value>Demo</value>
+  </data>
+  <data name="Pnl_Bot_KindConsult" xml:space="preserve">
+    <value>Konsultatsiya</value>
+  </data>
+  <data name="Pnl_Bot_KindSupport" xml:space="preserve">
+    <value>Texnik yordam</value>
+  </data>
+  <data name="Pnl_Bot_StOpen" xml:space="preserve">
+    <value>Ochiq</value>
+  </data>
+  <data name="Pnl_Bot_StClosed" xml:space="preserve">
+    <value>Yopilgan</value>
+  </data>
+  <data name="Pnl_Lead_SrcTelegram" xml:space="preserve">
+    <value>Telegram bot</value>
+  </data>
+  <data name="Pnl_Lead_KindConsult" xml:space="preserve">
+    <value>Konsultatsiya</value>
+  </data>
 </root>
