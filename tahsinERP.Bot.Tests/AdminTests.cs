@@ -23,7 +23,9 @@ public class AdminTests
         {
             var p when p.EndsWith("/getMe") => p.Contains("bad")
                 ? FakeHandler.Json(HttpStatusCode.Unauthorized, "{\"ok\":false,\"description\":\"Unauthorized\"}")
-                : FakeHandler.Json(HttpStatusCode.OK, "{\"ok\":true,\"result\":{\"username\":\"firma1_bot\"}}"),
+                : FakeHandler.Json(HttpStatusCode.OK, p.Contains("other")
+                    ? "{\"ok\":true,\"result\":{\"username\":\"firma2_bot\"}}"
+                    : "{\"ok\":true,\"result\":{\"username\":\"firma1_bot\"}}"),
             var p when p.EndsWith("/getWebhookInfo") =>
                 FakeHandler.Json(HttpStatusCode.OK, "{\"ok\":true,\"result\":{\"url\":\"https://bot.example.uz/tg/firma1\",\"pending_update_count\":0}}"),
             _ => FakeHandler.Json(HttpStatusCode.OK, "{\"ok\":true,\"result\":true}"),
@@ -37,6 +39,8 @@ public class AdminTests
         services.AddSingleton(new TelegramApi(new HttpClient(tg)));
         services.AddSingleton(typeof(ILogger<>), typeof(NullLogger<>));
         services.AddSingleton<TenantRegistry>();
+        services.AddHttpClient(tahsinERP.Bot.Erp.ErpClientFactory.HttpClientName).ConfigurePrimaryHttpMessageHandler(() => tg);
+        services.AddSingleton<tahsinERP.Bot.Erp.ErpClientFactory>();
         services.AddScoped<BotTenantAdmin>();
         return (services.BuildServiceProvider(), tg);
     }
@@ -82,7 +86,7 @@ public class AdminTests
         var admin = scope.ServiceProvider.GetRequiredService<BotTenantAdmin>();
         var db = scope.ServiceProvider.GetRequiredService<BotDbContext>();
         var t = await admin.UpsertAsync("firma1", "https://firma1.example.uz/", "firma1", "123:good", verifyToken: true, CancellationToken.None);
-        var other = await admin.UpsertAsync("firma2", "https://firma2.example.uz/", "firma2", "123:good", verifyToken: true, CancellationToken.None);
+        var other = await admin.UpsertAsync("firma2", "https://firma2.example.uz/", "firma2", "456:other", verifyToken: true, CancellationToken.None);
         var now = DateTime.UtcNow;
         foreach (var id in new[] { t.Id, other.Id })
         {
@@ -99,7 +103,9 @@ public class AdminTests
         Assert.False(await db.Sessions.AnyAsync(x => x.TenantId == t.Id));
         Assert.False(await db.Inbox.AnyAsync(x => x.TenantId == t.Id));
         Assert.False(await db.Outbox.AnyAsync(x => x.TenantId == t.Id));
-        Assert.Contains(tg.Requests, r => r.Uri.AbsolutePath.EndsWith("/deleteWebhook"));
+        Assert.Contains(tg.Requests, r => r.Uri.AbsolutePath.EndsWith("/deleteWebhook") && r.Text.Contains("\"drop_pending_updates\":true"));
+        // firma ERP'sidagi Telegram bog'lanishlari ham tozalanadi (imzoli DstApi/Disconnect)
+        Assert.Contains(tg.Requests, r => r.Uri.Host == "firma1.example.uz" && r.Uri.AbsolutePath.EndsWith("/Distribution/DstApi/Disconnect"));
         // boshqa firma tegilmaydi
         Assert.Equal(1, await db.Links.CountAsync(x => x.TenantId == other.Id));
         Assert.Equal(1, await db.Outbox.CountAsync(x => x.TenantId == other.Id));
@@ -107,6 +113,37 @@ public class AdminTests
         Assert.False(await admin.DeleteAsync("firma1", CancellationToken.None));
         var fresh = await admin.UpsertAsync("firma1", "https://firma1.example.uz/", "firma1", "123:good", verifyToken: true, CancellationToken.None);
         Assert.NotEqual(t.Id, fresh.Id);
+    }
+
+    /// <summary>Bitta bot boshqa firmaga ulansa — eski firmadagi ulanishi (ERP bog'lanishlari bilan) to'liq tozalanadi.</summary>
+    [Fact]
+    public async Task Upsert_SameBotOnAnotherFirm_PurgesOldFirm()
+    {
+        var (sp, tg) = Build();
+        using var scope = sp.CreateScope();
+        var admin = scope.ServiceProvider.GetRequiredService<BotTenantAdmin>();
+        var db = scope.ServiceProvider.GetRequiredService<BotDbContext>();
+        var old = await admin.UpsertAsync("smarttech-old", "https://old.example.uz/", "smarttech-old", "123:good", verifyToken: true, CancellationToken.None);
+        db.Links.Add(new BotLink { TenantId = old.Id, TelegramUserId = 7, ChatId = 7, UserId = 5, Role = "AGENT", LinkedAt = DateTime.UtcNow });
+        db.Sessions.Add(new BotSession { TenantId = old.Id, TelegramUserId = 7, State = "x" });
+        await db.SaveChangesAsync();
+
+        var fresh = await admin.UpsertAsync("smarttech", "https://new.example.uz/", "smarttech", "123:good", verifyToken: true, CancellationToken.None);
+        await admin.SetWebhookAsync(fresh, CancellationToken.None, dropPending: true);
+
+        Assert.False(await db.Tenants.AnyAsync(x => x.Slug == "smarttech-old"));
+        Assert.False(await db.Links.AnyAsync(x => x.TenantId == old.Id));
+        Assert.False(await db.Sessions.AnyAsync(x => x.TenantId == old.Id));
+        Assert.Contains(tg.Requests, r => r.Uri.Host == "old.example.uz" && r.Uri.AbsolutePath.EndsWith("/DstApi/Disconnect"));
+        Assert.DoesNotContain(tg.Requests, r => r.Uri.Host == "new.example.uz");
+        var hook = tg.Requests.Last(r => r.Uri.AbsolutePath.EndsWith("/setWebhook"));
+        Assert.Contains("/tg/smarttech\"", hook.Text);
+        Assert.Contains("\"drop_pending_updates\":true", hook.Text);
+        Assert.True((await db.Tenants.SingleAsync(x => x.Slug == "smarttech")).IsActive);
+
+        // Boshqa bot (boshqa username) — birinchi firma tegilmaydi.
+        await admin.UpsertAsync("firma2", "https://firma2.example.uz/", "firma2", "456:other", verifyToken: true, CancellationToken.None);
+        Assert.True(await db.Tenants.AnyAsync(x => x.Slug == "smarttech"));
     }
 
     [Fact]

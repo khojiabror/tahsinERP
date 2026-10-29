@@ -5088,4 +5088,16 @@ Siz so'ramagan bo'lsangiz — bu xatga e'tibor bermang, parolingiz o'zgarmaydi.<
   <data name="Pnl_Tk_NotifyUser" xml:space="preserve">
     <value>Mijozga «hal qilindi» xabari va baho so'rovini yuborish</value>
   </data>
+  <data name="Pnl_Ten_BotDisconnect" xml:space="preserve">
+    <value>Botni uzish va tozalash</value>
+  </data>
+  <data name="Pnl_Ten_BotDisconnectHint" xml:space="preserve">
+    <value>Bot ma'lumotlari (Telegram bog'lanishlari, navbatlar) o'chiriladi — bot keyin boshqa firmaga toza ulanadi.</value>
+  </data>
+  <data name="Pnl_Ten_BotDisconnectConfirm" xml:space="preserve">
+    <value>Botni firmadan uzish? Xodim va mijozlarning Telegram bog'lanishlari, kutayotgan xabarlar o'chiriladi. Qayta ulansa — hamma qayta bog'lanadi.</value>
+  </data>
+  <data name="Pnl_Ten_BotDisconnected" xml:space="preserve">
+    <value>Bot firmadan uzildi va tozalandi.</value>
+  </data>
 </root>

@@ -27,7 +27,7 @@ public static class AdminEndpoints
             await Safe(async () =>
             {
                 var t = await admin.UpsertAsync(slug, body.ErpBaseUrl ?? "", body.ErpTenant, body.Token, verifyToken: true, ct);
-                await admin.SetWebhookAsync(t, ct);
+                await admin.SetWebhookAsync(t, ct, dropPending: !string.IsNullOrWhiteSpace(body.Token));
                 return Results.Ok(await admin.StatusAsync(slug, withWebhook: true, ct));
             }));
 

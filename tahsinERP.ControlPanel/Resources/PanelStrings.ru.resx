@@ -5088,4 +5088,16 @@ tahsinERP портал: код входа {1}. Действует {2} мин.
   <data name="Pnl_Tk_NotifyUser" xml:space="preserve">
     <value>Отправить клиенту сообщение «решено» и запрос оценки</value>
   </data>
+  <data name="Pnl_Ten_BotDisconnect" xml:space="preserve">
+    <value>Отвязать бота и очистить</value>
+  </data>
+  <data name="Pnl_Ten_BotDisconnectHint" xml:space="preserve">
+    <value>Данные бота (привязки Telegram, очереди) удаляются — затем бота можно чисто подключить к другой фирме.</value>
+  </data>
+  <data name="Pnl_Ten_BotDisconnectConfirm" xml:space="preserve">
+    <value>Отвязать бота от фирмы? Привязки Telegram сотрудников и клиентов и ожидающие сообщения будут удалены. При повторном подключении всем нужно привязаться заново.</value>
+  </data>
+  <data name="Pnl_Ten_BotDisconnected" xml:space="preserve">
+    <value>Бот отвязан от фирмы и очищен.</value>
+  </data>
 </root>

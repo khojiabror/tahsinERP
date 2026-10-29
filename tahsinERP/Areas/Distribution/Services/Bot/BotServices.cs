@@ -100,6 +100,23 @@ namespace tahsinERP.Areas.Distribution.Services.Bot
             foreach (var a in db.TelegramAccounts.Where(a => a.TelegramUserId == telegramUserId && a.IsActive).ToList())
                 a.IsActive = false;
         }
+
+        /// <summary>
+        /// Bot firmadan uzildi (panel «Botni uzish» yoki token boshqa firmaga ulandi): barcha Telegram bog'lanishlari o'chadi,
+        /// ishlatilmagan ulash kodlari bekor bo'ladi, yuborilmagan bildirishnomalar yopiladi va bot nomi/manzili tozalanadi —
+        /// shu bot keyin boshqa firmada ishlatilsa eski firma unga yozmaydi, t.me havolalari eski botga olib bormaydi.
+        /// Qayta ulanganda xodim va mijozlar yangi kod bilan qayta bog'lanadi.
+        /// </summary>
+        public static object DisconnectAll(DistributionDbContext db, DateTime now)
+        {
+            int accounts = 0, codes = 0, notifications = 0;
+            foreach (var a in db.TelegramAccounts.Where(a => a.IsActive).ToList()) { a.IsActive = false; accounts++; }
+            foreach (var c in db.TelegramLinkCodes.Where(c => c.UsedAt == null && c.ExpiresAt > now).ToList()) { c.ExpiresAt = now; codes++; }
+            foreach (var n in db.Notifications.Where(n => n.SentAt == null).ToList()) { n.SentAt = now; notifications++; }
+            DstSettings.Set(db, DstSetting.BotUsername, null);
+            DstSettings.Set(db, DstSetting.BotPublicUrl, null);
+            return new { accounts, codes, notifications };
+        }
     }
 
     /// <summary>

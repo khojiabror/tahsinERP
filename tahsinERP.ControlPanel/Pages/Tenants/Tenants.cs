@@ -363,7 +363,7 @@ public class DetailsModel(ControlDbContext db, TenantService tenants, LicenseIss
         return Page();
     }
 
-    public Task<IActionResult> OnPostBotDisableAsync(int id) => AppsActionAsync(id, () => apps.DisableBotAsync(Tenant), L.T("Pnl_Ten_BotDisabled"));
+    public Task<IActionResult> OnPostBotDisconnectAsync(int id) => AppsActionAsync(id, () => apps.DisconnectBotAsync(Tenant), L.T("Pnl_Ten_BotDisconnected"));
 
     public Task<IActionResult> OnPostSiteEnableAsync(int id) => AppsActionAsync(id, () => apps.EnableSiteAsync(Tenant), L.T("Pnl_Ten_SiteEnabled"));
 

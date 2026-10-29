@@ -150,11 +150,17 @@ public sealed class TenantAppsService(IAppsClient apps, ProvisioningService prov
         return s;
     }
 
-    public async Task DisableBotAsync(Tenant t, CancellationToken ct = default)
+    /// <summary>
+    /// Botni firmadan uzish — to'liq tozalash (bot xizmati: ulanishlar, seanslar, navbatlar, Telegram'dagi kutib turgan
+    /// yangilanishlar; firma ERP'si: Telegram bog'lanishlari, kutayotgan xabarlar, bot nomi). Shundan keyin shu bot tokeni
+    /// boshqa firmaga toza ulanadi. Arxivlash esa faqat o'chirib qo'yadi (qayta tiklash uchun) — ProvisioningService.DisableAppsAsync.
+    /// </summary>
+    public async Task<bool> DisconnectBotAsync(Tenant t, CancellationToken ct = default)
     {
-        await apps.DisableBotAsync(t.Slug, ct);
-        audit.Add("tenant.bot-disable", "Tenant", t.Id);
+        var r = await apps.DeleteBotAsync(t.Slug, ct);
+        audit.Add("tenant.bot-disconnect", "Tenant", t.Id, after: new { r.Deleted });
         await db.SaveChangesAsync(ct);
+        return r.Deleted;
     }
 
     public async Task EnableSiteAsync(Tenant t, CancellationToken ct = default)
