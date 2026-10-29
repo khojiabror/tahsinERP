@@ -1202,8 +1202,13 @@ namespace tahsinERP.ControlPanel.Data.Migrations
                         },
                         new
                         {
+                            Module = "Commerce",
+                            Weight = 2
+                        },
+                        new
+                        {
                             Module = "Distribution",
-                            Weight = 3
+                            Weight = 1
                         });
                 });
 
@@ -1400,7 +1405,7 @@ namespace tahsinERP.ControlPanel.Data.Migrations
                             IsActive = true,
                             IsAddOn = false,
                             MaxUsers = 50,
-                            Modules = "Srm,Crm,Tasks,Mes,Engineering,Finance,Hr,Logistics,Docs,Distribution",
+                            Modules = "Srm,Crm,Tasks,Mes,Engineering,Finance,Hr,Logistics,Docs,Commerce,Distribution",
                             Name = "Korporativ",
                             SortOrder = 3,
                             VatRatePercent = 12m
@@ -1412,7 +1417,7 @@ namespace tahsinERP.ControlPanel.Data.Migrations
                             IsActive = true,
                             IsAddOn = false,
                             MaxUsers = 5,
-                            Modules = "Srm,Crm,Tasks,Mes,Engineering,Finance,Hr,Logistics,Docs,Distribution",
+                            Modules = "Srm,Crm,Tasks,Mes,Engineering,Finance,Hr,Logistics,Docs,Commerce,Distribution",
                             Name = "Sinov (14 kun)",
                             PriceMonthTiyin = 0L,
                             PriceYearTiyin = 0L,
@@ -1439,9 +1444,21 @@ namespace tahsinERP.ControlPanel.Data.Migrations
                             IsActive = true,
                             IsAddOn = false,
                             MaxUsers = 20,
-                            Modules = "Srm,Crm,Tasks,Finance,Distribution",
+                            Modules = "Srm,Crm,Tasks,Finance,Commerce,Distribution",
                             Name = "Distributsiya",
                             SortOrder = 5,
+                            VatRatePercent = 12m
+                        },
+                        new
+                        {
+                            Id = 7,
+                            Code = "SAVDO",
+                            IsActive = true,
+                            IsAddOn = false,
+                            MaxUsers = 20,
+                            Modules = "Srm,Crm,Tasks,Finance,Commerce",
+                            Name = "Savdo",
+                            SortOrder = 6,
                             VatRatePercent = 12m
                         });
                 });

@@ -18,8 +18,9 @@ namespace tahsinERP.Services.Editions
         Hr,             // Kadrlar: oylik, tabel
         Logistics,      // Logistika
         Docs,           // Rasmiy hujjatlar
-        Distribution,   // Distributsiya: agent, buyurtma, rezerv, mijoz qarzi (Areas/Distribution)
-        Website         // Sayt-katalog (Areas/Site) — paketga kirmaydi, alohida xizmat: Edition'da "+SITE"
+        Distribution,   // Distributsiya (dala): agent, hudud, marshrut, reys, mashina, KPI (Areas/Distribution) — Commerce ustida
+        Website,        // Sayt-katalog (Areas/Site) — paketga kirmaydi, alohida xizmat: Edition'da "+SITE"
+        Commerce        // Savdo yadrosi: mijoz, narx, buyurtma, rezerv, jo'natish, to'lov, qarz, bot/Mini App (Areas/Distribution, Dst*)
     }
 
     /// <summary>
@@ -33,9 +34,15 @@ namespace tahsinERP.Services.Editions
     ///   BIZNES = START + MES, Muhandislik, Moliya                (20)
     ///   KORP   = BIZNES + HR, Logistika, Rasmiy hujjatlar, Distributsiya (50)
     ///   TRIAL  = KORP                                            (5, 14 kun) — yoki xodim tanlagan modullar (pastga qarang)
-    ///   DIST   = SRM, CRM, Topshiriqlar, Moliya, Distributsiya   (20) — distribyutorlar uchun yon tarmoq: MES/BOM/HR/Logistika/
+    ///   DIST   = SRM, CRM, Topshiriqlar, Moliya, Savdo, Distributsiya (20) — distribyutorlar uchun yon tarmoq: MES/BOM/HR/Logistika/
     ///            Rasmiy hujjatlar yo'q (Distribution/00_PLAN.md 1, 4-faza). START→BIZNES→KORP zanjirida emas: DIST'dan
     ///            BIZNES'ga o'tish Distributsiyani yo'qotadi — tavsiyalar <see cref="SuggestEditionsFor"/> bilan.
+    ///   SAVDO  = SRM, CRM, Topshiriqlar, Moliya, Savdo           (20) — online do'kon / ulgurji savdo agentlarsiz: DIST'dan dala
+    ///            (agent, marshrut, reys, KPI) olib tashlangan; "+SITE" bilan sayt-katalog, bot va Mini App mijoz do'koni.
+    ///
+    /// Savdo (Commerce) va Distributsiya: Dst* controllerlarining buyurtma/ombor/pul qismi Commerce, dala qismi Distribution.
+    /// Distribution Commerce'siz ishlamaydi (<see cref="RequiredBy"/>); eski "TRIAL:...,Distribution" kalitlarida Commerce
+    /// ham ochiladi (oldin bitta modul edi). Commerce to'lovlari moliya hisoblariga yoziladi — Moliya ham kerak.
     ///
     /// Qo'shimcha xizmatlar (paketdan tashqari, alohida sotiladi) Edition'ga "+" bilan yoziladi: "KORP+SITE", "START+SITE".
     /// Kalit formati o'zgarmaydi (v2 payload'dagi Edition qatori). Hozircha: SITE → Website.
@@ -56,14 +63,16 @@ namespace tahsinERP.Services.Editions
         public const string Korp = "KORP";
         public const string Trial = "TRIAL";
         public const string Dist = "DIST";
+        public const string Savdo = "SAVDO";
 
         private static readonly ProductModule[] StartModules = { ProductModule.Srm, ProductModule.Crm, ProductModule.Tasks };
         private static readonly ProductModule[] BiznesModules = StartModules
             .Concat(new[] { ProductModule.Mes, ProductModule.Engineering, ProductModule.Finance }).ToArray();
         private static readonly ProductModule[] KorpModules = BiznesModules
-            .Concat(new[] { ProductModule.Hr, ProductModule.Logistics, ProductModule.Docs, ProductModule.Distribution }).ToArray();
-        private static readonly ProductModule[] DistModules =
-            { ProductModule.Srm, ProductModule.Crm, ProductModule.Tasks, ProductModule.Finance, ProductModule.Distribution };
+            .Concat(new[] { ProductModule.Hr, ProductModule.Logistics, ProductModule.Docs, ProductModule.Commerce, ProductModule.Distribution }).ToArray();
+        private static readonly ProductModule[] SavdoModules =
+            { ProductModule.Srm, ProductModule.Crm, ProductModule.Tasks, ProductModule.Finance, ProductModule.Commerce };
+        private static readonly ProductModule[] DistModules = SavdoModules.Concat(new[] { ProductModule.Distribution }).ToArray();
 
         private static readonly Dictionary<string, HashSet<ProductModule>> EditionMap =
             new Dictionary<string, HashSet<ProductModule>>(StringComparer.OrdinalIgnoreCase)
@@ -73,13 +82,14 @@ namespace tahsinERP.Services.Editions
                 { Korp, new HashSet<ProductModule>(KorpModules) },
                 { Trial, new HashSet<ProductModule>(KorpModules) },
                 { Dist, new HashSet<ProductModule>(DistModules) },
+                { Savdo, new HashSet<ProductModule>(SavdoModules) },
             };
 
         /// <summary>Asosiy zanjir tartibi START → BIZNES → KORP (har biri oldingisini to'liq o'z ichiga oladi). DIST bu zanjirda emas.</summary>
         public static readonly IReadOnlyList<string> UpgradeOrder = new[] { Start, Biznes, Korp };
 
-        /// <summary>Sotiladigan barcha paketlar, taxminiy narx tartibida (DIST — START va BIZNES orasida) — tavsiyalar uchun.</summary>
-        public static readonly IReadOnlyList<string> SellableEditions = new[] { Start, Dist, Biznes, Korp };
+        /// <summary>Sotiladigan barcha paketlar, taxminiy narx tartibida (SAVDO, DIST — START va BIZNES orasida) — tavsiyalar uchun.</summary>
+        public static readonly IReadOnlyList<string> SellableEditions = new[] { Start, Savdo, Dist, Biznes, Korp };
 
         private static readonly Dictionary<string, ProductModule> ControllerMap = Build(new Dictionary<ProductModule, string[]>
         {
@@ -128,14 +138,15 @@ namespace tahsinERP.Services.Editions
                     "WaybillPayment", "TransportLoadSimulation", "TransportLoadApi"
                 } },
             { ProductModule.Docs, new[] { "OfficialLetters", "CompanyOrders", "STDCompanyStandards", "JobDesc", "DocTemplates" } },
-            { ProductModule.Distribution, new[]
+            { ProductModule.Commerce, new[]
                 {
-                    "DstHome", "DstTerritories", "DstCustomers", "DstProducts", "DstDictionaries", "DstPrices",
-                    "DstTeams", "DstSettings", "DstImport", "DstOrders", "DstStock", "DstPayments", "DstReturns", "DstDebts", "DstField", "DstApi",
+                    "DstHome", "DstCustomers", "DstProducts", "DstDictionaries", "DstPrices",
+                    "DstTeams", "DstSettings", "DstChannels", "DstImport", "DstOrders", "DstStock", "DstPayments", "DstReturns", "DstDebts",
+                    "DstApi",   // bot/Mini App API: dala amallari action darajasida Distribution talab qiladi ([DstApiModule])
                     "DstDashboard", "DstReports", "DstInventory", "DstIssues",
-                    "DstTransfers", "DstWriteOffs", "DstRegrades", "DstLandedCosts", "DstReorder", "DstPromotions",
-                    "DstVehicles", "DstTrips", "DstRoutes", "DstKpi", "DstAudit"
+                    "DstTransfers", "DstWriteOffs", "DstRegrades", "DstLandedCosts", "DstReorder", "DstPromotions", "DstAudit"
                 } },
+            { ProductModule.Distribution, new[] { "DstTerritories", "DstField", "DstVehicles", "DstTrips", "DstRoutes", "DstKpi" } },
             { ProductModule.Website, new[] { "SiteHome", "SiteSettings", "SiteCatalog", "SitePages", "SiteLeads", "SiteApi" } },
         });
 
@@ -207,6 +218,7 @@ namespace tahsinERP.Services.Editions
                 ProductModule m;
                 if (TryParseModule(name, out m) && m != ProductModule.Core && !IsAddOn(m)) picked.Add(m);
             }
+            if (picked.Contains(ProductModule.Distribution)) picked.Add(ProductModule.Commerce);   // eski kalit: Distribution = Savdo + dala
             return KorpModules.Where(picked.Contains).ToList();
         }
 
@@ -219,10 +231,19 @@ namespace tahsinERP.Services.Editions
             return Enum.TryParse(n, true, out module) && Enum.IsDefined(typeof(ProductModule), module);
         }
 
-        /// <summary>Modul bog'liqligi: ishlab chiqarish sarfni BOM/norma bo'yicha hisoblaydi — MES tanlansa Muhandislik ham kerak.</summary>
+        /// <summary>
+        /// Modul bog'liqligi: ishlab chiqarish sarfni BOM/norma bo'yicha hisoblaydi — MES tanlansa Muhandislik ham kerak;
+        /// dala (Distribution) buyurtma/ombor/qarzni Savdo'dan oladi; Savdo to'lovlari moliya hisoblariga yoziladi.
+        /// </summary>
         public static IReadOnlyList<ProductModule> RequiredBy(ProductModule module)
         {
-            return module == ProductModule.Mes ? new[] { ProductModule.Engineering } : new ProductModule[0];
+            switch (module)
+            {
+                case ProductModule.Mes: return new[] { ProductModule.Engineering };
+                case ProductModule.Distribution: return new[] { ProductModule.Commerce, ProductModule.Finance };
+                case ProductModule.Commerce: return new[] { ProductModule.Finance };
+                default: return new ProductModule[0];
+            }
         }
 
         /// <summary>
@@ -389,7 +410,8 @@ namespace tahsinERP.Services.Editions
                 case ProductModule.Hr: return "Kadrlar (HR)";
                 case ProductModule.Logistics: return "Logistika";
                 case ProductModule.Docs: return "Rasmiy hujjatlar";
-                case ProductModule.Distribution: return "Distributsiya";
+                case ProductModule.Commerce: return "Savdo (buyurtma, ombor, mijoz qarzi)";
+                case ProductModule.Distribution: return "Distributsiya (agent, marshrut, yetkazish)";
                 case ProductModule.Website: return "Sayt-katalog";
                 default: return "Asosiy";
             }
@@ -415,6 +437,7 @@ namespace tahsinERP.Services.Editions
                 case Korp: return "Korporativ";
                 case Trial: return "Sinov (Korporativ)";
                 case Dist: return "Distributsiya";
+                case Savdo: return "Savdo";
                 default: return edition;
             }
         }

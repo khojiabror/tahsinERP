@@ -104,3 +104,9 @@ INSERT INTO dbo.PERMISSIONMODULES (Module, Controller, Action, Parameter)
 SELECT 'DstAudit', 'DstAudit', 'Index', NULL
 WHERE NOT EXISTS (SELECT 1 FROM dbo.PERMISSIONMODULES m WHERE m.Module = 'DstAudit');
 GO
+
+-- Sotuv kanallari: bot / Mini App va sayt sozlamalari (035_DST_Channels)
+INSERT INTO dbo.PERMISSIONMODULES (Module, Controller, Action, Parameter)
+SELECT 'DstChannels', 'DstChannels', 'Index', NULL
+WHERE NOT EXISTS (SELECT 1 FROM dbo.PERMISSIONMODULES m WHERE m.Module = 'DstChannels');
+GO

@@ -82,6 +82,14 @@ namespace tahsinERP.Areas.Distribution.Controllers.Api
                 filterContext.Result = new HttpStatusCodeResult(HttpStatusCode.Forbidden, "Edition");
                 return;
             }
+            var actionModule = filterContext.ActionDescriptor.GetCustomAttributes(typeof(DstApiModuleAttribute), true)
+                .OfType<DstApiModuleAttribute>().FirstOrDefault();
+            if (actionModule != null
+                && !tahsinERP.Services.Editions.EditionModules.IsModuleAllowed(tahsinERP.Services.Editions.EditionGate.CurrentEdition, actionModule.Module))
+            {
+                filterContext.Result = new HttpStatusCodeResult(HttpStatusCode.Forbidden, "Edition");
+                return;
+            }
 
             if (!string.IsNullOrEmpty(actingHeader))
             {

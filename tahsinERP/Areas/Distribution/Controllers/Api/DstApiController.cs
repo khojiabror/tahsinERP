@@ -13,6 +13,7 @@ using tahsinERP.Areas.Distribution.Services.Bot;
 using tahsinERP.Areas.Distribution.Services.Money;
 using tahsinERP.Areas.Distribution.Services.Orders;
 using tahsinERP.Models;
+using tahsinERP.Services.Editions;
 
 namespace tahsinERP.Areas.Distribution.Controllers.Api
 {
@@ -22,7 +23,7 @@ namespace tahsinERP.Areas.Distribution.Controllers.Api
     /// Javob: JSON (camelCase); biznes xatosi — 400 { error }, topilmadi/ruxsat yo'q — 404/403.
     /// </summary>
     [AllowAnonymous]
-    [DstApiAuth]
+    [DstApiAuth(RequiredModule = "Commerce")]   // dala amallari — [DstApiModule(Distribution)]
     public partial class DstApiController : Controller
     {
         private static readonly JsonSerializerSettings Json = new JsonSerializerSettings
@@ -179,6 +180,7 @@ namespace tahsinERP.Areas.Distribution.Controllers.Api
             });
         }
 
+        [DstApiModule(ProductModule.Distribution)]
         [HttpPost]
         public ActionResult DayStart(decimal? lat, decimal? lng, string selfieKey)
         {
@@ -193,6 +195,7 @@ namespace tahsinERP.Areas.Distribution.Controllers.Api
             });
         }
 
+        [DstApiModule(ProductModule.Distribution)]
         [HttpPost]
         public ActionResult DayEnd(decimal? lat, decimal? lng)
         {
@@ -204,6 +207,7 @@ namespace tahsinERP.Areas.Distribution.Controllers.Api
         }
 
         /// <summary>Telegram jonli joylashuvi nuqtasi (faqat ochiq ish kunida yoziladi).</summary>
+        [DstApiModule(ProductModule.Distribution)]
         [HttpPost]
         public ActionResult Track(decimal lat, decimal lng, int? accuracyM)
         {
@@ -220,6 +224,7 @@ namespace tahsinERP.Areas.Distribution.Controllers.Api
             });
         }
 
+        [DstApiModule(ProductModule.Distribution)]
         [HttpGet]
         public ActionResult Route()
         {
@@ -268,6 +273,7 @@ namespace tahsinERP.Areas.Distribution.Controllers.Api
         /// Agent botdan yangi savdo nuqtasi qo'shadi (tasdiqlanmagan holda; rahbarlarga xabar). Bot javobni olmay qolib
         /// qayta yuborsa — shu agentning so'nggi 1 soatdagi bir xil nomli nuqtasi qaytariladi (ikkinchi nusxa yaratilmaydi).
         /// </summary>
+        [DstApiModule(ProductModule.Distribution)]
         [HttpPost]
         public ActionResult NewCustomer(CustomerInput input, string photoKey)
         {
@@ -439,6 +445,7 @@ namespace tahsinERP.Areas.Distribution.Controllers.Api
             });
         }
 
+        [DstApiModule(ProductModule.Distribution)]
         [HttpPost]
         public ActionResult CheckIn(int customerId, decimal lat, decimal lng, int? accuracyM, bool live = false)
         {
@@ -450,6 +457,7 @@ namespace tahsinERP.Areas.Distribution.Controllers.Api
             });
         }
 
+        [DstApiModule(ProductModule.Distribution)]
         [HttpPost]
         public ActionResult VisitResult(int visitId, string result, int? reasonId, string photoKey, string note)
         {
@@ -464,6 +472,7 @@ namespace tahsinERP.Areas.Distribution.Controllers.Api
             });
         }
 
+        [DstApiModule(ProductModule.Distribution)]
         [HttpPost]
         public ActionResult HandoverSubmit()
         {

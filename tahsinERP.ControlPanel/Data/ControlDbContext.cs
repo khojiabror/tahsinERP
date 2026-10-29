@@ -75,13 +75,16 @@ public class ControlDbContext(DbContextOptions<ControlDbContext> options) : DbCo
             e.HasData(
                 new Plan { Id = 1, Code = PlanCodes.Start, Name = "Start", MaxUsers = 5, Modules = "Srm,Crm,Tasks", VatRatePercent = 12m, SortOrder = 1 },
                 new Plan { Id = 2, Code = PlanCodes.Biznes, Name = "Biznes", MaxUsers = 20, Modules = "Srm,Crm,Tasks,Mes,Engineering,Finance", VatRatePercent = 12m, SortOrder = 2 },
-                new Plan { Id = 3, Code = PlanCodes.Korp, Name = "Korporativ", MaxUsers = 50, Modules = "Srm,Crm,Tasks,Mes,Engineering,Finance,Hr,Logistics,Docs,Distribution", VatRatePercent = 12m, SortOrder = 3 },
-                new Plan { Id = 4, Code = PlanCodes.Trial, Name = "Sinov (14 kun)", MaxUsers = 5, Modules = "Srm,Crm,Tasks,Mes,Engineering,Finance,Hr,Logistics,Docs,Distribution", VatRatePercent = 12m, TrialDays = 14, PriceMonthTiyin = 0, PriceYearTiyin = 0, SortOrder = 4 },
+                new Plan { Id = 3, Code = PlanCodes.Korp, Name = "Korporativ", MaxUsers = 50, Modules = "Srm,Crm,Tasks,Mes,Engineering,Finance,Hr,Logistics,Docs,Commerce,Distribution", VatRatePercent = 12m, SortOrder = 3 },
+                new Plan { Id = 4, Code = PlanCodes.Trial, Name = "Sinov (14 kun)", MaxUsers = 5, Modules = "Srm,Crm,Tasks,Mes,Engineering,Finance,Hr,Logistics,Docs,Commerce,Distribution", VatRatePercent = 12m, TrialDays = 14, PriceMonthTiyin = 0, PriceYearTiyin = 0, SortOrder = 4 },
                 // Qo'shimcha xizmat: narx ochiq savol (Tariflar sahifasida belgilanadi), 02_WEBSITE_CATALOG.md 9-bo'lim.
                 new Plan { Id = 5, Code = PlanCodes.Site, Name = "Sayt-katalog", MaxUsers = 0, Modules = "Website", VatRatePercent = 12m, IsAddOn = true, SortOrder = 10 },
                 // Distributsiya paketi (Distribution/00_PLAN.md 1, 4-faza): BIZNES bilan bir pog'ona (20 foydalanuvchi), MES/BOM'siz.
                 // Narx ochiq. Asosiy zanjirdan tashqari — tarif so'rovi turi modul to'plami bo'yicha aniqlanadi (PortalRequestService.Classify).
-                new Plan { Id = 6, Code = PlanCodes.Dist, Name = "Distributsiya", MaxUsers = 20, Modules = "Srm,Crm,Tasks,Finance,Distribution", VatRatePercent = 12m, SortOrder = 5 });
+                new Plan { Id = 6, Code = PlanCodes.Dist, Name = "Distributsiya", MaxUsers = 20, Modules = "Srm,Crm,Tasks,Finance,Commerce,Distribution", VatRatePercent = 12m, SortOrder = 5 },
+                // Savdo paketi: online do'kon / ulgurji savdo agentlarsiz — DIST'dan dala (agent, marshrut, reys) olib tashlangan.
+                // "+SITE" bilan sayt-katalog; bot va Mini App mijoz do'koni Savdo moduliga kiradi. Narx ochiq.
+                new Plan { Id = 7, Code = PlanCodes.Savdo, Name = "Savdo", MaxUsers = 20, Modules = "Srm,Crm,Tasks,Finance,Commerce", VatRatePercent = 12m, SortOrder = 6 });
         });
 
         b.Entity<Server>(e =>
@@ -491,7 +494,7 @@ public class ControlDbContext(DbContextOptions<ControlDbContext> options) : DbCo
                 new ModuleWeight { Module = "Mes", Weight = 3 }, new ModuleWeight { Module = "Engineering", Weight = 2 },
                 new ModuleWeight { Module = "Finance", Weight = 2 }, new ModuleWeight { Module = "Hr", Weight = 2 },
                 new ModuleWeight { Module = "Logistics", Weight = 2 }, new ModuleWeight { Module = "Docs", Weight = 1 },
-                new ModuleWeight { Module = "Distribution", Weight = 3 });
+                new ModuleWeight { Module = "Commerce", Weight = 2 }, new ModuleWeight { Module = "Distribution", Weight = 1 });
         });
 
         b.Entity<PlanEconomics>(e =>

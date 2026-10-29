@@ -139,7 +139,7 @@ public partial class WebUiTests
         Assert.Matches("Vaqtinchalik parol: [A-Za-z0-9]{12}", html);
         var t = await f.WithScopeAsync(sp => sp.GetRequiredService<ControlDbContext>().Tenants.AsNoTracking().FirstAsync(x => x.Slug == "ui-demo"));
         Assert.True(t.IsDemo && t.SampleData && t.FullSampleData);
-        Assert.Equal("Distribution", t.Modules);
+        Assert.Equal("Finance,Commerce,Distribution", t.Modules);   // dala Savdo va Moliyasiz ishlamaydi — bog'liqliklar qo'shiladi
         string details = await (await c.GetAsync($"/Tenants/Details/{t.Id}")).Content.ReadAsStringAsync();
         Assert.DoesNotContain("handler=MakeDemo", details);
 

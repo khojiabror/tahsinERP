@@ -967,6 +967,7 @@
     <Compile Include="Areas\Site\Services\SiteText.cs" />
     <Compile Include="Areas\Site\SiteAreaRegistration.cs" />
     <Compile Include="Areas\Distribution\Controllers\Api\DstApiAuthAttribute.cs" />
+    <Compile Include="Areas\Distribution\Controllers\Api\DstApiModuleAttribute.cs" />
     <Compile Include="Areas\Distribution\Controllers\Api\DstApiController.cs" />
     <Compile Include="Areas\Distribution\Data\Entities\BotEntities.cs" />
     <Compile Include="Areas\Distribution\Services\Bot\BotServices.cs" />
@@ -1006,6 +1007,7 @@
     <Compile Include="Areas\Distribution\Controllers\DstPricesController.cs" />
     <Compile Include="Areas\Distribution\Controllers\DstProductsController.cs" />
     <Compile Include="Areas\Distribution\Controllers\DstSettingsController.cs" />
+    <Compile Include="Areas\Distribution\Controllers\DstChannelsController.cs" />
     <Compile Include="Areas\Distribution\Controllers\DstTeamsController.cs" />
     <Compile Include="Areas\Distribution\Controllers\DstTerritoriesController.cs" />
     <Compile Include="Areas\Distribution\Data\Entities\DirectoryEntities.cs" />
@@ -3094,6 +3096,7 @@
     <Content Include="Areas\Distribution\Views\DstProducts\Edit.cshtml" />
     <Content Include="Areas\Distribution\Views\DstProducts\Index.cshtml" />
     <Content Include="Areas\Distribution\Views\DstSettings\Index.cshtml" />
+    <Content Include="Areas\Distribution\Views\DstChannels\Index.cshtml" />
     <Content Include="Areas\Distribution\Views\DstTeams\Index.cshtml" />
     <Content Include="Areas\Distribution\Views\DstTeams\Scopes.cshtml" />
     <Content Include="Areas\Distribution\Views\DstTerritories\Index.cshtml" />

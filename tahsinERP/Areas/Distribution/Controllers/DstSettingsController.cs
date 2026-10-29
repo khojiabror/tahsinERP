@@ -7,7 +7,10 @@ using tahsinERP.Filters;
 
 namespace tahsinERP.Areas.Distribution.Controllers
 {
-    /// <summary>Distributsiya sozlamalari: rol bo'yicha chegirma limiti, omborlar, minimal qoldiqlar.</summary>
+    /// <summary>
+    /// Savdo sozlamalari: rol bo'yicha chegirma limiti, omborlar, minimal qoldiqlar; dala (agent) sozlamalari faqat Distribution
+    /// paketda ko'rinadi. Telegram bot nomi va manzili — Sotuv kanallari (DstChannels).
+    /// </summary>
     public class DstSettingsController : DstControllerBase
     {
         public sealed class RoleLimitRow
@@ -64,6 +67,7 @@ namespace tahsinERP.Areas.Distribution.Controllers
                                           MinLimits = db.ProductStockLimits.Count(l => l.WarehouseID == w.ID)
                                       }).ToList();
                 ViewBag.WarehouseId = warehouseId;
+                ViewBag.FieldEnabled = tahsinERP.Services.Editions.EditionGate.IsControllerAllowed("DstField");
                 ViewBag.General = db.Settings.ToList().ToDictionary(x => x.Key, x => x.Value);
                 ViewBag.Accounts = db.FinAccounts.Where(a => a.IsActive && a.IsDeleted != true && (a.IsCash || a.IsBank)).OrderBy(a => a.Name).ToList()
                     .Select(a => new SelectListItem { Value = a.ID.ToString(), Text = a.Name }).ToList();
@@ -85,17 +89,13 @@ namespace tahsinERP.Areas.Distribution.Controllers
         /// <summary>Umumiy sozlamalar (dst.SETTINGS).</summary>
         [HttpPost]
         [ValidateAntiForgeryHeader]
-        public JsonResult SaveGeneral(decimal? minOrderAmount, decimal? largeOrderAmount, int? visitRadiusM, int? agentCashAccountId, string botUsername,
-            bool requireSelfie = false, string botPublicUrl = null, bool checkInLiveOnly = false, int? defectWarehouseId = null)
+        public JsonResult SaveGeneral(decimal? minOrderAmount, decimal? largeOrderAmount, int? visitRadiusM, int? agentCashAccountId,
+            bool requireSelfie = false, bool checkInLiveOnly = false, int? defectWarehouseId = null)
         {
             return DstJson(() =>
             {
                 if (minOrderAmount < 0 || largeOrderAmount < 0 || visitRadiusM < 20 || visitRadiusM > 5000)
                     throw new DstValidationException(DstLocalization.T("Error_NumberFormat"));
-                botPublicUrl = string.IsNullOrWhiteSpace(botPublicUrl) ? null : botPublicUrl.Trim().TrimEnd('/');
-                if (botPublicUrl != null && (botPublicUrl.Length > 400 || !Uri.TryCreate(botPublicUrl, UriKind.Absolute, out var botUri)
-                                             || (botUri.Scheme != Uri.UriSchemeHttps && botUri.Scheme != Uri.UriSchemeHttp)))
-                    throw new DstValidationException(DstLocalization.T("Settings_BotUrlInvalid"));
                 using (var db = NewDb())
                 {
                     if (agentCashAccountId.HasValue && !db.FinAccounts.Any(a => a.ID == agentCashAccountId && a.IsActive && a.IsDeleted != true))
@@ -105,13 +105,11 @@ namespace tahsinERP.Areas.Distribution.Controllers
                     Services.Bot.DstSettings.Set(db, DstSetting.LargeOrderAmount, (largeOrderAmount ?? 0).ToString(inv));
                     Services.Bot.DstSettings.Set(db, DstSetting.VisitRadiusM, (visitRadiusM ?? 200).ToString(inv));
                     Services.Bot.DstSettings.Set(db, DstSetting.AgentCashAccountId, agentCashAccountId?.ToString(inv));
-                    Services.Bot.DstSettings.Set(db, DstSetting.BotUsername, string.IsNullOrWhiteSpace(botUsername) ? null : botUsername.Trim().TrimStart('@'));
                     Services.Bot.DstSettings.Set(db, DstSetting.RequireSelfie, requireSelfie ? "1" : "0");
                     Services.Bot.DstSettings.Set(db, DstSetting.CheckInLiveOnly, checkInLiveOnly ? "1" : "0");
                     if (defectWarehouseId.HasValue && !db.Warehouses.Any(w => w.ID == defectWarehouseId && w.IsDeleted != true))
                         throw new DstValidationException(DstLocalization.T("Order_NoWarehouse"));
                     Services.Bot.DstSettings.Set(db, DstSetting.DefectWarehouseId, defectWarehouseId?.ToString(inv));
-                    Services.Bot.DstSettings.Set(db, DstSetting.BotPublicUrl, botPublicUrl);
                     db.SaveChanges();
                     return null;
                 }

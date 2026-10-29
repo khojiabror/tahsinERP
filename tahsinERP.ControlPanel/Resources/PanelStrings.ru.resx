@@ -3856,7 +3856,7 @@ tahsinERP портал: код входа {1}. Действует {2} мин.
     <value>Официальные документы</value>
   </data>
   <data name="Pnl_Module_Distribution" xml:space="preserve">
-    <value>Дистрибуция</value>
+    <value>Дистрибуция (агенты, маршруты, доставка)</value>
   </data>
   <data name="Pnl_Module_Website" xml:space="preserve">
     <value>Сайт-каталог (+SITE)</value>
@@ -4850,6 +4850,9 @@ tahsinERP портал: код входа {1}. Действует {2} мин.
   </data>
   <data name="Pnl_Pager_Next" xml:space="preserve">
     <value>Следующая страница</value>
+  </data>
+  <data name="Pnl_Module_Commerce" xml:space="preserve">
+    <value>Торговля (заказы, склад, долги, бот)</value>
   </data>
   <data name="Pnl_Econ_NewModule" xml:space="preserve">
     <value>новый — вес по умолчанию</value>

@@ -1,0 +1,139 @@
+@using tahsinERP.Areas.Distribution.Controllers
+@{
+    ViewBag.Title = DstLocalization.T("Channels_Title");
+    bool canChange = ViewBag.DstCanChange == true;
+    bool field = ViewBag.FieldEnabled == true;
+    var modules = (List<DstChannelsController.ModuleRow>)ViewBag.Modules;
+    var site = (DstChannelsController.SiteSummary)ViewBag.Site;
+    var warehouses = (List<string>)ViewBag.SalesWarehouses;
+    string bot = ViewBag.BotUsername;
+}
+@Html.AntiForgeryToken()
+<div class="app-content content">
+    <div class="content-overlay"></div>
+    <div class="content-wrapper">
+        @Html.Partial("_DstHeader", (string)ViewBag.Title)
+        <div class="content-body">
+            <p class="text-muted">@DstLocalization.T("Channels_Intro")</p>
+            <div class="row">
+                <div class="col-lg-5">
+                    <div class="card">
+                        <div class="card-header"><h4 class="card-title">@DstLocalization.T("Channels_Package")</h4></div>
+                        <div class="card-body">
+                            <ul class="list-unstyled mb-1">
+                                @foreach (var m in modules)
+                                {
+                                    <li class="d-flex mb-1">
+                                        <i class="bx @(m.Allowed ? "bx-check-circle text-success" : "bx-minus-circle text-muted") font-medium-3 mr-50"></i>
+                                        <div>
+                                            <div class="@(m.Allowed ? "" : "text-muted")">@m.Name</div>
+                                            <div class="small text-muted">@m.Hint</div>
+                                        </div>
+                                    </li>
+                                }
+                            </ul>
+                            <p class="small text-muted mb-0">@DstLocalization.T("Channels_PackageHint")</p>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header"><h4 class="card-title">@DstLocalization.T("Channels_Stock")</h4></div>
+                        <div class="card-body">
+                            <dl class="row mb-0">
+                                <dt class="col-sm-5">@DstLocalization.T("Channels_SalesWarehouses")</dt>
+                                <dd class="col-sm-7">@(warehouses.Count == 0 ? "—" : string.Join(", ", warehouses))</dd>
+                                <dt class="col-sm-5">@DstLocalization.T("Channels_DefaultPriceType")</dt>
+                                <dd class="col-sm-7">@(ViewBag.DefaultPriceType ?? "—")</dd>
+                            </dl>
+                            <p class="small text-muted mb-50">@DstLocalization.T("Channels_StockHint")</p>
+                            <a class="btn btn-sm btn-outline-primary" href="@Url.Action("Index", "DstSettings")">@DstLocalization.T("Warehouses")</a>
+                            <a class="btn btn-sm btn-outline-primary" href="@Url.Action("Index", "DstPrices")">@DstLocalization.T("Prices")</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-7">
+                    <div class="card">
+                        <div class="card-header"><h4 class="card-title"><i class="bx bxl-telegram"></i> @DstLocalization.T("Channels_Bot")</h4></div>
+                        <div class="card-body">
+                            <p class="small text-muted">@DstLocalization.T("Channels_BotHint")</p>
+                            <div class="form-row">
+                                <div class="form-group col-md-6">
+                                    <label>@DstLocalization.T("Settings_BotUsername")</label>
+                                    <input id="cBot" class="form-control" placeholder="my_company_bot" value="@bot" @(canChange ? "" : "disabled") />
+                                </div>
+                                <div class="form-group col-md-6">
+                                    <label>@DstLocalization.T("Settings_BotPublicUrl")</label>
+                                    <input id="cBotUrl" class="form-control" placeholder="https://bot.example.uz" value="@ViewBag.BotPublicUrl" @(canChange ? "" : "disabled") />
+                                </div>
+                            </div>
+                            @if (canChange) { <button type="button" class="btn btn-primary btn-sm mb-1" id="cBotSave">@DstLocalization.T("Save")</button> }
+                            <dl class="row mb-1">
+                                <dt class="col-sm-5">@DstLocalization.T("Channels_BotLink")</dt>
+                                <dd class="col-sm-7">
+                                    @if (string.IsNullOrEmpty(bot)) { <span class="text-muted">@DstLocalization.T("Channels_BotNotSet")</span> }
+                                    else { <a href="https://t.me/@bot" target="_blank" rel="noopener">t.me/@bot</a> }
+                                </dd>
+                                <dt class="col-sm-5">@DstLocalization.T("Channels_LinkedStaff")</dt>
+                                <dd class="col-sm-7">@ViewBag.LinkedStaff</dd>
+                                <dt class="col-sm-5">@DstLocalization.T("Channels_LinkedCustomers")</dt>
+                                <dd class="col-sm-7">@ViewBag.LinkedCustomers</dd>
+                            </dl>
+                            <h6>@DstLocalization.T("Channels_MiniAppWho")</h6>
+                            <ul class="small mb-50">
+                                <li>@DstLocalization.T("Channels_RoleStore")</li>
+                                <li>@DstLocalization.T("Channels_RoleManager")</li>
+                                <li>@DstLocalization.T("Channels_RoleCustomer")</li>
+                                <li class="@(field ? "" : "text-muted")">@DstLocalization.T("Channels_RoleField")@(field ? "" : " — " + DstLocalization.T("Channels_NeedField"))</li>
+                            </ul>
+                            <p class="small text-muted mb-0">@DstLocalization.T("Channels_LinkHow")
+                                <a href="@Url.Action("Index", "DstTeams")">@DstLocalization.T("Teams")</a> ·
+                                <a href="@Url.Action("Index", "DstCustomers")">@DstLocalization.T("Customers")</a></p>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header"><h4 class="card-title"><i class="bx bx-globe"></i> @DstLocalization.T("Site_Title")</h4></div>
+                        <div class="card-body">
+                            @if (!site.Allowed)
+                            {
+                                <p class="mb-0">@DstLocalization.T("Channels_SiteAddOn")</p>
+                            }
+                            else
+                            {
+                                <dl class="row mb-1">
+                                    <dt class="col-sm-5">@DstLocalization.T("Channels_SiteState")</dt>
+                                    <dd class="col-sm-7">
+                                        <span class="badge @(site.Enabled ? "badge-light-success" : "badge-light-secondary")">@DstLocalization.T(site.Enabled ? "Channels_On" : "Channels_Off")</span>
+                                        @if (site.Url != null) { <a class="ml-50" href="@site.Url" target="_blank" rel="noopener">@site.Url</a> }
+                                    </dd>
+                                    <dt class="col-sm-5">@DstLocalization.T("Channels_SitePublished")</dt>
+                                    <dd class="col-sm-7">@site.Published</dd>
+                                    <dt class="col-sm-5">@DstLocalization.T("Channels_SitePrice")</dt>
+                                    <dd class="col-sm-7">@DstLocalization.T("Channels_PriceMode_" + site.PriceMode)@(site.PriceMode == "SHOW" && site.PriceType != null ? " · " + site.PriceType : "")</dd>
+                                    <dt class="col-sm-5">@DstLocalization.T("Channels_SiteStock")</dt>
+                                    <dd class="col-sm-7">@DstLocalization.T("Channels_StockMode_" + site.StockMode)</dd>
+                                    <dt class="col-sm-5">@DstLocalization.T("Site_Leads")</dt>
+                                    <dd class="col-sm-7">@(site.LeadsEnabled ? DstLocalization.T("Channels_On") : DstLocalization.T("Channels_Off"))@(site.NewLeads > 0 ? " · " + DstLocalization.T("Channels_NewLeads", site.NewLeads) : "")</dd>
+                                </dl>
+                                <p class="small text-muted">@DstLocalization.T("Channels_SiteOrdersHint")</p>
+                                <a class="btn btn-sm btn-outline-primary" href="@Url.Action("Index", "SiteSettings", new { area = "Site" })">@DstLocalization.T("Settings")</a>
+                                <a class="btn btn-sm btn-outline-primary" href="@Url.Action("Index", "SiteCatalog", new { area = "Site" })">@DstLocalization.T("Site_Catalog")</a>
+                                <a class="btn btn-sm btn-outline-primary" href="@Url.Action("Index", "SiteLeads", new { area = "Site" })">@DstLocalization.T("Site_Leads")</a>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @Html.Partial("_DstScripts")
+    <script>
+        $(function () {
+            $('#cBotSave').on('click', function () {
+                dstPost('@Url.Action("SaveBot")', { botUsername: $('#cBot').val(), botPublicUrl: $('#cBotUrl').val() })
+                    .done(function () { location.reload(); });
+            });
+        });
+    </script>
+}

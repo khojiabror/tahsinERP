@@ -3533,4 +3533,139 @@ Kamomad: {4} qator, ortiqcha: {5} qator</value>
   <data name="NameRu_Hint" xml:space="preserve">
     <value>Ruscha interfeysda shu nom ko'rsatiladi; bo'sh bo'lsa — o'zbekcha nom. O'zbek kirillda nom avtomatik kirillga o'giriladi.</value>
   </data>
+  <data name="Module_TitleCommerce" xml:space="preserve">
+    <value>Savdo</value>
+  </data>
+  <data name="Channels_Title" xml:space="preserve">
+    <value>Sotuv kanallari</value>
+  </data>
+  <data name="Channels_Intro" xml:space="preserve">
+    <value>Sayt va Telegram bot / Mini App Savdo moduliga ulanadi: tovarlar, narxlar, ombor qoldig'i va buyurtmalar shu yerdan olinadi. Agentlar va marshrut (Distributsiya) shart emas.</value>
+  </data>
+  <data name="Channels_Package" xml:space="preserve">
+    <value>Paketingizda</value>
+  </data>
+  <data name="Channels_PackageHint" xml:space="preserve">
+    <value>Yo'q modulni ulash uchun tahsinERP bilan bog'laning yoki kabinetda tarifni o'zgartiring.</value>
+  </data>
+  <data name="Channels_ModCommerce" xml:space="preserve">
+    <value>Savdo</value>
+  </data>
+  <data name="Channels_ModCommerceHint" xml:space="preserve">
+    <value>Mijozlar, narxlar, buyurtma, rezerv, jo'natish, to'lov va qarz; bot va Mini App (omborchi, rahbar, mijoz).</value>
+  </data>
+  <data name="Channels_ModField" xml:space="preserve">
+    <value>Distributsiya (dala)</value>
+  </data>
+  <data name="Channels_ModFieldHint" xml:space="preserve">
+    <value>Agentlar, hududlar, tashrif, GPS, marshrut, reys, yetkazish va KPI.</value>
+  </data>
+  <data name="Channels_ModSite" xml:space="preserve">
+    <value>Sayt-katalog (+SITE)</value>
+  </data>
+  <data name="Channels_ModSiteHint" xml:space="preserve">
+    <value>Firma sayti: katalog, savat, arizalar — alohida xizmat, istalgan paketga qo'shiladi.</value>
+  </data>
+  <data name="Channels_Stock" xml:space="preserve">
+    <value>Kanallar uchun qoldiq va narx</value>
+  </data>
+  <data name="Channels_SalesWarehouses" xml:space="preserve">
+    <value>Savdo omborlari</value>
+  </data>
+  <data name="Channels_DefaultPriceType" xml:space="preserve">
+    <value>Standart narx turi</value>
+  </data>
+  <data name="Channels_StockHint" xml:space="preserve">
+    <value>Sayt va bot qoldiqni faqat savdo omborlaridan ko'rsatadi; narx — mijozning narx turi, bo'lmasa standart tur.</value>
+  </data>
+  <data name="Channels_Bot" xml:space="preserve">
+    <value>Telegram bot va Mini App</value>
+  </data>
+  <data name="Channels_BotHint" xml:space="preserve">
+    <value>Mini App faqat bot ichida ochiladi — har firmaning o'z boti bo'ladi (BotFather tokeni). Botni tahsinERP boshqaruv paneli ulaydi; bu yerda bot nomi va manzili yoziladi.</value>
+  </data>
+  <data name="Channels_BotNameInvalid" xml:space="preserve">
+    <value>Bot nomi faqat lotin harf, raqam va _ dan iborat bo'ladi.</value>
+  </data>
+  <data name="Channels_BotLink" xml:space="preserve">
+    <value>Bot havolasi</value>
+  </data>
+  <data name="Channels_BotNotSet" xml:space="preserve">
+    <value>bot nomi yozilmagan</value>
+  </data>
+  <data name="Channels_LinkedStaff" xml:space="preserve">
+    <value>Botga ulangan xodimlar</value>
+  </data>
+  <data name="Channels_LinkedCustomers" xml:space="preserve">
+    <value>Botga ulangan mijozlar</value>
+  </data>
+  <data name="Channels_MiniAppWho" xml:space="preserve">
+    <value>Bot kimga nima beradi</value>
+  </data>
+  <data name="Channels_RoleStore" xml:space="preserve">
+    <value>Omborchi — inventarizatsiya va buyurtma yig'ish (shtrix-kod skaneri, Mini App).</value>
+  </data>
+  <data name="Channels_RoleManager" xml:space="preserve">
+    <value>Rahbar — kunlik yakun, tasdiqlar, bildirishnomalar.</value>
+  </data>
+  <data name="Channels_RoleCustomer" xml:space="preserve">
+    <value>Mijoz — buyurtma holati, qarz va akt-sverka.</value>
+  </data>
+  <data name="Channels_RoleField" xml:space="preserve">
+    <value>Agent va ekspeditor — tashrif, katalogdan buyurtma, reys, yetkazish (Mini App).</value>
+  </data>
+  <data name="Channels_NeedField" xml:space="preserve">
+    <value>Distributsiya paketida</value>
+  </data>
+  <data name="Channels_LinkHow" xml:space="preserve">
+    <value>Ulash kodi xodimga Jamoalar sahifasida, mijozga — mijoz kartasida beriladi.</value>
+  </data>
+  <data name="Channels_BotMovedHint" xml:space="preserve">
+    <value>Telegram bot sozlamalari — Sotuv kanallari sahifasida.</value>
+  </data>
+  <data name="Channels_SiteAddOn" xml:space="preserve">
+    <value>Sayt-katalog — alohida xizmat (+SITE). Ulansa, tovarlar, narx va qoldiq shu Savdo modulidan olinadi, saytdagi arizalar bir bosishda buyurtmaga aylanadi.</value>
+  </data>
+  <data name="Channels_SiteState" xml:space="preserve">
+    <value>Holati</value>
+  </data>
+  <data name="Channels_On" xml:space="preserve">
+    <value>yoqilgan</value>
+  </data>
+  <data name="Channels_Off" xml:space="preserve">
+    <value>o'chiq</value>
+  </data>
+  <data name="Channels_SitePublished" xml:space="preserve">
+    <value>Saytdagi tovarlar</value>
+  </data>
+  <data name="Channels_SitePrice" xml:space="preserve">
+    <value>Narx</value>
+  </data>
+  <data name="Channels_SiteStock" xml:space="preserve">
+    <value>Qoldiq</value>
+  </data>
+  <data name="Channels_NewLeads" xml:space="preserve">
+    <value>{0} ta yangi</value>
+  </data>
+  <data name="Channels_SiteOrdersHint" xml:space="preserve">
+    <value>Saytdagi ariza Savdo → Buyurtmalar'ga qoralama bo'lib tushadi: rezerv, jo'natish va qarz odatdagidek.</value>
+  </data>
+  <data name="Channels_PriceMode_SHOW" xml:space="preserve">
+    <value>ko'rsatiladi</value>
+  </data>
+  <data name="Channels_PriceMode_ASK" xml:space="preserve">
+    <value>so'rov bo'yicha</value>
+  </data>
+  <data name="Channels_PriceMode_HIDDEN" xml:space="preserve">
+    <value>yashirin</value>
+  </data>
+  <data name="Channels_StockMode_EXACT" xml:space="preserve">
+    <value>aniq miqdor</value>
+  </data>
+  <data name="Channels_StockMode_STATUS" xml:space="preserve">
+    <value>bor / kam / yo'q</value>
+  </data>
+  <data name="Channels_StockMode_HIDDEN" xml:space="preserve">
+    <value>yashirin</value>
+  </data>
 </root>

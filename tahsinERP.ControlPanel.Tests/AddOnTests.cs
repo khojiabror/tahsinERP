@@ -50,8 +50,8 @@ public class AddOnUnitTests
     [Fact]
     public void ModulesOf_IncludesAddOns_ForTractionCoverage()
     {
-        Assert.Equal(10, EditionModules.ModulesOf("KORP").Count);
-        Assert.Equal(11, EditionModules.ModulesOf("KORP+SITE").Count);
+        Assert.Equal(11, EditionModules.ModulesOf("KORP").Count);   // Savdo (Commerce) + Distributsiya alohida
+        Assert.Equal(12, EditionModules.ModulesOf("KORP+SITE").Count);
         Assert.Equal(["Srm", "Crm", "Tasks", "Website"], EditionModules.ModulesOf("START+SITE").Select(m => m.ToString()));
         Assert.DoesNotContain(ProductModule.Website, EditionModules.ModulesOf("TRIAL"));
         Assert.Contains(ProductModule.Website, EditionModules.ModulesOf("TRIAL+SITE"));
@@ -289,7 +289,7 @@ public class AddOnTests : IClassFixture<PanelFactory>
             var row = all.Tenants.Single(r => r.Tenant.Id == t.Id);
             Assert.Equal("TRIAL+SITE", row.Edition);
             Assert.Equal(PlanCodes.Trial, row.PlanCode);
-            Assert.Equal(11, row.ModulesAllowed);
+            Assert.Equal(12, row.ModulesAllowed);
             Assert.Contains("Website", row.UnusedModules);
             Assert.Contains("Sayt-katalog", row.Plan);
             Assert.Contains(all.Modules, m => m.Module == "Website" && m.UnusedInPackage >= 1);
