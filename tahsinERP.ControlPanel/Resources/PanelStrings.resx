@@ -3853,7 +3853,7 @@ Siz so'ramagan bo'lsangiz — bu xatga e'tibor bermang, parolingiz o'zgarmaydi.<
     <value>Rasmiy hujjatlar</value>
   </data>
   <data name="Pnl_Module_Distribution" xml:space="preserve">
-    <value>Distributsiya</value>
+    <value>Distributsiya (agent, marshrut, yetkazish)</value>
   </data>
   <data name="Pnl_Module_Website" xml:space="preserve">
     <value>Sayt-katalog (+SITE)</value>
@@ -4847,5 +4847,8 @@ Siz so'ramagan bo'lsangiz — bu xatga e'tibor bermang, parolingiz o'zgarmaydi.<
   </data>
   <data name="Pnl_Pager_Next" xml:space="preserve">
     <value>Keyingi sahifa</value>
+  </data>
+  <data name="Pnl_Module_Commerce" xml:space="preserve">
+    <value>Savdo (buyurtma, ombor, qarz, bot)</value>
   </data>
 </root>

@@ -118,7 +118,7 @@ if (-not $NoAdmin -and ($AdminLogin -notmatch '^[A-Za-z0-9_\.\-]{3,30}$')) { Fin
 if ($AdminPassword -and $AdminPassword.Length -lt 8) { Finish $EXIT_BAD_ARGS 'AdminPassword kamida 8 belgi bo''lishi kerak' }
 
 # Modullar: EditionModules.ProductModule nomlari (registrsiz), tartib — paket tartibi; Mes -> + Engineering (EditionModules.RequiredBy)
-$AllModules = @('Srm', 'Crm', 'Tasks', 'Mes', 'Engineering', 'Finance', 'Hr', 'Logistics', 'Docs', 'Distribution', 'Website')
+$AllModules = @('Srm', 'Crm', 'Tasks', 'Mes', 'Engineering', 'Finance', 'Hr', 'Logistics', 'Docs', 'Commerce', 'Distribution', 'Website')
 $selected = @()
 if ($Modules) {
     $names = @($Modules | ForEach-Object { "$_" -split ',' } | ForEach-Object { $_.Trim() } | Where-Object { $_ })

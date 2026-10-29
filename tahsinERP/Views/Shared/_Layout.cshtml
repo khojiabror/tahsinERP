@@ -372,13 +372,16 @@
                                 new { C = "DstTerritories", K = "Territories" }, new { C = "DstTeams", K = "Teams" },
                                 new { C = "DstDictionaries", K = "Dictionaries" } } },
                             new { G = "Menu_DstSystem", I = "bx-cog", Items = new[] {
-                                new { C = "DstSettings", K = "Settings" }, new { C = "DstImport", K = "Import" },
+                                new { C = "DstSettings", K = "Settings" }, new { C = "DstChannels", K = "Channels_Title" }, new { C = "DstImport", K = "Import" },
                                 new { C = "DstAudit", K = "Audit" } } },
                         };
                         var dstTop = new[] { new { C = "DstDashboard", K = "Dashboard" }, new { C = "DstReports", K = "Reports" }, new { C = "DstKpi", K = "Kpi" } };
-                        <li class="navigation-header"><span>@tahsinERP.Areas.Distribution.Services.DstLocalization.T("Module_Title")</span></li>
+                        // SAVDO paketida (dala yo'q) bo'lim nomi "Savdo" — agent/marshrut bandlari EditionGate bilan yashiriladi
+                        var dstTitle = tahsinERP.Areas.Distribution.Services.DstLocalization.T(
+                            tahsinERP.Services.Editions.EditionGate.IsControllerAllowed("DstField") ? "Module_Title" : "Module_TitleCommerce");
+                        <li class="navigation-header"><span>@dstTitle</span></li>
                         <li class="nav-item">
-                            <a href="#"><i class="bx bx-cart-alt"></i><span class="menu-title">@tahsinERP.Areas.Distribution.Services.DstLocalization.T("Module_Title")</span></a>
+                            <a href="#"><i class="bx bx-cart-alt"></i><span class="menu-title">@dstTitle</span></a>
                             <ul class="menu-content">
                                 <li><a href="~/Distribution/DstHome"><i class="bx bx-right-arrow-alt"></i><span class="menu-item">@tahsinERP.Areas.Distribution.Services.DstLocalization.T("Home")</span></a></li>
                                 @foreach (var m in dstTop)

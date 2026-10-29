@@ -54,6 +54,8 @@ public static class PlanCodes
     public const string Trial = "TRIAL";
     /// <summary>Distributsiya paketi (distribyutorlar uchun, MES/BOM'siz) — EditionModules.Dist.</summary>
     public const string Dist = "DIST";
+    /// <summary>Savdo paketi (online do'kon / ulgurji savdo, agentlarsiz) — EditionModules.Savdo.</summary>
+    public const string Savdo = "SAVDO";
     /// <summary>Qo'shimcha xizmat «Sayt-katalog» — paketga kirmaydi, alohida obuna; kalitda Edition'ga "+SITE" bo'lib qo'shiladi.</summary>
     public const string Site = "SITE";
 }

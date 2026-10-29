@@ -8,6 +8,7 @@ using tahsinERP.Areas.Distribution.Services;
 using tahsinERP.Areas.Distribution.Services.Bot;
 using tahsinERP.Areas.Distribution.Services.Delivery;
 using tahsinERP.Areas.Distribution.Services.Money;
+using tahsinERP.Services.Editions;
 
 namespace tahsinERP.Areas.Distribution.Controllers.Api
 {
@@ -40,6 +41,7 @@ namespace tahsinERP.Areas.Distribution.Controllers.Api
         }
 
         /// <summary>Ekspeditorning joriy reysi (yo'ldagi yoki bugungi rejalangan): to'xtashlar ro'yxati.</summary>
+        [DstApiModule(ProductModule.Distribution)]
         [HttpGet]
         public ActionResult MyTrip()
         {
@@ -53,6 +55,7 @@ namespace tahsinERP.Areas.Distribution.Controllers.Api
             });
         }
 
+        [DstApiModule(ProductModule.Distribution)]
         [HttpGet]
         public ActionResult TripStop(int id)
         {
@@ -71,6 +74,7 @@ namespace tahsinERP.Areas.Distribution.Controllers.Api
             });
         }
 
+        [DstApiModule(ProductModule.Distribution)]
         [HttpPost]
         public ActionResult TripStart(int tripId)
         {
@@ -107,6 +111,7 @@ namespace tahsinERP.Areas.Distribution.Controllers.Api
         }
 
         /// <summary>Yetkazish natijasi: All — to'liq (rasm yoki imzo majburiy), aks holda qatorlar bo'yicha (qisman/rad — sabab bilan).</summary>
+        [DstApiModule(ProductModule.Distribution)]
         [HttpPost]
         public ActionResult StopDeliver(ApiDeliverInput input)
         {
@@ -138,6 +143,7 @@ namespace tahsinERP.Areas.Distribution.Controllers.Api
         }
 
         /// <summary>Ekspeditor to'lov oldi (agent to'lovi kabi: naqd — qo'lida, naqdsiz — usul hisobiga). Mijoz — to'xtashdagi mijoz.</summary>
+        [DstApiModule(ProductModule.Distribution)]
         [HttpPost]
         public ActionResult StopPayment(ApiStopPaymentInput input)
         {
@@ -164,6 +170,7 @@ namespace tahsinERP.Areas.Distribution.Controllers.Api
             });
         }
 
+        [DstApiModule(ProductModule.Distribution)]
         [HttpPost]
         public ActionResult TripExpense(int tripId, string kind, decimal amount, string note, string photoKey)
         {
@@ -181,6 +188,7 @@ namespace tahsinERP.Areas.Distribution.Controllers.Api
         /// <summary>
         /// Ekspeditor reysni yakunlaydi (yopmaydi): qaytgan tovarni ombor sanaydi, reysni ofis yopadi — kamomad o'shanda (05_FINDINGS K2-8).
         /// </summary>
+        [DstApiModule(ProductModule.Distribution)]
         [HttpPost]
         public ActionResult TripClose(int tripId)
         {
@@ -203,6 +211,7 @@ namespace tahsinERP.Areas.Distribution.Controllers.Api
         }
 
         /// <summary>Nakladnoy ma'lumoti (bildirishnoma bo'yicha bot PDF tayyorlaydi; tizim chaqiruvi).</summary>
+        [DstApiModule(ProductModule.Distribution)]
         [HttpGet]
         public ActionResult StopInvoice(int stopId)
         {
@@ -214,6 +223,7 @@ namespace tahsinERP.Areas.Distribution.Controllers.Api
         }
 
         /// <summary>Ovozli buyurtma qoralamasi: mijoz (berilgan yoki nomidan) va qatorlar katalogdan; tasdiqlangach — oddiy Order.</summary>
+        [DstApiModule(ProductModule.Distribution)]
         [HttpPost]
         public ActionResult VoiceDraft(VoiceDraftInput input)
         {

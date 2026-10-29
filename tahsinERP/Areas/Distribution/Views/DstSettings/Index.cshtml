@@ -12,6 +12,8 @@
     var accounts = (List<SelectListItem>)ViewBag.Accounts;
     var payAllowed = (G("AgentPayMethods") ?? "CASH,CARD,CLICK").Split(',');
     var payMethods = new[] { "CASH", "CARD", "CLICK", "PAYME", "UZUM", "TRANSFER" };
+    // dala (agent) sozlamalari faqat Distributsiya paketida; yashirilgan maydonlar saqlashda joriy qiymatini yuboradi
+    string fieldOnly = ViewBag.FieldEnabled == true ? "" : "d-none";
 }
 @Html.AntiForgeryToken()
 <div class="app-content content">
@@ -25,8 +27,8 @@
                     <div class="form-row">
                         <div class="form-group col-md-2"><label>@DstLocalization.T("Settings_MinOrder")</label><input id="gMinOrder" type="number" min="0" step="1000" class="form-control" value="@G("MinOrderAmount")" @(canChange ? "" : "disabled") /></div>
                         <div class="form-group col-md-2"><label>@DstLocalization.T("Settings_LargeOrder")</label><input id="gLarge" type="number" min="0" step="1000" class="form-control" value="@G("LargeOrderAmount")" @(canChange ? "" : "disabled") /></div>
-                        <div class="form-group col-md-2"><label>@DstLocalization.T("Settings_Radius")</label><input id="gRadius" type="number" min="20" max="5000" step="10" class="form-control" value="@(G("VisitRadiusM") ?? "200")" @(canChange ? "" : "disabled") /></div>
-                        <div class="form-group col-md-3">
+                        <div class="form-group col-md-2 @fieldOnly"><label>@DstLocalization.T("Settings_Radius")</label><input id="gRadius" type="number" min="20" max="5000" step="10" class="form-control" value="@(G("VisitRadiusM") ?? "200")" @(canChange ? "" : "disabled") /></div>
+                        <div class="form-group col-md-3 @fieldOnly">
                             <label>@DstLocalization.T("Settings_HandoverAccount")</label>
                             <select id="gAccount" class="form-control" @(canChange ? "" : "disabled")>
                                 <option value="">—</option>
@@ -36,11 +38,9 @@
                                 }
                             </select>
                         </div>
-                        <div class="form-group col-md-3"><label>@DstLocalization.T("Settings_BotUsername")</label><input id="gBot" class="form-control" placeholder="my_company_bot" value="@G("BotUsername")" @(canChange ? "" : "disabled") /></div>
                     </div>
                     <div class="form-row">
-                        <div class="form-group col-md-4"><label>@DstLocalization.T("Settings_BotPublicUrl")</label><input id="gBotUrl" class="form-control" placeholder="https://bot.example.uz" value="@G("BotPublicUrl")" @(canChange ? "" : "disabled") /></div>
-                        <div class="form-group col-md-4 d-flex align-items-end">
+                        <div class="form-group col-md-4 d-flex align-items-end @fieldOnly">
                             <div class="custom-control custom-checkbox mb-50">
                                 <input type="checkbox" class="custom-control-input" id="gSelfie" @(G("RequireSelfie") == "1" ? "checked" : "") @(canChange ? "" : "disabled") />
                                 <label class="custom-control-label" for="gSelfie">@DstLocalization.T("Settings_RequireSelfie")</label>
@@ -56,18 +56,19 @@
                                 }
                             </select>
                         </div>
-                        <div class="form-group col-md-4 d-flex align-items-end">
+                        <div class="form-group col-md-4 d-flex align-items-end @fieldOnly">
                             <div class="custom-control custom-checkbox mb-50" title="@DstLocalization.T("Settings_CheckInLiveOnlyHint")">
                                 <input type="checkbox" class="custom-control-input" id="gLiveOnly" @(G("CheckInLiveOnly") == "1" ? "checked" : "") @(canChange ? "" : "disabled") />
                                 <label class="custom-control-label" for="gLiveOnly">@DstLocalization.T("Settings_CheckInLiveOnly")</label>
                             </div>
                         </div>
                     </div>
-                    <p class="small text-muted">@DstLocalization.T("Settings_GeneralHint")</p>
+                    <p class="small text-muted">@DstLocalization.T("Settings_GeneralHint")
+                        <a href="@Url.Action("Index", "DstChannels")">@DstLocalization.T("Channels_BotMovedHint")</a></p>
                     @if (canChange) { <button type="button" class="btn btn-primary btn-sm" id="gSave">@DstLocalization.T("Save")</button> }
                 </div>
             </div>
-            <div class="card">
+            <div class="card @fieldOnly">
                 <div class="card-header"><h4 class="card-title">@DstLocalization.T("Settings_AgentPayments")</h4></div>
                 <div class="card-body">
                     <p class="small text-muted">@DstLocalization.T("Settings_AgentPaymentsHint")</p>
@@ -205,8 +206,8 @@
             $('#gSave').on('click', function () {
                 dstPost('@Url.Action("SaveGeneral")', {
                     minOrderAmount: $('#gMinOrder').val(), largeOrderAmount: $('#gLarge').val(), visitRadiusM: $('#gRadius').val(),
-                    agentCashAccountId: $('#gAccount').val(), botUsername: $('#gBot').val(),
-                    requireSelfie: $('#gSelfie').is(':checked'), botPublicUrl: $('#gBotUrl').val(), checkInLiveOnly: $('#gLiveOnly').is(':checked'), defectWarehouseId: $('#gDefect').val()
+                    agentCashAccountId: $('#gAccount').val(),
+                    requireSelfie: $('#gSelfie').is(':checked'), checkInLiveOnly: $('#gLiveOnly').is(':checked'), defectWarehouseId: $('#gDefect').val()
                 }).done(function () { dstNotify(); });
             });
             $('#paySave').on('click', function () {

@@ -33,7 +33,7 @@ namespace tahsinERP.Areas.Site.Controllers
         }
 
         /// <summary>Asosiy sayt manzili: tasdiqlangan asosiy domen, bo'lmasa standart subdomen ({tenant}.{SiteBaseDomain}).</summary>
-        protected static string SiteUrl(DistributionDbContext db)
+        internal static string SiteUrl(DistributionDbContext db)
         {
             var primary = db.SiteDomains.Where(d => d.Status == (byte)DomainStatus.Active).OrderByDescending(d => d.IsPrimary)
                 .Select(d => d.Host).FirstOrDefault();

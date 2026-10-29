@@ -3533,4 +3533,139 @@
   <data name="NameRu_Hint" xml:space="preserve">
     <value>Отображается в русском интерфейсе; если пусто — узбекское название. В узбекской кириллице название преобразуется автоматически.</value>
   </data>
+  <data name="Module_TitleCommerce" xml:space="preserve">
+    <value>Торговля</value>
+  </data>
+  <data name="Channels_Title" xml:space="preserve">
+    <value>Каналы продаж</value>
+  </data>
+  <data name="Channels_Intro" xml:space="preserve">
+    <value>Сайт и Telegram-бот / Mini App подключаются к модулю «Торговля»: товары, цены, остатки и заказы берутся отсюда. Агенты и маршруты (Дистрибуция) не обязательны.</value>
+  </data>
+  <data name="Channels_Package" xml:space="preserve">
+    <value>В вашем пакете</value>
+  </data>
+  <data name="Channels_PackageHint" xml:space="preserve">
+    <value>Чтобы подключить недостающий модуль, свяжитесь с tahsinERP или смените тариф в кабинете.</value>
+  </data>
+  <data name="Channels_ModCommerce" xml:space="preserve">
+    <value>Торговля</value>
+  </data>
+  <data name="Channels_ModCommerceHint" xml:space="preserve">
+    <value>Клиенты, цены, заказы, резерв, отгрузка, оплаты и долги; бот и Mini App (кладовщик, руководитель, клиент).</value>
+  </data>
+  <data name="Channels_ModField" xml:space="preserve">
+    <value>Дистрибуция (поле)</value>
+  </data>
+  <data name="Channels_ModFieldHint" xml:space="preserve">
+    <value>Агенты, территории, визиты, GPS, маршруты, рейсы, доставка и KPI.</value>
+  </data>
+  <data name="Channels_ModSite" xml:space="preserve">
+    <value>Сайт-каталог (+SITE)</value>
+  </data>
+  <data name="Channels_ModSiteHint" xml:space="preserve">
+    <value>Сайт фирмы: каталог, корзина, заявки — отдельная услуга, добавляется к любому пакету.</value>
+  </data>
+  <data name="Channels_Stock" xml:space="preserve">
+    <value>Остатки и цены для каналов</value>
+  </data>
+  <data name="Channels_SalesWarehouses" xml:space="preserve">
+    <value>Склады продаж</value>
+  </data>
+  <data name="Channels_DefaultPriceType" xml:space="preserve">
+    <value>Тип цены по умолчанию</value>
+  </data>
+  <data name="Channels_StockHint" xml:space="preserve">
+    <value>Сайт и бот показывают остатки только складов продаж; цена — по типу цены клиента, иначе по умолчанию.</value>
+  </data>
+  <data name="Channels_Bot" xml:space="preserve">
+    <value>Telegram-бот и Mini App</value>
+  </data>
+  <data name="Channels_BotHint" xml:space="preserve">
+    <value>Mini App открывается только внутри бота — у каждой фирмы свой бот (токен BotFather). Бот подключает панель управления tahsinERP; здесь указываются имя и адрес бота.</value>
+  </data>
+  <data name="Channels_BotNameInvalid" xml:space="preserve">
+    <value>Имя бота может содержать только латинские буквы, цифры и _.</value>
+  </data>
+  <data name="Channels_BotLink" xml:space="preserve">
+    <value>Ссылка на бота</value>
+  </data>
+  <data name="Channels_BotNotSet" xml:space="preserve">
+    <value>имя бота не указано</value>
+  </data>
+  <data name="Channels_LinkedStaff" xml:space="preserve">
+    <value>Сотрудники в боте</value>
+  </data>
+  <data name="Channels_LinkedCustomers" xml:space="preserve">
+    <value>Клиенты в боте</value>
+  </data>
+  <data name="Channels_MiniAppWho" xml:space="preserve">
+    <value>Что бот даёт каждому</value>
+  </data>
+  <data name="Channels_RoleStore" xml:space="preserve">
+    <value>Кладовщик — инвентаризация и сборка заказов (сканер штрихкодов, Mini App).</value>
+  </data>
+  <data name="Channels_RoleManager" xml:space="preserve">
+    <value>Руководитель — итоги дня, согласования, уведомления.</value>
+  </data>
+  <data name="Channels_RoleCustomer" xml:space="preserve">
+    <value>Клиент — статус заказов, долг и акт сверки.</value>
+  </data>
+  <data name="Channels_RoleField" xml:space="preserve">
+    <value>Агент и экспедитор — визиты, заказ из каталога, рейсы, доставка (Mini App).</value>
+  </data>
+  <data name="Channels_NeedField" xml:space="preserve">
+    <value>в пакете «Дистрибуция»</value>
+  </data>
+  <data name="Channels_LinkHow" xml:space="preserve">
+    <value>Код подключения сотруднику выдаётся на странице «Команды», клиенту — в карточке клиента.</value>
+  </data>
+  <data name="Channels_BotMovedHint" xml:space="preserve">
+    <value>Настройки Telegram-бота — на странице «Каналы продаж».</value>
+  </data>
+  <data name="Channels_SiteAddOn" xml:space="preserve">
+    <value>Сайт-каталог — отдельная услуга (+SITE). После подключения товары, цены и остатки берутся из модуля «Торговля», заявки с сайта превращаются в заказ одним нажатием.</value>
+  </data>
+  <data name="Channels_SiteState" xml:space="preserve">
+    <value>Состояние</value>
+  </data>
+  <data name="Channels_On" xml:space="preserve">
+    <value>включено</value>
+  </data>
+  <data name="Channels_Off" xml:space="preserve">
+    <value>выключено</value>
+  </data>
+  <data name="Channels_SitePublished" xml:space="preserve">
+    <value>Товаров на сайте</value>
+  </data>
+  <data name="Channels_SitePrice" xml:space="preserve">
+    <value>Цена</value>
+  </data>
+  <data name="Channels_SiteStock" xml:space="preserve">
+    <value>Остаток</value>
+  </data>
+  <data name="Channels_NewLeads" xml:space="preserve">
+    <value>новых: {0}</value>
+  </data>
+  <data name="Channels_SiteOrdersHint" xml:space="preserve">
+    <value>Заявка с сайта попадает в Торговля → Заказы черновиком: резерв, отгрузка и долг — как обычно.</value>
+  </data>
+  <data name="Channels_PriceMode_SHOW" xml:space="preserve">
+    <value>показывается</value>
+  </data>
+  <data name="Channels_PriceMode_ASK" xml:space="preserve">
+    <value>по запросу</value>
+  </data>
+  <data name="Channels_PriceMode_HIDDEN" xml:space="preserve">
+    <value>скрыта</value>
+  </data>
+  <data name="Channels_StockMode_EXACT" xml:space="preserve">
+    <value>точное количество</value>
+  </data>
+  <data name="Channels_StockMode_STATUS" xml:space="preserve">
+    <value>есть / мало / нет</value>
+  </data>
+  <data name="Channels_StockMode_HIDDEN" xml:space="preserve">
+    <value>скрыт</value>
+  </data>
 </root>

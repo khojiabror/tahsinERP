@@ -73,7 +73,7 @@ namespace tahsinERP.Tests.Distribution
         [TestMethod]
         public void K3_33_AuditScreen_InDistributionEdition()
         {
-            Assert.AreEqual(tahsinERP.Services.Editions.ProductModule.Distribution, tahsinERP.Services.Editions.EditionModules.ModuleOf("DstAudit"));
+            Assert.AreEqual(tahsinERP.Services.Editions.ProductModule.Commerce, tahsinERP.Services.Editions.EditionModules.ModuleOf("DstAudit"));   // Savdo qismi
             var seed = File.ReadAllText(Path.Combine(Root(), "tahsinERP", "Database", "Seed", "105_PermissionModules_Extra.sql"));
             StringAssert.Contains(seed, "'DstAudit'");
         }

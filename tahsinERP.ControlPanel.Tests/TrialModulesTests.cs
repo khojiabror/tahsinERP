@@ -69,7 +69,8 @@ public class TrialModulesUnitTests
         Assert.Null(LicenseIssuer.ParseModules(" "));
         Assert.Null(LicenseIssuer.FormatModules([]));
         // tahsinerp.uz demo so'rovidagi kodlar (DemoRequestService.ModuleCodes) ham taniladi
-        Assert.Equal(DemoRequestService.ModuleCodes.Length + 1, LicenseIssuer.ParseModules(string.Join(",", DemoRequestService.ModuleCodes))!.Count);
+        // + Muhandislik (MES bog'liqligi) va Savdo (Distributsiya bog'liqligi)
+        Assert.Equal(DemoRequestService.ModuleCodes.Length + 2, LicenseIssuer.ParseModules(string.Join(",", DemoRequestService.ModuleCodes))!.Count);
     }
 
     [Fact]

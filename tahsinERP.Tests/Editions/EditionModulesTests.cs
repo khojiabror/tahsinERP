@@ -112,7 +112,7 @@ namespace tahsinERP.Tests.Editions
             Assert.IsTrue(EditionModules.IsControllerAllowed("DIST+SITE", "SiteHome"));
             Assert.AreEqual("Distributsiya", EditionModules.EditionDisplayName("DIST"));
             CollectionAssert.AreEqual(
-                new[] { ProductModule.Srm, ProductModule.Crm, ProductModule.Tasks, ProductModule.Finance, ProductModule.Distribution },
+                new[] { ProductModule.Srm, ProductModule.Crm, ProductModule.Tasks, ProductModule.Finance, ProductModule.Commerce, ProductModule.Distribution },
                 EditionModules.ModulesOf("DIST").ToArray());
             // Distributsiya KORP va TRIAL'da ham qoladi; asosiy zanjir o'zgarmaydi
             Assert.IsTrue(EditionModules.IsControllerAllowed("KORP", "DstOrders"));
@@ -138,6 +138,45 @@ namespace tahsinERP.Tests.Editions
             Assert.IsFalse(EditionModules.Covers("BIZNES", "DIST"));
             Assert.IsFalse(EditionModules.Covers("DIST", "BIZNES"));
             Assert.AreEqual("KORP", EditionModules.CheapestEditionWith(ProductModule.Distribution), "zanjir bo'yicha — o'zgarmagan");
+        }
+
+        [TestMethod]
+        public void Savdo_CommerceWithoutField()
+        {
+            Assert.IsTrue(EditionModules.IsRestrictedEdition("SAVDO"));
+            CollectionAssert.AreEqual(
+                new[] { ProductModule.Srm, ProductModule.Crm, ProductModule.Tasks, ProductModule.Finance, ProductModule.Commerce },
+                EditionModules.ModulesOf("SAVDO").ToArray());
+            // buyurtma, ombor, narx, qarz, bot API va kanallar sahifasi — ochiq
+            foreach (var c in new[] { "DstHome", "DstOrders", "DstPrices", "DstStock", "DstDebts", "DstCustomers", "DstTeams", "DstApi", "DstChannels", "DstSettings" })
+                Assert.IsTrue(EditionModules.IsControllerAllowed("SAVDO", c), c);
+            // dala — yopiq
+            foreach (var c in new[] { "DstField", "DstRoutes", "DstTrips", "DstVehicles", "DstTerritories", "DstKpi" })
+                Assert.IsFalse(EditionModules.IsControllerAllowed("SAVDO", c), c);
+            Assert.IsFalse(EditionModules.IsControllerAllowed("SAVDO", "SiteHome"), "sayt — alohida xizmat");
+            Assert.IsTrue(EditionModules.IsControllerAllowed("SAVDO+SITE", "SiteCatalog"));
+            Assert.IsTrue(EditionModules.IsControllerAllowed("SAVDO+SITE", "SiteApi"));
+            Assert.AreEqual("Savdo", EditionModules.EditionDisplayName("SAVDO"));
+            Assert.IsTrue(EditionModules.Covers("DIST", "SAVDO"));
+            Assert.IsTrue(EditionModules.Covers("KORP", "SAVDO"));
+            Assert.IsFalse(EditionModules.Covers("SAVDO", "DIST"));
+            CollectionAssert.AreEqual(new[] { "SAVDO", "DIST", "KORP" }, EditionModules.SuggestEditionsFor("START", ProductModule.Commerce).ToArray());
+            CollectionAssert.AreEqual(new[] { "DIST", "KORP" }, EditionModules.SuggestEditionsFor("SAVDO", ProductModule.Distribution).ToArray());
+        }
+
+        [TestMethod]
+        public void Commerce_FieldDependsOnIt_AndLegacyTrialKeepsIt()
+        {
+            // eski sinov kaliti: Distribution oldin buyurtma/ombor qismini ham o'z ichiga olardi
+            Assert.IsTrue(EditionModules.IsControllerAllowed("TRIAL:Srm,Distribution", "DstOrders"));
+            Assert.IsTrue(EditionModules.IsControllerAllowed("TRIAL:Srm,Distribution", "DstField"));
+            Assert.IsTrue(EditionModules.IsControllerAllowed("TRIAL:Srm,Commerce", "DstOrders"));
+            Assert.IsFalse(EditionModules.IsControllerAllowed("TRIAL:Srm,Commerce", "DstField"));
+            // tanlovda dala Savdo va Moliyani o'zi bilan olib keladi
+            Assert.AreEqual("TRIAL:Finance,Commerce,Distribution",
+                EditionModules.ComposeModules("TRIAL", new[] { ProductModule.Distribution }));
+            Assert.AreEqual("SAVDO", EditionModules.ComposeModules("SAVDO",
+                new[] { ProductModule.Srm, ProductModule.Crm, ProductModule.Tasks, ProductModule.Commerce }));   // Moliya bog'liqlik bilan qo'shiladi
         }
     }
 }
