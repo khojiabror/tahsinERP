@@ -232,6 +232,7 @@
     <Compile Include="Licensing\LicenseHelperTests.cs" />
     <Compile Include="Helpers\BrandingServiceTests.cs" />
     <Compile Include="Helpers\ExcelHelperTests.cs" />
+    <Compile Include="Helpers\ProductImportTemplateTests.cs" />
     <Compile Include="Licensing\LicenseCompatTests.cs" />
     <Compile Include="Tenancy\TenantTests.cs" />
     <Compile Include="Editions\EditionModulesTests.cs" />

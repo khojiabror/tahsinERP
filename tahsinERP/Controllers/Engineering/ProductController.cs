@@ -381,15 +381,10 @@ namespace tahsinERP.Controllers
             }
             base.Dispose(disposing);
         }
-        public async Task<ActionResult> Download()
+        // Import shabloni kodda yasaladi (SAMPLE_FILES'da qator yo'q edi — 404)
+        public ActionResult Download()
         {
-            var sampleFile = await db.SAMPLE_FILES
-                .FirstOrDefaultAsync(s => s.FileName == "maxsulot.xlsx");
-
-            if (sampleFile == null)
-                return HttpNotFound(L.T("Prd_TemplateNotFound"));
-
-            return File(sampleFile.File, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "maxsulot.xlsx");
+            return File(ProductImportTemplate.Build(), ExcelHelper.XlsxContentType, ProductImportTemplate.FileName);
         }
 
         public ActionResult UploadWithExcel()
