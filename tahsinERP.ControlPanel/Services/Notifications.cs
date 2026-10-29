@@ -16,6 +16,10 @@ public class TelegramOptions
     public string? BotUsername { get; set; }
     /// <summary>setWebhook secret_token — /api/telegram/webhook shu sarlavhasiz so'rovni rad etadi. Faqat env/user-secrets.</summary>
     public string? WebhookSecret { get; set; }
+    /// <summary>Texnik yordam guruhi (sotuv boti murojaatlari). Panel «Telegram bot» sahifasida tanlangani ustun.</summary>
+    public string? SupportChatId { get; set; }
+    /// <summary>Testlar: webhook yangilanishni navbatsiz, so'rov ichida qayta ishlaydi (javob kelganda natija tayyor).</summary>
+    public bool ProcessInline { get; set; }
 }
 
 public interface ITelegramSender

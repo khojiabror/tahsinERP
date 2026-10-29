@@ -22,8 +22,10 @@ else
                 <td>@r.Id</td>
                 <td>@Clock.ToLocal(r.CreatedAtUtc).ToString("dd.MM.yyyy HH:mm")<div class="hint">@r.Lang.ToUpperInvariant()</div></td>
                 <td><b>@r.Company</b>@if (r.Industry is not null) { <div class="hint">@tahsinERP.ControlPanel.Pages.Leads.IndexModel.Industry(r.Industry)@(r.CompanySize is null ? "" : ", " + L.T("Pnl_Lead_Employees", r.CompanySize))</div> }</td>
-                <td>@r.FullName<div><a href="tel:@r.Phone">@r.Phone</a></div>@if (r.Email is not null) { <div class="hint">@r.Email</div> }</td>
+                <td>@r.FullName<div><a href="tel:@r.Phone">@r.Phone</a></div>@if (r.TelegramUsername is not null) { <div class="hint"><a href="https://t.me/@r.TelegramUsername" target="_blank" rel="noopener">@@@r.TelegramUsername</a></div> }@if (r.Email is not null) { <div class="hint">@r.Email</div> }</td>
                 <td>
+                    @if (r.Kind == DemoRequestKind.Consultation) { <span class="badge warn">@L.T("Pnl_Lead_KindConsult")</span> }
+                    @if (r.Source == DemoRequestSources.Telegram) { <span class="badge info">@L.T("Pnl_Lead_SrcTelegram")</span> }
                     @if (r.Plan is not null) { <span class="badge info">@r.Plan</span> }
                     @if (r.Modules is not null) { <div class="hint">@r.Modules</div> }
                     @if (r.Message is not null) { <div>@r.Message</div> }
