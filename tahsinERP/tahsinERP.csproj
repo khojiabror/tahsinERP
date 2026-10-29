@@ -787,6 +787,7 @@
     <Compile Include="Helpers\PasswordHasher.cs" />
     <Compile Include="Helpers\LoginThrottle.cs" />
     <Compile Include="Helpers\ExcelHelper.cs" />
+    <Compile Include="Helpers\ProductImportTemplate.cs" />
     <Compile Include="Helpers\ProductProductionPlanDateMeta.cs" />
     <Compile Include="Helpers\MesLookups.cs" />
     <Compile Include="Helpers\MesErrorMessage.cs" />
