@@ -35,6 +35,11 @@ public class ControlDbContext(DbContextOptions<ControlDbContext> options) : DbCo
     public DbSet<ServerInventory> ServerInventories => Set<ServerInventory>();
     public DbSet<ServerHealthDay> ServerHealthDays => Set<ServerHealthDay>();
     public DbSet<DemoRequest> DemoRequests => Set<DemoRequest>();
+    public DbSet<BotChat> BotChats => Set<BotChat>();
+    public DbSet<BotThread> BotThreads => Set<BotThread>();
+    public DbSet<BotThreadMessage> BotThreadMessages => Set<BotThreadMessage>();
+    public DbSet<BotGroup> BotGroups => Set<BotGroup>();
+    public DbSet<BotSettings> BotSettings => Set<BotSettings>();
     public DbSet<ErpDeveloper> ErpDevelopers => Set<ErpDeveloper>();
     public DbSet<TenantSiteDomain> SiteDomains => Set<TenantSiteDomain>();
     public DbSet<EconomicsSettings> EconomicsSettings => Set<EconomicsSettings>();
@@ -433,7 +438,56 @@ public class ControlDbContext(DbContextOptions<ControlDbContext> options) : DbCo
             e.Property(x => x.UserAgent).HasMaxLength(400);
             e.Property(x => x.StaffNotifyError).HasMaxLength(500);
             e.Property(x => x.StaffNote).HasMaxLength(1000);
+            e.Property(x => x.Source).HasMaxLength(20).HasDefaultValue(DemoRequestSources.Web);
+            e.Property(x => x.TelegramUsername).HasMaxLength(64);
+            e.HasIndex(x => x.TelegramChatId);
             e.HasOne<Tenant>().WithMany().HasForeignKey(x => x.TenantId).OnDelete(DeleteBehavior.SetNull);
+        });
+
+        b.Entity<BotChat>(e =>
+        {
+            e.Property(x => x.Id).ValueGeneratedNever();
+            e.Property(x => x.Lang).HasMaxLength(5);
+            e.Property(x => x.State).HasMaxLength(40);
+            e.Property(x => x.StateData).HasMaxLength(4000);
+            e.Property(x => x.FirstName).HasMaxLength(100);
+            e.Property(x => x.LastName).HasMaxLength(100);
+            e.Property(x => x.Username).HasMaxLength(64);
+            e.Property(x => x.FullName).HasMaxLength(200);
+            e.Property(x => x.Company).HasMaxLength(300);
+            e.Property(x => x.Phone).HasMaxLength(50);
+            e.Property(x => x.StartParam).HasMaxLength(64);
+            e.HasIndex(x => x.LastSeenUtc);
+        });
+        b.Entity<BotThread>(e =>
+        {
+            e.Property(x => x.Company).HasMaxLength(300);
+            e.Property(x => x.Subject).HasMaxLength(500);
+            e.Property(x => x.ClosedBy).HasMaxLength(100);
+            e.HasIndex(x => new { x.ChatId, x.Status });
+            e.HasIndex(x => new { x.Status, x.Id });
+            e.HasOne<BotChat>().WithMany().HasForeignKey(x => x.ChatId).OnDelete(DeleteBehavior.Cascade);
+            e.HasOne<DemoRequest>().WithMany().HasForeignKey(x => x.DemoRequestId).OnDelete(DeleteBehavior.SetNull);
+        });
+        b.Entity<BotThreadMessage>(e =>
+        {
+            e.Property(x => x.Author).HasMaxLength(100);
+            e.Property(x => x.Text).HasMaxLength(4000);
+            e.Property(x => x.Media).HasMaxLength(20);
+            e.HasIndex(x => new { x.GroupChatId, x.GroupMessageId });
+            e.HasIndex(x => x.ThreadId);
+            e.HasOne<BotThread>().WithMany().HasForeignKey(x => x.ThreadId).OnDelete(DeleteBehavior.Cascade);
+        });
+        b.Entity<BotGroup>(e =>
+        {
+            e.Property(x => x.Id).ValueGeneratedNever();
+            e.Property(x => x.Title).HasMaxLength(200);
+        });
+        b.Entity<BotSettings>(e =>
+        {
+            e.Property(x => x.Id).ValueGeneratedNever();
+            e.Property(x => x.WebhookSecret).HasMaxLength(500);
+            e.HasData(new BotSettings { Id = 1 });
         });
 
         b.Entity<InvoiceSequence>(e =>

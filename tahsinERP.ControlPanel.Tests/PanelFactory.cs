@@ -23,6 +23,8 @@ public sealed class PanelFactory : WebApplicationFactory<Program>, IAsyncLifetim
     public TestClock Time { get; } = new(Start);
     /// <summary>Telegram o'rnini bosuvchi: yuborilgan xabarlarni yig'adi. Standart — sozlanmagan (eski testlar: faqat log).</summary>
     public FakeTelegram Telegram { get; } = new();
+    /// <summary>Sotuv boti (IBotApi) o'rnini bosuvchi: chaqiruvlarni yig'adi, sendMessage/copyMessage'ga message_id qaytaradi.</summary>
+    public FakeBotApi Bot { get; } = new();
     /// <summary>SMS (Eskiz) va email (SMTP) o'rnini bosuvchilar — standart sozlanmagan (4-bosqich testlari yoqadi).</summary>
     public FakeSms Sms { get; } = new();
     public FakeEmail Email { get; } = new();
@@ -60,6 +62,7 @@ public sealed class PanelFactory : WebApplicationFactory<Program>, IAsyncLifetim
         builder.UseSetting("ControlPanel:Provisioning:BaseDomain", BaseDomain);
         builder.UseSetting("ControlPanel:Telegram:WebhookSecret", WebhookSecret);
         builder.UseSetting("ControlPanel:Telegram:BotUsername", BotUsername);
+        builder.UseSetting("ControlPanel:Telegram:ProcessInline", "true");
         builder.UseSetting("ControlPanel:Hosts:Domain", "localhost");
         builder.ConfigureTestServices(s =>
         {
@@ -69,6 +72,8 @@ public sealed class PanelFactory : WebApplicationFactory<Program>, IAsyncLifetim
             s.AddSingleton<ILicenseSigner>(new LocalRsaSigner("k2", _privateKeyXml));
             s.RemoveAll<ITelegramSender>();
             s.AddSingleton<ITelegramSender>(Telegram);
+            s.RemoveAll<tahsinERP.ControlPanel.Bot.IBotApi>();
+            s.AddSingleton<tahsinERP.ControlPanel.Bot.IBotApi>(Bot);
             s.RemoveAll<tahsinERP.ControlPanel.Portal.ISmsSender>();
             s.AddSingleton<tahsinERP.ControlPanel.Portal.ISmsSender>(Sms);
             s.RemoveAll<tahsinERP.ControlPanel.Portal.IEmailSender>();
@@ -155,6 +160,33 @@ public sealed class FakeTelegram : ITelegramSender
     }
 
     public IReadOnlyList<(string Chat, string Text)> To(string chat) => Sent.Where(m => m.Chat == chat).ToList();
+}
+
+public sealed class FakeBotApi : tahsinERP.ControlPanel.Bot.IBotApi
+{
+    public bool IsConfigured => true;
+    public System.Collections.Concurrent.ConcurrentQueue<(string Method, System.Text.Json.Nodes.JsonObject Payload)> Calls { get; } = new();
+    private long _nextId = 1000;
+
+    public Task<System.Text.Json.JsonElement> CallAsync(string method, System.Text.Json.Nodes.JsonObject payload, CancellationToken ct = default)
+    {
+        Calls.Enqueue((method, (System.Text.Json.Nodes.JsonObject)payload.DeepClone()));
+        string json = method switch
+        {
+            "sendMessage" or "copyMessage" => $"{{\"message_id\":{Interlocked.Increment(ref _nextId)}}}",
+            "getMe" => "{\"id\":1,\"is_bot\":true,\"username\":\"tahsin_test_bot\"}",
+            "getWebhookInfo" => "{\"url\":\"\",\"pending_update_count\":0}",
+            _ => "true",
+        };
+        return Task.FromResult(System.Text.Json.JsonDocument.Parse(json).RootElement.Clone());
+    }
+
+    /// <summary>Shu chatga yuborilgan (sendMessage) yoki tahrirlangan (editMessageText) matnlar va nusxalar.</summary>
+    public IReadOnlyList<(string Method, string Text, System.Text.Json.Nodes.JsonObject Payload)> To(long chat) => Calls
+        .Where(c => c.Payload["chat_id"]?.GetValue<long>() == chat)
+        .Select(c => (c.Method, c.Payload["text"]?.GetValue<string>() ?? "", c.Payload)).ToList();
+
+    public long LastMessageId => Interlocked.Read(ref _nextId);
 }
 
 public sealed class FakeSms : tahsinERP.ControlPanel.Portal.ISmsSender

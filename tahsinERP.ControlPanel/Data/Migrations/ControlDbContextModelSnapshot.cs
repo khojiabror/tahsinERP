@@ -314,6 +314,225 @@ namespace tahsinERP.ControlPanel.Data.Migrations
                     b.ToTable("BankImportLines");
                 });
 
+            modelBuilder.Entity("tahsinERP.ControlPanel.Data.BotChat", b =>
+                {
+                    b.Property<long>("Id")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("BlockedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Company")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("FirstName")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("FullName")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Lang")
+                        .HasMaxLength(5)
+                        .HasColumnType("nvarchar(5)");
+
+                    b.Property<string>("LastName")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("LastSeenUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("MessageCount")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Phone")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("StartParam")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<string>("State")
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<string>("StateData")
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
+
+                    b.Property<string>("Username")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LastSeenUtc");
+
+                    b.ToTable("BotChats");
+                });
+
+            modelBuilder.Entity("tahsinERP.ControlPanel.Data.BotGroup", b =>
+                {
+                    b.Property<long>("Id")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("IsMember")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTime>("UpdatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("BotGroups");
+                });
+
+            modelBuilder.Entity("tahsinERP.ControlPanel.Data.BotSettings", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("int");
+
+                    b.Property<long?>("SupportChatId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("WebhookSecret")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime?>("WebhookSetAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("BotSettings");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1
+                        });
+                });
+
+            modelBuilder.Entity("tahsinERP.ControlPanel.Data.BotThread", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<long>("ChatId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("ClosedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ClosedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Company")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("DemoRequestId")
+                        .HasColumnType("int");
+
+                    b.Property<long?>("GroupChatId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("GroupMessageId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("Kind")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("LastActivityUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("Rating")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Subject")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DemoRequestId");
+
+                    b.HasIndex("ChatId", "Status");
+
+                    b.HasIndex("Status", "Id");
+
+                    b.ToTable("BotThreads");
+                });
+
+            modelBuilder.Entity("tahsinERP.ControlPanel.Data.BotThreadMessage", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Author")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("FromStaff")
+                        .HasColumnType("bit");
+
+                    b.Property<long?>("GroupChatId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("GroupMessageId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Media")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("Text")
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
+
+                    b.Property<int>("ThreadId")
+                        .HasColumnType("int");
+
+                    b.Property<long?>("UserMessageId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ThreadId");
+
+                    b.HasIndex("GroupChatId", "GroupMessageId");
+
+                    b.ToTable("BotThreadMessages");
+                });
+
             modelBuilder.Entity("tahsinERP.ControlPanel.Data.Competitor", b =>
                 {
                     b.Property<int>("Id")
@@ -661,6 +880,9 @@ namespace tahsinERP.ControlPanel.Data.Migrations
                         .HasMaxLength(64)
                         .HasColumnType("nvarchar(64)");
 
+                    b.Property<int>("Kind")
+                        .HasColumnType("int");
+
                     b.Property<string>("Lang")
                         .IsRequired()
                         .HasMaxLength(5)
@@ -683,6 +905,13 @@ namespace tahsinERP.ControlPanel.Data.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
+                    b.Property<string>("Source")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
+                        .HasDefaultValue("web");
+
                     b.Property<string>("StaffNote")
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
@@ -703,6 +932,13 @@ namespace tahsinERP.ControlPanel.Data.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
+                    b.Property<long?>("TelegramChatId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("TelegramUsername")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
                     b.Property<int?>("TenantId")
                         .HasColumnType("int");
 
@@ -713,6 +949,8 @@ namespace tahsinERP.ControlPanel.Data.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("Phone");
+
+                    b.HasIndex("TelegramChatId");
 
                     b.HasIndex("TenantId");
 
@@ -2786,6 +3024,29 @@ namespace tahsinERP.ControlPanel.Data.Migrations
                         .WithMany()
                         .HasForeignKey("PaymentId")
                         .OnDelete(DeleteBehavior.Restrict);
+                });
+
+            modelBuilder.Entity("tahsinERP.ControlPanel.Data.BotThread", b =>
+                {
+                    b.HasOne("tahsinERP.ControlPanel.Data.BotChat", null)
+                        .WithMany()
+                        .HasForeignKey("ChatId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("tahsinERP.ControlPanel.Data.DemoRequest", null)
+                        .WithMany()
+                        .HasForeignKey("DemoRequestId")
+                        .OnDelete(DeleteBehavior.SetNull);
+                });
+
+            modelBuilder.Entity("tahsinERP.ControlPanel.Data.BotThreadMessage", b =>
+                {
+                    b.HasOne("tahsinERP.ControlPanel.Data.BotThread", null)
+                        .WithMany()
+                        .HasForeignKey("ThreadId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("tahsinERP.ControlPanel.Data.DemoRequest", b =>

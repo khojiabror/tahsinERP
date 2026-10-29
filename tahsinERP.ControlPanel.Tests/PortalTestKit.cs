@@ -121,6 +121,8 @@ public static partial class PortalTestKit
         Assert.Equal(HttpStatusCode.OK, hook.StatusCode);
     }
 
+    private static long _updateId;
+
     public static async Task<HttpResponseMessage> WebhookAsync(PanelFactory f, string chat, string text, string? secret = PanelFactory.WebhookSecret)
     {
         var (c, _) = Client(f, PortalBase);
@@ -128,7 +130,7 @@ public static partial class PortalTestKit
         {
             Content = new StringContent(System.Text.Json.JsonSerializer.Serialize(new
             {
-                update_id = 1,
+                update_id = Interlocked.Increment(ref _updateId),
                 message = new { message_id = 5, chat = new { id = long.Parse(chat), type = "private" }, text },
             }), System.Text.Encoding.UTF8, "application/json"),
         };

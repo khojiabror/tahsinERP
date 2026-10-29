@@ -50,6 +50,10 @@ else
         <a class="@Nav("/Tenants")" href="/Tenants"><svg class="i"><use href="#i-building" /></svg>@L.T("Pnl_NavTenants")</a>
         <a class="@Nav("/Requests")" href="/Requests"><svg class="i"><use href="#i-inbox" /></svg><span>@L.T("Pnl_NavRequests")</span>@if (openRequests > 0) { <span class="sb-count">@openRequests</span> }</a>
         <a class="@Nav("/Leads")" href="/Leads"><svg class="i"><use href="#i-send" /></svg><span>@L.T("Pnl_Auth2_NavLeads")</span>@if (newLeads > 0) { <span class="sb-count">@newLeads</span> }</a>
+        @if (owner || User.IsInRole(nameof(StaffRole.Sales)))
+        {
+            <a class="@Nav("/Bot")" href="/Bot"><svg class="i"><use href="#i-bell" /></svg>@L.T("Pnl_Bot_Nav")</a>
+        }
         <div class="sb-group">@L.T("Pnl_NavFinance")</div>
         <a class="@Nav("/Invoices")" href="/Invoices"><svg class="i"><use href="#i-file" /></svg>@L.T("Pnl_NavInvoices")</a>
         @if (owner || User.IsInRole(nameof(StaffRole.Sales)))

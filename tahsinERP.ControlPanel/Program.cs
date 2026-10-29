@@ -91,6 +91,12 @@ services.AddScoped<PortalRequestService>();
 services.TryAddEnumerable(ServiceDescriptor.Singleton<MatcherPolicy, ZoneMatcherPolicy>());
 services.AddSingleton<InvoicePdfRenderer>();
 services.AddHttpClient<ITelegramSender, TelegramSender>(c => c.Timeout = TimeSpan.FromSeconds(15));
+// Sotuv boti (@tahsinERPBot): webhook → navbat → SalesBot (Bot/README.md).
+services.AddHttpClient<tahsinERP.ControlPanel.Bot.IBotApi, tahsinERP.ControlPanel.Bot.TelegramBotApi>(c => c.Timeout = TimeSpan.FromSeconds(20));
+services.AddSingleton<tahsinERP.ControlPanel.Bot.BotConfig>();
+services.AddSingleton<tahsinERP.ControlPanel.Bot.BotQueue>();
+services.AddScoped<tahsinERP.ControlPanel.Bot.SalesBot>();
+services.AddHostedService<tahsinERP.ControlPanel.Bot.BotWorker>();
 services.AddHttpClient<IAppsClient, AppsHttpClient>(c => c.Timeout = TimeSpan.FromSeconds(30));
 services.AddScoped<TenantAppsService>();
 services.AddScoped<DemoService>();
@@ -204,6 +210,10 @@ services.AddRateLimiter(o =>
     o.AddPolicy("login", ctx => RateLimitPartition.GetFixedWindowLimiter(
         ctx.Connection.RemoteIpAddress?.ToString() ?? "-",
         _ => new FixedWindowRateLimiterOptions { PermitLimit = config.GetValue("ControlPanel:Panel:LoginRateLimitPerMinute", 20), Window = TimeSpan.FromMinutes(1) }));
+    // Telegram serverlari bir necha IP'dan yuboradi — bot faol bo'lsa License API chegarasi (60/daq) tor.
+    o.AddPolicy(TelegramWebhook.RateLimitPolicy, ctx => RateLimitPartition.GetFixedWindowLimiter(
+        ctx.Connection.RemoteIpAddress?.ToString() ?? "-",
+        _ => new FixedWindowRateLimiterOptions { PermitLimit = config.GetValue("ControlPanel:Telegram:WebhookRateLimitPerMinute", 1200), Window = TimeSpan.FromMinutes(1) }));
 });
 
 // Kirill/o'zbek matni HTML'da entity (&#x...;) bo'lib chiqmasin — ommaviy sahifa (ru) va panel uchun.
@@ -221,6 +231,7 @@ services.AddRazorPages(o =>
     o.Conventions.AuthorizeFolder("/Updates", Policies.Owner);
     o.Conventions.AuthorizeFolder("/Audit", Policies.Owner);
     o.Conventions.AuthorizeFolder("/Economics", Policies.Owner); // moliyaviy reja va xarajatlar
+    o.Conventions.AuthorizeFolder("/Bot", Policies.Sales); // Telegram sotuv boti (sozlash — faqat Owner, sahifa ichida)
     o.Conventions.AuthorizeFolder("/Bank", Policies.Sales); // to'lov belgilash huquqi (00_PLAN.md 5.2)
 });
 
