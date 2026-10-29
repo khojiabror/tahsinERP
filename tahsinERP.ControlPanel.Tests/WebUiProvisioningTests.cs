@@ -73,6 +73,29 @@ public partial class WebUiTests
     }
 
     [Fact]
+    public async Task Delete_Ui_FirstStepRendersFinalStepFormWithStep2()
+    {
+        using var c = await LoginAsync("ui-del-owner@test.uz", StaffRole.Owner);
+        int tenantId = await f.WithScopeAsync(async sp =>
+        {
+            var db = sp.GetRequiredService<ControlDbContext>();
+            var t = await sp.GetRequiredService<tahsinERP.ControlPanel.Services.TenantService>().CreateAsync(
+                new Tenant { Slug = "ui-del", LegalName = "UI Del", Deployment = DeploymentKind.SaaS }, true);
+            t = await db.Tenants.FirstAsync(x => x.Id == t.Id);
+            t.Status = TenantStatus.Archived;
+            await db.SaveChangesAsync();
+            return t.Id;
+        });
+
+        // 1-qadam qabul qilingach yakuniy sahifa Step=2 ni qaytarishi kerak (ModelState'dagi "1" emas) — aks holda
+        // «Ha, butunlay o'chirish» yana tasdiq sahifasini ochadi va hech narsa bo'lmaydi
+        var step1 = await PostAsync(c, $"/Tenants/Delete/{tenantId}", new() { ["ConfirmSlug"] = "ui-del", ["Reason"] = "x", ["Understand"] = "true", ["Step"] = "1" });
+        string html = await step1.Content.ReadAsStringAsync();
+        Assert.Contains("Ha, butunlay o", WebUtility.HtmlDecode(html));
+        Assert.Matches("<input type=\"hidden\" name=\"Step\" value=\"2\"", html);
+    }
+
+    [Fact]
     public async Task Provisioning_Ui_SalesCannotDelete_SupportCannotTrial()
     {
         using var sales = await LoginAsync("ui-prov-sales@test.uz", StaffRole.Sales);

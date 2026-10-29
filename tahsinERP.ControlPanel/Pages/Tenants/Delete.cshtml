@@ -4,7 +4,8 @@
 <h1>@L.T("Pnl_Ten_DeleteForever"): @t.LegalName <code>@t.Slug</code></h1>
 <form method="post" class="stack card">
     <div asp-validation-summary="All"></div>
-    <input type="hidden" asp-for="Step" />
+    @* asp-for emas: tag helper POST'dagi eski qiymatni (ModelState, "1") chiqaradi va yakuniy tasdiq yana 1-qadamga qaytadi *@
+    <input type="hidden" name="Step" value="@Model.Step" />
     @if (Model.Step < 2)
     {
         <p>@L.T("Pnl_Ten_DeleteWarn1") <strong>@L.T("Pnl_Ten_DeleteIrreversible")</strong>: @L.T("Pnl_Ten_DeleteWarn2") (<span class="mono">@t.ArchiveLocation</span>) @L.T("Pnl_Ten_DeleteWarn3")</p>
