@@ -59,6 +59,15 @@ namespace tahsinERP.Areas.Distribution.Controllers
                 ViewBag.BotPublicUrl = Services.Bot.DstSettings.Get(db, DstSetting.BotPublicUrl);
                 ViewBag.LinkedStaff = db.TelegramAccounts.Count(a => a.IsActive && a.UserID != null);
                 ViewBag.LinkedCustomers = db.TelegramAccounts.Count(a => a.IsActive && a.CustomerID != null);
+                ViewBag.ShopEnabled = Services.Bot.DstSettings.Get(db, DstSetting.ShopEnabled) == "1";
+                ViewBag.ShopSignup = Services.Bot.DstSettings.Get(db, DstSetting.ShopSignup) == "1";
+                ViewBag.ShopShowStock = Services.Bot.DstSettings.Get(db, DstSetting.ShopShowStock) == "1";
+                ViewBag.ShopUserId = Services.Bot.DstSettings.Int(db, DstSetting.ShopUserId);
+                ViewBag.ShopPaymentNote = Services.Bot.DstSettings.Get(db, DstSetting.ShopPaymentNote);
+                ViewBag.ShopUsers = db.Users.Where(u => u.IsActive && u.IsDeleted != true).OrderBy(u => u.FullName ?? u.Uname).ToList()
+                    .Select(u => new SelectListItem { Value = u.ID.ToString(), Text = u.FullName ?? u.Uname }).ToList();
+                var since = DateTime.Today.AddDays(-30);
+                ViewBag.ShopOrders30 = db.Orders.Count(o => o.Source == Data.AuditActor.Shop && o.DocDate >= since);
 
                 var salesIds = StockService.SalesWarehouses(db);
                 ViewBag.SalesWarehouses = db.Warehouses.Where(w => salesIds.Contains(w.ID)).OrderBy(w => w.WHName).Select(w => w.WHName).ToList();
@@ -83,6 +92,34 @@ namespace tahsinERP.Areas.Distribution.Controllers
                 ViewBag.Site = site;
             }
             return View();
+        }
+
+        /// <summary>
+        /// Telegram do'kon: mijoz Mini App'da o'zi buyurtma beradi. Buyurtma mas'ul xodim nomidan qoralama bo'ladi va unga xabar boradi.
+        /// Onlayn to'lov yo'q — to'lov tartibi matni faqat ma'lumot (mijoz firmaga bevosita to'laydi).
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryHeader]
+        public JsonResult SaveShop(bool enabled, bool signup, bool showStock, int? userId, string paymentNote)
+        {
+            return DstJson(() =>
+            {
+                paymentNote = string.IsNullOrWhiteSpace(paymentNote) ? null : paymentNote.Trim();
+                if (paymentNote != null && paymentNote.Length > 400) throw new DstValidationException(DstLocalization.T("Channels_ShopNoteTooLong"));
+                using (var db = NewDb())
+                {
+                    if (userId.HasValue && !db.Users.Any(u => u.ID == userId && u.IsActive && u.IsDeleted != true))
+                        throw new DstValidationException(DstLocalization.T("Error_NotFound"));
+                    if (enabled && !userId.HasValue) throw new DstValidationException(DstLocalization.T("Channels_ShopUserRequired"));
+                    Services.Bot.DstSettings.Set(db, DstSetting.ShopEnabled, enabled ? "1" : "0");
+                    Services.Bot.DstSettings.Set(db, DstSetting.ShopSignup, signup ? "1" : "0");
+                    Services.Bot.DstSettings.Set(db, DstSetting.ShopShowStock, showStock ? "1" : "0");
+                    Services.Bot.DstSettings.Set(db, DstSetting.ShopUserId, userId?.ToString(System.Globalization.CultureInfo.InvariantCulture));
+                    Services.Bot.DstSettings.Set(db, DstSetting.ShopPaymentNote, paymentNote);
+                    db.SaveChanges();
+                    return null;
+                }
+            });
         }
 
         /// <summary>Telegram bot nomi (t.me havolalari, ulash kodlari) va bot ochiq manzili (selfi/fotolar uchun imzoli havolalar).</summary>

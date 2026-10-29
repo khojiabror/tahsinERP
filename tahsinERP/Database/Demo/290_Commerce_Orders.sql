@@ -12,12 +12,12 @@
      to'lov DP-... = dst.D_PAYMENTS + ledger kredit (+ hisobga tushsa FIN_TRANSACTIONS 'DstPayment'); to'liq qoplangan — Closed (6).
    Invariantlar: Subtotal/Total = qatorlar yig'indisi, ShippedTotal = jo'natishlar, QtyShippedBase = jo'natilgan, rezerv faqat
    1/2/3 holatda, muddati o'tgan qarz yo'q (UI'da yangi buyurtmani tasdiqlash bloklanmasin). PRODUCT_STOCKS — 299.
-   Faqat Distribution moduli tanlangan bo'lsa. Idempotent: dst.D_ORDERS bo'sh bo'lmasa o'tkazib yuboriladi. Bitta batch.
+   Savdo (Commerce) moduli tanlangan bo'lsa — SAVDO paketida ham (hudud/agent yozuvlari dala modulisiz yashirin qoladi). Idempotent: dst.D_ORDERS bo'sh bo'lmasa o'tkazib yuboriladi. Bitta batch.
    ===================================================================== */
 SET NOCOUNT ON;
 SET XACT_ABORT ON;
 
-IF dbo.fn_SetupHasModule('Distribution') = 0 OR OBJECT_ID(N'demo_tmp.PROD') IS NULL OR EXISTS (SELECT 1 FROM dst.D_ORDERS)
+IF dbo.fn_SetupHasModule('Commerce') = 0 OR OBJECT_ID(N'demo_tmp.PROD') IS NULL OR EXISTS (SELECT 1 FROM dst.D_ORDERS)
 BEGIN
     PRINT 'Demo distributsiya: modul tanlanmagan yoki hujjatlar bor — o''tkazib yuborildi';
     RETURN;

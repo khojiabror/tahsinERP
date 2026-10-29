@@ -73,7 +73,7 @@ namespace tahsinERP.Areas.Distribution.Services
             var profile = uow.Dst.CustomerProfiles.Find(customer.ID);
             if (profile == null)
             {
-                bool byAgent = via == AuditActor.Bot;
+                bool byAgent = via == AuditActor.Bot || via == AuditActor.Shop;   // agent yoki mijozning o'zi — operator tasdiqlaydi
                 profile = new CustomerProfile
                 {
                     CustomerID = customer.ID, CreatedAt = now, CreatedBy = userId, CreatedVia = via ?? AuditActor.Web,

@@ -305,6 +305,9 @@ namespace tahsinERP.Areas.Distribution.Services.Orders
             if (order.AgentUserID.HasValue && order.AgentUserID != actor.UserId)
                 NotificationService.ToUser(db, order.AgentUserID, NotificationService.OrderConfirmed,
                     l => DstLocalization.TFor(l, "Notify_OrderConfirmed", order.DocNo, CustomerName(db, order.CustomerID), order.Total.ToString("N0")), null, now);
+            if (order.Source == AuditActor.Shop)   // mijozning o'zi Telegram do'konda bergan — unga ham xabar
+                NotificationService.ToCustomer(db, order.CustomerID, NotificationService.OrderConfirmed,
+                    l => DstLocalization.TFor(l, "Notify_ShopOrderConfirmed", order.DocNo, order.Total.ToString("N0")), now);
             NotifyStorekeepers(db, order, lines.Count, actor.UserId, now);
             db.SaveChanges();
             Warehouse.StockAlerts.AfterDecrease(db, order.WarehouseID.Value, availableBefore, now, actor.UserId);   // rezerv — mavjud qoldiq kamaydi
@@ -725,6 +728,9 @@ namespace tahsinERP.Areas.Distribution.Services.Orders
             if (order.AgentUserID.HasValue && order.AgentUserID != userId)
                 NotificationService.ToUser(db, order.AgentUserID, NotificationService.OrderCancelled,
                     l => DstLocalization.TFor(l, "Notify_OrderCancelled", order.DocNo, CustomerName(db, order.CustomerID), order.CancelReason), null, now);
+            if (order.Source == AuditActor.Shop)
+                NotificationService.ToCustomer(db, order.CustomerID, NotificationService.OrderCancelled,
+                    l => DstLocalization.TFor(l, "Notify_ShopOrderCancelled", order.DocNo, order.CancelReason), now);
             db.SaveChanges();
         }
 

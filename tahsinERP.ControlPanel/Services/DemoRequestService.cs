@@ -42,7 +42,7 @@ public sealed partial class DemoRequestService(ControlDbContext db, ITelegramSen
 
     public static readonly string[] Industries = ["production", "distribution", "trade", "services", "other"];
     public static readonly string[] Sizes = ["1-20", "21-100", "101-500", "500+"];
-    public static readonly string[] Plans = ["START", "DIST", "BIZNES", "KORP"];
+    public static readonly string[] Plans = ["START", "SAVDO", "DIST", "BIZNES", "KORP"];
     public static readonly string[] ModuleCodes = ["srm", "crm", "mes", "finance", "hr", "logistics", "docs", "tasks", "distribution", "website"];
 
     public enum Outcome { Saved, Duplicate, Throttled, Spam }

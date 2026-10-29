@@ -3668,4 +3668,76 @@
   <data name="Channels_StockMode_HIDDEN" xml:space="preserve">
     <value>скрыт</value>
   </data>
+  <data name="Shop_Disabled" xml:space="preserve">
+    <value>Telegram-магазин пока закрыт.</value>
+  </data>
+  <data name="Shop_SignupDisabled" xml:space="preserve">
+    <value>Регистрация закрыта — запросите код подключения у фирмы.</value>
+  </data>
+  <data name="Shop_CommentPickup" xml:space="preserve">
+    <value>самовывоз</value>
+  </data>
+  <data name="Shop_CommentDelivery" xml:space="preserve">
+    <value>доставка</value>
+  </data>
+  <data name="Notify_ShopOrder" xml:space="preserve">
+    <value>🛒 Telegram-магазин: новый заказ {0} — {1}, {2} сум. Подтвердите в Торговля → Заказы.</value>
+  </data>
+  <data name="Notify_ShopNewCustomer" xml:space="preserve">
+    <value>🛒 Telegram-магазин: зарегистрировался новый клиент — {0}, {1}. Подтвердите в карточке клиента.</value>
+  </data>
+  <data name="Notify_ShopLinkedCustomer" xml:space="preserve">
+    <value>🛒 Telegram-магазин: клиент подключился к боту — {0}, {1}.</value>
+  </data>
+  <data name="Notify_ShopOrderReceived" xml:space="preserve">
+    <value>✅ Ваш заказ {0} принят ({1} сум). Сообщим, когда оператор подтвердит.</value>
+  </data>
+  <data name="Notify_ShopOrderConfirmed" xml:space="preserve">
+    <value>👍 Заказ {0} подтверждён ({1} сум) и готовится.</value>
+  </data>
+  <data name="Notify_ShopOrderCancelled" xml:space="preserve">
+    <value>❌ Заказ {0} отменён: {1}</value>
+  </data>
+  <data name="Channels_Shop" xml:space="preserve">
+    <value>Telegram-магазин (клиент заказывает сам)</value>
+  </data>
+  <data name="Channels_ShopHint" xml:space="preserve">
+    <value>Клиент нажимает в боте «Магазин»: каталог, корзина, заказ. Заказ попадает черновиком в Торговля → Заказы — оператор подтверждает, резерв и долг как обычно.</value>
+  </data>
+  <data name="Channels_ShopNoPayment" xml:space="preserve">
+    <value>Онлайн-оплаты нет: система не принимает деньги и не участвует в оплате. Клиент платит самой фирме — опишите порядок оплаты в тексте ниже.</value>
+  </data>
+  <data name="Channels_ShopEnabled" xml:space="preserve">
+    <value>Включить магазин</value>
+  </data>
+  <data name="Channels_ShopSignup" xml:space="preserve">
+    <value>Новый клиент может сам зарегистрироваться по номеру телефона (оператор подтверждает)</value>
+  </data>
+  <data name="Channels_ShopShowStock" xml:space="preserve">
+    <value>Показывать наличие (есть / мало); «нет в наличии» видно всегда</value>
+  </data>
+  <data name="Channels_ShopUser" xml:space="preserve">
+    <value>Ответственный сотрудник</value>
+  </data>
+  <data name="Channels_ShopUserHint" xml:space="preserve">
+    <value>Заказы создаются от имени этого сотрудника; уведомления о новых заказах и клиентах приходят ему в Telegram (должен быть подключён к боту).</value>
+  </data>
+  <data name="Channels_ShopUserRequired" xml:space="preserve">
+    <value>Чтобы включить магазин, выберите ответственного сотрудника.</value>
+  </data>
+  <data name="Channels_ShopPaymentNote" xml:space="preserve">
+    <value>Порядок оплаты (показывается клиенту в корзине)</value>
+  </data>
+  <data name="Channels_ShopPaymentNotePh" xml:space="preserve">
+    <value>Например: наличными или картой при доставке; организации — банковский перевод.</value>
+  </data>
+  <data name="Channels_ShopNoteTooLong" xml:space="preserve">
+    <value>Текст порядка оплаты — не более 400 символов.</value>
+  </data>
+  <data name="Channels_ShopOrders30" xml:space="preserve">
+    <value>За 30 дней: заказов {0}</value>
+  </data>
+  <data name="Channels_RoleCustomerShop" xml:space="preserve">
+    <value>Магазин: каталог, корзина, заказ.</value>
+  </data>
 </root>

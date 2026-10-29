@@ -69,17 +69,27 @@ namespace tahsinERP.Areas.Distribution.Services.Bot
             if (c.UserID.HasValue && !db.Users.Any(u => u.ID == c.UserID && u.IsActive && u.IsDeleted != true))
                 throw new DstValidationException(DstLocalization.T("Bot_CodeInvalid"));
 
+            c.UsedAt = now;
+            c.TelegramUserId = telegramUserId;
+            return Attach(db, telegramUserId, chatId, c.UserID, c.CustomerID, c.Role, now, language);
+        }
+
+        /// <summary>
+        /// Telegram hisobini xodim yoki mijozga bog'laydi: shu Telegram foydalanuvchining, shu xodim/mijozning eski bog'lanishlari o'chadi.
+        /// Kod bilan (<see cref="Redeem"/>) va do'konda telefon bilan ro'yxatdan o'tishda bir xil.
+        /// </summary>
+        public static TelegramAccount Attach(DistributionDbContext db, long telegramUserId, long chatId, int? userId, int? customerId, string role,
+            DateTime now, string language = null)
+        {
             foreach (var a in db.TelegramAccounts.Where(a => a.IsActive && (a.TelegramUserId == telegramUserId
-                         || (c.UserID != null && a.UserID == c.UserID) || (c.CustomerID != null && a.CustomerID == c.CustomerID))).ToList())
+                         || (userId != null && a.UserID == userId) || (customerId != null && a.CustomerID == customerId))).ToList())
                 a.IsActive = false;
             db.SaveChanges();   // UNIQUE (TelegramUserId) WHERE IsActive — avval eskisi o'chadi
 
-            c.UsedAt = now;
-            c.TelegramUserId = telegramUserId;
             var account = new TelegramAccount
             {
-                TelegramUserId = telegramUserId, ChatId = chatId, UserID = c.UserID, CustomerID = c.CustomerID, Role = c.Role, LinkedAt = now,
-                Language = c.CustomerID.HasValue && language != null ? DstLocalization.Normalize(language) : null
+                TelegramUserId = telegramUserId, ChatId = chatId, UserID = userId, CustomerID = customerId, Role = role, LinkedAt = now,
+                Language = customerId.HasValue && language != null ? DstLocalization.Normalize(language) : null
             };
             db.TelegramAccounts.Add(account);
             return account;
@@ -109,6 +119,8 @@ namespace tahsinERP.Areas.Distribution.Services.Bot
         public const string StoreOrderConfirmed = "STORE_ORDER";
         public const string NewCustomer = "NEW_CUSTOMER";
         public const string IssueNew = "ISSUE_NEW";
+        public const string ShopOrder = "SHOP_ORDER";
+        public const string ShopCustomer = "SHOP_CUSTOMER";
 
         public static void ToUser(DistributionDbContext db, int? userId, string type, Func<string, string> text, string payload, DateTime now)
         {

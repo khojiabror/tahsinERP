@@ -176,6 +176,16 @@ namespace tahsinERP.Areas.Distribution.Data.Entities
         /// <summary>Agent qabul qiladigan to'lov usullari ("CASH,CARD,CLICK"); har naqdsiz usul hisobi — AgentAccount_&lt;usul&gt;.</summary>
         public const string AgentPayMethods = "AgentPayMethods";
         public const string AgentAccountPrefix = "AgentAccount_";
+        /// <summary>Telegram do'kon (mijoz Mini App'da o'zi buyurtma beradi): "1" — yoqilgan.</summary>
+        public const string ShopEnabled = "ShopEnabled";
+        /// <summary>Bog'lanmagan Telegram foydalanuvchi telefon raqami bilan o'zi ro'yxatdan o'ta oladi ("1").</summary>
+        public const string ShopSignup = "ShopSignup";
+        /// <summary>Do'kon buyurtmalari kimning nomidan yaratiladi va kimga xabar boradi (USERS.ID, odatda operator).</summary>
+        public const string ShopUserId = "ShopUserId";
+        /// <summary>To'lov tartibi matni (savatda ko'rsatiladi). To'lov firmaga bevosita — tizim pul qabul qilmaydi.</summary>
+        public const string ShopPaymentNote = "ShopPaymentNote";
+        /// <summary>Qoldiq ko'rsatiladimi ("1" — bor/kam/yo'q holati; aks holda faqat "mavjud emas").</summary>
+        public const string ShopShowStock = "ShopShowStock";
 
         [Key, StringLength(50), DatabaseGenerated(DatabaseGeneratedOption.None)] public string Key { get; set; }
         [StringLength(400)] public string Value { get; set; }

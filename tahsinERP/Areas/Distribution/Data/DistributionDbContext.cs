@@ -20,6 +20,8 @@ namespace tahsinERP.Areas.Distribution.Data
         public const string Bot = "bot";
         public const string Api = "api";
         public const string System = "system";
+        /// <summary>Mijozning o'zi Telegram do'kon (Mini App) orqali — buyurtma va ro'yxatdan o'tish.</summary>
+        public const string Shop = "shop";
 
         public AuditActor(int? userId, string source)
         {

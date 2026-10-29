@@ -42,6 +42,7 @@ public static partial class MiniAppEndpoints
     {
         var g = app.MapGroup("/app/api/{slug}");
         MapDelivery(g);
+        MapShop(g);
         g.MapGet("/me", async (string slug, HttpRequest req, Deps d, CancellationToken ct) =>
             await Run(slug, req, d, ct, c => Task.FromResult<object?>(new { name = c.Link.Name, language = c.Link.Language, role = c.Link.Role }),
                 [.. FieldRoles, .. StoreRoles]));

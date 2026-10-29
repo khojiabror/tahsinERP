@@ -7,6 +7,8 @@
     var site = (DstChannelsController.SiteSummary)ViewBag.Site;
     var warehouses = (List<string>)ViewBag.SalesWarehouses;
     string bot = ViewBag.BotUsername;
+    var shopUsers = (List<SelectListItem>)ViewBag.ShopUsers;
+    int? shopUserId = ViewBag.ShopUserId;
 }
 @Html.AntiForgeryToken()
 <div class="app-content content">
@@ -81,12 +83,48 @@
                             <ul class="small mb-50">
                                 <li>@DstLocalization.T("Channels_RoleStore")</li>
                                 <li>@DstLocalization.T("Channels_RoleManager")</li>
-                                <li>@DstLocalization.T("Channels_RoleCustomer")</li>
+                                <li>@DstLocalization.T("Channels_RoleCustomer")@(ViewBag.ShopEnabled == true ? " " + DstLocalization.T("Channels_RoleCustomerShop") : "")</li>
                                 <li class="@(field ? "" : "text-muted")">@DstLocalization.T("Channels_RoleField")@(field ? "" : " — " + DstLocalization.T("Channels_NeedField"))</li>
                             </ul>
                             <p class="small text-muted mb-0">@DstLocalization.T("Channels_LinkHow")
                                 <a href="@Url.Action("Index", "DstTeams")">@DstLocalization.T("Teams")</a> ·
                                 <a href="@Url.Action("Index", "DstCustomers")">@DstLocalization.T("Customers")</a></p>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header"><h4 class="card-title"><i class="bx bx-shopping-bag"></i> @DstLocalization.T("Channels_Shop")</h4></div>
+                        <div class="card-body">
+                            <p class="small text-muted">@DstLocalization.T("Channels_ShopHint")</p>
+                            <div class="alert alert-light-info small mb-1"><i class="bx bx-info-circle"></i> @DstLocalization.T("Channels_ShopNoPayment")</div>
+                            <div class="custom-control custom-switch mb-50">
+                                <input type="checkbox" class="custom-control-input" id="sEnabled" @(ViewBag.ShopEnabled == true ? "checked" : "") @(canChange ? "" : "disabled") />
+                                <label class="custom-control-label" for="sEnabled">@DstLocalization.T("Channels_ShopEnabled")</label>
+                            </div>
+                            <div class="custom-control custom-switch mb-50">
+                                <input type="checkbox" class="custom-control-input" id="sSignup" @(ViewBag.ShopSignup == true ? "checked" : "") @(canChange ? "" : "disabled") />
+                                <label class="custom-control-label" for="sSignup">@DstLocalization.T("Channels_ShopSignup")</label>
+                            </div>
+                            <div class="custom-control custom-switch mb-1">
+                                <input type="checkbox" class="custom-control-input" id="sStock" @(ViewBag.ShopShowStock == true ? "checked" : "") @(canChange ? "" : "disabled") />
+                                <label class="custom-control-label" for="sStock">@DstLocalization.T("Channels_ShopShowStock")</label>
+                            </div>
+                            <div class="form-group">
+                                <label>@DstLocalization.T("Channels_ShopUser")</label>
+                                <select id="sUser" class="form-control" @(canChange ? "" : "disabled")>
+                                    <option value="">—</option>
+                                    @foreach (var u in shopUsers)
+                                    {
+                                        <option value="@u.Value" @(u.Value == shopUserId?.ToString() ? "selected" : "")>@u.Text</option>
+                                    }
+                                </select>
+                                <small class="text-muted">@DstLocalization.T("Channels_ShopUserHint")</small>
+                            </div>
+                            <div class="form-group">
+                                <label>@DstLocalization.T("Channels_ShopPaymentNote")</label>
+                                <textarea id="sNote" class="form-control" rows="2" maxlength="400" placeholder="@DstLocalization.T("Channels_ShopPaymentNotePh")" @(canChange ? "" : "disabled")>@ViewBag.ShopPaymentNote</textarea>
+                            </div>
+                            @if (canChange) { <button type="button" class="btn btn-primary btn-sm" id="sSave">@DstLocalization.T("Save")</button> }
+                            <span class="small text-muted ml-1">@DstLocalization.T("Channels_ShopOrders30", ViewBag.ShopOrders30)</span>
                         </div>
                     </div>
                     <div class="card">
@@ -133,6 +171,12 @@
             $('#cBotSave').on('click', function () {
                 dstPost('@Url.Action("SaveBot")', { botUsername: $('#cBot').val(), botPublicUrl: $('#cBotUrl').val() })
                     .done(function () { location.reload(); });
+            });
+            $('#sSave').on('click', function () {
+                dstPost('@Url.Action("SaveShop")', {
+                    enabled: $('#sEnabled').is(':checked'), signup: $('#sSignup').is(':checked'), showStock: $('#sStock').is(':checked'),
+                    userId: $('#sUser').val(), paymentNote: $('#sNote').val()
+                }).done(function () { dstNotify(); });
             });
         });
     </script>
